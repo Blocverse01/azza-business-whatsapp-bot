@@ -10,6 +10,7 @@ import {
     InteractiveNfmReplyActions,
     manageAssetActions,
     MORE_CURRENCIES_COMMAND_REGEX_PATTERN,
+    PhoneNumberParams,
     TriggerOfframpFromAddBeneficiaryActionParams,
     //WhatsAppInteractiveButton,
     WhatsAppInteractiveMessage,
@@ -52,8 +53,6 @@ import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
 import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
 import { getCountryFlagEmoji, getUserCountryCodeFromPhoneNumber } from '@/Resources/utils/currency';
-
-type PhoneNumberParams = { userPhoneNumber: string; businessPhoneNumberId: string };
 
 class WhatsAppBotService {
     private static WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;

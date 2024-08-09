@@ -28,6 +28,7 @@ import { CountryCode } from 'libphonenumber-js';
 import WhatsAppBotAddBeneficiaryFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotAddBeneficiaryFlowService';
 import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
 import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
+import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
 
 export type Message = {
     id: string;
@@ -179,19 +180,38 @@ class WhatsAppBotController {
         businessPhoneNumberId: string,
         displayName: string
     ) {
-        logger.info(`type of message : ${typeof message}`);
+        const { type, from, text, interactive } = message;
 
-        const { id, type, from, text, interactive } = message;
+        logger.info(`message data type: ${typeof message}`, {
+            message,
+        });
 
-        logger.info(`message : ${type}`);
+        const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
 
         // ============== HANDLE TEXT MESSAGES ============== //
         if (type === WhatsAppMessageType.TEXT) {
-            if (text.body.toLowerCase().includes(RATES_COMMAND)) {
+            const botCommand = BotCommandHandler.isCommand(text.body);
+
+            // Handle bot commands
+            if (botCommand) {
+                const response = await BotCommandHandler.handlePossibleCommand(
+                    text.body.toLowerCase(),
+                    phoneParams,
+                    displayName
+                );
+
+                if (response.handled) {
+                    return;
+                }
+            }
+
+            // Handle `rates` text message
+            if (text.body.toLowerCase() === RATES_COMMAND) {
                 await WhatsAppBotService.ratesCommandHandler(from, businessPhoneNumberId);
                 return;
             }
 
+            // Handle any other text message
             const user = await UserService.userExists(from);
 
             if (user) {
@@ -316,8 +336,6 @@ class WhatsAppBotController {
 
             // =========== HANDLE INTERACTIVE LIST REPLIES =========== //
             if (interactive.type === 'list_reply' && interactive.list_reply) {
-                const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
-
                 const { list_reply } = interactive;
 
                 const interactiveListId = list_reply.id;
@@ -386,10 +404,7 @@ class WhatsAppBotController {
 
                         if (tradeAction === ExploreAssetActions.SELL_ASSET) {
                             await WhatsAppBotService.offrampDestinationChoiceMessage(
-                                {
-                                    userPhoneNumber: from,
-                                    businessPhoneNumberId,
-                                },
+                                phoneParams,
                                 assetInteractiveId,
                                 countryCode
                             );
@@ -397,17 +412,11 @@ class WhatsAppBotController {
                         }
 
                         if (tradeAction === ExploreAssetActions.BUY_ASSET) {
-                            await WhatsAppBotService.beginOnrampFlowMessage(
-                                {
-                                    userPhoneNumber: from,
-                                    businessPhoneNumberId,
-                                },
-                                {
-                                    assetId: assetInteractiveId,
-                                    currencySymbol: currency,
-                                    countryCode: countryCode as CountryCode,
-                                }
-                            );
+                            await WhatsAppBotService.beginOnrampFlowMessage(phoneParams, {
+                                assetId: assetInteractiveId,
+                                currencySymbol: currency,
+                                countryCode: countryCode as CountryCode,
+                            });
                         }
 
                         return;
@@ -421,32 +430,20 @@ class WhatsAppBotController {
                         });
 
                         if (assetAction === 'sell') {
-                            await WhatsAppBotService.handleSellAssetAction(
-                                {
-                                    userPhoneNumber: from,
-                                    businessPhoneNumberId,
-                                },
-                                assetId
-                            );
+                            await WhatsAppBotService.handleSellAssetAction(phoneParams, assetId);
 
                             return;
                         }
 
                         if (assetAction === 'buy') {
-                            await WhatsAppBotService.handleBuyAssetAction(
-                                { userPhoneNumber: from, businessPhoneNumberId },
-                                assetId
-                            );
+                            await WhatsAppBotService.handleBuyAssetAction(phoneParams, assetId);
 
                             return;
                         }
 
                         if (assetAction === 'withdraw') {
                             await WhatsAppBotService.handleWithdrawAssetAction(
-                                {
-                                    userPhoneNumber: from,
-                                    businessPhoneNumberId,
-                                },
+                                phoneParams,
                                 assetId
                             );
                         }

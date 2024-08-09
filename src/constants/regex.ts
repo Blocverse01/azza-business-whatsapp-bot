@@ -14,6 +14,14 @@ export const SELL_ASSET_DESTINATION_CHOICE_REGEX =
 export const TRADE_ASSET_REGEX =
     /(?<assetActionId>[^:]+):(?<purchaseAssetId>[^|]+)\|currency:(?<currency>[^|]+)\|countryCode:(?<countryCode>[^|]+)/;
 
+export const BOT_COMMANDS_REGEX = {
+    RATES: /\/rates/,
+    SELL_ASSET: /\/sell\s+(?<asset>\w+)\s+(?<network>\w+)/, // e.g /sell usdt polygon
+    BUY_ASSET: /\/buy\s+(?<asset>\w+)\s+(?<network>\w+)/, // e.g /buy usdt polygon
+    ASSETS_MENU: /\/my_assets/,
+    HELP: /\/help/,
+};
+
 export type SellAssetToBeneficiaryMatchGroups = {
     sell: string;
     beneficiaryId: string;
@@ -30,6 +38,11 @@ export type TradeAssetMatchGroups = {
     purchaseAssetId: AssetInteractiveButtonIds;
     currency: string;
     countryCode: string;
+};
+
+export type TradeAssetBotCommandMatchGroups = {
+    asset: string;
+    network: string;
 };
 
 // generic function for extracting any regex groups, with a type parameter
@@ -61,4 +74,24 @@ export const extractSellAssetToBeneficiaryGroups = (
 
 export const extractTradeAssetGroups = (text: string): TradeAssetMatchGroups => {
     return extractGroups<TradeAssetMatchGroups>(text, TRADE_ASSET_REGEX);
+};
+
+export const extractTradeAssetBotCommandGroups = (
+    text: string,
+    regex: RegExp
+): TradeAssetBotCommandMatchGroups => {
+    return extractGroups<TradeAssetBotCommandMatchGroups>(text, regex);
+};
+
+export const matchAndExtractTradeAssetBotCommandGroups = (
+    text: string,
+    regex: RegExp
+): TradeAssetBotCommandMatchGroups | null => {
+    const match = text.match(regex);
+
+    if (!match) {
+        return null;
+    }
+
+    return match.groups as TradeAssetBotCommandMatchGroups;
 };

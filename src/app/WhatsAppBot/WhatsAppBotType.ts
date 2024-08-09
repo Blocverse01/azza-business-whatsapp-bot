@@ -198,3 +198,5 @@ export type TriggerOfframpFromAddBeneficiaryActionParams = {
         beneficiaryId: string;
     };
 };
+
+export type PhoneNumberParams = { userPhoneNumber: string; businessPhoneNumberId: string };
