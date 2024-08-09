@@ -232,14 +232,8 @@ class WhatsAppBotService {
             assetNetwork: string;
         }
     ) {
-        const {
-            usdDisplayBalance,
-            walletAddress,
-            listItemId,
-            tokenBalance,
-            assetName,
-            assetNetwork,
-        } = userAssetInfo;
+        const { usdDisplayBalance, listItemId, tokenBalance, assetName, assetNetwork } =
+            userAssetInfo;
 
         const interactiveListMessage = MessageGenerators.generateInteractiveListMessage({
             recipient,
@@ -248,8 +242,8 @@ class WhatsAppBotService {
                 title: assetAction.text,
                 description: assetAction.description,
             })),
-            bodyText: `Asset Balance 💰: ${tokenBalance}\n\nAsset Balance(USD) 💰: ${usdDisplayBalance}\n\nWallet Address: ${walletAddress}`,
-            headerText: `${assetName} (${assetNetwork.toUpperCase()})`,
+            bodyText: `\n*Asset Balance* 💰: ${tokenBalance}\n\n*Asset Balance(USD)* 💰: ${usdDisplayBalance}`,
+            headerText: `${assetName} (${assetNetwork})`,
             actionButtonText: 'Manage Asset',
         });
 
