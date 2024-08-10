@@ -305,11 +305,15 @@ class WhatsAppBotOnRampFlowService {
             };
         }
 
+        console.log('Starting to fetch quotes and payment methods', new Date().toISOString());
+
         const [{ rate: conversionRate, fee }, { countryFiatLimits: countryLimits }] =
             await Promise.all([
                 FiatRampService.getQuotes(local_currency, country_code as CountryCode, 'onramp'),
                 FiatRampService.getPaymentMethods(country_code as CountryCode, 'onramp'),
             ]);
+
+        console.log('Fetched quotes and payment methods', new Date().toISOString());
 
         const amountAsNumber = parseFloat(amount.trim());
         const transactionFee = defaultAmountFixer(amountAsNumber * fee);
