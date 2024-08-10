@@ -16,11 +16,13 @@ export const getCurrenciesResponseSchema = z.object({
 
 export type GetCurrenciesResponse = z.infer<typeof getCurrenciesResponseSchema>;
 
+const transactionFeesSchema = z.object({
+    onrampFeePercentage: z.number(),
+    offrampFeePercentage: z.number(),
+});
+
 export const getTransactionFeeResponseSchema = z.object({
-    data: z.object({
-        onrampFeePercentage: z.number(),
-        offrampFeePercentage: z.number(),
-    }),
+    data: transactionFeesSchema,
 });
 
 export type GetTransactionFeeResponse = z.infer<typeof getTransactionFeeResponseSchema>;
@@ -43,6 +45,15 @@ export const getAllRatesResponseSchema = z.object({
 });
 
 export type GetAllRatesResponse = z.infer<typeof getAllRatesResponseSchema>;
+
+export const getQuoteResponseSchema = z.object({
+    data: z.object({
+        rate: ratesSchema,
+        fees: transactionFeesSchema,
+    }),
+});
+
+export type GetQuoteResponse = z.infer<typeof getQuoteResponseSchema>;
 
 export const getPaymentMethodsResponseSchema = z.object({
     data: z.object({

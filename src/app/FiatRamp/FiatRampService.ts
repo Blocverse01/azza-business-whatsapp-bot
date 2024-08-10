@@ -11,6 +11,7 @@ import {
     GET_OFFRAMP_TRANSACTION,
     GET_ONRAMP_TRANSACTION,
     GET_PAYMENT_CHANNELS,
+    GET_QUOTE,
     GET_RATES,
     GET_SUPPORTED_CURRENCIES,
     GET_TRANSACTION_FEE,
@@ -28,6 +29,7 @@ import {
     GetCurrenciesResponse,
     GetMobileProvidersResponse,
     GetPaymentMethodsResponse,
+    GetQuoteResponse,
     GetRateResponse,
     GetSupportedBanksResponse,
     GetTransactionFeeResponse,
@@ -123,16 +125,22 @@ class FiatRampService {
         countryCode: CountryCode,
         route: 'onramp' | 'offramp'
     ) {
-        const [rates, fee] = await Promise.all([
-            this.getRates(currencySymbol),
-            this.getTransactionFee(countryCode, route),
-        ]);
+        const queryParams = new URLSearchParams({
+            currency: currencySymbol,
+            country: countryCode,
+        });
+        const endpoint = `${this.API_URL}${GET_QUOTE}?${queryParams.toString()}`;
+        const response = await axios.get<GetQuoteResponse>(endpoint);
 
-        const rate = route === 'onramp' ? rates.buy : rates.sell;
+        const data = response.data.data;
+
+        const rate = route === 'onramp' ? data.rate.buy : data.rate.sell;
+        const feePercentage =
+            route === 'onramp' ? data.fees.onrampFeePercentage : data.fees.offrampFeePercentage;
 
         return {
             rate,
-            fee,
+            fee: defaultAmountFixer(feePercentage / HUNDRED),
         };
     }
 

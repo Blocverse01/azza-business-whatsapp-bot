@@ -6,6 +6,7 @@ export const GET_PAYMENT_CHANNELS = FIAT_RAMPS + '/get-supported-channels';
 export const GET_RATES = FIAT_RAMPS + '/get-rate';
 export const GET_ALL_RATES = FIAT_RAMPS + '/get-all-rates';
 export const GET_MOBILE_PROVIDERS = FIAT_RAMPS + '/get-supported-mobile-providers';
+export const GET_QUOTE = FIAT_RAMPS + '/quote';
 
 // ONRAMP (BUY CRYPTO)
 export const POST_ONRAMP = FIAT_RAMPS + '/on-ramp';
