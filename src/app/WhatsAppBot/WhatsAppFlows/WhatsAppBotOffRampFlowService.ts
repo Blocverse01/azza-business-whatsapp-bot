@@ -3,7 +3,7 @@ import {
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { AssetConfig, TokenNames } from '@/Resources/web3/tokens';
+import { TokenNames } from '@/Resources/web3/tokens';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import {
     BankBeneficiary,
@@ -25,7 +25,7 @@ import { ProcessOfframpInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlow
 import { spawn } from 'child_process';
 import path from 'path';
 import { generateRandomHexString } from '@/Resources/utils/encryption';
-import { SIXTEEN, THREE } from '@/constants/numbers';
+import { SIXTEEN, THREE, TWO } from '@/constants/numbers';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { UserAssetInfo } from '@/app/User/userSchema';
@@ -33,6 +33,8 @@ import { generateOfframpProcessingMessage } from '@/Resources/utils/bot-message-
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import env from '@/constants/env';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { CountryCode } from 'libphonenumber-js';
 
 enum OffRampFlowScreens {
     AMOUNT_INPUT = 'AMOUNT_INPUT',
@@ -83,7 +85,7 @@ type AmountInputScreenData = {
     user_balance: string;
     amount_denomination_label: string;
     error_messages?: {
-        amount: string;
+        amount?: string;
     };
     conversion_rate: string;
     fee: string;
@@ -156,10 +158,10 @@ class WhatsAppBotOffRampFlowService {
 
     private static generateTokenAmountPattern(
         amount: number,
-        asset: AssetConfig,
+        asset: UserAssetInfo,
         transactionFee: number
     ) {
-        const tokenAmount: TokenAmountPattern = `${amount} ${asset.tokenName} (${asset.network})${SECTION_SEPARATOR}Fee = ${transactionFee} ${asset.tokenName}`;
+        const tokenAmount: TokenAmountPattern = `${amount} ${asset.assetName} (${asset.assetNetwork})${SECTION_SEPARATOR}Fee = ${transactionFee} ${asset.assetName}`;
 
         return tokenAmount;
     }
@@ -167,10 +169,10 @@ class WhatsAppBotOffRampFlowService {
     private static generateFiatToReceivePattern(
         rate: number,
         currency: string,
-        asset: AssetConfig,
+        asset: UserAssetInfo,
         fiatAmount: number
     ) {
-        return `${formatNumberAsCurrency(fiatAmount, currency)}${SECTION_SEPARATOR}1 ${asset.tokenName} = ${formatNumberAsCurrency(rate, currency)}` satisfies FiatToReceivePattern;
+        return `${formatNumberAsCurrency(fiatAmount, currency)}${SECTION_SEPARATOR}1 ${asset.assetName} = ${formatNumberAsCurrency(rate, currency)}` satisfies FiatToReceivePattern;
     }
 
     private static generateDestinationString(
@@ -193,8 +195,10 @@ class WhatsAppBotOffRampFlowService {
             conversion_rate,
             fee: feeString,
         } = input;
-
-        const assetConfig = getAssetConfigOrThrow(asset_id);
+        const [{ countryFiatLimits: countryLimits }, assetWallet] = await Promise.all([
+            FiatRampService.getPaymentMethods(beneficiary.country_code as CountryCode, 'offramp'),
+            UserService.getUserAssetInfo(user_id, asset_id),
+        ]);
 
         const [conversionRate, fee, amountAsNumber] = [
             parseFloat(conversion_rate),
@@ -207,16 +211,93 @@ class WhatsAppBotOffRampFlowService {
                 ? amountAsNumber / conversionRate
                 : amountAsNumber;
 
+        const [minLimit, maxLimit] = [
+            amount_denomination === beneficiary.currency_symbol
+                ? countryLimits.min
+                : countryLimits.min / conversionRate,
+            countryLimits.max / conversionRate,
+        ];
+
+        // Asset Config
+        const { assetName, assetNetwork, tokenBalance } = assetWallet;
+
+        const errorMessages: AmountInputScreenData['error_messages'] = {};
+
+        const amountLessThanLimit =
+            amount_denomination === beneficiary.currency_symbol
+                ? amountAsNumber < minLimit
+                : usdAmount < minLimit;
+        const amountGreaterThanLimit =
+            amount_denomination === beneficiary.currency_symbol
+                ? amountAsNumber > maxLimit
+                : usdAmount > maxLimit;
+
+        if (amountLessThanLimit) {
+            errorMessages.amount =
+                amount_denomination === beneficiary.currency_symbol
+                    ? `Amount must be greater than ${formatNumberAsCurrency(fixNumber(minLimit, TWO), beneficiary.currency_symbol)}`
+                    : `Amount must be greater than ${prettifyNumber(minLimit, TWO)} ${assetName}`;
+        }
+        if (amountGreaterThanLimit) {
+            errorMessages.amount =
+                amount_denomination === beneficiary.currency_symbol
+                    ? `Amount must be less than ${formatNumberAsCurrency(fixNumber(maxLimit, TWO), beneficiary.currency_symbol)}`
+                    : `Amount must be less than ${prettifyNumber(maxLimit, TWO)} ${assetName}`;
+        }
+
+        if (Object.keys(errorMessages).length > 0) {
+            const userBalance = parseFloat(tokenBalance);
+            const userBalanceFormatted = prettifyNumber(userBalance) + ' ' + assetName;
+            const userBalanceInFiat = formatNumberAsCurrency(
+                fixNumber(userBalance * conversionRate, THREE),
+                beneficiary.currency_symbol
+            );
+
+            const userBalanceMessage = `Your balance:\n${userBalanceFormatted} (${userBalanceInFiat})`;
+
+            const assetLabel = `${assetName} (${assetNetwork})`;
+            const sellMessage = `Sell ${assetLabel} for ${getCountryFlagEmoji(beneficiary.country_code)} ${beneficiary.currency_symbol}`;
+
+            return {
+                screen: OffRampFlowScreens.AMOUNT_INPUT,
+                data: {
+                    dynamic_page_title: sellMessage,
+                    asset_label: assetLabel,
+                    asset_id: assetWallet.listItemId,
+                    user_id,
+                    beneficiary: beneficiary,
+                    amount_denomination_label: 'Provide amount in',
+                    amount_denominations: [
+                        {
+                            id: assetName,
+                            title: assetName,
+                        },
+                        {
+                            id: beneficiary.currency_symbol,
+                            title: beneficiary.currency_symbol,
+                        },
+                    ],
+                    user_balance: userBalanceMessage,
+                    conversion_rate,
+                    fee: feeString,
+                    init_values: {
+                        amount_denomination,
+                    },
+                    error_messages: errorMessages,
+                } satisfies AmountInputScreenData,
+            };
+        }
+
         const transactionFee = fixNumber(usdAmount * fee, THREE);
 
         const token_amount: TokenAmountPattern = this.generateTokenAmountPattern(
             fixNumber(usdAmount, THREE),
-            assetConfig,
+            assetWallet,
             transactionFee
         );
         const amountToDebit = defaultAmountFixer(usdAmount + transactionFee);
 
-        const token_amount_to_debit: TokenAmountToDebitPattern = `${amountToDebit} ${assetConfig.tokenName}`;
+        const token_amount_to_debit: TokenAmountToDebitPattern = `${amountToDebit} ${assetName}`;
 
         const destination_account = this.generateDestinationString(beneficiary);
 
@@ -225,7 +306,7 @@ class WhatsAppBotOffRampFlowService {
         const fiat_to_receive: FiatToReceivePattern = this.generateFiatToReceivePattern(
             conversionRate,
             beneficiary.currency_symbol,
-            assetConfig,
+            assetWallet,
             fiatEquivalent
         );
 
