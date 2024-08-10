@@ -235,14 +235,14 @@ class WhatsAppBotOffRampFlowService {
         if (amountLessThanLimit) {
             errorMessages.amount =
                 amount_denomination === beneficiary.currency_symbol
-                    ? `Amount must be greater than ${formatNumberAsCurrency(fixNumber(minLimit, TWO), beneficiary.currency_symbol)}`
-                    : `Amount must be greater than ${prettifyNumber(minLimit, TWO)} ${assetName}`;
+                    ? `Amount must be at least ${formatNumberAsCurrency(fixNumber(minLimit, TWO), beneficiary.currency_symbol)}`
+                    : `Amount must be at least ${prettifyNumber(minLimit, TWO)} ${assetName}`;
         }
         if (amountGreaterThanLimit) {
             errorMessages.amount =
                 amount_denomination === beneficiary.currency_symbol
-                    ? `Amount must be less than ${formatNumberAsCurrency(fixNumber(maxLimit, TWO), beneficiary.currency_symbol)}`
-                    : `Amount must be less than ${prettifyNumber(maxLimit, TWO)} ${assetName}`;
+                    ? `Amount must not exceed ${formatNumberAsCurrency(fixNumber(maxLimit, TWO), beneficiary.currency_symbol)}`
+                    : `Amount must not exceed ${prettifyNumber(maxLimit, TWO)} ${assetName}`;
         }
 
         if (Object.keys(errorMessages).length > 0) {
