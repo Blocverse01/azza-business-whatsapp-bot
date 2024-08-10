@@ -7,12 +7,13 @@ import {
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { generateRandomHexString } from '@/Resources/utils/encryption';
-import { SIXTEEN } from '@/constants/numbers';
+import { SIXTEEN, TWO } from '@/constants/numbers';
 import logger from '@/Resources/logger';
 import {
     defaultAmountFixer,
     formatNumberAsCurrency,
     getCountryFlagEmoji,
+    prettifyNumber,
 } from '@/Resources/utils/currency';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
@@ -304,16 +305,56 @@ class WhatsAppBotOnRampFlowService {
             };
         }
 
-        const { rate: conversionRate, fee } = await FiatRampService.getQuotes(
-            local_currency,
-            country_code as CountryCode,
-            'onramp'
-        );
+        const [{ rate: conversionRate, fee }, { countryFiatLimits: countryLimits }] =
+            await Promise.all([
+                FiatRampService.getQuotes(local_currency, country_code as CountryCode, 'onramp'),
+                FiatRampService.getPaymentMethods(country_code as CountryCode, 'onramp'),
+            ]);
 
         const amountAsNumber = parseFloat(amount.trim());
         const transactionFee = defaultAmountFixer(amountAsNumber * fee);
         const totalAmount = defaultAmountFixer(amountAsNumber + transactionFee);
         const fiatEquivalent = defaultAmountFixer(totalAmount * conversionRate);
+
+        const [minLimit, maxLimit] = [
+            countryLimits.min / conversionRate,
+            countryLimits.max / conversionRate,
+        ];
+
+        if (amountAsNumber < minLimit) {
+            errorMessages.amount = `Amount must be at least ${prettifyNumber(minLimit, TWO)} ${assetConfig.tokenName}`;
+        }
+        if (amountAsNumber > maxLimit) {
+            errorMessages.amount = `Amount must be at most ${prettifyNumber(maxLimit, TWO)} ${assetConfig.tokenName}`;
+        }
+
+        /**
+         * @dev This is duplicated down because, instead of waiting till this point to return an error, we want to break out as soon as we find an error, to avoid unnecessary API calls.
+         * Usually it would make sense to do all the checks at once, but in this case, we want to avoid unnecessary API calls for quotes and limits, if the initial amount or wallet_address checks fail.
+         * */
+        if (Object.keys(errorMessages).length > 0) {
+            const assetLabel = `${assetConfig.tokenName} (${assetConfig.network})`;
+
+            return {
+                screen: OnRampFlowScreens.TRANSACTION_DETAILS,
+                data: {
+                    dynamic_page_title: `Buy ${assetLabel} with ${getCountryFlagEmoji(country_code)} ${local_currency}`,
+                    payment_methods,
+                    asset_label: `${assetLabel}`,
+                    asset_id,
+                    user_id,
+                    local_currency,
+                    country_code,
+                    init_values: {
+                        payment_method,
+                        wallet_address,
+                        amount,
+                    },
+                    error_messages: errorMessages,
+                    amount_input_label: `Amount (${assetConfig.tokenName})`,
+                } satisfies ScreenPayload['TRANSACTION_DETAILS'],
+            };
+        }
 
         const token_amount: TokenAmountPattern = this.generateTokenAmountPattern(
             amountAsNumber,
