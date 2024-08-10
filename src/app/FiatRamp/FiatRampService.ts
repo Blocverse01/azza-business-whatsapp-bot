@@ -156,8 +156,6 @@ class FiatRampService {
 
         const limits = response.data.data.limits;
 
-        console.log(limits);
-
         return {
             paymentChannels: response.data.data.channels,
             countryFiatLimits: limits,

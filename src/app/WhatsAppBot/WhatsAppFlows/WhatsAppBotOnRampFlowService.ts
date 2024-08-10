@@ -326,10 +326,10 @@ class WhatsAppBotOnRampFlowService {
         ];
 
         if (amountAsNumber < minLimit) {
-            errorMessages.amount = `Amount must be at least ${prettifyNumber(minLimit, TWO)} ${assetConfig.tokenName}`;
+            errorMessages.amount = `Amount must be greater than ${prettifyNumber(minLimit, TWO)} ${assetConfig.tokenName}`;
         }
         if (amountAsNumber > maxLimit) {
-            errorMessages.amount = `Amount must be at most ${prettifyNumber(maxLimit, TWO)} ${assetConfig.tokenName}`;
+            errorMessages.amount = `Amount must be less than ${prettifyNumber(maxLimit, TWO)} ${assetConfig.tokenName}`;
         }
 
         /**
