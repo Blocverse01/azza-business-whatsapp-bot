@@ -215,7 +215,9 @@ class WhatsAppBotOffRampFlowService {
             amount_denomination === beneficiary.currency_symbol
                 ? countryLimits.min
                 : countryLimits.min / conversionRate,
-            countryLimits.max / conversionRate,
+            amount_denomination === beneficiary.currency_symbol
+                ? countryLimits.max
+                : countryLimits.max / conversionRate,
         ];
 
         // Asset Config
