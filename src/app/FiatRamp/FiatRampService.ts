@@ -130,7 +130,9 @@ class FiatRampService {
             country: countryCode,
         });
         const endpoint = `${this.API_URL}${GET_QUOTE}?${queryParams.toString()}`;
-        const response = await axios.get<GetQuoteResponse>(endpoint);
+        const response = await axios.get<GetQuoteResponse>(endpoint, {
+            headers: this.requiredRequestHeaders,
+        });
 
         const data = response.data.data;
 
