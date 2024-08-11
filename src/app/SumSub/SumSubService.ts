@@ -88,7 +88,7 @@ class SumSubService {
 
     private static readonly BASE_API_URL = 'https://api.sumsub.com';
 
-    private static readonly KYC_LEVEL_NAME = 'Azza users verification' as const;
+    private static readonly KYC_LEVEL_NAME = 'Azza-verification' as const;
 
     private static readonly API_TTL_IN_SECS = 600;
 
