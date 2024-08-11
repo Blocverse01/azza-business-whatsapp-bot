@@ -1,4 +1,4 @@
-import { dbClient } from '@/Db/dbClient';
+import { dbClient, sqlClient } from '@/Db/dbClient';
 import {
     CreateCryptoPayoutOrderParams,
     CryptoPayoutAuthorizationPayload,
@@ -13,9 +13,12 @@ import {
 } from '@/Resources/utils/encryption';
 import env from '@/constants/env';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { ZERO } from '@/constants/numbers';
+import { CryptoPayoutOrder } from '@/Db/xata';
 
 class CryptoPayoutService {
-    private static cryptoPayoutOrderRepository = dbClient.CryptoPayoutOrder;
+    private static readonly cryptoPayoutOrderRepository = dbClient.CryptoPayoutOrder;
+    private static readonly ORDER_REFERENCE_LENGTH = 24;
 
     private static generateOnrampCryptoPayoutOrderReference(onrampTransactionId: string) {
         const cryptoPayoutTrigger = {
@@ -39,6 +42,20 @@ class CryptoPayoutService {
         return cryptoPayoutAuthorizationPayloadSchema.parse(JSON.parse(decryptedPayload));
     }
 
+    public static validateCryptoPayoutOrder(
+        cryptoPayoutOrderReference: string,
+        orderAuthorityToken: string
+    ) {
+        const referenceIsValid =
+            cryptoPayoutOrderReference ===
+            orderAuthorityToken.slice(ZERO, this.ORDER_REFERENCE_LENGTH);
+
+        const orderAuthorityTokenIsValid =
+            this.validateCryptoPayoutAuthorizationPayload(orderAuthorityToken);
+
+        return referenceIsValid && orderAuthorityTokenIsValid;
+    }
+
     public static async createOnrampCryptoPayoutOrder(params: CreateCryptoPayoutOrderParams) {
         const onrampTransactionStatus = await FiatRampService.getTransactionStatus(
             params.triggerTransactionId,
@@ -52,7 +69,10 @@ class CryptoPayoutService {
         const cryptoPayoutOrderAuthorityToken = this.generateOnrampCryptoPayoutOrderReference(
             params.triggerTransactionId
         );
-        const cryptoPayoutOrderReference = cryptoPayoutOrderAuthorityToken.slice(0, 24);
+        const cryptoPayoutOrderReference = cryptoPayoutOrderAuthorityToken.slice(
+            ZERO,
+            this.ORDER_REFERENCE_LENGTH
+        );
 
         const { triggerTransactionId, ...cryptoPayoutOrderParams } = params;
 
@@ -60,6 +80,39 @@ class CryptoPayoutService {
             ...cryptoPayoutOrderParams,
             orderAuthorityToken: cryptoPayoutOrderAuthorityToken,
             status: CryptoPayoutOrderStatus.PENDING,
+        });
+    }
+
+    public static async getOnrampCryptoPayoutOrder(cryptoPayoutOrderReference: string) {
+        return await this.cryptoPayoutOrderRepository.read(cryptoPayoutOrderReference);
+    }
+
+    public static async updateCryptoPayoutOrdersStatus(
+        orderIds: string[],
+        status: CryptoPayoutOrderStatus
+    ) {
+        let query = `Update "CryptoPayoutOrder" set "status" = ${status} where "id" in ` + `(`;
+
+        orderIds.forEach((x) => {
+            query += `'${x}', `;
+        });
+        query = query.slice(0, -2) + `)`;
+
+        return await sqlClient<CryptoPayoutOrder>({
+            statement: query,
+        });
+    }
+
+    public static async getValidPendingCryptoPayoutOrders() {
+        const pendingCryptoPayoutOrders = await this.cryptoPayoutOrderRepository
+            .filter({
+                status: CryptoPayoutOrderStatus.PENDING,
+            })
+            .getAll();
+
+        return pendingCryptoPayoutOrders.filter((payoutOrder) => {
+            const { id, orderAuthorityToken } = payoutOrder;
+            return this.validateCryptoPayoutOrder(id, orderAuthorityToken);
         });
     }
 }

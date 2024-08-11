@@ -96,3 +96,23 @@ export const tokenBalanceResponseItem = z.object({
 export const tokenBalancesResponse = z.array(tokenBalanceResponseItem);
 
 export type TokenBalancesResponse = z.infer<typeof tokenBalancesResponse>;
+
+export const batchTransferTokenParams = z
+    .object({
+        network: supportedChainSchema,
+        from: z.string(),
+        token: z.string(),
+        transfers: z.array(
+            z.object({
+                recipient: z.string(),
+                amount: z.string(),
+            })
+        ),
+        developer_secret: z.string().optional(),
+        user_pin: z.string().optional(),
+    })
+    .refine((data) => {
+        return data.developer_secret || data.user_pin;
+    }, 'developer_secret or user_pin should be provided');
+
+export type BatchTransferTokenParams = z.infer<typeof batchTransferTokenParams>;

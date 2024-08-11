@@ -11,3 +11,4 @@ export const TRANSACTION_STATUS_BY_ID = TRANSACTIONS + '/status-by-id';
 export const TOKENS = '/tokens';
 export const TRANSFER_TOKEN = TOKENS + '/transfer';
 export const GET_TOKEN_BALANCES = TOKENS + '/balances';
+export const BATCH_TRANSFER_TOKEN = TOKENS + '/batch-transfer';

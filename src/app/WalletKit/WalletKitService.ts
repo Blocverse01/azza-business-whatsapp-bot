@@ -11,8 +11,10 @@ import {
     transferTokenParams,
     TransferTokenParams,
     TokenBalancesResponse,
+    BatchTransferTokenParams,
 } from '@/app/WalletKit/walletKitSchema';
 import {
+    BATCH_TRANSFER_TOKEN,
     GET_TOKEN_BALANCES,
     GET_WALLET_BY_OWNER_ID,
     SIGN_AND_SEND_TRANSACTION,
@@ -157,6 +159,16 @@ class WalletKitService {
         );
 
         return tokenBalance?.display_balance ?? '0';
+    }
+
+    public static async batchTransferToken(params: BatchTransferTokenParams) {
+        const requestUrl = `${this.API_URL}${BATCH_TRANSFER_TOKEN}`;
+
+        const response = await axios.post<TransactionResponse>(requestUrl, params, {
+            headers: this.requiredRequestHeaders,
+        });
+
+        return response.data;
     }
 }
 

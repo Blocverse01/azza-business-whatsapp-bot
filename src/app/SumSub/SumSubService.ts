@@ -88,11 +88,11 @@ class SumSubService {
 
     private static readonly BASE_API_URL = 'https://api.sumsub.com';
 
-    private static readonly KYC_LEVEL_NAME = 'basic-kyc-level' as const;
+    private static readonly KYC_LEVEL_NAME = 'Azza users verification' as const;
 
     private static readonly API_TTL_IN_SECS = 600;
 
-    public static readonly SERVICE_IS_ACTIVE = false;
+    public static readonly SERVICE_IS_ACTIVE = true;
 
     private static generateAccessSignature(input: AccessSignatureInput) {
         const sha256Hash = crypto.createHmac('sha256', this.APP_TOKEN_SECRET);
