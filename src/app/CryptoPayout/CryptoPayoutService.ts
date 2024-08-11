@@ -60,6 +60,4 @@ class CryptoPayoutService {
             status: CryptoPayoutOrderStatus.PENDING,
         });
     }
-
-    public static async;
 }
