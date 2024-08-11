@@ -47,6 +47,15 @@ const envSchema = z.object({
     WA_FLOW_PRIVATE_KEY: notEmptyStringSchema('WA_FLOW_PRIVATE_KEY'),
     WA_FLOW_PRIVATE_KEY_SEED_PHRASE: notEmptyStringSchema('WA_FLOW_PRIVATE_KEY_SEED_PHRASE'),
     TRANSACTION_FEE_RECIPIENT: notEmptyStringSchema('TRANSACTION_FEE_RECIPIENT'),
+    CRYPTO_PAYOUT_AUTHORIZER_PRIVATE_KEY: notEmptyStringSchema(
+        'CRYPTO_PAYOUT_AUTHORIZER_PRIVATE_KEY'
+    ),
+    CRYPTO_PAYOUT_AUTHORIZER_PUBLIC_KEY: notEmptyStringSchema(
+        'CRYPTO_PAYOUT_AUTHORIZER_PUBLIC_KEY'
+    ),
+    CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE: notEmptyStringSchema(
+        'CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE'
+    ),
 });
 
 const env = envSchema.parse(process.env);

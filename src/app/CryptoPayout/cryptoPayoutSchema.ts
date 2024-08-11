@@ -1,0 +1,33 @@
+import { z } from 'zod';
+import { TokenNames } from '@/Resources/web3/tokens';
+import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
+
+export enum CryptoPayoutOrderStatus {
+    PENDING = 1,
+    PROCESSING = 2,
+    COMPLETED = 3,
+    FAILED = -1,
+}
+
+export enum CryptoPayoutReasons {
+    ONRAMP = 'ONRAMP',
+}
+
+export const cryptoPayoutAuthorizationPayloadSchema = z.object({
+    reason: z.nativeEnum(CryptoPayoutReasons),
+    triggerTransactionId: z.string(),
+});
+
+export type CryptoPayoutAuthorizationPayload = z.infer<
+    typeof cryptoPayoutAuthorizationPayloadSchema
+>;
+
+export const createCryptoPayoutOrderSchema = z.object({
+    tokenSymbol: z.enum([TokenNames.USDT, TokenNames.USDC]),
+    amount: z.number(),
+    destinationWalletAddress: z.string(),
+    network: supportedChainSchema,
+    triggerTransactionId: z.string(),
+});
+
+export type CreateCryptoPayoutOrderParams = z.infer<typeof createCryptoPayoutOrderSchema>;

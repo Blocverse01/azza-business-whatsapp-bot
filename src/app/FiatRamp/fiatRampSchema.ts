@@ -105,6 +105,7 @@ export const onrampTransactionPayloadSchema = z.object({
         address: z.string().optional(),
         country: z.string(),
     }),
+    customerId: z.string(),
 });
 
 export type OnrampTransactionPayload = z.infer<typeof onrampTransactionPayloadSchema>;

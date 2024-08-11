@@ -145,6 +145,7 @@ describe('FiatRampService', () => {
                     tokenName: 'USDT',
                     userWalletAddress: '0x2C0a6a30fAe9872513609819f667efA7e539021E',
                     userDetails: userDetails,
+                    customerId: '2348143100808',
                 };
 
                 const response = await FiatRampService.postOnRampTransaction(transactionPayload);

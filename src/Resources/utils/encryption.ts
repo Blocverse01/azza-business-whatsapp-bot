@@ -60,6 +60,38 @@ export const encryptResponse = (
     ]).toString('base64');
 };
 
+export const encryptWithPublicKey = (data: string, publicKey: string) => {
+    const buffer = Buffer.from(data);
+    return crypto
+        .publicEncrypt(
+            {
+                key: publicKey,
+                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+                oaepHash: 'sha256',
+            },
+            buffer
+        )
+        .toString('base64');
+};
+
+export function decryptWithPrivateKey(
+    encryptedData: string,
+    privateKey: string,
+    passphrase: string
+): any {
+    return crypto
+        .privateDecrypt(
+            {
+                key: privateKey,
+                passphrase: passphrase,
+                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+                oaepHash: 'sha256',
+            },
+            Buffer.from(encryptedData, 'base64')
+        )
+        .toString();
+}
+
 export const convertBase64ToAsciiString = (key: string) =>
     Buffer.from(key, 'base64').toString('ascii');
 export const convertAsciiStringToBase64 = (key: string) => Buffer.from(key).toString('base64');

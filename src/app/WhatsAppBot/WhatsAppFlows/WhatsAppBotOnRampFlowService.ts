@@ -502,6 +502,7 @@ class WhatsAppBotOnRampFlowService {
                     channelId: transaction_details.channel_id,
                     country: country_code,
                     userDetails: verifiedUserDetails,
+                    customerId: user_id,
                 });
 
                 if (onrampResponse.bankInfo === undefined) {
@@ -690,6 +691,7 @@ class WhatsAppBotOnRampFlowService {
                 localAmount: parseFloat(transaction_details.fiat_to_pay),
                 chainName: assetWallet.network.toUpperCase(),
                 tokenName: assetWallet.name,
+                customerId: user_id,
             });
 
             const message = generateOnrampTransactionInitiatedWithMomoPaymentMessage({
