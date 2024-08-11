@@ -1,4 +1,4 @@
-import { APP_NAME } from '@/config/whatsAppBot';
+const APP_NAME = 'Azza';
 
 export enum WhatsAppMessageType {
     TEXT = 'text',

@@ -29,5 +29,3 @@ export const getAssetConfigOrThrow = (listItemId: string): AssetConfig => {
 
     return assetConfig;
 };
-
-export const APP_NAME = 'Azza';
