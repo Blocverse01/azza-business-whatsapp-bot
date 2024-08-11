@@ -208,7 +208,8 @@ class WhatsAppBotService {
                                 }
                                 return {
                                     id: `sell:${assetId}|beneficiaryId:${beneficiary.id}`,
-                                    title: title,
+                                    // if title is more than 24 characters, truncate with ...
+                                    title: title.length > 24 ? `${title.slice(0, 21)}...` : title,
                                     description: description,
                                 };
                             }),

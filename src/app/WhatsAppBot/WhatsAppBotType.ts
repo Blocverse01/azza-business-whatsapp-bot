@@ -1,3 +1,5 @@
+import { APP_NAME } from '@/config/whatsAppBot';
+
 export enum WhatsAppMessageType {
     TEXT = 'text',
     STICKER = 'sticker',
@@ -126,12 +128,12 @@ export const manageAssetActions: Array<AssetAction> = [
     {
         text: 'Deposit From Wallet',
         action: ExploreAssetActions.DEPOSIT,
-        description: 'Deposit crypto asset from a wallet outside BlocPal',
+        description: `Deposit crypto asset from a wallet outside ${APP_NAME}`,
     },
     {
         text: 'Withdraw To Wallet',
         action: ExploreAssetActions.WITHDRAW_ASSET,
-        description: 'Send crypto asset to a wallet outside BlocPal',
+        description: `Send crypto asset to a wallet outside ${APP_NAME}`,
     },
     {
         text: 'Sell',

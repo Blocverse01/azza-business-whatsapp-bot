@@ -205,14 +205,14 @@ describe('FiatRampService', () => {
                 );
 
                 const choiceBank = supportedBanks.find(
-                    (bank) => bank.slug.toLowerCase() === 'guaranty-trust-bank'
+                    (bank) => bank.slug.toLowerCase() === 'access-bank'
                 );
 
                 if (!choiceBank) {
                     throw new Error('Bank not found');
                 }
 
-                const ownerId = '2348146843432';
+                const ownerId = '2349057774260';
 
                 const beneficiaryId = await FiatRampService.createBeneficiary(
                     ownerId,
@@ -221,8 +221,8 @@ describe('FiatRampService', () => {
                     {
                         beneficiary: {
                             countryId: 'rec_ckhg3eg7afgqhtu4ijj0',
-                            accountName: 'Victor Eluke',
-                            accountNumber: '0899632169',
+                            accountName: 'Onyewuchi Esther',
+                            accountNumber: '1704545925',
                             bankName: choiceBank.name,
                             channelId: choiceBank.channelId,
                             networkId: choiceBank.networkId,
