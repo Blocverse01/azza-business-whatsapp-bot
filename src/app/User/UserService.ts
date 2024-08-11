@@ -117,9 +117,7 @@ class UserService {
     }
 
     public static async createUserWallets(phoneNumber: string) {
-        const [Polygon, Base] = SUPPORTED_CHAINS;
-
-        const promises = [Polygon, Base].map((chain) =>
+        const promises = SUPPORTED_CHAINS.map((chain) =>
             WalletKitService.createUserWallet({
                 name: `${chain} Wallet`,
                 owner_id: phoneNumber,

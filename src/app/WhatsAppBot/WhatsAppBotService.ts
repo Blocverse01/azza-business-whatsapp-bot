@@ -56,6 +56,7 @@ import { getCountryFlagEmoji, getUserCountryCodeFromPhoneNumber } from '@/Resour
 
 class WhatsAppBotService {
     private static WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
+    private static readonly SHOULD_REQUEST_KYC_FOR_OFFRAMP = false;
 
     private static getRequestConfig() {
         return {
@@ -733,7 +734,7 @@ class WhatsAppBotService {
         phoneParams: PhoneNumberParams,
         assetId: AssetInteractiveButtonIds
     ) {
-        if (SumSubService.SERVICE_IS_ACTIVE) {
+        if (SumSubService.SERVICE_IS_ACTIVE && this.SHOULD_REQUEST_KYC_FOR_OFFRAMP) {
             const userKycStatus = await UserService.getUserKycStatus(phoneParams.userPhoneNumber);
 
             if (
