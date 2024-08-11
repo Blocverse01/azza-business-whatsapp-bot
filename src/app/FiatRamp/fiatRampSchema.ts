@@ -282,6 +282,7 @@ export const transactionWebhookPayloadSchema = z.object({
     tokenName: z.string(),
     localCurrencySymbol: z.string(),
     beneficiaryId: z.string().optional(),
+    destinationWalletAddress: z.string().optional(),
 });
 
 export type TransactionWebhookPayload = z.infer<typeof transactionWebhookPayloadSchema>;

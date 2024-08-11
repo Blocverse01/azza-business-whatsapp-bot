@@ -55,6 +55,12 @@ const tables = [
       },
       { name: "status", type: "int", notNull: true, defaultValue: "1" },
       { name: "payoutTransactionHash", type: "text" },
+      {
+        name: "orderAuthorityToken",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
     ],
   },
 ] as const;

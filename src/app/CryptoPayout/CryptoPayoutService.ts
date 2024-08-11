@@ -49,15 +49,19 @@ class CryptoPayoutService {
             throw new Error('Onramp transaction is not completed');
         }
 
-        const cryptoPayoutOrderReference = this.generateOnrampCryptoPayoutOrderReference(
+        const cryptoPayoutOrderAuthorityToken = this.generateOnrampCryptoPayoutOrderReference(
             params.triggerTransactionId
         );
+        const cryptoPayoutOrderReference = cryptoPayoutOrderAuthorityToken.slice(0, 24);
 
         const { triggerTransactionId, ...cryptoPayoutOrderParams } = params;
 
         return await this.cryptoPayoutOrderRepository.create(cryptoPayoutOrderReference, {
             ...cryptoPayoutOrderParams,
+            orderAuthorityToken: cryptoPayoutOrderAuthorityToken,
             status: CryptoPayoutOrderStatus.PENDING,
         });
     }
 }
+
+export default CryptoPayoutService;

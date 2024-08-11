@@ -5,6 +5,10 @@ import { handleRequestError } from '@/Resources/requestHelpers/handleRequestErro
 import { prettifyNumber } from '@/Resources/utils/currency';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import logger from '@/Resources/logger';
+import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
+import { SUPPORTED_CHAINS } from '@/app/WalletKit/walletKitSchema';
+import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
+import { TokenNames } from '@/Resources/web3/tokens';
 
 class FiatRampServiceController {
     // TODO: replace with better authorization guards
@@ -59,6 +63,28 @@ class FiatRampServiceController {
                     payload.transactionOwnerId,
                     message
                 );
+
+            if (payload.transactionType === 'on-ramp' && payload.destinationWalletAddress) {
+                const supportedChain = SUPPORTED_CHAINS.find(
+                    (chain) => chain.toLowerCase() === payload.chainName.toLowerCase()
+                );
+
+                if (
+                    supportedChain &&
+                    ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS.includes(supportedChain)
+                ) {
+                    await CryptoPayoutService.createOnrampCryptoPayoutOrder({
+                        triggerTransactionId: payload.sequenceId,
+                        network: supportedChain,
+                        tokenSymbol: payload.tokenName as Extract<
+                            typeof TokenNames,
+                            'USDT' | 'USDC'
+                        >,
+                        amount: payload.usdAmount,
+                        destinationWalletAddress: payload.destinationWalletAddress,
+                    });
+                }
+            }
         } catch (error) {
             handleRequestError(error, res, true);
         }
