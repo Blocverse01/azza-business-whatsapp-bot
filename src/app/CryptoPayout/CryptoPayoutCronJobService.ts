@@ -8,6 +8,7 @@ import { getPayoutSpenderWalletAddress } from '@/app/CryptoPayout/config';
 import env from '@/constants/env';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
 import logger from '@/Resources/logger';
+import { spawn } from 'child_process';
 
 export type CryptoPendingOrderGroup = {
     tokenAddress: string;
@@ -43,6 +44,42 @@ class CryptoPayoutCronJobService {
                 unProcessableOrdersInGroup: CryptoPendingOrderGroup['orders'];
             }>
         >;
+
+        const successfulGroupOrders = successfulResults.map((result) => result.value);
+
+        successfulGroupOrders.forEach((group) => {
+            this.getTransactionReceiptInBackground(
+                group.processableOrdersInGroup.map((order) => order.orderId),
+                group.transactionResponse.transaction_id
+            );
+        });
+    }
+
+    private static getTransactionReceiptInBackground(orderIds: string[], transactionId: string) {
+        const serializedParams = JSON.stringify({
+            orderIds,
+            transactionId,
+        });
+
+        // Spawn the background process
+        const backgroundProcess = spawn(
+            'tsx',
+            ['./getTransactionReceiptInBackground.ts', serializedParams],
+            {
+                stdio: 'inherit', // Optional: Inherit stdio to see logs in the parent process console
+            }
+        );
+
+        backgroundProcess.on('spawn', () => {
+            logger.info(`Began background process to get transaction receipt`, {
+                orderIds,
+                transactionId,
+            });
+        });
+
+        backgroundProcess.on('error', (err) => {
+            logger.error('Failed to start background process:', err);
+        });
     }
 
     private static async processCryptoPayoutGroup(group: CryptoPendingOrderGroup) {

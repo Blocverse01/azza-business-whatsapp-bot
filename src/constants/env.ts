@@ -56,6 +56,10 @@ const envSchema = z.object({
     CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE: notEmptyStringSchema(
         'CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE'
     ),
+    SHOULD_EXECUTE_CRYPTO_PAYOUTS: z
+        .enum(['true', 'false'])
+        .default('false')
+        .transform((data) => data === 'true'),
 });
 
 const env = envSchema.parse(process.env);

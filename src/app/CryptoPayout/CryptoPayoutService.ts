@@ -103,6 +103,24 @@ class CryptoPayoutService {
         });
     }
 
+    public static async updateCryptoPayoutOrdersTransactionHash(
+        orderIds: string[],
+        transactionHash: string
+    ) {
+        let query =
+            `Update "CryptoPayoutOrder" set "payoutTransactionHash" = ${transactionHash} where "id" in ` +
+            `(`;
+
+        orderIds.forEach((x) => {
+            query += `'${x}', `;
+        });
+        query = query.slice(0, -2) + `)`;
+
+        return await sqlClient<CryptoPayoutOrder>({
+            statement: query,
+        });
+    }
+
     public static async getValidPendingCryptoPayoutOrders() {
         const pendingCryptoPayoutOrders = await this.cryptoPayoutOrderRepository
             .filter({

@@ -5,7 +5,7 @@ import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 export enum CryptoPayoutOrderStatus {
     PENDING = 1,
     PROCESSING = 2,
-    COMPLETED = 3,
+    COMPLETE = 3,
     FAILED = -1,
 }
 
