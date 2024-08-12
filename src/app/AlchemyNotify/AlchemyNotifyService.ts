@@ -12,6 +12,7 @@ import { BASE_URL, UPDATE_WEBHOOK_ADDRESSES } from '@/app/AlchemyNotify/endpoint
 import axios from 'axios';
 import { getWebhookId } from '@/app/AlchemyNotify/config';
 import { OK } from '@/constants/status-codes';
+import { convertBase64ToAsciiString, decryptWithPrivateKey } from '@/Resources/utils/encryption';
 
 enum AlchemyActivityCategory {
     TOKEN = 'token',
@@ -130,6 +131,16 @@ class AlchemyNotifyService {
         );
 
         return response.status === OK;
+    }
+
+    public static get signingKeys(): Record<SupportedChain, string> {
+        const decryptedKeysString = decryptWithPrivateKey(
+            env.ALCHEMY_NOTIFY_SIGNING_KEYS,
+            convertBase64ToAsciiString(env.CRYPTO_PAYOUT_AUTHORIZER_PRIVATE_KEY),
+            env.CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE
+        );
+
+        return JSON.parse(decryptedKeysString);
     }
 }
 
