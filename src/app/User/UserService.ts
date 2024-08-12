@@ -2,7 +2,11 @@ import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import { dbClient } from '@/Db/dbClient';
 import { HttpException } from '@/Resources/exceptions/HttpException';
 import env from '@/constants/env';
-import { CreateWalletKitWalletResponse, SUPPORTED_CHAINS } from '@/app/WalletKit/walletKitSchema';
+import {
+    CreateWalletKitWalletParams,
+    CreateWalletKitWalletResponse,
+    SUPPORTED_CHAINS,
+} from '@/app/WalletKit/walletKitSchema';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
 import {
     KycStatus,
@@ -16,6 +20,9 @@ import { UserRecord } from '@/Db/xata';
 import { fixNumber, formatNumberAsCurrency, prettifyNumber } from '@/Resources/utils/currency';
 import { THREE } from '@/constants/numbers';
 import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
+import AlchemyNotifyService from '@/app/AlchemyNotify/AlchemyNotifyService';
+import logger from '@/Resources/logger';
+import { parseUnknownError } from '@/Resources/requestHelpers/handleRequestError';
 
 class UserService {
     private static USER_TABLE = dbClient.User;
@@ -118,7 +125,7 @@ class UserService {
 
     public static async createUserWallets(phoneNumber: string) {
         const promises = SUPPORTED_CHAINS.map((chain) =>
-            WalletKitService.createUserWallet({
+            this.initializeUserWallet({
                 name: `${chain} Wallet`,
                 owner_id: phoneNumber,
                 network: chain,
@@ -284,6 +291,22 @@ class UserService {
         }
     }
 
+    private static async initializeUserWallet(params: CreateWalletKitWalletParams) {
+        const wallet = await WalletKitService.createUserWallet(params);
+
+        try {
+            await AlchemyNotifyService.addWebhookAddresses([wallet.address], wallet.network);
+        } catch (error) {
+            const parsedError = parseUnknownError(error);
+
+            logger.error('Error adding webhook address', {
+                error: JSON.stringify(parsedError, null, 2),
+            });
+        }
+
+        return wallet;
+    }
+
     public static async syncUserWalletsWithSupportedChains(
         userPhoneNumber: string,
         userWallets: Array<CreateWalletKitWalletResponse>
@@ -295,7 +318,7 @@ class UserService {
 
             if (!wallet) {
                 promises.push(
-                    WalletKitService.createUserWallet({
+                    this.initializeUserWallet({
                         network,
                         owner_id: userPhoneNumber,
                         control_mode: 'developer',

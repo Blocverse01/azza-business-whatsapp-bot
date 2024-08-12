@@ -16,6 +16,7 @@ import {
 import {
     BATCH_TRANSFER_TOKEN,
     GET_TOKEN_BALANCES,
+    GET_WALLET_BY_ADDRESS,
     GET_WALLET_BY_OWNER_ID,
     SIGN_AND_SEND_TRANSACTION,
     TRANSACTION_STATUS_BY_ID,
@@ -63,6 +64,20 @@ class WalletKitService {
             network,
         });
         const requestUrl = `${this.API_URL}${GET_WALLET_BY_OWNER_ID}?${requestQueryParams.toString()}`;
+
+        const response = await axios.get<CreateWalletKitWalletResponse>(requestUrl, {
+            headers: this.requiredRequestHeaders,
+        });
+
+        return response.data;
+    }
+
+    public static async getWalletByAddress(walletAddress: string, network: SupportedChain) {
+        const requestQueryParams = new URLSearchParams({
+            address: walletAddress,
+            network,
+        });
+        const requestUrl = `${this.API_URL}${GET_WALLET_BY_ADDRESS}?${requestQueryParams.toString()}`;
 
         const response = await axios.get<CreateWalletKitWalletResponse>(requestUrl, {
             headers: this.requiredRequestHeaders,

@@ -60,6 +60,8 @@ const envSchema = z.object({
         .enum(['true', 'false'])
         .default('false')
         .transform((data) => data === 'true'),
+    ALCHEMY_NOTIFY_SIGNING_KEY: notEmptyStringSchema('ALCHEMY_NOTIFY_SIGNING_KEY'),
+    ALCHEMY_AUTH_TOKEN: notEmptyStringSchema('ALCHEMY_AUTH_TOKEN'),
 });
 
 const env = envSchema.parse(process.env);

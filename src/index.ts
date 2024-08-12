@@ -6,6 +6,7 @@ import apiRoutes from './Routes';
 import logger from '@/Resources/logger';
 import CronHandler from '@/app/Cron';
 import { CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION } from '@/config/backgroundJobs';
+import { addAlchemyContextToRequest } from '@/app/AlchemyNotify/webhookUtils';
 
 const app = express();
 
@@ -13,8 +14,9 @@ const app = express();
 app.use(
     express.json({
         limit: '5mb',
-        verify: (req: Request, res, buf) => {
+        verify: (req: Request, res, buf, encoding: BufferEncoding) => {
             req.rawBody = buf.toString();
+            addAlchemyContextToRequest(req, res, buf, encoding);
         },
     })
 );

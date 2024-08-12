@@ -49,3 +49,25 @@ export function generateOfframpProcessingMessage(params: {
 
     return `🔔 New transaction initiated.\n\n🧾 *Summary*:\nSell ${tokenAmount} ${assetName} on ${assetNetwork} for ${fiatAmountFormatted}\n\n-------------------------------------------------------\n_Your transaction has been created, we'll send you updates on your transaction's status._\n-------------------------------------------------------`;
 }
+
+export function generateReceivedTokenMessage(params: {
+    tokenAmount: string;
+    assetName: string;
+    assetNetwork: string;
+    senderAddress: string;
+    transactionHash: string;
+    explorerUrl: string;
+    newTokenBalance: string;
+}): string {
+    const {
+        tokenAmount,
+        assetName,
+        assetNetwork,
+        transactionHash,
+        explorerUrl,
+        senderAddress,
+        newTokenBalance,
+    } = params;
+
+    return `🔔 Crypto Deposit Notification.\n\n🧾 *Summary:*\nReceived *${tokenAmount} ${assetName}* on *${assetNetwork}* from ${senderAddress}\n\n*You now have: ${newTokenBalance} ${assetName}*\n\n➡️ *Transaction Hash:* ${transactionHash}\n\n🔍 *View In Explorer:* ${explorerUrl}`;
+}

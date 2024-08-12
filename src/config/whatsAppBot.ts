@@ -29,3 +29,9 @@ export const getAssetConfigOrThrow = (listItemId: string): AssetConfig => {
 
     return assetConfig;
 };
+
+export const getAssetConfigByTokenAddress = (tokenAddress: string) => {
+    return ENABLED_ASSETS.find(
+        (asset) => asset.tokenAddress.toLowerCase() === tokenAddress.toLowerCase()
+    );
+};
