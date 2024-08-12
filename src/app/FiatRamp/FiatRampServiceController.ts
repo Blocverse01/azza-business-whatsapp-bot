@@ -64,7 +64,7 @@ class FiatRampServiceController {
                     message
                 );
 
-            if (payload.transactionType === 'on-ramp' && payload.destinationWalletAddress) {
+            if (payload.transactionType === 'on-ramp' && transactionStatus === 'complete' && payload.destinationWalletAddress) {
                 const supportedChain = SUPPORTED_CHAINS.find(
                     (chain) => chain.toLowerCase() === payload.chainName.toLowerCase()
                 );
