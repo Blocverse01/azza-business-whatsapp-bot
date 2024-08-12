@@ -30,6 +30,10 @@ class WalletKitService {
         env.WEB3_ENVIRONMENT === 'testnet'
             ? env.WALLET_KIT_API_URL
             : env.WALLET_KIT_MAINNET_API_URL;
+    public static readonly DEVELOPER_SECRET = env.WALLET_KIT_DEVELOPER_SECRET; // Using this until there's a suitable solution for migrating wallets created with wrong secret
+    //env.WEB3_ENVIRONMENT === 'testnet'
+    //? env.WALLET_KIT_DEVELOPER_SECRET
+    //: env.WALLET_KIT_MAINNET_DEVELOPER_SECRET;
 
     private static get requiredRequestHeaders() {
         const apiToken =

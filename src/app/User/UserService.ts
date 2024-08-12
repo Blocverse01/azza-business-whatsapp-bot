@@ -131,7 +131,7 @@ class UserService {
                 network: chain,
                 control_mode: 'developer',
                 type: 'contract',
-                developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
+                developer_secret: WalletKitService.DEVELOPER_SECRET,
             })
         );
 
@@ -218,7 +218,7 @@ class UserService {
 
         const transactionResponse = await WalletKitService.transferToken({
             network: asset.network,
-            developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
+            developer_secret: WalletKitService.DEVELOPER_SECRET,
             from: asset.walletAddress,
             token: asset.tokenAddress,
             recipient: hotWalletAddress,
@@ -322,7 +322,7 @@ class UserService {
                         network,
                         owner_id: userPhoneNumber,
                         control_mode: 'developer',
-                        developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
+                        developer_secret: WalletKitService.DEVELOPER_SECRET,
                         name: `${network} Wallet`,
                         type: 'contract',
                     })

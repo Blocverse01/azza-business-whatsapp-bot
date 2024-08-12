@@ -14,7 +14,7 @@ describe('WalletKitService', () => {
             network: 'Polygon',
             owner_id: '2348143100808',
             control_mode: 'developer',
-            developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
+            developer_secret: WalletKitService.DEVELOPER_SECRET,
             name: 'Polygon Wallet',
             type: 'contract',
         });
@@ -45,7 +45,7 @@ describe('WalletKitService', () => {
                 to: '0xd73594Ddc43B368719a0003BcC1a520c17a16DeB',
                 value: toHex(parseEther('0.0006')),
             },
-            developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
+            developer_secret: WalletKitService.DEVELOPER_SECRET,
         };
 
         const response = await WalletKitService.signAndSendTransaction(transactionParams);
@@ -67,11 +67,11 @@ describe('WalletKitService', () => {
         // TODO: replace params.token with an actual token address
         const response = await WalletKitService.transferToken({
             network: 'Polygon',
-            from: '0x2C0a6a30fAe9872513609819f667efA7e539021E',
-            token: '0x2C0a6a30fAe9872513609819f667efA7e539021E',
-            recipient: '0x2C0a6a30fAe9872513609819f667efA7e539021E',
+            from: '0xc29c9D44b64dBA49a61FF76BB9EcBd7c0E542796',
+            token: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+            recipient: '0xc29c9D44b64dBA49a61FF76BB9EcBd7c0E542796',
             amount: '0.01',
-            developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
+            developer_secret: WalletKitService.DEVELOPER_SECRET,
         });
 
         // Assert
@@ -96,7 +96,7 @@ describe('WalletKitService', () => {
                             network,
                             owner_id: user_id,
                             control_mode: 'developer',
-                            developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
+                            developer_secret: WalletKitService.DEVELOPER_SECRET,
                             name: `${network} Wallet`,
                             type: 'contract',
                         })

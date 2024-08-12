@@ -9,15 +9,27 @@ import env from '@/constants/env';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
 import logger from '@/Resources/logger';
 import { spawn } from 'child_process';
+import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
+
+type CryptoOrderInput = {
+    recipient: string;
+    amount: string;
+    orderId: string;
+};
 
 export type CryptoPendingOrderGroup = {
     tokenAddress: string;
     network: SupportedChain;
-    orders: Array<{
-        recipient: string;
-        amount: string;
-        orderId: string;
-    }>;
+    orders: Array<CryptoOrderInput>;
+};
+
+type ProcessCryptoPayoutGroupResponse = {
+    submittedOrders: Array<TransferCryptoForIndividualOrderResponse>;
+    unSubmittedOrders: CryptoPendingOrderGroup['orders'];
+};
+type TransferCryptoForIndividualOrderResponse = {
+    transactionResponse: TransactionResponse;
+    order: CryptoOrderInput;
 };
 
 class CryptoPayoutCronJobService {
@@ -33,31 +45,41 @@ class CryptoPayoutCronJobService {
             return this.processCryptoPayoutGroup(group);
         });
 
-        const results = await Promise.allSettled(promises);
+        const processingResults = await Promise.allSettled(promises);
 
-        const successfulResults = results.filter(
+        const successfulResults = processingResults.filter(
             (result) => result.status === 'fulfilled'
-        ) as Array<
-            PromiseFulfilledResult<{
-                transactionResponse: TransactionResponse;
-                processableOrdersInGroup: CryptoPendingOrderGroup['orders'];
-                unProcessableOrdersInGroup: CryptoPendingOrderGroup['orders'];
-            }>
-        >;
+        ) as Array<PromiseFulfilledResult<ProcessCryptoPayoutGroupResponse | undefined>>;
 
         const successfulGroupOrders = successfulResults.map((result) => result.value);
 
-        successfulGroupOrders.forEach((group) => {
-            this.getTransactionReceiptInBackground(
-                group.processableOrdersInGroup.map((order) => order.orderId),
-                group.transactionResponse.transaction_id
-            );
+        const allUnsubmittedOrderIds: string[][] = [];
+
+        successfulGroupOrders.filter(Boolean).forEach((group) => {
+            if (group) {
+                group.submittedOrders.forEach((order) => {
+                    this.getTransactionReceiptInBackground(
+                        order.order.orderId,
+                        order.transactionResponse.transaction_id
+                    );
+                });
+
+                const unSubmittedOrderIds = group.unSubmittedOrders.map((order) => order.orderId);
+                allUnsubmittedOrderIds.push(unSubmittedOrderIds);
+            }
         });
+
+        if (allUnsubmittedOrderIds.flat().length > 0) {
+            await CryptoPayoutService.updateCryptoPayoutOrdersStatus(
+                allUnsubmittedOrderIds.flat(),
+                CryptoPayoutOrderStatus.PENDING
+            );
+        }
     }
 
-    private static getTransactionReceiptInBackground(orderIds: string[], transactionId: string) {
+    private static getTransactionReceiptInBackground(orderId: string, transactionId: string) {
         const serializedParams = JSON.stringify({
-            orderIds,
+            orderIds: [orderId],
             transactionId,
         });
 
@@ -72,7 +94,7 @@ class CryptoPayoutCronJobService {
 
         backgroundProcess.on('spawn', () => {
             logger.info(`Began background process to get transaction receipt`, {
-                orderIds,
+                orderId,
                 transactionId,
             });
         });
@@ -82,12 +104,9 @@ class CryptoPayoutCronJobService {
         });
     }
 
-    private static async processCryptoPayoutGroup(group: CryptoPendingOrderGroup) {
-        await CryptoPayoutService.updateCryptoPayoutOrdersStatus(
-            group.orders.map((order) => order.orderId),
-            CryptoPayoutOrderStatus.PROCESSING
-        );
-
+    private static async processCryptoPayoutGroup(
+        group: CryptoPendingOrderGroup
+    ): Promise<ProcessCryptoPayoutGroupResponse | undefined> {
         const spenderWalletAddress = getPayoutSpenderWalletAddress(
             group.network,
             env.WEB3_ENVIRONMENT
@@ -116,14 +135,6 @@ class CryptoPayoutCronJobService {
             }
         });
 
-        const transactionResponse = await WalletKitService.batchTransferToken({
-            token: group.tokenAddress,
-            network: group.network,
-            from: spenderWalletAddress,
-            developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
-            transfers: processableOrdersInGroup,
-        });
-
         if (unProcessableOrdersInGroup.length > 0) {
             await this.handleUnprocessableOrdersInGroup(
                 unProcessableOrdersInGroup,
@@ -132,10 +143,76 @@ class CryptoPayoutCronJobService {
             );
         }
 
+        if (processableOrdersInGroup.length > 0) {
+            try {
+                await CryptoPayoutService.updateCryptoPayoutOrdersStatus(
+                    processableOrdersInGroup.map((order) => order.orderId),
+                    CryptoPayoutOrderStatus.PROCESSING
+                );
+
+                const individualTransferPromises = processableOrdersInGroup.map((order) => {
+                    return this.transferCryptoForIndividualOrder(order, {
+                        network: group.network,
+                        tokenAddress: group.tokenAddress,
+                        spenderWalletAddress,
+                    });
+                });
+
+                const results = await Promise.allSettled(individualTransferPromises);
+
+                const successfulResults = results.filter(
+                    (result) => result.status === 'fulfilled'
+                ) as Array<PromiseFulfilledResult<TransferCryptoForIndividualOrderResponse>>;
+
+                const submittedTransactionResponses = successfulResults.map(
+                    (result) => result.value
+                );
+
+                const unSubmittedOrders = processableOrdersInGroup.filter((order) => {
+                    return !submittedTransactionResponses.find(
+                        (response) => response.order.orderId === order.orderId
+                    );
+                });
+
+                return {
+                    submittedOrders: submittedTransactionResponses,
+                    unSubmittedOrders,
+                };
+            } catch (error) {
+                await logServiceError(error, 'Failed to process crypto payout group');
+
+                await CryptoPayoutService.updateCryptoPayoutOrdersStatus(
+                    processableOrdersInGroup.map((order) => order.orderId),
+                    CryptoPayoutOrderStatus.PENDING
+                );
+            }
+        }
+    }
+
+    private static async transferCryptoForIndividualOrder(
+        order: {
+            recipient: string;
+            amount: string;
+            orderId: string;
+        },
+        config: {
+            tokenAddress: string;
+            network: SupportedChain;
+            spenderWalletAddress: string;
+        }
+    ) {
+        const transactionResponse = await WalletKitService.transferToken({
+            amount: order.amount,
+            network: config.network,
+            developer_secret: env.WALLET_KIT_MAINNET_DEVELOPER_SECRET, // Do not change this for now
+            token: config.tokenAddress,
+            from: config.spenderWalletAddress,
+            recipient: order.recipient,
+        });
+
         return {
             transactionResponse,
-            processableOrdersInGroup,
-            unProcessableOrdersInGroup,
+            order,
         };
     }
 
@@ -144,8 +221,6 @@ class CryptoPayoutCronJobService {
         group: CryptoPendingOrderGroup,
         walletBalance: number
     ) {
-        const orderIds = orders.map((order) => order.orderId);
-
         logger
             .info(`Failed to process ${orders.length} payout orders`, {
                 group,
@@ -153,11 +228,6 @@ class CryptoPayoutCronJobService {
                 walletBalance,
             })
             .then(() => console.log('Logged'));
-
-        await CryptoPayoutService.updateCryptoPayoutOrdersStatus(
-            orderIds,
-            CryptoPayoutOrderStatus.PENDING
-        );
     }
 
     public static groupCryptoOrdersByTokenAndNetwork(pendingOrders: Array<CryptoPayoutOrder>) {

@@ -6,9 +6,19 @@
         <option name="requests">
           <list>
             <requestState>
+              <option name="auth">
+                <authState>
+                  <option name="bearer">
+                    <lC>
+                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
+                    </lC>
+                  </option>
+                  <option name="type" value="BEARER" />
+                </authState>
+              </option>
               <option name="body">
                 <bodyState>
-                  <option name="raw" value="{&#10;  &quot;name&quot;: &quot;John&quot;&#10;}" />
+                  <option name="raw" value="{&#10;  &quot;from&quot;: &quot;0x60f50c703CAb09e9525c97AB921a6b5E1Aa87747&quot;,&#10;  &quot;network&quot;: &quot;Optimism&quot;,&#10;  &quot;token&quot;: &quot;0x94b008aA00579c1307B0EF2c499aD98a8ce58e58&quot;,&#10;  &quot;transfers&quot;: [{&#10;    &quot;amount&quot;: &quot;0.0005&quot;,&#10;    &quot;recipient&quot;: &quot;0x4d81Cb192C26F50C31870053Fae9A7C84c8fC0c6&quot;&#10;  }],&#10;  &quot;developer_secret&quot;: &quot;uPdEemxVaGWJ4MhHHXYqCOSUoC9YLm4C2BL2Bk0M+Z7vAZm4SYm71Tm0mxhQt2lL&quot;&#10;}" />
                   <option name="type" value="JSON" />
                 </bodyState>
               </option>
@@ -18,12 +28,16 @@
                     <option name="key" value="Content-Type" />
                     <option name="value" value="application/json" />
                   </headerState>
+                  <headerState>
+                    <option name="key" value="X-WalletKit-Project-ID" />
+                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
+                  </headerState>
                 </list>
               </option>
               <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
               <option name="method" value="POST" />
               <option name="name" value="Draft" />
-              <option name="url" value="https://optimal-viper-regularly.ngrok-free.app/api/wallet-kit/webhook/transfers" />
+              <option name="url" value="https://mainnet.walletkit.com/tokens/batch-transfer" />
             </requestState>
           </list>
         </option>

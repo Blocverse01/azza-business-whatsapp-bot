@@ -5,7 +5,7 @@ describe('UserService', () => {
     it(
         'should initialize user wallets successfully',
         async () => {
-            const userPhoneNumber = '';
+            const userPhoneNumber = '2348143100808';
             const response = await UserService.createUserWallets(userPhoneNumber);
 
             // Assert

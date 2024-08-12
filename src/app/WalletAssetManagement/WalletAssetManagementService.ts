@@ -28,7 +28,7 @@ class WalletAssetManagementService {
             await WalletKitService.transferToken({
                 amount: decimalToString(transactionFee),
                 network: asset.network,
-                developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
+                developer_secret: WalletKitService.DEVELOPER_SECRET,
                 token: asset.tokenAddress,
                 from: asset.walletAddress,
                 recipient: env.TRANSACTION_FEE_RECIPIENT, // An EVM address to receive the transaction fee. EVM for now because we are only supporting EVM chains ATM
@@ -38,7 +38,7 @@ class WalletAssetManagementService {
         return await WalletKitService.transferToken({
             amount: amount,
             network: asset.network,
-            developer_secret: env.WALLET_KIT_DEVELOPER_SECRET,
+            developer_secret: WalletKitService.DEVELOPER_SECRET,
             token: asset.tokenAddress,
             from: asset.walletAddress,
             recipient: walletAddress,
