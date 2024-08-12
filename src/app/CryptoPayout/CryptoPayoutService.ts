@@ -13,7 +13,6 @@ import {
 } from '@/Resources/utils/encryption';
 import env from '@/constants/env';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { ZERO } from '@/constants/numbers';
 import { CryptoPayoutOrder } from '@/Db/xata';
 
 class CryptoPayoutService {
@@ -42,18 +41,8 @@ class CryptoPayoutService {
         return cryptoPayoutAuthorizationPayloadSchema.parse(JSON.parse(decryptedPayload));
     }
 
-    public static validateCryptoPayoutOrder(
-        cryptoPayoutOrderReference: string,
-        orderAuthorityToken: string
-    ) {
-        const referenceIsValid =
-            cryptoPayoutOrderReference ===
-            orderAuthorityToken.slice(ZERO, this.ORDER_REFERENCE_LENGTH);
-
-        const orderAuthorityTokenIsValid =
-            this.validateCryptoPayoutAuthorizationPayload(orderAuthorityToken);
-
-        return referenceIsValid && orderAuthorityTokenIsValid;
+    public static validateCryptoPayoutOrder(orderAuthorityToken: string) {
+        return !!this.validateCryptoPayoutAuthorizationPayload(orderAuthorityToken);
     }
 
     public static async createOnrampCryptoPayoutOrder(params: CreateCryptoPayoutOrderParams) {
@@ -69,14 +58,20 @@ class CryptoPayoutService {
         const cryptoPayoutOrderAuthorityToken = this.generateOnrampCryptoPayoutOrderReference(
             params.triggerTransactionId
         );
-        const cryptoPayoutOrderReference = cryptoPayoutOrderAuthorityToken.slice(
-            ZERO,
-            this.ORDER_REFERENCE_LENGTH
-        );
+
+        const existingAuthorityToken = await this.cryptoPayoutOrderRepository
+            .filter({
+                orderAuthorityToken: cryptoPayoutOrderAuthorityToken,
+            })
+            .getFirst();
+
+        if (existingAuthorityToken) {
+            throw new Error('Crypto payout order already exists');
+        }
 
         const { triggerTransactionId, ...cryptoPayoutOrderParams } = params;
 
-        return await this.cryptoPayoutOrderRepository.create(cryptoPayoutOrderReference, {
+        return await this.cryptoPayoutOrderRepository.create({
             ...cryptoPayoutOrderParams,
             orderAuthorityToken: cryptoPayoutOrderAuthorityToken,
             status: CryptoPayoutOrderStatus.PENDING,
@@ -130,7 +125,7 @@ class CryptoPayoutService {
 
         return pendingCryptoPayoutOrders.filter((payoutOrder) => {
             const { id, orderAuthorityToken } = payoutOrder;
-            return this.validateCryptoPayoutOrder(id, orderAuthorityToken);
+            return this.validateCryptoPayoutOrder(orderAuthorityToken);
         });
     }
 }

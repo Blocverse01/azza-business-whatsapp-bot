@@ -11,11 +11,11 @@ describe('CryptoPayoutService', () => {
         'Should create onramp crypto payout order',
         async () => {
             await CryptoPayoutService.createOnrampCryptoPayoutOrder({
-                triggerTransactionId: 'globachain-68819330-48e9-4f05-98e6-408d66a90d57',
-                network: 'Polygon',
-                tokenSymbol: TokenNames.USDC,
-                amount: 2,
-                destinationWalletAddress: '0xC506613F64F79aF5527A5c46188b4169B4132D00',
+                triggerTransactionId: 'globachain-388934f1-b08a-4573-9c23-e1fc6bc6e313',
+                network: 'Optimism',
+                tokenSymbol: TokenNames.USDT,
+                amount: 0.5,
+                destinationWalletAddress: '0x4d81Cb192C26F50C31870053Fae9A7C84c8fC0c6',
             });
         },
         TEN_THOUSAND
