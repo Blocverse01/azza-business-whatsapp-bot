@@ -42,8 +42,9 @@ class FiatRampServiceController {
             const { transactionStatus } = payload;
 
             const transactionKeyword = payload.transactionType === 'off-ramp' ? 'Sell' : 'Buy';
+            const transactionPreposition = payload.transactionType === 'off-ramp' ? 'for' : 'with';
 
-            const transactionDetailsString = `💲${transactionKeyword} ${payload.usdAmount} ${payload.tokenName} on ${payload.chainName} for ${payload.localCurrencySymbol} ${prettifyNumber(payload.localAmount)}`;
+            const transactionDetailsString = `💲${transactionKeyword} ${payload.usdAmount} ${payload.tokenName} on ${payload.chainName} ${transactionPreposition} ${payload.localCurrencySymbol} ${prettifyNumber(payload.localAmount)}`;
 
             let message = '';
 
@@ -64,7 +65,11 @@ class FiatRampServiceController {
                     message
                 );
 
-            if (payload.transactionType === 'on-ramp' && transactionStatus === 'complete' && payload.destinationWalletAddress) {
+            if (
+                payload.transactionType === 'on-ramp' &&
+                transactionStatus === 'complete' &&
+                payload.destinationWalletAddress
+            ) {
                 const supportedChain = SUPPORTED_CHAINS.find(
                     (chain) => chain.toLowerCase() === payload.chainName.toLowerCase()
                 );
