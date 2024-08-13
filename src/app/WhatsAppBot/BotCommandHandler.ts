@@ -41,6 +41,9 @@ class BotCommandHandler {
             case 'HELP':
                 await BotCommandHandler.getHelp(phoneParams);
                 break;
+            case 'TRANSFER':
+                await BotCommandHandler.transferAsset(phoneParams, botCommand.params);
+                break;
             default:
                 break;
         }
@@ -116,6 +119,22 @@ class BotCommandHandler {
         return;
     }
 
+    private static async transferAsset(
+        phoneParams: PhoneNumberParams,
+        params: TradeAssetBotCommandMatchGroups
+    ) {
+        const supportedAsset = assetInteractiveButtonsIds.find(
+            (assetInteractiveButtonId) =>
+                assetInteractiveButtonId === `${params.asset}-${params.network}`
+        );
+
+        if (!supportedAsset) {
+            return;
+        }
+
+        return await WhatsAppBotService.handleWithdrawAssetAction(phoneParams, supportedAsset);
+    }
+
     public static isCommand(command: string) {
         const commandRegex = Object.values(BOT_COMMANDS_REGEX).find((regex) => regex.test(command));
 
@@ -130,6 +149,7 @@ class BotCommandHandler {
         switch (commandName) {
             case 'SELL_ASSET':
             case 'BUY_ASSET':
+            case 'TRANSFER':
                 const { asset, network } = extractGroups<TradeAssetBotCommandMatchGroups>(
                     command,
                     BOT_COMMANDS_REGEX[commandName]

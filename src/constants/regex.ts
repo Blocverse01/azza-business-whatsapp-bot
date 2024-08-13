@@ -20,6 +20,7 @@ export const BOT_COMMANDS_REGEX = {
     BUY_ASSET: /\/buy\s+(?<asset>\w+)\s+(?<network>\w+)/, // e.g /buy usdt polygon
     ASSETS_MENU: /\/my_assets/,
     HELP: /\/help/,
+    TRANSFER: /\/transfer\s+(?<asset>\w+)\s+(?<network>\w+)/,
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {
