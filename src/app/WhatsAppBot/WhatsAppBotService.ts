@@ -21,7 +21,7 @@ import axios from 'axios';
 import env from '@/constants/env';
 import UserService from '@/app/User/UserService';
 import logger from '@/Resources/logger';
-import { UserAssetItem } from '@/app/User/userSchema';
+import { UserAssetInfo, UserAssetItem } from '@/app/User/userSchema';
 import {
     BankBeneficiary,
     MobileMoneyBeneficiary,
@@ -30,7 +30,7 @@ import {
 import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { TokenNames } from '@/Resources/web3/tokens';
-import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
+import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import {
     SELL_BENEFICIARY_AMOUNT_PATTERN,
     SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN,
@@ -53,6 +53,7 @@ import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
 import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
 import { getCountryFlagEmoji, getUserCountryCodeFromPhoneNumber } from '@/Resources/utils/currency';
+import { generateAssetBalanceMessage } from '@/Resources/utils/bot-message-utils';
 
 class WhatsAppBotService {
     private static WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -859,6 +860,115 @@ class WhatsAppBotService {
         );
 
         await WhatsAppBotService.sendWhatsappMessage(this.WA_BUSINESS_PHONE_NUMBER, messagePayload);
+    }
+
+    public static async getUserCountryFromPhoneNumber(userPhoneNumber: string) {
+        const supportedCountries = await FiatRampService.getSupportedCurrencies();
+        const userCountryCode = getUserCountryCodeFromPhoneNumber(userPhoneNumber);
+
+        return supportedCountries.find(
+            (country) => country.code.toLowerCase() === userCountryCode.toLowerCase()
+        );
+    }
+
+    public static async handleUserAssetBalanceQuery(
+        phoneParams: PhoneNumberParams,
+        assetItemId: string
+    ) {
+        await this.sendArbitraryTextMessage(
+            phoneParams.userPhoneNumber,
+            'Fetching your balance... Sit tight!'
+        );
+
+        const [userCountry, userAssetInfo] = await Promise.all([
+            this.getUserCountryFromPhoneNumber(phoneParams.userPhoneNumber),
+            UserService.getUserAssetInfo(phoneParams.userPhoneNumber, assetItemId),
+        ]);
+
+        if (!userCountry) {
+            return await this.sendUserBalancesMessage(phoneParams, [userAssetInfo]);
+        }
+
+        const sellRate = await FiatRampService.getSellRate(userCountry.currencySymbol);
+
+        const fiatConfig = {
+            conversionRate: sellRate,
+            localCurrencySymbol: userCountry.currencySymbol,
+            countryCode: userCountry.code,
+        };
+
+        await this.sendUserBalancesMessage(phoneParams, [userAssetInfo], fiatConfig);
+    }
+
+    public static async handleUserBalancesQuery(
+        phoneParams: PhoneNumberParams,
+        entityConfig: {
+            asset?: string;
+            network?: string;
+        } = {}
+    ) {
+        const { asset: tokenName, network } = entityConfig;
+
+        await this.sendArbitraryTextMessage(
+            phoneParams.userPhoneNumber,
+            'Fetching your balances... Sit tight!'
+        );
+
+        const supportedAssetIds = ENABLED_ASSETS.filter((asset) => {
+            // filter for assetName | network or assetName && network
+            return (
+                (tokenName ? asset.tokenName.toLowerCase() === tokenName.toLowerCase() : true) &&
+                (network ? asset.network.toLowerCase() === network.toLowerCase() : true)
+            );
+        }).map((asset) => asset.listItemId);
+
+        const promises = supportedAssetIds.map((assetId) =>
+            UserService.getUserAssetInfo(phoneParams.userPhoneNumber, assetId)
+        );
+
+        const [userCountry, ...userAssetsInfo] = await Promise.all([
+            this.getUserCountryFromPhoneNumber(phoneParams.userPhoneNumber),
+            ...promises,
+        ]);
+
+        if (!userCountry) {
+            return await this.sendUserBalancesMessage(phoneParams, userAssetsInfo);
+        }
+
+        const sellRate = await FiatRampService.getSellRate(userCountry.currencySymbol);
+
+        const fiatConfig = {
+            conversionRate: sellRate,
+            localCurrencySymbol: userCountry.currencySymbol,
+            countryCode: userCountry.code,
+        };
+
+        await this.sendUserBalancesMessage(phoneParams, userAssetsInfo, fiatConfig);
+    }
+
+    public static async sendUserBalancesMessage(
+        phoneParams: PhoneNumberParams,
+        assetsInfo: UserAssetInfo[],
+        fiatConfig?: {
+            conversionRate: number;
+            localCurrencySymbol: string;
+            countryCode: string;
+        }
+    ) {
+        // The fiat conversionRate assumes all the assets are stable coins so, in the event of non-stable-coin assets, it has to be refactored.
+        const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
+
+        const userBalancesMessage = assetsInfo.map((assetInfo) => {
+            return generateAssetBalanceMessage(assetInfo, fiatConfig);
+        });
+
+        const message = `*💰 Your Wallet Balances 💰*\n\n${userBalancesMessage.join('\n\n')}`;
+
+        const messagePayload: WhatsAppTextMessage = MessageGenerators.generateTextMessage(
+            userPhoneNumber,
+            message
+        );
+        await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, messagePayload);
     }
 }
 

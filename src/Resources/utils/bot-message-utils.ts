@@ -1,4 +1,11 @@
-import { formatNumberAsCurrency } from '@/Resources/utils/currency';
+import {
+    formatNumberAsCurrency,
+    getCountryFlagEmoji,
+    prettifyNumber,
+} from '@/Resources/utils/currency';
+import { UserAssetInfo } from '@/app/User/userSchema';
+import { TWO } from '@/constants/numbers';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 
 type BankInfo = {
     bankName: string;
@@ -70,4 +77,39 @@ export function generateReceivedTokenMessage(params: {
     } = params;
 
     return `🔔 Crypto Deposit Notification.\n\n🧾 *Summary:*\nReceived *${tokenAmount} ${assetName}* on *${assetNetwork}* from ${senderAddress}\n\n*You now have: ${newTokenBalance} ${assetName}*\n\n➡️ *Transaction Hash:* ${transactionHash}\n\n🔍 *View In Explorer:* ${explorerUrl}`;
+}
+
+const EMOJIS_FOR_NETWORKS: Record<SupportedChain, string> = {
+    Ethereum: '🔷',
+    Optimism: '🎯',
+    Polygon: '💜',
+    Base: '🔵',
+};
+
+export function generateAssetBalanceMessage(
+    assetInfo: UserAssetInfo,
+    fiatConfig?: {
+        localCurrencySymbol: string;
+        countryCode: string;
+        conversionRate: number;
+    }
+) {
+    const { assetName, assetNetwork, usdDisplayBalance, tokenBalance } = assetInfo;
+
+    const tokenBalanceNumber = Number(tokenBalance);
+    const assetBalance = prettifyNumber(tokenBalanceNumber, TWO);
+    const localCurrencyBalance = fiatConfig
+        ? formatNumberAsCurrency(
+              tokenBalanceNumber * fiatConfig.conversionRate,
+              fiatConfig.localCurrencySymbol
+          )
+        : '';
+
+    const localCurrencyEquivalent = fiatConfig
+        ? `${getCountryFlagEmoji(fiatConfig.countryCode)} *Value:* ${localCurrencyBalance}`
+        : '';
+
+    const assetLabel = `${assetName} on ${assetNetwork}`;
+
+    return `_*${EMOJIS_FOR_NETWORKS[assetNetwork]} ${assetLabel}*_\n- *Balance:* ${assetBalance}\n- *USD Value:*  ${usdDisplayBalance}${localCurrencyEquivalent ? `\n- ${localCurrencyEquivalent}` : ''}`;
 }

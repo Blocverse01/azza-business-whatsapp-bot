@@ -15,12 +15,15 @@ export const TRADE_ASSET_REGEX =
     /(?<assetActionId>[^:]+):(?<purchaseAssetId>[^|]+)\|currency:(?<currency>[^|]+)\|countryCode:(?<countryCode>[^|]+)/;
 
 export const BOT_COMMANDS_REGEX = {
-    RATES: /\/rates/,
-    SELL_ASSET: /\/sell\s+(?<asset>\w+)\s+(?<network>\w+)/, // e.g /sell usdt polygon
-    BUY_ASSET: /\/buy\s+(?<asset>\w+)\s+(?<network>\w+)/, // e.g /buy usdt polygon
-    ASSETS_MENU: /\/my_assets/,
-    HELP: /\/help/,
-    TRANSFER: /\/transfer\s+(?<asset>\w+)\s+(?<network>\w+)/,
+    RATES: /^\/rates$/,
+    SELL_ASSET: /^\/sell\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /sell usdt polygon
+    BUY_ASSET: /^\/buy\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /buy usdt polygon
+    ASSETS_MENU: /^\/my_assets$/,
+    HELP: /^\/help$/,
+    TRANSFER: /^\/transfer\s+(?<asset>\w+)\s+(?<network>\w+)$/,
+    BALANCES: /^\/balance$/, // matches /balance
+    ASSET_BALANCE: /^\/balance\s+(?<asset>\w+)\s+(?<network>\w+)$/, // /balance <asset> <network>
+    ENTITY_BALANCE: /^\/balance\s+(?<entity>\w+)$/, // /balance <asset> or /balance <network>
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {

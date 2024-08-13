@@ -44,8 +44,19 @@ class BotCommandHandler {
             case 'TRANSFER':
                 await BotCommandHandler.transferAsset(phoneParams, botCommand.params);
                 break;
-            default:
+            case 'BALANCES':
+                await BotCommandHandler.getAllBalances(phoneParams);
                 break;
+            case 'ASSET_BALANCE':
+                await BotCommandHandler.getAssetBalance(phoneParams, botCommand.params);
+                break;
+            case 'ENTITY_BALANCE':
+                await BotCommandHandler.getAllBalances(phoneParams, botCommand.params);
+                break;
+            default:
+                return {
+                    handled: false,
+                };
         }
 
         return {
@@ -135,6 +146,29 @@ class BotCommandHandler {
         return await WhatsAppBotService.handleWithdrawAssetAction(phoneParams, supportedAsset);
     }
 
+    private static async getAllBalances(
+        phoneParams: PhoneNumberParams,
+        params?: Partial<TradeAssetBotCommandMatchGroups>
+    ) {
+        return await WhatsAppBotService.handleUserBalancesQuery(phoneParams, params);
+    }
+
+    private static async getAssetBalance(
+        phoneParams: PhoneNumberParams,
+        params: TradeAssetBotCommandMatchGroups
+    ) {
+        const supportedAsset = assetInteractiveButtonsIds.find(
+            (assetInteractiveButtonId) =>
+                assetInteractiveButtonId === `${params.asset}-${params.network}`
+        );
+
+        if (!supportedAsset) {
+            return;
+        }
+
+        return await WhatsAppBotService.handleUserAssetBalanceQuery(phoneParams, supportedAsset);
+    }
+
     public static isCommand(command: string) {
         const commandRegex = Object.values(BOT_COMMANDS_REGEX).find((regex) => regex.test(command));
 
@@ -162,7 +196,34 @@ class BotCommandHandler {
                         network,
                     },
                 };
+            case 'ASSET_BALANCE':
+                const { asset: assetParam, network: networkParam } =
+                    extractGroups<TradeAssetBotCommandMatchGroups>(
+                        command,
+                        BOT_COMMANDS_REGEX[commandName]
+                    );
 
+                return {
+                    command: commandName,
+                    params: {
+                        asset: assetParam,
+                        network: networkParam,
+                    },
+                };
+            case 'ENTITY_BALANCE':
+                const { entity } = extractGroups<{ entity: string }>(
+                    command,
+                    BOT_COMMANDS_REGEX[commandName]
+                );
+
+                const isNetwork = assetInteractiveButtonsIds.some(
+                    (asset) => asset.split('-')[1] === entity
+                );
+
+                return {
+                    command: commandName,
+                    params: isNetwork ? { network: entity } : { asset: entity },
+                };
             default:
                 return {
                     command: commandName,
