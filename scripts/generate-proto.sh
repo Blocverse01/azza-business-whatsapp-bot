@@ -1,1 +1,1 @@
-protoc  --ts_out=grpc-js:./src/proto   --proto_path=./proto   fiatramps/v1/service.proto
+protoc  --ts_out=grpc-js:../src/proto   --proto_path=../proto   fiatramps/v1/service.proto
