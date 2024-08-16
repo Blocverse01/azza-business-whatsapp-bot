@@ -5,9 +5,9 @@ type UnaryMethod<RequestType, ResponseType> = (
     callback: (error: grpc.ServiceError | null, response: ResponseType) => void
 ) => void;
 
-export function promisifyUnary<RequestType, ResponseType>(
-    client: any,
-    methodName: keyof typeof client
+export function promisifyUnary<ClientType, RequestType, ResponseType>(
+    client: ClientType,
+    methodName: keyof ClientType
 ): (request: RequestType) => Promise<ResponseType> {
     return (request: RequestType) => {
         return new Promise((resolve, reject) => {

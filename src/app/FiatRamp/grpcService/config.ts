@@ -1,40 +1,10 @@
 import { fiatramps } from '@/proto/fiatramps/v1/service';
 import FiatRampsServiceClient = fiatramps.v1.FiatRampsServiceClient;
-import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
 import * as grpc from '@grpc/grpc-js';
-import { promisifyUnary } from '@/app/FiatRamp/grpcService/utils';
-import { transformKeysToCamelCase } from '@/Resources/utils/transformers';
-import { z } from 'zod';
-import { supportedCountry } from '@/app/FiatRamp/fiatRampSchema';
 
 const servicePort = 50051;
 const internalServiceDns = 'globachain-ramps-service';
 const serviceAddress = `${internalServiceDns}:${servicePort}`;
 
 // Create a client
-const client = new FiatRampsServiceClient(serviceAddress, grpc.credentials.createInsecure());
-
-// Wrap the gRPC methods
-const getSupportedCountries = promisifyUnary<
-    GetSupportedCountriesRequest,
-    fiatramps.v1.GetSupportedCountriesResponse
->(client, 'GetSupportedCountries');
-
-// Make a gRPC call
-// Use the wrapped method with async/await
-export async function fetchSupportedCountries() {
-    try {
-        const request = new GetSupportedCountriesRequest();
-        const response = await getSupportedCountries(request);
-
-        const { countries } = response.toObject();
-
-        if (!countries) {
-            throw new Error('Invalid response');
-        }
-
-        return z.array(supportedCountry).parse(transformKeysToCamelCase(countries));
-    } catch (error) {
-        console.error('Error fetching supported countries:', error);
-    }
-}
+export const client = new FiatRampsServiceClient(serviceAddress, grpc.credentials.createInsecure());

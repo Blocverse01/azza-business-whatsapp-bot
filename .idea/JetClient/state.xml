@@ -18,7 +18,6 @@
               </option>
               <option name="body">
                 <bodyState>
-                  <option name="raw" value="{&#10;  &quot;from&quot;: &quot;0x60f50c703CAb09e9525c97AB921a6b5E1Aa87747&quot;,&#10;  &quot;network&quot;: &quot;Optimism&quot;,&#10;  &quot;token&quot;: &quot;0x94b008aA00579c1307B0EF2c499aD98a8ce58e58&quot;,&#10;  &quot;transfers&quot;: [{&#10;    &quot;amount&quot;: &quot;0.0005&quot;,&#10;    &quot;recipient&quot;: &quot;0x4d81Cb192C26F50C31870053Fae9A7C84c8fC0c6&quot;&#10;  }],&#10;  &quot;developer_secret&quot;: &quot;uPdEemxVaGWJ4MhHHXYqCOSUoC9YLm4C2BL2Bk0M+Z7vAZm4SYm71Tm0mxhQt2lL&quot;&#10;}" />
                   <option name="type" value="JSON" />
                 </bodyState>
               </option>
