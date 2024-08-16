@@ -1,10 +1,14 @@
 import { z } from 'zod';
-import { ratesSchema, supportedCountry } from '@/app/FiatRamp/fiatRampSchema';
+import { quoteSchema, ratesSchema, supportedCountry } from '@/app/FiatRamp/fiatRampSchema';
 import { transformKeysToCamelCase } from '@/Resources/utils/transformers';
 import { fiatramps } from '@/proto/fiatramps/v1/service';
 import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
-import { getRates, getSupportedCountries } from './rpcMethods';
+import { getQuotes, getRates, getSupportedCountries } from './rpcMethods';
 import GetRatesRequest = fiatramps.v1.GetRatesRequest;
+import { CountryCode } from 'libphonenumber-js';
+import GetQuotesRequest = fiatramps.v1.GetQuotesRequest;
+import { defaultAmountFixer } from '@/Resources/utils/currency';
+import { HUNDRED } from '@/constants/numbers';
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -34,6 +38,39 @@ class FiatRampsRpcService {
         }
 
         return z.array(ratesSchema).parse(rates);
+    }
+
+    public static async getQuotes(
+        currencySymbol: string,
+        countryCode: CountryCode,
+        route: 'onramp' | 'offramp'
+    ) {
+        const request = new GetQuotesRequest({
+            country_code: countryCode,
+            currency_symbol: currencySymbol,
+        });
+
+        const response = await getQuotes(request);
+
+        const { fees, rate } = response.toObject();
+
+        if (!fees || !rate) {
+            throw new Error('Invalid response');
+        }
+
+        const quotes = quoteSchema.parse({
+            fees: transformKeysToCamelCase(fees),
+            rate: transformKeysToCamelCase(rate),
+        });
+
+        const txRate = route === 'onramp' ? quotes.rate.buy : quotes.rate.sell;
+        const feePercentage =
+            route === 'onramp' ? quotes.fees.onrampFeePercentage : quotes.fees.offrampFeePercentage;
+
+        return {
+            rate: txRate,
+            fee: defaultAmountFixer(feePercentage / HUNDRED),
+        };
     }
 }
 

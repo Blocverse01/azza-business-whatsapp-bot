@@ -22,6 +22,14 @@ testRoutes
         );
 
         res.status(OK).send(result);
+    })
+    .get('/benchmark/quotes', async (_, res) => {
+        const result = await benchmark(
+            () => FiatRampService.getQuotes('NGN', 'NG', 'offramp'),
+            () => FiatRampsRpcService.getQuotes('NGN', 'NG', 'offramp')
+        );
+
+        res.status(OK).send(result);
     });
 
 export default testRoutes;

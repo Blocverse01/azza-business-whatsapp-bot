@@ -40,7 +40,6 @@ export const getCountryFlagEmoji = (countryCode: string): string => {
 };
 
 export const getUserCountryCodeFromPhoneNumber = (phoneNumber: string) => {
-    console.log(metadata);
     const phoneNumberObj = parsePhoneNumber(`+${phoneNumber}`, metadata);
 
     if (!phoneNumberObj?.country) {

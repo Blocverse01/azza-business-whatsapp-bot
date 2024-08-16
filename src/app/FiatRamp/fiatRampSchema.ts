@@ -55,11 +55,13 @@ export const getAllRatesResponseSchema = z.object({
 
 export type GetAllRatesResponse = z.infer<typeof getAllRatesResponseSchema>;
 
+export const quoteSchema = z.object({
+    rate: ratesSchema,
+    fees: transactionFeesSchema,
+});
+
 export const getQuoteResponseSchema = z.object({
-    data: z.object({
-        rate: ratesSchema,
-        fees: transactionFeesSchema,
-    }),
+    data: quoteSchema,
 });
 
 export type GetQuoteResponse = z.infer<typeof getQuoteResponseSchema>;
