@@ -4,104 +4,6 @@
     <option name="requestHistoryStates">
       <list>
         <requestHistoryState>
-          <option name="dateTime" value="1723457306622" />
-          <option name="id" value="dd93615d-c472-4981-82d3-6c5934816114" />
-          <option name="request">
-            <requestState>
-              <option name="auth">
-                <authState>
-                  <option name="bearer">
-                    <lM>
-                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
-                  </option>
-                  <option name="type" value="BEARER" />
-                </authState>
-              </option>
-              <option name="body">
-                <bodyState>
-                  <option name="raw" value="{&#10;  &quot;from&quot;: &quot;0x60f50c703CAb09e9525c97AB921a6b5E1Aa87747&quot;,&#10;  &quot;network&quot;: &quot;Optimism&quot;,&#10;  &quot;token&quot;: &quot;0x94b008aA00579c1307B0EF2c499aD98a8ce58e58&quot;,&#10;  &quot;transfers&quot;: [{&#10;    &quot;amount&quot;: &quot;0.0005&quot;,&#10;    &quot;recipient&quot;: &quot;0x4d81Cb192C26F50C31870053Fae9A7C84c8fC0c6&quot;&#10;  }],&#10;  &quot;developer_secret&quot;: &quot;testnet-secret&quot;&#10;}" />
-                  <option name="type" value="JSON" />
-                </bodyState>
-              </option>
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="X-WalletKit-Project-ID" />
-                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
-              <option name="method" value="POST" />
-              <option name="name" value="Draft" />
-              <option name="url" value="https://mainnet.walletkit.com/tokens/batch-transfer" />
-            </requestState>
-          </option>
-          <option name="response">
-            <responseState>
-              <option name="code" value="500" />
-              <option name="contentType" value="application/octet-stream" />
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Date" />
-                    <option name="value" value="Mon, 12 Aug 2024 10:08:28 GMT" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Length" />
-                    <option name="value" value="0" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Connection" />
-                    <option name="value" value="keep-alive" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="access-control-allow-headers" />
-                    <option name="value" value="Authorization, Content-Type, Accept, User-Agent, Origin, Cookie, X-WalletKit-Client, X-WalletKit-Project-ID, X-Glide-Project-ID, X-WalletKit-Token-Source, X-Fern-SDK-Version, X-Fern-SDK-Name, X-Fern-Language" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="via" />
-                    <option name="value" value="1.1 google" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="alt-svc" />
-                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-Cache-Status" />
-                    <option name="value" value="DYNAMIC" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Report-To" />
-                    <option name="value" value="{&quot;endpoints&quot;:[{&quot;url&quot;:&quot;https:\/\/a.nel.cloudflare.com\/report\/v4?s=k8o94nONNXPn1Dg9eZhfY8dpWuZmmB9h2oxJWahgD1kU8sBgLUfnowJ46BBHldK%2F4xiUKUKv%2BvvV9k8FM3NTMgE2QedjaRnvSM0z5OqS%2BP1wCsNXm9LgqtC7jFsf2MPcjkdYcQCfkoE%3D&quot;}],&quot;group&quot;:&quot;cf-nel&quot;,&quot;max_age&quot;:604800}" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="NEL" />
-                    <option name="value" value="{&quot;success_fraction&quot;:0,&quot;report_to&quot;:&quot;cf-nel&quot;,&quot;max_age&quot;:604800}" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Server" />
-                    <option name="value" value="cloudflare" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-RAY" />
-                    <option name="value" value="8b1faa0e2a1b385e-LHR" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="dd93615d-c472-4981-82d3-6c5934816114" />
-              <option name="message" value="Internal Server Error" />
-              <option name="time" value="711" />
-            </responseState>
-          </option>
-          <option name="workspaceId" value="drafts" />
-        </requestHistoryState>
-        <requestHistoryState>
           <option name="dateTime" value="1723457307220" />
           <option name="id" value="a44a56bb-10af-4d1e-9b07-ccab9eb3b816" />
           <option name="request">
@@ -1062,6 +964,120 @@
               <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;4.30s&quot;,&quot;timeTakenForB&quot;:&quot;0.45s&quot;,&quot;timeDifference&quot;:&quot;3.85s&quot;,&quot;improvementPercent&quot;:&quot;89.63%&quot;}" />
               <option name="size" value="84" />
               <option name="time" value="4914" />
+            </responseState>
+          </option>
+          <option name="workspaceId" value="drafts" />
+        </requestHistoryState>
+        <requestHistoryState>
+          <option name="dateTime" value="1723785740063" />
+          <option name="id" value="16c0744a-e63a-47ea-8a90-3a1341ca03d9" />
+          <option name="request">
+            <requestState>
+              <option name="auth">
+                <authState>
+                  <option name="bearer">
+                    <lM>
+                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
+                    </lM>
+                  </option>
+                  <option name="type" value="BEARER" />
+                </authState>
+              </option>
+              <option name="body">
+                <bodyState>
+                  <option name="type" value="JSON" />
+                </bodyState>
+              </option>
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="X-WalletKit-Project-ID" />
+                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
+              <option name="method" value="GET" />
+              <option name="name" value="Draft" />
+              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/quotes" />
+            </requestState>
+          </option>
+          <option name="response">
+            <responseState>
+              <option name="bodyBytesBase64" value="eyJ0aW1lVGFrZW5Gb3JBIjoiNC4yOXMiLCJ0aW1lVGFrZW5Gb3JCIjoiMC44NHMiLCJ0aW1lRGlmZmVyZW5jZSI6IjMuNDRzIiwiaW1wcm92ZW1lbnRQZXJjZW50IjoiODAuMzMlIn0=" />
+              <option name="bodyString" value="{&#10;  &quot;timeTakenForA&quot;: &quot;4.29s&quot;,&#10;  &quot;timeTakenForB&quot;: &quot;0.84s&quot;,&#10;  &quot;timeDifference&quot;: &quot;3.44s&quot;,&#10;  &quot;improvementPercent&quot;: &quot;80.33%&quot;&#10;}" />
+              <option name="code" value="200" />
+              <option name="contentType" value="application/json; charset=utf-8" />
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Date" />
+                    <option name="value" value="Fri, 16 Aug 2024 05:22:23 GMT" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json; charset=utf-8" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Length" />
+                    <option name="value" value="84" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Connection" />
+                    <option name="value" value="keep-alive" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Ray" />
+                    <option name="value" value="8b3efc5e3cda6329-LHR" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Cache-Status" />
+                    <option name="value" value="DYNAMIC" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Encoding" />
+                    <option name="value" value="br" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="ETag" />
+                    <option name="value" value="W/&quot;68-zzVh1X31Gzbzmgb1PUydotoct1k&quot;" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Vary" />
+                    <option name="value" value="Accept-Encoding" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="rndr-id" />
+                    <option name="value" value="662dc232-5d7d-44af" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-powered-by" />
+                    <option name="value" value="Express" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-render-origin-server" />
+                    <option name="value" value="Render" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Server" />
+                    <option name="value" value="cloudflare" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="alt-svc" />
+                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="16c0744a-e63a-47ea-8a90-3a1341ca03d9" />
+              <option name="message" value="OK" />
+              <option name="prettyResponseType" value="JSON" />
+              <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;4.29s&quot;,&quot;timeTakenForB&quot;:&quot;0.84s&quot;,&quot;timeDifference&quot;:&quot;3.44s&quot;,&quot;improvementPercent&quot;:&quot;80.33%&quot;}" />
+              <option name="size" value="84" />
+              <option name="time" value="5469" />
             </responseState>
           </option>
           <option name="workspaceId" value="drafts" />

@@ -72,6 +72,16 @@ class FiatRampsRpcService {
             fee: defaultAmountFixer(feePercentage / HUNDRED),
         };
     }
+
+    public static async getCurrencyRates(currencySymbol: string) {
+        const rates = await this.getRates([currencySymbol]);
+
+        if (!rates[0]) {
+            throw new Error(`Rate not found for currency: ${currencySymbol}`);
+        }
+
+        return rates[0];
+    }
 }
 
 export default FiatRampsRpcService;

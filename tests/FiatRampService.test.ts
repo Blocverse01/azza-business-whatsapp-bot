@@ -1,4 +1,4 @@
-import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import FiatRampService from '../src/app/FiatRamp/FiatRampService';
 import {
     getCurrenciesResponseSchema,
     GetMobileProvidersResponse,

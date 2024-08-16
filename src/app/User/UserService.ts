@@ -1,7 +1,6 @@
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import { dbClient } from '@/Db/dbClient';
 import { HttpException } from '@/Resources/exceptions/HttpException';
-import env from '@/constants/env';
 import {
     CreateWalletKitWalletParams,
     CreateWalletKitWalletResponse,
