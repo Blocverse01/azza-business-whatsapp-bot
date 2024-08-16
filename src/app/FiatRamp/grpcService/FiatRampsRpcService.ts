@@ -21,6 +21,11 @@ class FiatRampsRpcService {
             throw new Error('Invalid response');
         }
 
+        console.log(
+            countries,
+            countries.map((country) => transformKeysToCamelCase(country))
+        );
+
         return z
             .array(supportedCountry)
             .parse(countries.map((country) => transformKeysToCamelCase(country)));
