@@ -1,14 +1,21 @@
 import { z } from 'zod';
-import { quoteSchema, ratesSchema, supportedCountry } from '@/app/FiatRamp/fiatRampSchema';
+import {
+    BankBeneficiary,
+    MobileMoneyBeneficiary,
+    quoteSchema,
+    ratesSchema,
+    supportedCountry,
+} from '@/app/FiatRamp/fiatRampSchema';
 import { transformKeysToCamelCase } from '@/Resources/utils/transformers';
 import { fiatramps } from '@/proto/fiatramps/v1/service';
 import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
-import { getQuotes, getRates, getSupportedCountries } from './rpcMethods';
+import { getBeneficiaries, getQuotes, getRates, getSupportedCountries } from './rpcMethods';
 import GetRatesRequest = fiatramps.v1.GetRatesRequest;
 import { CountryCode } from 'libphonenumber-js';
 import GetQuotesRequest = fiatramps.v1.GetQuotesRequest;
 import { defaultAmountFixer } from '@/Resources/utils/currency';
 import { HUNDRED } from '@/constants/numbers';
+import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -81,6 +88,56 @@ class FiatRampsRpcService {
         }
 
         return rates[0];
+    }
+
+    public static async getBeneficiaries(
+        ownerId: string,
+        countryCode: CountryCode,
+        accountType: 'bank' | 'phone' | undefined = undefined
+    ) {
+        const request = new GetBeneficiariesRequest({
+            owner_id: ownerId,
+            country_code: countryCode,
+            account_type: accountType,
+        });
+
+        const response = await getBeneficiaries(request);
+
+        const { beneficiaries } = response.toObject();
+
+        if (!beneficiaries) {
+            throw new Error('Invalid response');
+        }
+
+        return beneficiaries.map((beneficiary) => {
+            if (beneficiary.account_type === 'bank') {
+                return {
+                    accountNumber: beneficiary.account_number!,
+                    accountName: beneficiary.account_name!,
+                    bankName: beneficiary.provider_name!,
+                    country: transformKeysToCamelCase(beneficiary.country),
+                    countryId: beneficiary.country?.id!,
+                    channelId: beneficiary.channel_id!,
+                    networkId: beneficiary.network_id!,
+                    id: beneficiary.id!,
+                } satisfies BankBeneficiary;
+            }
+
+            const [firstName, lastName] = (beneficiary.account_name ?? '').split(' ');
+
+            return {
+                mobileNumber: beneficiary.account_number!,
+                country: transformKeysToCamelCase(beneficiary.country),
+                countryId: beneficiary.country?.id!,
+                channelId: beneficiary.channel_id!,
+                networkId: beneficiary.network_id!,
+                id: beneficiary.id!,
+                mobileProvider: beneficiary.provider_name!,
+                mobileProviderCode: beneficiary.provider_description!,
+                firstName: firstName,
+                lastName: lastName,
+            } satisfies MobileMoneyBeneficiary;
+        });
     }
 }
 

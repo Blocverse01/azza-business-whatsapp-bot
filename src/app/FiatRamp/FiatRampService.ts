@@ -124,8 +124,11 @@ class FiatRampService {
         countryCode: CountryCode,
         accountType: 'bank' | 'phone' | undefined = undefined
     ) {
-        // TODO: add flag control statement
-        return await FiatRampsApiService.getBeneficiaries(ownerId, countryCode, accountType);
+        if (this.USE_API_SERVICE) {
+            return await FiatRampsApiService.getBeneficiaries(ownerId, countryCode, accountType);
+        }
+
+        return FiatRampsRpcService.getBeneficiaries(ownerId, countryCode, accountType);
     }
 
     public static async getBeneficiary(beneficiaryId: string) {

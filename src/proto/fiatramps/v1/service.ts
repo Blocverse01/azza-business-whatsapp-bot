@@ -908,6 +908,440 @@ export namespace fiatramps.v1 {
             return GetTransactionFeeRequest.deserialize(bytes);
         }
     }
+    export class GetBeneficiariesRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            country_code?: string;
+            owner_id?: string;
+            account_type?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("country_code" in data && data.country_code != undefined) {
+                    this.country_code = data.country_code;
+                }
+                if ("owner_id" in data && data.owner_id != undefined) {
+                    this.owner_id = data.owner_id;
+                }
+                if ("account_type" in data && data.account_type != undefined) {
+                    this.account_type = data.account_type;
+                }
+            }
+        }
+        get country_code() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set country_code(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get owner_id() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set owner_id(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get account_type() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set account_type(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        static fromObject(data: {
+            country_code?: string;
+            owner_id?: string;
+            account_type?: string;
+        }): GetBeneficiariesRequest {
+            const message = new GetBeneficiariesRequest({});
+            if (data.country_code != null) {
+                message.country_code = data.country_code;
+            }
+            if (data.owner_id != null) {
+                message.owner_id = data.owner_id;
+            }
+            if (data.account_type != null) {
+                message.account_type = data.account_type;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                country_code?: string;
+                owner_id?: string;
+                account_type?: string;
+            } = {};
+            if (this.country_code != null) {
+                data.country_code = this.country_code;
+            }
+            if (this.owner_id != null) {
+                data.owner_id = this.owner_id;
+            }
+            if (this.account_type != null) {
+                data.account_type = this.account_type;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.country_code.length)
+                writer.writeString(1, this.country_code);
+            if (this.owner_id.length)
+                writer.writeString(2, this.owner_id);
+            if (this.account_type.length)
+                writer.writeString(3, this.account_type);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): GetBeneficiariesRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new GetBeneficiariesRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.country_code = reader.readString();
+                        break;
+                    case 2:
+                        message.owner_id = reader.readString();
+                        break;
+                    case 3:
+                        message.account_type = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): GetBeneficiariesRequest {
+            return GetBeneficiariesRequest.deserialize(bytes);
+        }
+    }
+    export class GetBeneficiariesResponse extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            beneficiaries?: Beneficiary[];
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [1], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("beneficiaries" in data && data.beneficiaries != undefined) {
+                    this.beneficiaries = data.beneficiaries;
+                }
+            }
+        }
+        get beneficiaries() {
+            return pb_1.Message.getRepeatedWrapperField(this, Beneficiary, 1) as Beneficiary[];
+        }
+        set beneficiaries(value: Beneficiary[]) {
+            pb_1.Message.setRepeatedWrapperField(this, 1, value);
+        }
+        static fromObject(data: {
+            beneficiaries?: ReturnType<typeof Beneficiary.prototype.toObject>[];
+        }): GetBeneficiariesResponse {
+            const message = new GetBeneficiariesResponse({});
+            if (data.beneficiaries != null) {
+                message.beneficiaries = data.beneficiaries.map(item => Beneficiary.fromObject(item));
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                beneficiaries?: ReturnType<typeof Beneficiary.prototype.toObject>[];
+            } = {};
+            if (this.beneficiaries != null) {
+                data.beneficiaries = this.beneficiaries.map((item: Beneficiary) => item.toObject());
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.beneficiaries.length)
+                writer.writeRepeatedMessage(1, this.beneficiaries, (item: Beneficiary) => item.serialize(writer));
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): GetBeneficiariesResponse {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new GetBeneficiariesResponse();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.beneficiaries, () => pb_1.Message.addToRepeatedWrapperField(message, 1, Beneficiary.deserialize(reader), Beneficiary));
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): GetBeneficiariesResponse {
+            return GetBeneficiariesResponse.deserialize(bytes);
+        }
+    }
+    export class Beneficiary extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            id?: string;
+            account_name?: string;
+            account_type?: string;
+            account_number?: string;
+            provider_name?: string;
+            channel_id?: string;
+            network_id?: string;
+            country?: SupportedCountry;
+            provider_description?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("id" in data && data.id != undefined) {
+                    this.id = data.id;
+                }
+                if ("account_name" in data && data.account_name != undefined) {
+                    this.account_name = data.account_name;
+                }
+                if ("account_type" in data && data.account_type != undefined) {
+                    this.account_type = data.account_type;
+                }
+                if ("account_number" in data && data.account_number != undefined) {
+                    this.account_number = data.account_number;
+                }
+                if ("provider_name" in data && data.provider_name != undefined) {
+                    this.provider_name = data.provider_name;
+                }
+                if ("channel_id" in data && data.channel_id != undefined) {
+                    this.channel_id = data.channel_id;
+                }
+                if ("network_id" in data && data.network_id != undefined) {
+                    this.network_id = data.network_id;
+                }
+                if ("country" in data && data.country != undefined) {
+                    this.country = data.country;
+                }
+                if ("provider_description" in data && data.provider_description != undefined) {
+                    this.provider_description = data.provider_description;
+                }
+            }
+        }
+        get id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get account_name() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set account_name(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get account_type() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set account_type(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        get account_number() {
+            return pb_1.Message.getFieldWithDefault(this, 4, "") as string;
+        }
+        set account_number(value: string) {
+            pb_1.Message.setField(this, 4, value);
+        }
+        get provider_name() {
+            return pb_1.Message.getFieldWithDefault(this, 5, "") as string;
+        }
+        set provider_name(value: string) {
+            pb_1.Message.setField(this, 5, value);
+        }
+        get channel_id() {
+            return pb_1.Message.getFieldWithDefault(this, 6, "") as string;
+        }
+        set channel_id(value: string) {
+            pb_1.Message.setField(this, 6, value);
+        }
+        get network_id() {
+            return pb_1.Message.getFieldWithDefault(this, 7, "") as string;
+        }
+        set network_id(value: string) {
+            pb_1.Message.setField(this, 7, value);
+        }
+        get country() {
+            return pb_1.Message.getWrapperField(this, SupportedCountry, 8) as SupportedCountry;
+        }
+        set country(value: SupportedCountry) {
+            pb_1.Message.setWrapperField(this, 8, value);
+        }
+        get has_country() {
+            return pb_1.Message.getField(this, 8) != null;
+        }
+        get provider_description() {
+            return pb_1.Message.getFieldWithDefault(this, 9, "") as string;
+        }
+        set provider_description(value: string) {
+            pb_1.Message.setField(this, 9, value);
+        }
+        static fromObject(data: {
+            id?: string;
+            account_name?: string;
+            account_type?: string;
+            account_number?: string;
+            provider_name?: string;
+            channel_id?: string;
+            network_id?: string;
+            country?: ReturnType<typeof SupportedCountry.prototype.toObject>;
+            provider_description?: string;
+        }): Beneficiary {
+            const message = new Beneficiary({});
+            if (data.id != null) {
+                message.id = data.id;
+            }
+            if (data.account_name != null) {
+                message.account_name = data.account_name;
+            }
+            if (data.account_type != null) {
+                message.account_type = data.account_type;
+            }
+            if (data.account_number != null) {
+                message.account_number = data.account_number;
+            }
+            if (data.provider_name != null) {
+                message.provider_name = data.provider_name;
+            }
+            if (data.channel_id != null) {
+                message.channel_id = data.channel_id;
+            }
+            if (data.network_id != null) {
+                message.network_id = data.network_id;
+            }
+            if (data.country != null) {
+                message.country = SupportedCountry.fromObject(data.country);
+            }
+            if (data.provider_description != null) {
+                message.provider_description = data.provider_description;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                id?: string;
+                account_name?: string;
+                account_type?: string;
+                account_number?: string;
+                provider_name?: string;
+                channel_id?: string;
+                network_id?: string;
+                country?: ReturnType<typeof SupportedCountry.prototype.toObject>;
+                provider_description?: string;
+            } = {};
+            if (this.id != null) {
+                data.id = this.id;
+            }
+            if (this.account_name != null) {
+                data.account_name = this.account_name;
+            }
+            if (this.account_type != null) {
+                data.account_type = this.account_type;
+            }
+            if (this.account_number != null) {
+                data.account_number = this.account_number;
+            }
+            if (this.provider_name != null) {
+                data.provider_name = this.provider_name;
+            }
+            if (this.channel_id != null) {
+                data.channel_id = this.channel_id;
+            }
+            if (this.network_id != null) {
+                data.network_id = this.network_id;
+            }
+            if (this.country != null) {
+                data.country = this.country.toObject();
+            }
+            if (this.provider_description != null) {
+                data.provider_description = this.provider_description;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.id.length)
+                writer.writeString(1, this.id);
+            if (this.account_name.length)
+                writer.writeString(2, this.account_name);
+            if (this.account_type.length)
+                writer.writeString(3, this.account_type);
+            if (this.account_number.length)
+                writer.writeString(4, this.account_number);
+            if (this.provider_name.length)
+                writer.writeString(5, this.provider_name);
+            if (this.channel_id.length)
+                writer.writeString(6, this.channel_id);
+            if (this.network_id.length)
+                writer.writeString(7, this.network_id);
+            if (this.has_country)
+                writer.writeMessage(8, this.country, () => this.country.serialize(writer));
+            if (this.provider_description.length)
+                writer.writeString(9, this.provider_description);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): Beneficiary {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new Beneficiary();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.id = reader.readString();
+                        break;
+                    case 2:
+                        message.account_name = reader.readString();
+                        break;
+                    case 3:
+                        message.account_type = reader.readString();
+                        break;
+                    case 4:
+                        message.account_number = reader.readString();
+                        break;
+                    case 5:
+                        message.provider_name = reader.readString();
+                        break;
+                    case 6:
+                        message.channel_id = reader.readString();
+                        break;
+                    case 7:
+                        message.network_id = reader.readString();
+                        break;
+                    case 8:
+                        reader.readMessage(message.country, () => message.country = SupportedCountry.deserialize(reader));
+                        break;
+                    case 9:
+                        message.provider_description = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): Beneficiary {
+            return Beneficiary.deserialize(bytes);
+        }
+    }
     interface GrpcUnaryServiceInterface<P, R> {
         (message: P, metadata: grpc_1.Metadata, options: grpc_1.CallOptions, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
         (message: P, metadata: grpc_1.Metadata, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
@@ -969,6 +1403,15 @@ export namespace fiatramps.v1 {
                 requestDeserialize: (bytes: Buffer) => GetTransactionFeeRequest.deserialize(new Uint8Array(bytes)),
                 responseSerialize: (message: GetTransactionFeeResponse) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => GetTransactionFeeResponse.deserialize(new Uint8Array(bytes))
+            },
+            GetBeneficiaries: {
+                path: "/fiatramps.v1.FiatRampsService/GetBeneficiaries",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: GetBeneficiariesRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => GetBeneficiariesRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: GetBeneficiariesResponse) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => GetBeneficiariesResponse.deserialize(new Uint8Array(bytes))
             }
         };
         [method: string]: grpc_1.UntypedHandleCall;
@@ -976,6 +1419,7 @@ export namespace fiatramps.v1 {
         abstract GetQuotes(call: grpc_1.ServerUnaryCall<GetQuotesRequest, GetQuotesResponse>, callback: grpc_1.sendUnaryData<GetQuotesResponse>): void;
         abstract GetRates(call: grpc_1.ServerUnaryCall<GetRatesRequest, GetRatesResponse>, callback: grpc_1.sendUnaryData<GetRatesResponse>): void;
         abstract GetTransactionFee(call: grpc_1.ServerUnaryCall<GetTransactionFeeRequest, GetTransactionFeeResponse>, callback: grpc_1.sendUnaryData<GetTransactionFeeResponse>): void;
+        abstract GetBeneficiaries(call: grpc_1.ServerUnaryCall<GetBeneficiariesRequest, GetBeneficiariesResponse>, callback: grpc_1.sendUnaryData<GetBeneficiariesResponse>): void;
     }
     export class FiatRampsServiceClient extends grpc_1.makeGenericClientConstructor(UnimplementedFiatRampsServiceService.definition, "FiatRampsService", {}) {
         constructor(address: string, credentials: grpc_1.ChannelCredentials, options?: Partial<grpc_1.ChannelOptions>) {
@@ -992,6 +1436,9 @@ export namespace fiatramps.v1 {
         };
         GetTransactionFee: GrpcUnaryServiceInterface<GetTransactionFeeRequest, GetTransactionFeeResponse> = (message: GetTransactionFeeRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<GetTransactionFeeResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<GetTransactionFeeResponse>, callback?: grpc_1.requestCallback<GetTransactionFeeResponse>): grpc_1.ClientUnaryCall => {
             return super.GetTransactionFee(message, metadata, options, callback);
+        };
+        GetBeneficiaries: GrpcUnaryServiceInterface<GetBeneficiariesRequest, GetBeneficiariesResponse> = (message: GetBeneficiariesRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<GetBeneficiariesResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<GetBeneficiariesResponse>, callback?: grpc_1.requestCallback<GetBeneficiariesResponse>): grpc_1.ClientUnaryCall => {
+            return super.GetBeneficiaries(message, metadata, options, callback);
         };
     }
 }

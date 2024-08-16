@@ -9,6 +9,7 @@ service FiatRampsService {
   rpc GetQuotes(GetQuotesRequest) returns (GetQuotesResponse) {};
   rpc GetRates(GetRatesRequest) returns (GetRatesResponse) {};
   rpc GetTransactionFee(GetTransactionFeeRequest) returns (GetTransactionFeeResponse) {};
+  rpc GetBeneficiaries(GetBeneficiariesRequest) returns (GetBeneficiariesResponse) {};
 }
 
 message GetSupportedCountriesRequest {
@@ -59,4 +60,26 @@ message GetQuotesResponse {
 
 message GetTransactionFeeRequest {
   string country_code = 1;
+}
+
+message GetBeneficiariesRequest {
+  string country_code = 1;
+  string owner_id = 2;
+  string account_type =3;
+}
+
+message GetBeneficiariesResponse {
+  repeated Beneficiary beneficiaries = 1;
+}
+
+message Beneficiary {
+  string id = 1;
+  string account_name = 2;
+  string account_type = 3;
+  string account_number = 4;
+  string provider_name = 5;
+  string channel_id = 6;
+  string network_id = 7;
+  SupportedCountry country = 8;
+  string provider_description = 9;
 }
