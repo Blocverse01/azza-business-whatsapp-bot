@@ -10,6 +10,7 @@ service FiatRampsService {
   rpc GetRates(GetRatesRequest) returns (GetRatesResponse) {};
   rpc GetTransactionFee(GetTransactionFeeRequest) returns (GetTransactionFeeResponse) {};
   rpc GetBeneficiaries(GetBeneficiariesRequest) returns (GetBeneficiariesResponse) {};
+  rpc GetBeneficiary(GetBeneficiaryRequest) returns (Beneficiary) {};
 }
 
 message GetSupportedCountriesRequest {
@@ -82,4 +83,8 @@ message Beneficiary {
   string network_id = 7;
   SupportedCountry country = 8;
   string provider_description = 9;
+}
+
+message GetBeneficiaryRequest {
+  string beneficiary_id = 1;
 }

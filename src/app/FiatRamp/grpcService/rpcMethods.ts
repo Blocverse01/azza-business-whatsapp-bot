@@ -6,6 +6,7 @@ import GetRatesRequest = fiatramps.v1.GetRatesRequest;
 import GetQuotesRequest = fiatramps.v1.GetQuotesRequest;
 import FiatRampsServiceClient = fiatramps.v1.FiatRampsServiceClient;
 import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
+import GetBeneficiaryRequest = fiatramps.v1.GetBeneficiaryRequest;
 
 // Wrap the gRPC methods as promises
 export const getSupportedCountries = promisifyUnary<
@@ -31,3 +32,9 @@ export const getBeneficiaries = promisifyUnary<
     GetBeneficiariesRequest,
     fiatramps.v1.GetBeneficiariesResponse
 >(client, 'GetBeneficiaries');
+
+export const getBeneficiary = promisifyUnary<
+    FiatRampsServiceClient,
+    GetBeneficiaryRequest,
+    fiatramps.v1.Beneficiary
+>(client, 'GetBeneficiary');

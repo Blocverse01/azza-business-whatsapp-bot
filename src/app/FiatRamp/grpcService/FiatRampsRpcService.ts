@@ -9,13 +9,20 @@ import {
 import { transformKeysToCamelCase } from '@/Resources/utils/transformers';
 import { fiatramps } from '@/proto/fiatramps/v1/service';
 import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
-import { getBeneficiaries, getQuotes, getRates, getSupportedCountries } from './rpcMethods';
+import {
+    getBeneficiaries,
+    getBeneficiary,
+    getQuotes,
+    getRates,
+    getSupportedCountries,
+} from './rpcMethods';
 import GetRatesRequest = fiatramps.v1.GetRatesRequest;
 import { CountryCode } from 'libphonenumber-js';
 import GetQuotesRequest = fiatramps.v1.GetQuotesRequest;
 import { defaultAmountFixer } from '@/Resources/utils/currency';
 import { HUNDRED } from '@/constants/numbers';
 import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
+import GetBeneficiaryRequest = fiatramps.v1.GetBeneficiaryRequest;
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -103,41 +110,53 @@ class FiatRampsRpcService {
 
         const response = await getBeneficiaries(request);
 
-        const { beneficiaries } = response.toObject();
-
-        if (!beneficiaries) {
+        if (!response.beneficiaries) {
             throw new Error('Invalid response');
         }
 
-        return beneficiaries.map((beneficiary) => {
-            if (beneficiary.account_type === 'bank') {
-                return {
-                    accountNumber: beneficiary.account_number!,
-                    accountName: beneficiary.account_name!,
-                    bankName: beneficiary.provider_name!,
-                    country: transformKeysToCamelCase(beneficiary.country),
-                    countryId: beneficiary.country?.id!,
-                    channelId: beneficiary.channel_id!,
-                    networkId: beneficiary.network_id!,
-                    id: beneficiary.id!,
-                } satisfies BankBeneficiary;
-            }
+        return response.beneficiaries.map(this.parseBeneficiary);
+    }
 
-            const [firstName, lastName] = (beneficiary.account_name ?? '').split(' ');
+    private static parseBeneficiary(beneficiary: fiatramps.v1.Beneficiary) {
+        const deserializedBeneficiary = beneficiary.toObject();
 
+        if (deserializedBeneficiary.account_type === 'bank') {
             return {
-                mobileNumber: beneficiary.account_number!,
-                country: transformKeysToCamelCase(beneficiary.country),
-                countryId: beneficiary.country?.id!,
-                channelId: beneficiary.channel_id!,
-                networkId: beneficiary.network_id!,
-                id: beneficiary.id!,
-                mobileProvider: beneficiary.provider_name!,
-                mobileProviderCode: beneficiary.provider_description!,
-                firstName: firstName,
-                lastName: lastName,
-            } satisfies MobileMoneyBeneficiary;
+                accountNumber: deserializedBeneficiary.account_number!,
+                accountName: deserializedBeneficiary.account_name!,
+                bankName: deserializedBeneficiary.provider_name!,
+                country: transformKeysToCamelCase(deserializedBeneficiary.country),
+                countryId: deserializedBeneficiary.country?.id!,
+                channelId: deserializedBeneficiary.channel_id!,
+                networkId: deserializedBeneficiary.network_id!,
+                id: deserializedBeneficiary.id!,
+            } satisfies BankBeneficiary;
+        }
+
+        const [firstName, lastName] = (deserializedBeneficiary.account_name ?? '').split(' ');
+
+        return {
+            mobileNumber: deserializedBeneficiary.account_number!,
+            country: transformKeysToCamelCase(deserializedBeneficiary.country),
+            countryId: deserializedBeneficiary.country?.id!,
+            channelId: deserializedBeneficiary.channel_id!,
+            networkId: deserializedBeneficiary.network_id!,
+            id: deserializedBeneficiary.id!,
+            mobileProvider: deserializedBeneficiary.provider_name!,
+            mobileProviderCode: deserializedBeneficiary.provider_description!,
+            firstName: firstName,
+            lastName: lastName,
+        } satisfies MobileMoneyBeneficiary;
+    }
+
+    public static async getBeneficiary(beneficiaryId: string) {
+        const request = new GetBeneficiaryRequest({
+            beneficiary_id: beneficiaryId,
         });
+
+        const response = await getBeneficiary(request);
+
+        return this.parseBeneficiary(response);
     }
 }
 

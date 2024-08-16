@@ -132,9 +132,11 @@ class FiatRampService {
     }
 
     public static async getBeneficiary(beneficiaryId: string) {
-        // TODO: add flag control statement
+        if (this.USE_API_SERVICE) {
+            return await FiatRampsApiService.getBeneficiary(beneficiaryId);
+        }
 
-        return await FiatRampsApiService.getBeneficiary(beneficiaryId);
+        return await FiatRampsRpcService.getBeneficiary(beneficiaryId);
     }
 
     public static async sendOfframpRequest(params: SendOfframpRequestPayload) {

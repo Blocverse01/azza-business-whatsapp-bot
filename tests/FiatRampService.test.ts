@@ -130,7 +130,7 @@ describe('FiatRampService', () => {
                     throw new Error('Bank channel not found');
                 }
 
-                const userDetails = await UserService.getUserIdentityInfo('2348143100808');
+                const userDetails = await UserService.getUserIdentityInfo('');
 
                 if (!userDetails) {
                     throw new Error('User identity info not found');
@@ -145,7 +145,7 @@ describe('FiatRampService', () => {
                     tokenName: 'USDT',
                     userWalletAddress: '0x2C0a6a30fAe9872513609819f667efA7e539021E',
                     userDetails: userDetails,
-                    customerId: '2348143100808',
+                    customerId: '',
                 };
 
                 const response = await FiatRampService.postOnRampTransaction(transactionPayload);
@@ -212,7 +212,7 @@ describe('FiatRampService', () => {
                     throw new Error('Bank not found');
                 }
 
-                const ownerId = '2349057774260';
+                const ownerId = '';
 
                 const beneficiaryId = await FiatRampService.createBeneficiary(
                     ownerId,
@@ -221,8 +221,8 @@ describe('FiatRampService', () => {
                     {
                         beneficiary: {
                             countryId: 'rec_ckhg3eg7afgqhtu4ijj0',
-                            accountName: 'Onyewuchi Esther',
-                            accountNumber: '1704545925',
+                            accountName: '',
+                            accountNumber: '',
                             bankName: choiceBank.name,
                             channelId: choiceBank.channelId,
                             networkId: choiceBank.networkId,
@@ -246,6 +246,18 @@ describe('FiatRampService', () => {
             },
             TEN_THOUSAND * 3
         );
+        it(
+            'Should get a beneficiary by ID',
+            async () => {
+                const beneficiaryId = '';
+                const beneficiary = await FiatRampService.getBeneficiary(beneficiaryId);
+
+                console.log(beneficiary);
+
+                expect(beneficiary).toBeDefined();
+            },
+            TEN_THOUSAND * 3
+        );
         it('Should get hot wallet address', async () => {
             const hotWalletAddress = await FiatRampService.getHotWalletForNetwork('evm');
 
@@ -257,13 +269,13 @@ describe('FiatRampService', () => {
             'Should send offramp transaction',
             async () => {
                 const transactionPayload: SendOfframpRequestPayload = {
-                    beneficiaryId: 'rec_cppfpjc5j7ivr69md950',
-                    localAmount: 14900,
+                    beneficiaryId: '',
+                    localAmount: 0,
                     chainName: 'BEP20',
                     tokenName: 'USDT',
                     userWalletAddress: '0x4d81Cb192C26F50C31870053Fae9A7C84c8fC0c6',
                     hotWalletAddress: '0xd73594Ddc43B368719a0003BcC1a520c17a16DeB',
-                    usdAmount: 10.1,
+                    usdAmount: 0,
                     tokenAddress: '0x55d398326f99059ff775485246999027b3197955',
                     txHash: '0xab190f51ef8f330bc38b3ad938e2c5e23ffdb46b218310b5dcf11976973265ed_test',
                 };

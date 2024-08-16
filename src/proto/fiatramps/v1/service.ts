@@ -1342,6 +1342,73 @@ export namespace fiatramps.v1 {
             return Beneficiary.deserialize(bytes);
         }
     }
+    export class GetBeneficiaryRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            beneficiary_id?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("beneficiary_id" in data && data.beneficiary_id != undefined) {
+                    this.beneficiary_id = data.beneficiary_id;
+                }
+            }
+        }
+        get beneficiary_id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set beneficiary_id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        static fromObject(data: {
+            beneficiary_id?: string;
+        }): GetBeneficiaryRequest {
+            const message = new GetBeneficiaryRequest({});
+            if (data.beneficiary_id != null) {
+                message.beneficiary_id = data.beneficiary_id;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                beneficiary_id?: string;
+            } = {};
+            if (this.beneficiary_id != null) {
+                data.beneficiary_id = this.beneficiary_id;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.beneficiary_id.length)
+                writer.writeString(1, this.beneficiary_id);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): GetBeneficiaryRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new GetBeneficiaryRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.beneficiary_id = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): GetBeneficiaryRequest {
+            return GetBeneficiaryRequest.deserialize(bytes);
+        }
+    }
     interface GrpcUnaryServiceInterface<P, R> {
         (message: P, metadata: grpc_1.Metadata, options: grpc_1.CallOptions, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
         (message: P, metadata: grpc_1.Metadata, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
@@ -1412,6 +1479,15 @@ export namespace fiatramps.v1 {
                 requestDeserialize: (bytes: Buffer) => GetBeneficiariesRequest.deserialize(new Uint8Array(bytes)),
                 responseSerialize: (message: GetBeneficiariesResponse) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => GetBeneficiariesResponse.deserialize(new Uint8Array(bytes))
+            },
+            GetBeneficiary: {
+                path: "/fiatramps.v1.FiatRampsService/GetBeneficiary",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: GetBeneficiaryRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => GetBeneficiaryRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: Beneficiary) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => Beneficiary.deserialize(new Uint8Array(bytes))
             }
         };
         [method: string]: grpc_1.UntypedHandleCall;
@@ -1420,6 +1496,7 @@ export namespace fiatramps.v1 {
         abstract GetRates(call: grpc_1.ServerUnaryCall<GetRatesRequest, GetRatesResponse>, callback: grpc_1.sendUnaryData<GetRatesResponse>): void;
         abstract GetTransactionFee(call: grpc_1.ServerUnaryCall<GetTransactionFeeRequest, GetTransactionFeeResponse>, callback: grpc_1.sendUnaryData<GetTransactionFeeResponse>): void;
         abstract GetBeneficiaries(call: grpc_1.ServerUnaryCall<GetBeneficiariesRequest, GetBeneficiariesResponse>, callback: grpc_1.sendUnaryData<GetBeneficiariesResponse>): void;
+        abstract GetBeneficiary(call: grpc_1.ServerUnaryCall<GetBeneficiaryRequest, Beneficiary>, callback: grpc_1.sendUnaryData<Beneficiary>): void;
     }
     export class FiatRampsServiceClient extends grpc_1.makeGenericClientConstructor(UnimplementedFiatRampsServiceService.definition, "FiatRampsService", {}) {
         constructor(address: string, credentials: grpc_1.ChannelCredentials, options?: Partial<grpc_1.ChannelOptions>) {
@@ -1439,6 +1516,9 @@ export namespace fiatramps.v1 {
         };
         GetBeneficiaries: GrpcUnaryServiceInterface<GetBeneficiariesRequest, GetBeneficiariesResponse> = (message: GetBeneficiariesRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<GetBeneficiariesResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<GetBeneficiariesResponse>, callback?: grpc_1.requestCallback<GetBeneficiariesResponse>): grpc_1.ClientUnaryCall => {
             return super.GetBeneficiaries(message, metadata, options, callback);
+        };
+        GetBeneficiary: GrpcUnaryServiceInterface<GetBeneficiaryRequest, Beneficiary> = (message: GetBeneficiaryRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<Beneficiary>, options?: grpc_1.CallOptions | grpc_1.requestCallback<Beneficiary>, callback?: grpc_1.requestCallback<Beneficiary>): grpc_1.ClientUnaryCall => {
+            return super.GetBeneficiary(message, metadata, options, callback);
         };
     }
 }
