@@ -9,7 +9,7 @@ const internalServiceDns = 'globachain-ramps-service';
 const serviceAddress = `${internalServiceDns}:${servicePort}`;
 
 // Create a client
-const client = new FiatRampsServiceClient(serviceAddress, grpc.credentials.createSsl());
+const client = new FiatRampsServiceClient(serviceAddress, grpc.credentials.createInsecure());
 
 // Wrap the gRPC methods
 const getSupportedCountries = promisifyUnary<

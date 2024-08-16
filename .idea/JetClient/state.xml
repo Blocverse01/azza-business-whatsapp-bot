@@ -9,9 +9,9 @@
               <option name="auth">
                 <authState>
                   <option name="bearer">
-                    <lC>
+                    <lM>
                       <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lC>
+                    </lM>
                   </option>
                   <option name="type" value="BEARER" />
                 </authState>
@@ -35,9 +35,9 @@
                 </list>
               </option>
               <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
-              <option name="method" value="POST" />
+              <option name="method" value="GET" />
               <option name="name" value="Draft" />
-              <option name="url" value="https://mainnet.walletkit.com/tokens/batch-transfer" />
+              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/get-countries" />
             </requestState>
           </list>
         </option>
