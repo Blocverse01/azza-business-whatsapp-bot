@@ -52,8 +52,13 @@ import { HttpException } from '@/Resources/exceptions/HttpException';
 import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
 import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
-import { getCountryFlagEmoji, getUserCountryCodeFromPhoneNumber } from '@/Resources/utils/currency';
+import {
+    getCountryFlagEmoji,
+    getUserCountryCodeFromPhoneNumber,
+    prettifyNumber,
+} from '@/Resources/utils/currency';
 import { generateAssetBalanceMessage } from '@/Resources/utils/bot-message-utils';
+import { TWO } from '@/constants/numbers';
 
 class WhatsAppBotService {
     private static WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -403,7 +408,7 @@ class WhatsAppBotService {
         const messagePayload: WhatsAppTextMessage = {
             type: WhatsAppMessageType.TEXT,
             text: {
-                body: `_*Conversion Rates*_\n\n${rates.map((rate) => `${getCountryFlagEmoji(rate.locale)} ${rate.code}/USD\nBuy: ${rate.buy}\nSell: ${rate.sell}\n-------------------`).join('\n')}`,
+                body: `_*Conversion Rates*_\n\n${rates.map((rate) => `${getCountryFlagEmoji(rate.locale)} ${rate.code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`).join('\n')}`,
                 preview_url: false,
             },
             messaging_product: 'whatsapp',

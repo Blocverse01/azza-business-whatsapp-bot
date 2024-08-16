@@ -21,7 +21,9 @@ class FiatRampsRpcService {
             throw new Error('Invalid response');
         }
 
-        return z.array(supportedCountry).parse(transformKeysToCamelCase(countries));
+        return z
+            .array(supportedCountry)
+            .parse(countries.map((country) => transformKeysToCamelCase(country)));
     }
 
     public static async getRates(targetCurrencies: string[] = []) {
