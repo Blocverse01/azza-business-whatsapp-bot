@@ -50,7 +50,7 @@ export namespace fiatramps.v1 {
         #one_of_decls: number[][] = [];
         constructor(data?: any[] | {
             id?: string;
-            name?: string;
+            country?: string;
             code?: string;
             currency_symbol?: string;
             currency_name?: string;
@@ -62,8 +62,8 @@ export namespace fiatramps.v1 {
                 if ("id" in data && data.id != undefined) {
                     this.id = data.id;
                 }
-                if ("name" in data && data.name != undefined) {
-                    this.name = data.name;
+                if ("country" in data && data.country != undefined) {
+                    this.country = data.country;
                 }
                 if ("code" in data && data.code != undefined) {
                     this.code = data.code;
@@ -85,10 +85,10 @@ export namespace fiatramps.v1 {
         set id(value: string) {
             pb_1.Message.setField(this, 1, value);
         }
-        get name() {
+        get country() {
             return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
         }
-        set name(value: string) {
+        set country(value: string) {
             pb_1.Message.setField(this, 2, value);
         }
         get code() {
@@ -117,7 +117,7 @@ export namespace fiatramps.v1 {
         }
         static fromObject(data: {
             id?: string;
-            name?: string;
+            country?: string;
             code?: string;
             currency_symbol?: string;
             currency_name?: string;
@@ -127,8 +127,8 @@ export namespace fiatramps.v1 {
             if (data.id != null) {
                 message.id = data.id;
             }
-            if (data.name != null) {
-                message.name = data.name;
+            if (data.country != null) {
+                message.country = data.country;
             }
             if (data.code != null) {
                 message.code = data.code;
@@ -147,7 +147,7 @@ export namespace fiatramps.v1 {
         toObject() {
             const data: {
                 id?: string;
-                name?: string;
+                country?: string;
                 code?: string;
                 currency_symbol?: string;
                 currency_name?: string;
@@ -156,8 +156,8 @@ export namespace fiatramps.v1 {
             if (this.id != null) {
                 data.id = this.id;
             }
-            if (this.name != null) {
-                data.name = this.name;
+            if (this.country != null) {
+                data.country = this.country;
             }
             if (this.code != null) {
                 data.code = this.code;
@@ -179,8 +179,8 @@ export namespace fiatramps.v1 {
             const writer = w || new pb_1.BinaryWriter();
             if (this.id.length)
                 writer.writeString(1, this.id);
-            if (this.name.length)
-                writer.writeString(2, this.name);
+            if (this.country.length)
+                writer.writeString(2, this.country);
             if (this.code.length)
                 writer.writeString(3, this.code);
             if (this.currency_symbol.length)
@@ -202,7 +202,7 @@ export namespace fiatramps.v1 {
                         message.id = reader.readString();
                         break;
                     case 2:
-                        message.name = reader.readString();
+                        message.country = reader.readString();
                         break;
                     case 3:
                         message.code = reader.readString();
