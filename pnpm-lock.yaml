@@ -39,7 +39,7 @@ importers:
         specifier: ^9.0.2
         version: 9.0.2
       libphonenumber-js:
-        specifier: ^1.11.3
+        specifier: ^1.11.7
         version: 1.11.7
       node-cron:
         specifier: ^3.0.3
