@@ -1,5 +1,4 @@
-import { NextFunction } from 'express';
-import { Request, Response } from 'express-serve-static-core';
+import { NextFunction, Request, Response } from 'express';
 
 import * as crypto from 'node:crypto';
 import { IncomingMessage, ServerResponse } from 'http';

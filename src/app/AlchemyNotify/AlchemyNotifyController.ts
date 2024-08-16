@@ -4,7 +4,7 @@ import {
     type AlchemyWebhookEvent,
     isValidSignatureForAlchemyRequest,
 } from '@/app/AlchemyNotify/webhookUtils';
-import { type Request, type Response } from 'express-serve-static-core';
+import { type Request, type Response } from 'express';
 import { BAD_REQUEST, FORBIDDEN, OK } from '@/constants/status-codes';
 import { SUPPORTED_CHAINS, SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { handleRequestError } from '@/Resources/requestHelpers/handleRequestError';
