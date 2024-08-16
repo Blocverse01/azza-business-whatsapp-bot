@@ -1,7 +1,7 @@
 import { fiatramps } from '@/proto/fiatramps/v1/service';
 import FiatRampsServiceClient = fiatramps.v1.FiatRampsServiceClient;
 import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
-import grpc from '@grpc/grpc-js';
+import * as grpc from '@grpc/grpc-js';
 import { promisifyUnary } from '@/app/FiatRamp/grpcService/utils';
 
 const servicePort = 50051;

@@ -20,6 +20,7 @@
     "axios": "^1.7.2",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "@grpc/grpc-js": "^1.11.1",
     "google-protobuf": "^3.21.4",
     "jsonwebtoken": "^9.0.2",
     "libphonenumber-js": "^1.11.3",
