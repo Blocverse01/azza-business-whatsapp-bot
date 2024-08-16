@@ -1,11 +1,10 @@
 import { fiatramps } from '@/proto/fiatramps/v1/service';
 import FiatRampsServiceClient = fiatramps.v1.FiatRampsServiceClient;
 import * as grpc from '@grpc/grpc-js';
-
-const TESTING = false;
+import env from '@/constants/env';
 
 const servicePort = 50051;
-const internalServiceDns = TESTING ? 'localhost' : 'globachain-ramps-service';
+const internalServiceDns = env.TESTING_GRPC_SERVICE ? 'localhost' : 'globachain-ramps-service';
 const serviceAddress = `${internalServiceDns}:${servicePort}`;
 
 // Create a client
