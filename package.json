@@ -23,7 +23,7 @@
     "express": "^4.19.2",
     "google-protobuf": "^3.21.4",
     "jsonwebtoken": "^9.0.2",
-    "libphonenumber-js": "^1.11.3",
+    "libphonenumber-js": "^1.11.7",
     "node-cron": "^3.0.3",
     "viem": "^2.15.1",
     "walletkit-js": "^0.0.107",

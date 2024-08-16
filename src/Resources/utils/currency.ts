@@ -1,5 +1,5 @@
 import { TEN, TWO } from '@/constants/numbers';
-import parsePhoneNumber from 'libphonenumber-js';
+import parsePhoneNumber from 'libphonenumber-js/mobile';
 
 export const formatNumberAsCurrency = (number: number, currency: string): string => {
     const formatter = new Intl.NumberFormat('en-US', {
