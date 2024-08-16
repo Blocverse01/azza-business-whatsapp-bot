@@ -1,6 +1,15 @@
 import { z } from 'zod';
 import { type CountryCode, isValidPhoneNumber } from 'libphonenumber-js';
 
+export const supportedCountry = z.object({
+    code: z.string(),
+    country: z.string(),
+    currencyName: z.string(),
+    currencySymbol: z.string(),
+    flag: z.string().url(),
+    id: z.string(),
+});
+
 export const getCurrenciesResponseSchema = z.object({
     data: z.array(
         z.object({

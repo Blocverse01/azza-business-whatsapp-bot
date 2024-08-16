@@ -3,6 +3,9 @@ import FiatRampsServiceClient = fiatramps.v1.FiatRampsServiceClient;
 import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
 import * as grpc from '@grpc/grpc-js';
 import { promisifyUnary } from '@/app/FiatRamp/grpcService/utils';
+import { transformKeysToCamelCase } from '@/Resources/utils/transformers';
+import { z } from 'zod';
+import { supportedCountry } from '@/app/FiatRamp/fiatRampSchema';
 
 const servicePort = 50051;
 const internalServiceDns = 'globachain-ramps-service';
@@ -30,7 +33,7 @@ export async function fetchSupportedCountries() {
             throw new Error('Invalid response');
         }
 
-        return countries;
+        return z.array(supportedCountry).parse(transformKeysToCamelCase(countries));
     } catch (error) {
         console.error('Error fetching supported countries:', error);
     }
