@@ -24,7 +24,13 @@ export async function fetchSupportedCountries() {
         const request = new GetSupportedCountriesRequest();
         const response = await getSupportedCountries(request);
 
-        return response.countries;
+        const { countries } = response.toObject();
+
+        if (!countries) {
+            throw new Error('Invalid response');
+        }
+
+        return countries;
     } catch (error) {
         console.error('Error fetching supported countries:', error);
     }
