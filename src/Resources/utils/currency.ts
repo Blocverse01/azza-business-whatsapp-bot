@@ -1,5 +1,6 @@
 import { TEN, TWO } from '@/constants/numbers';
-import parsePhoneNumber from 'libphonenumber-js';
+import { parseNumber } from 'libphonenumber-js';
+import metadata from 'libphonenumber-js/metadata.min.json';
 
 export const formatNumberAsCurrency = (number: number, currency: string): string => {
     const formatter = new Intl.NumberFormat('en-US', {
@@ -39,9 +40,11 @@ export const getCountryFlagEmoji = (countryCode: string): string => {
 };
 
 export const getUserCountryCodeFromPhoneNumber = (phoneNumber: string) => {
-    const phoneNumberObj = parsePhoneNumber(`+${phoneNumber}`);
+    const phoneNumberObj = parseNumber(`+${phoneNumber}`);
 
-    if (!phoneNumberObj?.country) throw new Error('Invalid phone number');
+    if ('country' in phoneNumberObj) {
+        return phoneNumberObj.country;
+    }
 
-    return phoneNumberObj.country;
+    throw new Error('Invalid phone number');
 };
