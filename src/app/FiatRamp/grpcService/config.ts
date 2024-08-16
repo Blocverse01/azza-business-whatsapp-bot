@@ -2,7 +2,7 @@ import { fiatramps } from '@/proto/fiatramps/v1/service';
 import FiatRampsServiceClient = fiatramps.v1.FiatRampsServiceClient;
 import * as grpc from '@grpc/grpc-js';
 
-const TESTING = true;
+const TESTING = false;
 
 const servicePort = 50051;
 const internalServiceDns = TESTING ? 'localhost' : 'globachain-ramps-service';
