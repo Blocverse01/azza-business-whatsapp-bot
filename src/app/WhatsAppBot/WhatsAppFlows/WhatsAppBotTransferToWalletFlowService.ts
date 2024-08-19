@@ -84,7 +84,7 @@ class WhatsAppBotTransferToWalletFlowService {
     private static FLOW_MODE: FlowMode = flowConfig.flowMode;
     private static FLOW_ID = flowConfig.flowId;
     private static INITIAL_SCREEN = TransferToWalletFlowScreens.TRANSACTION_DETAILS;
-    private static readonly USER_BALANCE_PATTERN = /Your balance: (\d+\.\d+) (\w+)/;
+    private static readonly USER_BALANCE_PATTERN = /Your balance: (\d+) (\w+)/;
 
     public static async receiveDataExchange(
         requestBody: DecryptedFlowDataExchange['decryptedBody']
@@ -142,7 +142,13 @@ class WhatsAppBotTransferToWalletFlowService {
         const assetLabel = `${asset.tokenName} (${asset.network})`;
 
         const userBalanceMatch = data.user_balance.match(this.USER_BALANCE_PATTERN);
-        const userBalance = userBalanceMatch ? parseFloat(userBalanceMatch[1]) : 0;
+        logger.debug('User balance match', { userBalanceMatch });
+
+        const userBalance = userBalanceMatch
+            ? parseFloat(userBalanceMatch[1])
+            : parseFloat(
+                  (await UserService.getUserAssetInfo(data.user_id, data.asset_id)).tokenBalance
+              );
         const amount = parseFloat(data.amount);
 
         const errorMessages: ScreenDataPayload['TRANSACTION_DETAILS']['error_messages'] = {};
