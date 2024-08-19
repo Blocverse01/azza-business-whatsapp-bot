@@ -187,7 +187,7 @@ class WhatsAppBotService {
                 countryCode: countryCode,
                 userPhoneNumber: recipient,
                 businessPhoneNumberId,
-                messageBody: `You don't have any beneficiaries for ${countryCode} yet. Let's add one.`,
+                messageBody: `You don't have any beneficiaries for ${getCountryFlagEmoji(countryCode)} ${countryCode} yet. Let's add one.`,
             });
 
             return;
