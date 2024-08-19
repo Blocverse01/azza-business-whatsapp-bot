@@ -317,7 +317,8 @@ class WhatsAppBotController {
                                 businessPhoneNumberId,
                                 from,
                                 usersBeneficiaries,
-                                assetId
+                                assetId,
+                                countryCode as CountryCode
                             );
                         }
 

@@ -48,7 +48,7 @@ import { defaultAmountFixer } from '@/Resources/utils/currency';
 class FiatRampsApiService {
     private static API_URL = env.FIAT_RAMPS_PROVIDER_API_URL;
 
-    public static get requiredRequestHeaders() {
+    private static get requiredRequestHeaders() {
         return {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${env.FIAT_RAMPS_PROVIDER_API_KEY}`,

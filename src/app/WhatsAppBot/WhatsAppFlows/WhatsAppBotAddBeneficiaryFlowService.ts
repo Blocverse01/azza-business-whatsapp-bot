@@ -208,15 +208,16 @@ class WhatsAppBotAddBeneficiaryFlowService {
         countryCode: string;
         recipient: string;
         accountTypes: Array<DropdownOption>;
+        bodyText?: string;
     }) {
-        const { asset, countryCode, recipient, accountTypes } = params;
+        const { asset, countryCode, recipient, accountTypes, bodyText } = params;
 
         const flowMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
             interactive: {
                 type: 'flow',
                 body: {
-                    text: 'Click the button below to add a new beneficiary',
+                    text: bodyText ?? 'Click the button below to add a new beneficiary',
                 },
                 action: {
                     name: 'flow',

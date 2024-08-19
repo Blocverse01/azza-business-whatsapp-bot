@@ -11,14 +11,6 @@ import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService'
 class FiatRampService {
     private static readonly USE_API_SERVICE = false;
 
-    public static get requiredRequestHeaders() {
-        return {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${env.FIAT_RAMPS_PROVIDER_API_KEY}`,
-            'X-FiatRamps-Project-ID': env.FIAT_RAMPS_PROVIDER_PROJECT_ID,
-        };
-    }
-
     public static async getSupportedCurrencies() {
         if (this.USE_API_SERVICE) {
             return await FiatRampsApiService.getSupportedCurrencies();

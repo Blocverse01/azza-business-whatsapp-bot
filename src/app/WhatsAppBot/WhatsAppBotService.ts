@@ -178,8 +178,20 @@ class WhatsAppBotService {
         businessPhoneNumberId: string,
         recipient: string,
         usersBeneficiaries: UsersBeneficiaries,
-        assetId: string
+        assetId: string,
+        countryCode: CountryCode
     ) {
+        if (usersBeneficiaries.length === 0) {
+            await this.beginAddBeneficiaryFlowMessage({
+                assetId,
+                countryCode: countryCode,
+                userPhoneNumber: recipient,
+                businessPhoneNumberId,
+                messageBody: `You don't have any beneficiaries for ${countryCode} yet. Let's add one.`,
+            });
+
+            return;
+        }
         const interactiveMessageList = {
             messaging_product: 'whatsapp',
             recipient_type: 'individual',
@@ -315,9 +327,11 @@ class WhatsAppBotService {
         params: PhoneNumberParams & {
             assetId: string;
             countryCode: CountryCode;
+            messageBody?: string;
         }
     ) {
-        const { assetId, countryCode, userPhoneNumber, businessPhoneNumberId } = params;
+        const { assetId, countryCode, userPhoneNumber, businessPhoneNumberId, messageBody } =
+            params;
 
         const asset = getAssetConfigOrThrow(assetId);
         const { paymentChannels } = await FiatRampService.getPaymentMethods(countryCode, 'offramp');
@@ -333,6 +347,7 @@ class WhatsAppBotService {
                 countryCode,
                 recipient: userPhoneNumber,
                 accountTypes,
+                bodyText: messageBody,
             });
 
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
