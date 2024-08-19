@@ -66,19 +66,21 @@ export const getQuoteResponseSchema = z.object({
 
 export type GetQuoteResponse = z.infer<typeof getQuoteResponseSchema>;
 
-export const getPaymentMethodsResponseSchema = z.object({
-    data: z.object({
-        channels: z.array(
-            z.object({
-                channelName: z.enum(['bank', 'phone']),
-                channelId: z.string(),
-            })
-        ),
-        limits: z.object({
-            min: z.number(),
-            max: z.number(),
-        }),
+export const paymentMethodsResponseDataSchema = z.object({
+    channels: z.array(
+        z.object({
+            channelName: z.enum(['bank', 'phone']),
+            channelId: z.string(),
+        })
+    ),
+    limits: z.object({
+        min: z.number(),
+        max: z.number(),
     }),
+});
+
+export const getPaymentMethodsResponseSchema = z.object({
+    data: paymentMethodsResponseDataSchema,
 });
 
 export type GetPaymentMethodsResponse = z.infer<typeof getPaymentMethodsResponseSchema>;

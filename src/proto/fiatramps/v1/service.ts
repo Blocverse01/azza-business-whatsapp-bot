@@ -1409,6 +1409,369 @@ export namespace fiatramps.v1 {
             return GetBeneficiaryRequest.deserialize(bytes);
         }
     }
+    export class CountryFiatLimits extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            max?: number;
+            min?: number;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("max" in data && data.max != undefined) {
+                    this.max = data.max;
+                }
+                if ("min" in data && data.min != undefined) {
+                    this.min = data.min;
+                }
+            }
+        }
+        get max() {
+            return pb_1.Message.getFieldWithDefault(this, 1, 0) as number;
+        }
+        set max(value: number) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get min() {
+            return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+        }
+        set min(value: number) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            max?: number;
+            min?: number;
+        }): CountryFiatLimits {
+            const message = new CountryFiatLimits({});
+            if (data.max != null) {
+                message.max = data.max;
+            }
+            if (data.min != null) {
+                message.min = data.min;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                max?: number;
+                min?: number;
+            } = {};
+            if (this.max != null) {
+                data.max = this.max;
+            }
+            if (this.min != null) {
+                data.min = this.min;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.max != 0)
+                writer.writeFloat(1, this.max);
+            if (this.min != 0)
+                writer.writeFloat(2, this.min);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): CountryFiatLimits {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new CountryFiatLimits();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.max = reader.readFloat();
+                        break;
+                    case 2:
+                        message.min = reader.readFloat();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): CountryFiatLimits {
+            return CountryFiatLimits.deserialize(bytes);
+        }
+    }
+    export class PaymentChannel extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            channel_id?: string;
+            channel_name?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("channel_id" in data && data.channel_id != undefined) {
+                    this.channel_id = data.channel_id;
+                }
+                if ("channel_name" in data && data.channel_name != undefined) {
+                    this.channel_name = data.channel_name;
+                }
+            }
+        }
+        get channel_id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set channel_id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get channel_name() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set channel_name(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            channel_id?: string;
+            channel_name?: string;
+        }): PaymentChannel {
+            const message = new PaymentChannel({});
+            if (data.channel_id != null) {
+                message.channel_id = data.channel_id;
+            }
+            if (data.channel_name != null) {
+                message.channel_name = data.channel_name;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                channel_id?: string;
+                channel_name?: string;
+            } = {};
+            if (this.channel_id != null) {
+                data.channel_id = this.channel_id;
+            }
+            if (this.channel_name != null) {
+                data.channel_name = this.channel_name;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.channel_id.length)
+                writer.writeString(1, this.channel_id);
+            if (this.channel_name.length)
+                writer.writeString(2, this.channel_name);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): PaymentChannel {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new PaymentChannel();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.channel_id = reader.readString();
+                        break;
+                    case 2:
+                        message.channel_name = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): PaymentChannel {
+            return PaymentChannel.deserialize(bytes);
+        }
+    }
+    export class GetPaymentMethodsRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            country_code?: string;
+            route?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("country_code" in data && data.country_code != undefined) {
+                    this.country_code = data.country_code;
+                }
+                if ("route" in data && data.route != undefined) {
+                    this.route = data.route;
+                }
+            }
+        }
+        get country_code() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set country_code(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get route() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set route(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            country_code?: string;
+            route?: string;
+        }): GetPaymentMethodsRequest {
+            const message = new GetPaymentMethodsRequest({});
+            if (data.country_code != null) {
+                message.country_code = data.country_code;
+            }
+            if (data.route != null) {
+                message.route = data.route;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                country_code?: string;
+                route?: string;
+            } = {};
+            if (this.country_code != null) {
+                data.country_code = this.country_code;
+            }
+            if (this.route != null) {
+                data.route = this.route;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.country_code.length)
+                writer.writeString(1, this.country_code);
+            if (this.route.length)
+                writer.writeString(2, this.route);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): GetPaymentMethodsRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new GetPaymentMethodsRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.country_code = reader.readString();
+                        break;
+                    case 2:
+                        message.route = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): GetPaymentMethodsRequest {
+            return GetPaymentMethodsRequest.deserialize(bytes);
+        }
+    }
+    export class GetPaymentMethodsResponse extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            channels?: PaymentChannel[];
+            limits?: CountryFiatLimits;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [1], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("channels" in data && data.channels != undefined) {
+                    this.channels = data.channels;
+                }
+                if ("limits" in data && data.limits != undefined) {
+                    this.limits = data.limits;
+                }
+            }
+        }
+        get channels() {
+            return pb_1.Message.getRepeatedWrapperField(this, PaymentChannel, 1) as PaymentChannel[];
+        }
+        set channels(value: PaymentChannel[]) {
+            pb_1.Message.setRepeatedWrapperField(this, 1, value);
+        }
+        get limits() {
+            return pb_1.Message.getWrapperField(this, CountryFiatLimits, 2) as CountryFiatLimits;
+        }
+        set limits(value: CountryFiatLimits) {
+            pb_1.Message.setWrapperField(this, 2, value);
+        }
+        get has_limits() {
+            return pb_1.Message.getField(this, 2) != null;
+        }
+        static fromObject(data: {
+            channels?: ReturnType<typeof PaymentChannel.prototype.toObject>[];
+            limits?: ReturnType<typeof CountryFiatLimits.prototype.toObject>;
+        }): GetPaymentMethodsResponse {
+            const message = new GetPaymentMethodsResponse({});
+            if (data.channels != null) {
+                message.channels = data.channels.map(item => PaymentChannel.fromObject(item));
+            }
+            if (data.limits != null) {
+                message.limits = CountryFiatLimits.fromObject(data.limits);
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                channels?: ReturnType<typeof PaymentChannel.prototype.toObject>[];
+                limits?: ReturnType<typeof CountryFiatLimits.prototype.toObject>;
+            } = {};
+            if (this.channels != null) {
+                data.channels = this.channels.map((item: PaymentChannel) => item.toObject());
+            }
+            if (this.limits != null) {
+                data.limits = this.limits.toObject();
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.channels.length)
+                writer.writeRepeatedMessage(1, this.channels, (item: PaymentChannel) => item.serialize(writer));
+            if (this.has_limits)
+                writer.writeMessage(2, this.limits, () => this.limits.serialize(writer));
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): GetPaymentMethodsResponse {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new GetPaymentMethodsResponse();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.channels, () => pb_1.Message.addToRepeatedWrapperField(message, 1, PaymentChannel.deserialize(reader), PaymentChannel));
+                        break;
+                    case 2:
+                        reader.readMessage(message.limits, () => message.limits = CountryFiatLimits.deserialize(reader));
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): GetPaymentMethodsResponse {
+            return GetPaymentMethodsResponse.deserialize(bytes);
+        }
+    }
     interface GrpcUnaryServiceInterface<P, R> {
         (message: P, metadata: grpc_1.Metadata, options: grpc_1.CallOptions, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
         (message: P, metadata: grpc_1.Metadata, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
@@ -1488,6 +1851,15 @@ export namespace fiatramps.v1 {
                 requestDeserialize: (bytes: Buffer) => GetBeneficiaryRequest.deserialize(new Uint8Array(bytes)),
                 responseSerialize: (message: Beneficiary) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => Beneficiary.deserialize(new Uint8Array(bytes))
+            },
+            GetPaymentMethods: {
+                path: "/fiatramps.v1.FiatRampsService/GetPaymentMethods",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: GetPaymentMethodsRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => GetPaymentMethodsRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: GetPaymentMethodsResponse) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => GetPaymentMethodsResponse.deserialize(new Uint8Array(bytes))
             }
         };
         [method: string]: grpc_1.UntypedHandleCall;
@@ -1497,6 +1869,7 @@ export namespace fiatramps.v1 {
         abstract GetTransactionFee(call: grpc_1.ServerUnaryCall<GetTransactionFeeRequest, GetTransactionFeeResponse>, callback: grpc_1.sendUnaryData<GetTransactionFeeResponse>): void;
         abstract GetBeneficiaries(call: grpc_1.ServerUnaryCall<GetBeneficiariesRequest, GetBeneficiariesResponse>, callback: grpc_1.sendUnaryData<GetBeneficiariesResponse>): void;
         abstract GetBeneficiary(call: grpc_1.ServerUnaryCall<GetBeneficiaryRequest, Beneficiary>, callback: grpc_1.sendUnaryData<Beneficiary>): void;
+        abstract GetPaymentMethods(call: grpc_1.ServerUnaryCall<GetPaymentMethodsRequest, GetPaymentMethodsResponse>, callback: grpc_1.sendUnaryData<GetPaymentMethodsResponse>): void;
     }
     export class FiatRampsServiceClient extends grpc_1.makeGenericClientConstructor(UnimplementedFiatRampsServiceService.definition, "FiatRampsService", {}) {
         constructor(address: string, credentials: grpc_1.ChannelCredentials, options?: Partial<grpc_1.ChannelOptions>) {
@@ -1519,6 +1892,9 @@ export namespace fiatramps.v1 {
         };
         GetBeneficiary: GrpcUnaryServiceInterface<GetBeneficiaryRequest, Beneficiary> = (message: GetBeneficiaryRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<Beneficiary>, options?: grpc_1.CallOptions | grpc_1.requestCallback<Beneficiary>, callback?: grpc_1.requestCallback<Beneficiary>): grpc_1.ClientUnaryCall => {
             return super.GetBeneficiary(message, metadata, options, callback);
+        };
+        GetPaymentMethods: GrpcUnaryServiceInterface<GetPaymentMethodsRequest, GetPaymentMethodsResponse> = (message: GetPaymentMethodsRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<GetPaymentMethodsResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<GetPaymentMethodsResponse>, callback?: grpc_1.requestCallback<GetPaymentMethodsResponse>): grpc_1.ClientUnaryCall => {
+            return super.GetPaymentMethods(message, metadata, options, callback);
         };
     }
 }

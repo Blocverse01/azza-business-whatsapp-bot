@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
     BankBeneficiary,
     MobileMoneyBeneficiary,
+    paymentMethodsResponseDataSchema,
     quoteSchema,
     ratesSchema,
     supportedCountry,
@@ -12,6 +13,7 @@ import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
 import {
     getBeneficiaries,
     getBeneficiary,
+    getPaymentMethods,
     getQuotes,
     getRates,
     getSupportedCountries,
@@ -23,6 +25,7 @@ import { defaultAmountFixer } from '@/Resources/utils/currency';
 import { HUNDRED } from '@/constants/numbers';
 import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
 import GetBeneficiaryRequest = fiatramps.v1.GetBeneficiaryRequest;
+import GetPaymentMethodsRequest = fiatramps.v1.GetPaymentMethodsRequest;
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -157,6 +160,28 @@ class FiatRampsRpcService {
         const response = await getBeneficiary(request);
 
         return this.parseBeneficiary(response);
+    }
+
+    public static async getPaymentMethods(countryCode: CountryCode, route: 'onramp' | 'offramp') {
+        const rampType = route === 'onramp' ? 'deposit' : 'withdraw';
+        const request = new GetPaymentMethodsRequest({
+            country_code: countryCode,
+            route: rampType,
+        });
+
+        const response = await getPaymentMethods(request);
+
+        const { channels, limits } = response.toObject();
+
+        const parsedData = paymentMethodsResponseDataSchema.parse({
+            channels: transformKeysToCamelCase(channels),
+            limits: transformKeysToCamelCase(limits),
+        });
+
+        return {
+            paymentChannels: parsedData.channels,
+            countryFiatLimits: parsedData.limits,
+        };
     }
 }
 

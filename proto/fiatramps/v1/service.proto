@@ -11,6 +11,7 @@ service FiatRampsService {
   rpc GetTransactionFee(GetTransactionFeeRequest) returns (GetTransactionFeeResponse) {};
   rpc GetBeneficiaries(GetBeneficiariesRequest) returns (GetBeneficiariesResponse) {};
   rpc GetBeneficiary(GetBeneficiaryRequest) returns (Beneficiary) {};
+  rpc GetPaymentMethods(GetPaymentMethodsRequest) returns (GetPaymentMethodsResponse) {};
 }
 
 message GetSupportedCountriesRequest {
@@ -87,4 +88,24 @@ message Beneficiary {
 
 message GetBeneficiaryRequest {
   string beneficiary_id = 1;
+}
+
+message CountryFiatLimits {
+  float max = 1;
+  float min = 2;
+}
+
+message PaymentChannel {
+  string channel_id = 1;
+  string channel_name = 2;
+}
+
+message GetPaymentMethodsRequest {
+  string country_code = 1;
+  string route = 2;
+}
+
+message GetPaymentMethodsResponse {
+  repeated PaymentChannel channels = 1;
+  CountryFiatLimits limits = 2;
 }
