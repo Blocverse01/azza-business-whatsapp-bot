@@ -5,7 +5,6 @@ interface BenchmarkResult {
     improvementPercent: string; // e.g., "16.67%"
     resultsA?: unknown;
     resultsB?: unknown;
-    similarResults: boolean;
 }
 
 export async function benchmark<T>(
@@ -34,6 +33,5 @@ export async function benchmark<T>(
         improvementPercent: `${improvementPercent}%`,
         resultsA,
         resultsB,
-        similarResults: JSON.stringify(resultsA) === JSON.stringify(resultsB),
     };
 }

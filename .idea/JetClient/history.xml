@@ -4,462 +4,6 @@
     <option name="requestHistoryStates">
       <list>
         <requestHistoryState>
-          <option name="dateTime" value="1723800189612" />
-          <option name="id" value="53cc4851-bca6-490e-ad0b-af88ec7b76c9" />
-          <option name="request">
-            <requestState>
-              <option name="auth">
-                <authState>
-                  <option name="bearer">
-                    <lM>
-                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
-                  </option>
-                  <option name="type" value="BEARER" />
-                </authState>
-              </option>
-              <option name="body">
-                <bodyState>
-                  <option name="type" value="JSON" />
-                </bodyState>
-              </option>
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="X-WalletKit-Project-ID" />
-                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
-              <option name="method" value="GET" />
-              <option name="name" value="Draft" />
-              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/quotes" />
-            </requestState>
-          </option>
-          <option name="response">
-            <responseState>
-              <option name="bodyBytesBase64" value="eyJ0aW1lVGFrZW5Gb3JBIjoiMC44M3MiLCJ0aW1lVGFrZW5Gb3JCIjoiMC40N3MiLCJ0aW1lRGlmZmVyZW5jZSI6IjAuMzZzIiwiaW1wcm92ZW1lbnRQZXJjZW50IjoiNDMuMjklIn0=" />
-              <option name="bodyString" value="{&#10;  &quot;timeTakenForA&quot;: &quot;0.83s&quot;,&#10;  &quot;timeTakenForB&quot;: &quot;0.47s&quot;,&#10;  &quot;timeDifference&quot;: &quot;0.36s&quot;,&#10;  &quot;improvementPercent&quot;: &quot;43.29%&quot;&#10;}" />
-              <option name="code" value="200" />
-              <option name="contentType" value="application/json; charset=utf-8" />
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Date" />
-                    <option name="value" value="Fri, 16 Aug 2024 09:23:13 GMT" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json; charset=utf-8" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Length" />
-                    <option name="value" value="83" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Connection" />
-                    <option name="value" value="keep-alive" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-Ray" />
-                    <option name="value" value="8b405d3f79290a48-AMS" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-Cache-Status" />
-                    <option name="value" value="DYNAMIC" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Encoding" />
-                    <option name="value" value="br" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="ETag" />
-                    <option name="value" value="W/&quot;68-MSqkNhjzzMUHHdrOr4tQABSR3DM&quot;" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Vary" />
-                    <option name="value" value="Accept-Encoding" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="rndr-id" />
-                    <option name="value" value="673ecd44-ef6c-42e4" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="x-powered-by" />
-                    <option name="value" value="Express" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="x-render-origin-server" />
-                    <option name="value" value="Render" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Server" />
-                    <option name="value" value="cloudflare" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="alt-svc" />
-                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="53cc4851-bca6-490e-ad0b-af88ec7b76c9" />
-              <option name="message" value="OK" />
-              <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;0.83s&quot;,&quot;timeTakenForB&quot;:&quot;0.47s&quot;,&quot;timeDifference&quot;:&quot;0.36s&quot;,&quot;improvementPercent&quot;:&quot;43.29%&quot;}" />
-              <option name="size" value="83" />
-              <option name="time" value="1550" />
-            </responseState>
-          </option>
-          <option name="workspaceId" value="drafts" />
-        </requestHistoryState>
-        <requestHistoryState>
-          <option name="dateTime" value="1723800195576" />
-          <option name="id" value="cd5bf4cf-db01-4067-a570-9829af1f86ae" />
-          <option name="request">
-            <requestState>
-              <option name="auth">
-                <authState>
-                  <option name="bearer">
-                    <lM>
-                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
-                  </option>
-                  <option name="type" value="BEARER" />
-                </authState>
-              </option>
-              <option name="body">
-                <bodyState>
-                  <option name="type" value="JSON" />
-                </bodyState>
-              </option>
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="X-WalletKit-Project-ID" />
-                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
-              <option name="method" value="GET" />
-              <option name="name" value="Draft" />
-              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/quotes" />
-            </requestState>
-          </option>
-          <option name="response">
-            <responseState>
-              <option name="bodyBytesBase64" value="eyJ0aW1lVGFrZW5Gb3JBIjoiMC41NnMiLCJ0aW1lVGFrZW5Gb3JCIjoiMC40OXMiLCJ0aW1lRGlmZmVyZW5jZSI6IjAuMDdzIiwiaW1wcm92ZW1lbnRQZXJjZW50IjoiMTIuMzIlIn0=" />
-              <option name="bodyString" value="{&#10;  &quot;timeTakenForA&quot;: &quot;0.56s&quot;,&#10;  &quot;timeTakenForB&quot;: &quot;0.49s&quot;,&#10;  &quot;timeDifference&quot;: &quot;0.07s&quot;,&#10;  &quot;improvementPercent&quot;: &quot;12.32%&quot;&#10;}" />
-              <option name="code" value="200" />
-              <option name="contentType" value="application/json; charset=utf-8" />
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Date" />
-                    <option name="value" value="Fri, 16 Aug 2024 09:23:19 GMT" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json; charset=utf-8" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Length" />
-                    <option name="value" value="83" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Connection" />
-                    <option name="value" value="keep-alive" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-Ray" />
-                    <option name="value" value="8b405d66b87f0a48-AMS" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-Cache-Status" />
-                    <option name="value" value="DYNAMIC" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Encoding" />
-                    <option name="value" value="br" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="ETag" />
-                    <option name="value" value="W/&quot;68-0xY1YcRK3hfwxzuqPJ4AhDjPww0&quot;" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Vary" />
-                    <option name="value" value="Accept-Encoding" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="rndr-id" />
-                    <option name="value" value="c3bbe55e-bbab-4ba7" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="x-powered-by" />
-                    <option name="value" value="Express" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="x-render-origin-server" />
-                    <option name="value" value="Render" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Server" />
-                    <option name="value" value="cloudflare" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="alt-svc" />
-                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="cd5bf4cf-db01-4067-a570-9829af1f86ae" />
-              <option name="message" value="OK" />
-              <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;0.56s&quot;,&quot;timeTakenForB&quot;:&quot;0.49s&quot;,&quot;timeDifference&quot;:&quot;0.07s&quot;,&quot;improvementPercent&quot;:&quot;12.32%&quot;}" />
-              <option name="size" value="83" />
-              <option name="time" value="1241" />
-            </responseState>
-          </option>
-          <option name="workspaceId" value="drafts" />
-        </requestHistoryState>
-        <requestHistoryState>
-          <option name="dateTime" value="1723800204666" />
-          <option name="id" value="33e8e54a-255d-4f6d-9381-f8c436537724" />
-          <option name="request">
-            <requestState>
-              <option name="auth">
-                <authState>
-                  <option name="bearer">
-                    <lM>
-                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
-                  </option>
-                  <option name="type" value="BEARER" />
-                </authState>
-              </option>
-              <option name="body">
-                <bodyState>
-                  <option name="type" value="JSON" />
-                </bodyState>
-              </option>
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="X-WalletKit-Project-ID" />
-                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
-              <option name="method" value="GET" />
-              <option name="name" value="Draft" />
-              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/quotes" />
-            </requestState>
-          </option>
-          <option name="response">
-            <responseState>
-              <option name="bodyBytesBase64" value="eyJ0aW1lVGFrZW5Gb3JBIjoiMC42MnMiLCJ0aW1lVGFrZW5Gb3JCIjoiMC41OHMiLCJ0aW1lRGlmZmVyZW5jZSI6IjAuMDRzIiwiaW1wcm92ZW1lbnRQZXJjZW50IjoiNi43OSUifQ==" />
-              <option name="bodyString" value="{&#10;  &quot;timeTakenForA&quot;: &quot;0.62s&quot;,&#10;  &quot;timeTakenForB&quot;: &quot;0.58s&quot;,&#10;  &quot;timeDifference&quot;: &quot;0.04s&quot;,&#10;  &quot;improvementPercent&quot;: &quot;6.79%&quot;&#10;}" />
-              <option name="code" value="200" />
-              <option name="contentType" value="application/json; charset=utf-8" />
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Date" />
-                    <option name="value" value="Fri, 16 Aug 2024 09:23:28 GMT" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json; charset=utf-8" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Length" />
-                    <option name="value" value="81" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Connection" />
-                    <option name="value" value="keep-alive" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-Ray" />
-                    <option name="value" value="8b405d9deb0c0a48-AMS" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-Cache-Status" />
-                    <option name="value" value="DYNAMIC" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Encoding" />
-                    <option name="value" value="br" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="ETag" />
-                    <option name="value" value="W/&quot;67-+T4Q8WXgyzVsRDijMiKJk90SyMQ&quot;" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Vary" />
-                    <option name="value" value="Accept-Encoding" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="rndr-id" />
-                    <option name="value" value="f5cd91a3-4edf-4c80" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="x-powered-by" />
-                    <option name="value" value="Express" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="x-render-origin-server" />
-                    <option name="value" value="Render" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Server" />
-                    <option name="value" value="cloudflare" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="alt-svc" />
-                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="33e8e54a-255d-4f6d-9381-f8c436537724" />
-              <option name="message" value="OK" />
-              <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;0.62s&quot;,&quot;timeTakenForB&quot;:&quot;0.58s&quot;,&quot;timeDifference&quot;:&quot;0.04s&quot;,&quot;improvementPercent&quot;:&quot;6.79%&quot;}" />
-              <option name="size" value="81" />
-              <option name="time" value="1498" />
-            </responseState>
-          </option>
-          <option name="workspaceId" value="drafts" />
-        </requestHistoryState>
-        <requestHistoryState>
-          <option name="dateTime" value="1723800223812" />
-          <option name="id" value="ac69358d-4669-40f6-a3e1-75ada537e1e5" />
-          <option name="request">
-            <requestState>
-              <option name="auth">
-                <authState>
-                  <option name="bearer">
-                    <lM>
-                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
-                  </option>
-                  <option name="type" value="BEARER" />
-                </authState>
-              </option>
-              <option name="body">
-                <bodyState>
-                  <option name="type" value="JSON" />
-                </bodyState>
-              </option>
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="X-WalletKit-Project-ID" />
-                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
-              <option name="method" value="GET" />
-              <option name="name" value="Draft" />
-              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/get-countries" />
-            </requestState>
-          </option>
-          <option name="response">
-            <responseState>
-              <option name="bodyBytesBase64" value="eyJ0aW1lVGFrZW5Gb3JBIjoiMC4xNnMiLCJ0aW1lVGFrZW5Gb3JCIjoiMC4xNHMiLCJ0aW1lRGlmZmVyZW5jZSI6IjAuMDJzIiwiaW1wcm92ZW1lbnRQZXJjZW50IjoiMTQuMTElIn0=" />
-              <option name="bodyString" value="{&#10;  &quot;timeTakenForA&quot;: &quot;0.16s&quot;,&#10;  &quot;timeTakenForB&quot;: &quot;0.14s&quot;,&#10;  &quot;timeDifference&quot;: &quot;0.02s&quot;,&#10;  &quot;improvementPercent&quot;: &quot;14.11%&quot;&#10;}" />
-              <option name="code" value="200" />
-              <option name="contentType" value="application/json; charset=utf-8" />
-              <option name="headers">
-                <list>
-                  <headerState>
-                    <option name="key" value="Date" />
-                    <option name="value" value="Fri, 16 Aug 2024 09:23:47 GMT" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Type" />
-                    <option name="value" value="application/json; charset=utf-8" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Length" />
-                    <option name="value" value="82" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Connection" />
-                    <option name="value" value="keep-alive" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-Ray" />
-                    <option name="value" value="8b405e1b3ba30a48-AMS" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="CF-Cache-Status" />
-                    <option name="value" value="DYNAMIC" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Content-Encoding" />
-                    <option name="value" value="br" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="ETag" />
-                    <option name="value" value="W/&quot;68-RplwvqG8/vDYPYd1aPts5bWDgBo&quot;" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Vary" />
-                    <option name="value" value="Accept-Encoding" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="rndr-id" />
-                    <option name="value" value="ff9dc288-1342-400b" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="x-powered-by" />
-                    <option name="value" value="Express" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="x-render-origin-server" />
-                    <option name="value" value="Render" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="Server" />
-                    <option name="value" value="cloudflare" />
-                  </headerState>
-                  <headerState>
-                    <option name="key" value="alt-svc" />
-                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
-                  </headerState>
-                </list>
-              </option>
-              <option name="id" value="ac69358d-4669-40f6-a3e1-75ada537e1e5" />
-              <option name="message" value="OK" />
-              <option name="prettyResponseType" value="JSON" />
-              <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;0.16s&quot;,&quot;timeTakenForB&quot;:&quot;0.14s&quot;,&quot;timeDifference&quot;:&quot;0.02s&quot;,&quot;improvementPercent&quot;:&quot;14.11%&quot;}" />
-              <option name="size" value="82" />
-              <option name="time" value="592" />
-            </responseState>
-          </option>
-          <option name="workspaceId" value="drafts" />
-        </requestHistoryState>
-        <requestHistoryState>
           <option name="dateTime" value="1723800285387" />
           <option name="id" value="1ddb27da-17d2-4adf-9e49-2f39274b75d9" />
           <option name="request">
@@ -467,9 +11,9 @@
               <option name="auth">
                 <authState>
                   <option name="bearer">
-                    <lM>
+                    <lK>
                       <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
+                    </lK>
                   </option>
                   <option name="type" value="BEARER" />
                 </authState>
@@ -581,9 +125,9 @@
               <option name="auth">
                 <authState>
                   <option name="bearer">
-                    <lM>
+                    <lK>
                       <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
+                    </lK>
                   </option>
                   <option name="type" value="BEARER" />
                 </authState>
@@ -695,9 +239,9 @@
               <option name="auth">
                 <authState>
                   <option name="bearer">
-                    <lM>
+                    <lK>
                       <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
+                    </lK>
                   </option>
                   <option name="type" value="BEARER" />
                 </authState>
@@ -809,9 +353,9 @@
               <option name="auth">
                 <authState>
                   <option name="bearer">
-                    <lM>
+                    <lK>
                       <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
+                    </lK>
                   </option>
                   <option name="type" value="BEARER" />
                 </authState>
@@ -923,9 +467,9 @@
               <option name="auth">
                 <authState>
                   <option name="bearer">
-                    <lM>
+                    <lK>
                       <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
+                    </lK>
                   </option>
                   <option name="type" value="BEARER" />
                 </authState>
@@ -1037,9 +581,9 @@
               <option name="auth">
                 <authState>
                   <option name="bearer">
-                    <lM>
+                    <lK>
                       <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
-                    </lM>
+                    </lK>
                   </option>
                   <option name="type" value="BEARER" />
                 </authState>
@@ -1139,6 +683,462 @@
               <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;0.14s&quot;,&quot;timeTakenForB&quot;:&quot;0.15s&quot;,&quot;timeDifference&quot;:&quot;-0.01s&quot;,&quot;improvementPercent&quot;:&quot;-8.89%&quot;}" />
               <option name="size" value="82" />
               <option name="time" value="564" />
+            </responseState>
+          </option>
+          <option name="workspaceId" value="drafts" />
+        </requestHistoryState>
+        <requestHistoryState>
+          <option name="dateTime" value="1724035597197" />
+          <option name="id" value="8a655994-70bd-4a17-8987-4f6a842897d6" />
+          <option name="request">
+            <requestState>
+              <option name="auth">
+                <authState>
+                  <option name="bearer">
+                    <lK>
+                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
+                    </lK>
+                  </option>
+                  <option name="type" value="BEARER" />
+                </authState>
+              </option>
+              <option name="body">
+                <bodyState>
+                  <option name="type" value="JSON" />
+                </bodyState>
+              </option>
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="X-WalletKit-Project-ID" />
+                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
+              <option name="method" value="GET" />
+              <option name="name" value="Draft" />
+              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/get-countries" />
+            </requestState>
+          </option>
+          <option name="response">
+            <responseState>
+              <option name="bodyBytesBase64" value="eyJ0aW1lVGFrZW5Gb3JBIjoiNC4xMHMiLCJ0aW1lVGFrZW5Gb3JCIjoiMC40N3MiLCJ0aW1lRGlmZmVyZW5jZSI6IjMuNjNzIiwiaW1wcm92ZW1lbnRQZXJjZW50IjoiODguNTQlIiwicmVzdWx0c0EiOlt7ImNvZGUiOiJCVyIsImNvdW50cnkiOiJCb3Rzd2FuYSIsImN1cnJlbmN5TmFtZSI6IkJvdHN3YW5hIHB1bGEiLCJjdXJyZW5jeVN5bWJvbCI6IkJXUCIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL2J3LnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamVnIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX0seyJjb2RlIjoiQ00iLCJjb3VudHJ5IjoiQ2FtZXJvb24iLCJjdXJyZW5jeU5hbWUiOiJDZW50cmFsIEFmcmljYW4gQ0ZBIGZyYW5jIiwiY3VycmVuY3lTeW1ib2wiOiJYQUYiLCJmbGFnIjoiaHR0cHM6Ly9mbGFnY2RuLmNvbS9jbS5zdmciLCJpZCI6InJlY19ja2hnM2VnN2FmZ3FodHU0aWpmMCIsInhhdGEiOnsiY3JlYXRlZEF0IjoiMjAyNC0wMS0zMFQxMDowNjozMC4xODNaIiwidXBkYXRlZEF0IjoiMjAyNC0wMS0zMFQxMDowNjozMC4xODNaIiwidmVyc2lvbiI6MH19LHsiY29kZSI6IkNHIiwiY291bnRyeSI6IkNvbmdvIEJyYXp6YXZpbGxlIiwiY3VycmVuY3lOYW1lIjoiQ2VudHJhbCBBZnJpY2FuIENGQSBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiWEFGIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vY2cuc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqZmciLCJ4YXRhIjp7ImNyZWF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInVwZGF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInZlcnNpb24iOjB9fSx7ImNvZGUiOiJDRCIsImNvdW50cnkiOiJEUiBDb25nbyIsImN1cnJlbmN5TmFtZSI6IkNvbmdvbGVzZSBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiQ0RGIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vY2Quc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqZzAiLCJ4YXRhIjp7ImNyZWF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInVwZGF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInZlcnNpb24iOjB9fSx7ImNvZGUiOiJHQSIsImNvdW50cnkiOiJHYWJvbiIsImN1cnJlbmN5TmFtZSI6IkNlbnRyYWwgQWZyaWNhbiBDRkEgZnJhbmMiLCJjdXJyZW5jeVN5bWJvbCI6IlhBRiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL2dhLnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamdnIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX0seyJjb2RlIjoiR0giLCJjb3VudHJ5IjoiR2hhbmEiLCJjdXJyZW5jeU5hbWUiOiJHaGFuYWlhbiBjZWRpIiwiY3VycmVuY3lTeW1ib2wiOiJHSFMiLCJmbGFnIjoiaHR0cHM6Ly9mbGFnY2RuLmNvbS9naC5zdmciLCJpZCI6InJlY19ja2hnM2VnN2FmZ3FodHU0aWpoMCIsInhhdGEiOnsiY3JlYXRlZEF0IjoiMjAyNC0wMS0zMFQxMDowNjozMC4xODNaIiwidXBkYXRlZEF0IjoiMjAyNC0wNi0xMFQxMjoyMzowMS43MzNaIiwidmVyc2lvbiI6Mn19LHsiY29kZSI6IkNJIiwiY291bnRyeSI6Ikl2b3J5IENvYXN0IiwiY3VycmVuY3lOYW1lIjoiV2VzdCBBZnJpY2FuIENGQSBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiWE9GIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vY2kuc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqaGciLCJ4YXRhIjp7ImNyZWF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInVwZGF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInZlcnNpb24iOjB9fSx7ImNvZGUiOiJLRSIsImNvdW50cnkiOiJLZW55YSIsImN1cnJlbmN5TmFtZSI6IktlbnlhbiBzaGlsbGluZyIsImN1cnJlbmN5U3ltYm9sIjoiS0VTIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20va2Uuc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqaTAiLCJ4YXRhIjp7ImNyZWF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInVwZGF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInZlcnNpb24iOjB9fSx7ImNvZGUiOiJNVyIsImNvdW50cnkiOiJNYWxhd2kiLCJjdXJyZW5jeU5hbWUiOiJNYWxhd2lhbiBrd2FjaGEiLCJjdXJyZW5jeVN5bWJvbCI6Ik1XSyIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL213LnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamlnIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX0seyJjb2RlIjoiTkciLCJjb3VudHJ5IjoiTmlnZXJpYSIsImN1cnJlbmN5TmFtZSI6Ik5pZ2VyaWFuIG5haXJhIiwiY3VycmVuY3lTeW1ib2wiOiJOR04iLCJmbGFnIjoiaHR0cHM6Ly9mbGFnY2RuLmNvbS9uZy5zdmciLCJpZCI6InJlY19ja2hnM2VnN2FmZ3FodHU0aWpqMCIsInhhdGEiOnsiY3JlYXRlZEF0IjoiMjAyNC0wMS0zMFQxMDowNjozMC4xODNaIiwidXBkYXRlZEF0IjoiMjAyNC0wMS0zMFQxMDowNjozMC4xODNaIiwidmVyc2lvbiI6MH19LHsiY29kZSI6IlJXIiwiY291bnRyeSI6IlJ3YW5kYSIsImN1cnJlbmN5TmFtZSI6IlJ3YW5kYW4gZnJhbmMiLCJjdXJyZW5jeVN5bWJvbCI6IlJXRiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL3J3LnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpampnIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX0seyJjb2RlIjoiU04iLCJjb3VudHJ5IjoiU2VuZWdhbCIsImN1cnJlbmN5TmFtZSI6Ildlc3QgQWZyaWNhbiBDRkEgZnJhbmMiLCJjdXJyZW5jeVN5bWJvbCI6IlhPRiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL3NuLnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamswIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX0seyJjb2RlIjoiWkEiLCJjb3VudHJ5IjoiU291dGggQWZyaWNhIiwiY3VycmVuY3lOYW1lIjoiU291dGggQWZyaWNhbiByYW5kIiwiY3VycmVuY3lTeW1ib2wiOiJaQVIiLCJmbGFnIjoiaHR0cHM6Ly9mbGFnY2RuLmNvbS96YS5zdmciLCJpZCI6InJlY19ja2hnM2VnN2FmZ3FodHU0aWprZyIsInhhdGEiOnsiY3JlYXRlZEF0IjoiMjAyNC0wMS0zMFQxMDowNjozMC4xODNaIiwidXBkYXRlZEF0IjoiMjAyNC0wMS0zMFQxMDowNjozMC4xODNaIiwidmVyc2lvbiI6MH19LHsiY29kZSI6IlRaIiwiY291bnRyeSI6IlRhbnphbmlhIiwiY3VycmVuY3lOYW1lIjoiVGFuemFuaWFuIHNoaWxsaW5nIiwiY3VycmVuY3lTeW1ib2wiOiJUWlMiLCJmbGFnIjoiaHR0cHM6Ly9mbGFnY2RuLmNvbS90ei5zdmciLCJpZCI6InJlY19ja2hnM2VnN2FmZ3FodHU0aWpsMCIsInhhdGEiOnsiY3JlYXRlZEF0IjoiMjAyNC0wMS0zMFQxMDowNjozMC4xODNaIiwidXBkYXRlZEF0IjoiMjAyNC0wMS0zMFQxMDowNjozMC4xODNaIiwidmVyc2lvbiI6MH19LHsiY29kZSI6IlVHIiwiY291bnRyeSI6IlVnYW5kYSIsImN1cnJlbmN5TmFtZSI6IlVnYW5kYW4gc2hpbGxpbmciLCJjdXJyZW5jeVN5bWJvbCI6IlVHWCIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL3VnLnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamxnIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX0seyJjb2RlIjoiWk0iLCJjb3VudHJ5IjoiWmFtYmlhIiwiY3VycmVuY3lOYW1lIjoiWmFtYmlhbiBrd2FjaGEiLCJjdXJyZW5jeVN5bWJvbCI6IlpNVyIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL3ptLnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpam0wIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX0seyJjb2RlIjoiTUwiLCJjb3VudHJ5IjoiTWFsaSIsImN1cnJlbmN5TmFtZSI6Ildlc3QgQWZyaWNhbiBDRkEgZnJhbmMiLCJjdXJyZW5jeVN5bWJvbCI6IlhPRiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL21sLnN2ZyIsImlkIjoicmVjX2Ntb2tvbnJpdWNzMjc0bmNqcW1nIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX0seyJjb2RlIjoiVEciLCJjb3VudHJ5IjoiVG9nbyIsImN1cnJlbmN5TmFtZSI6Ildlc3QgQWZyaWNhbiBDRkEgZnJhbmMiLCJjdXJyZW5jeVN5bWJvbCI6IlhPRiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL3RnLnN2ZyIsImlkIjoicmVjX2Ntb2txbWZzaHVubXNhN3YzcmQwIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX0seyJjb2RlIjoiQkYiLCJjb3VudHJ5IjoiQnVya2luYSBGYXNvIiwiY3VycmVuY3lOYW1lIjoiV2VzdCBBZnJpY2FuIENGQSBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiWE9GIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vYmYuc3ZnIiwiaWQiOiJyZWNfY21va3Nvaml1Y3MyNzRuY2pxbmciLCJ4YXRhIjp7ImNyZWF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInVwZGF0ZWRBdCI6IjIwMjQtMDEtMzBUMTA6MDY6MzAuMTgzWiIsInZlcnNpb24iOjB9fSx7ImNvZGUiOiJCSiIsImNvdW50cnkiOiJCZW5pbiIsImN1cnJlbmN5TmFtZSI6Ildlc3QgQWZyaWNhbiBDRkEgZnJhbmMiLCJjdXJyZW5jeVN5bWJvbCI6IlhPRiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL2JqLnN2ZyIsImlkIjoicmVjX2Ntb2wybDNpdWNzMjc0bmNqcXMwIiwieGF0YSI6eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ1cGRhdGVkQXQiOiIyMDI0LTAxLTMwVDEwOjA2OjMwLjE4M1oiLCJ2ZXJzaW9uIjowfX1dLCJyZXN1bHRzQiI6W3siY29kZSI6IkJKIiwiY291bnRyeSI6IkJlbmluIiwiY3VycmVuY3lOYW1lIjoiV2VzdCBBZnJpY2FuIENGQSBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiWE9GIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vYmouc3ZnIiwiaWQiOiJyZWNfY21vbDJsM2l1Y3MyNzRuY2pxczAifSx7ImNvZGUiOiJCVyIsImNvdW50cnkiOiJCb3Rzd2FuYSIsImN1cnJlbmN5TmFtZSI6IkJvdHN3YW5hIHB1bGEiLCJjdXJyZW5jeVN5bWJvbCI6IkJXUCIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL2J3LnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamVnIn0seyJjb2RlIjoiQkYiLCJjb3VudHJ5IjoiQnVya2luYSBGYXNvIiwiY3VycmVuY3lOYW1lIjoiV2VzdCBBZnJpY2FuIENGQSBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiWE9GIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vYmYuc3ZnIiwiaWQiOiJyZWNfY21va3Nvaml1Y3MyNzRuY2pxbmcifSx7ImNvZGUiOiJDTSIsImNvdW50cnkiOiJDYW1lcm9vbiIsImN1cnJlbmN5TmFtZSI6IkNlbnRyYWwgQWZyaWNhbiBDRkEgZnJhbmMiLCJjdXJyZW5jeVN5bWJvbCI6IlhBRiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL2NtLnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamYwIn0seyJjb2RlIjoiQ0ciLCJjb3VudHJ5IjoiQ29uZ28gQnJhenphdmlsbGUiLCJjdXJyZW5jeU5hbWUiOiJDZW50cmFsIEFmcmljYW4gQ0ZBIGZyYW5jIiwiY3VycmVuY3lTeW1ib2wiOiJYQUYiLCJmbGFnIjoiaHR0cHM6Ly9mbGFnY2RuLmNvbS9jZy5zdmciLCJpZCI6InJlY19ja2hnM2VnN2FmZ3FodHU0aWpmZyJ9LHsiY29kZSI6IkNEIiwiY291bnRyeSI6IkRSIENvbmdvIiwiY3VycmVuY3lOYW1lIjoiQ29uZ29sZXNlIGZyYW5jIiwiY3VycmVuY3lTeW1ib2wiOiJDREYiLCJmbGFnIjoiaHR0cHM6Ly9mbGFnY2RuLmNvbS9jZC5zdmciLCJpZCI6InJlY19ja2hnM2VnN2FmZ3FodHU0aWpnMCJ9LHsiY29kZSI6IkdBIiwiY291bnRyeSI6IkdhYm9uIiwiY3VycmVuY3lOYW1lIjoiQ2VudHJhbCBBZnJpY2FuIENGQSBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiWEFGIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vZ2Euc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqZ2cifSx7ImNvZGUiOiJHSCIsImNvdW50cnkiOiJHaGFuYSIsImN1cnJlbmN5TmFtZSI6IkdoYW5haWFuIGNlZGkiLCJjdXJyZW5jeVN5bWJvbCI6IkdIUyIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL2doLnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamgwIn0seyJjb2RlIjoiQ0kiLCJjb3VudHJ5IjoiSXZvcnkgQ29hc3QiLCJjdXJyZW5jeU5hbWUiOiJXZXN0IEFmcmljYW4gQ0ZBIGZyYW5jIiwiY3VycmVuY3lTeW1ib2wiOiJYT0YiLCJmbGFnIjoiaHR0cHM6Ly9mbGFnY2RuLmNvbS9jaS5zdmciLCJpZCI6InJlY19ja2hnM2VnN2FmZ3FodHU0aWpoZyJ9LHsiY29kZSI6IktFIiwiY291bnRyeSI6IktlbnlhIiwiY3VycmVuY3lOYW1lIjoiS2VueWFuIHNoaWxsaW5nIiwiY3VycmVuY3lTeW1ib2wiOiJLRVMiLCJmbGFnIjoiaHR0cHM6Ly9mbGFnY2RuLmNvbS9rZS5zdmciLCJpZCI6InJlY19ja2hnM2VnN2FmZ3FodHU0aWppMCJ9LHsiY29kZSI6Ik1XIiwiY291bnRyeSI6Ik1hbGF3aSIsImN1cnJlbmN5TmFtZSI6Ik1hbGF3aWFuIGt3YWNoYSIsImN1cnJlbmN5U3ltYm9sIjoiTVdLIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vbXcuc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqaWcifSx7ImNvZGUiOiJNTCIsImNvdW50cnkiOiJNYWxpIiwiY3VycmVuY3lOYW1lIjoiV2VzdCBBZnJpY2FuIENGQSBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiWE9GIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vbWwuc3ZnIiwiaWQiOiJyZWNfY21va29ucml1Y3MyNzRuY2pxbWcifSx7ImNvZGUiOiJORyIsImNvdW50cnkiOiJOaWdlcmlhIiwiY3VycmVuY3lOYW1lIjoiTmlnZXJpYW4gbmFpcmEiLCJjdXJyZW5jeVN5bWJvbCI6Ik5HTiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL25nLnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamowIn0seyJjb2RlIjoiUlciLCJjb3VudHJ5IjoiUndhbmRhIiwiY3VycmVuY3lOYW1lIjoiUndhbmRhbiBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiUldGIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vcncuc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqamcifSx7ImNvZGUiOiJTTiIsImNvdW50cnkiOiJTZW5lZ2FsIiwiY3VycmVuY3lOYW1lIjoiV2VzdCBBZnJpY2FuIENGQSBmcmFuYyIsImN1cnJlbmN5U3ltYm9sIjoiWE9GIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vc24uc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqazAifSx7ImNvZGUiOiJaQSIsImNvdW50cnkiOiJTb3V0aCBBZnJpY2EiLCJjdXJyZW5jeU5hbWUiOiJTb3V0aCBBZnJpY2FuIHJhbmQiLCJjdXJyZW5jeVN5bWJvbCI6IlpBUiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL3phLnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamtnIn0seyJjb2RlIjoiVFoiLCJjb3VudHJ5IjoiVGFuemFuaWEiLCJjdXJyZW5jeU5hbWUiOiJUYW56YW5pYW4gc2hpbGxpbmciLCJjdXJyZW5jeVN5bWJvbCI6IlRaUyIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL3R6LnN2ZyIsImlkIjoicmVjX2NraGczZWc3YWZncWh0dTRpamwwIn0seyJjb2RlIjoiVEciLCJjb3VudHJ5IjoiVG9nbyIsImN1cnJlbmN5TmFtZSI6Ildlc3QgQWZyaWNhbiBDRkEgZnJhbmMiLCJjdXJyZW5jeVN5bWJvbCI6IlhPRiIsImZsYWciOiJodHRwczovL2ZsYWdjZG4uY29tL3RnLnN2ZyIsImlkIjoicmVjX2Ntb2txbWZzaHVubXNhN3YzcmQwIn0seyJjb2RlIjoiVUciLCJjb3VudHJ5IjoiVWdhbmRhIiwiY3VycmVuY3lOYW1lIjoiVWdhbmRhbiBzaGlsbGluZyIsImN1cnJlbmN5U3ltYm9sIjoiVUdYIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vdWcuc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqbGcifSx7ImNvZGUiOiJaTSIsImNvdW50cnkiOiJaYW1iaWEiLCJjdXJyZW5jeU5hbWUiOiJaYW1iaWFuIGt3YWNoYSIsImN1cnJlbmN5U3ltYm9sIjoiWk1XIiwiZmxhZyI6Imh0dHBzOi8vZmxhZ2Nkbi5jb20vem0uc3ZnIiwiaWQiOiJyZWNfY2toZzNlZzdhZmdxaHR1NGlqbTAifV0sInNpbWlsYXJSZXN1bHRzIjpmYWxzZX0=" />
+              <option name="bodyString" value="{&#10;  &quot;timeTakenForA&quot;: &quot;4.10s&quot;,&#10;  &quot;timeTakenForB&quot;: &quot;0.47s&quot;,&#10;  &quot;timeDifference&quot;: &quot;3.63s&quot;,&#10;  &quot;improvementPercent&quot;: &quot;88.54%&quot;,&#10;  &quot;resultsA&quot;: [&#10;    {&#10;      &quot;code&quot;: &quot;BW&quot;,&#10;      &quot;country&quot;: &quot;Botswana&quot;,&#10;      &quot;currencyName&quot;: &quot;Botswana pula&quot;,&#10;      &quot;currencySymbol&quot;: &quot;BWP&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/bw.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijeg&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;CM&quot;,&#10;      &quot;country&quot;: &quot;Cameroon&quot;,&#10;      &quot;currencyName&quot;: &quot;Central African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XAF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/cm.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijf0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;CG&quot;,&#10;      &quot;country&quot;: &quot;Congo Brazzaville&quot;,&#10;      &quot;currencyName&quot;: &quot;Central African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XAF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/cg.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijfg&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;CD&quot;,&#10;      &quot;country&quot;: &quot;DR Congo&quot;,&#10;      &quot;currencyName&quot;: &quot;Congolese franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;CDF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/cd.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijg0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;GA&quot;,&#10;      &quot;country&quot;: &quot;Gabon&quot;,&#10;      &quot;currencyName&quot;: &quot;Central African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XAF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ga.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijgg&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;GH&quot;,&#10;      &quot;country&quot;: &quot;Ghana&quot;,&#10;      &quot;currencyName&quot;: &quot;Ghanaian cedi&quot;,&#10;      &quot;currencySymbol&quot;: &quot;GHS&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/gh.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijh0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-06-10T12:23:01.733Z&quot;,&#10;        &quot;version&quot;: 2&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;CI&quot;,&#10;      &quot;country&quot;: &quot;Ivory Coast&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ci.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijhg&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;KE&quot;,&#10;      &quot;country&quot;: &quot;Kenya&quot;,&#10;      &quot;currencyName&quot;: &quot;Kenyan shilling&quot;,&#10;      &quot;currencySymbol&quot;: &quot;KES&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ke.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4iji0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;MW&quot;,&#10;      &quot;country&quot;: &quot;Malawi&quot;,&#10;      &quot;currencyName&quot;: &quot;Malawian kwacha&quot;,&#10;      &quot;currencySymbol&quot;: &quot;MWK&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/mw.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijig&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;NG&quot;,&#10;      &quot;country&quot;: &quot;Nigeria&quot;,&#10;      &quot;currencyName&quot;: &quot;Nigerian naira&quot;,&#10;      &quot;currencySymbol&quot;: &quot;NGN&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ng.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijj0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;RW&quot;,&#10;      &quot;country&quot;: &quot;Rwanda&quot;,&#10;      &quot;currencyName&quot;: &quot;Rwandan franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;RWF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/rw.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijjg&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;SN&quot;,&#10;      &quot;country&quot;: &quot;Senegal&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/sn.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijk0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;ZA&quot;,&#10;      &quot;country&quot;: &quot;South Africa&quot;,&#10;      &quot;currencyName&quot;: &quot;South African rand&quot;,&#10;      &quot;currencySymbol&quot;: &quot;ZAR&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/za.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijkg&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;TZ&quot;,&#10;      &quot;country&quot;: &quot;Tanzania&quot;,&#10;      &quot;currencyName&quot;: &quot;Tanzanian shilling&quot;,&#10;      &quot;currencySymbol&quot;: &quot;TZS&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/tz.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijl0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;UG&quot;,&#10;      &quot;country&quot;: &quot;Uganda&quot;,&#10;      &quot;currencyName&quot;: &quot;Ugandan shilling&quot;,&#10;      &quot;currencySymbol&quot;: &quot;UGX&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ug.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijlg&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;ZM&quot;,&#10;      &quot;country&quot;: &quot;Zambia&quot;,&#10;      &quot;currencyName&quot;: &quot;Zambian kwacha&quot;,&#10;      &quot;currencySymbol&quot;: &quot;ZMW&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/zm.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijm0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;ML&quot;,&#10;      &quot;country&quot;: &quot;Mali&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ml.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_cmokonriucs274ncjqmg&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;TG&quot;,&#10;      &quot;country&quot;: &quot;Togo&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/tg.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_cmokqmfshunmsa7v3rd0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;BF&quot;,&#10;      &quot;country&quot;: &quot;Burkina Faso&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/bf.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_cmoksojiucs274ncjqng&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;BJ&quot;,&#10;      &quot;country&quot;: &quot;Benin&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/bj.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_cmol2l3iucs274ncjqs0&quot;,&#10;      &quot;xata&quot;: {&#10;        &quot;createdAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;updatedAt&quot;: &quot;2024-01-30T10:06:30.183Z&quot;,&#10;        &quot;version&quot;: 0&#10;      }&#10;    }&#10;  ],&#10;  &quot;resultsB&quot;: [&#10;    {&#10;      &quot;code&quot;: &quot;BJ&quot;,&#10;      &quot;country&quot;: &quot;Benin&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/bj.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_cmol2l3iucs274ncjqs0&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;BW&quot;,&#10;      &quot;country&quot;: &quot;Botswana&quot;,&#10;      &quot;currencyName&quot;: &quot;Botswana pula&quot;,&#10;      &quot;currencySymbol&quot;: &quot;BWP&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/bw.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijeg&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;BF&quot;,&#10;      &quot;country&quot;: &quot;Burkina Faso&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/bf.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_cmoksojiucs274ncjqng&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;CM&quot;,&#10;      &quot;country&quot;: &quot;Cameroon&quot;,&#10;      &quot;currencyName&quot;: &quot;Central African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XAF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/cm.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijf0&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;CG&quot;,&#10;      &quot;country&quot;: &quot;Congo Brazzaville&quot;,&#10;      &quot;currencyName&quot;: &quot;Central African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XAF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/cg.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijfg&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;CD&quot;,&#10;      &quot;country&quot;: &quot;DR Congo&quot;,&#10;      &quot;currencyName&quot;: &quot;Congolese franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;CDF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/cd.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijg0&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;GA&quot;,&#10;      &quot;country&quot;: &quot;Gabon&quot;,&#10;      &quot;currencyName&quot;: &quot;Central African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XAF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ga.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijgg&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;GH&quot;,&#10;      &quot;country&quot;: &quot;Ghana&quot;,&#10;      &quot;currencyName&quot;: &quot;Ghanaian cedi&quot;,&#10;      &quot;currencySymbol&quot;: &quot;GHS&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/gh.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijh0&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;CI&quot;,&#10;      &quot;country&quot;: &quot;Ivory Coast&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ci.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijhg&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;KE&quot;,&#10;      &quot;country&quot;: &quot;Kenya&quot;,&#10;      &quot;currencyName&quot;: &quot;Kenyan shilling&quot;,&#10;      &quot;currencySymbol&quot;: &quot;KES&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ke.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4iji0&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;MW&quot;,&#10;      &quot;country&quot;: &quot;Malawi&quot;,&#10;      &quot;currencyName&quot;: &quot;Malawian kwacha&quot;,&#10;      &quot;currencySymbol&quot;: &quot;MWK&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/mw.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijig&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;ML&quot;,&#10;      &quot;country&quot;: &quot;Mali&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ml.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_cmokonriucs274ncjqmg&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;NG&quot;,&#10;      &quot;country&quot;: &quot;Nigeria&quot;,&#10;      &quot;currencyName&quot;: &quot;Nigerian naira&quot;,&#10;      &quot;currencySymbol&quot;: &quot;NGN&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ng.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijj0&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;RW&quot;,&#10;      &quot;country&quot;: &quot;Rwanda&quot;,&#10;      &quot;currencyName&quot;: &quot;Rwandan franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;RWF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/rw.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijjg&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;SN&quot;,&#10;      &quot;country&quot;: &quot;Senegal&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/sn.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijk0&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;ZA&quot;,&#10;      &quot;country&quot;: &quot;South Africa&quot;,&#10;      &quot;currencyName&quot;: &quot;South African rand&quot;,&#10;      &quot;currencySymbol&quot;: &quot;ZAR&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/za.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijkg&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;TZ&quot;,&#10;      &quot;country&quot;: &quot;Tanzania&quot;,&#10;      &quot;currencyName&quot;: &quot;Tanzanian shilling&quot;,&#10;      &quot;currencySymbol&quot;: &quot;TZS&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/tz.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijl0&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;TG&quot;,&#10;      &quot;country&quot;: &quot;Togo&quot;,&#10;      &quot;currencyName&quot;: &quot;West African CFA franc&quot;,&#10;      &quot;currencySymbol&quot;: &quot;XOF&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/tg.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_cmokqmfshunmsa7v3rd0&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;UG&quot;,&#10;      &quot;country&quot;: &quot;Uganda&quot;,&#10;      &quot;currencyName&quot;: &quot;Ugandan shilling&quot;,&#10;      &quot;currencySymbol&quot;: &quot;UGX&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/ug.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijlg&quot;&#10;    },&#10;    {&#10;      &quot;code&quot;: &quot;ZM&quot;,&#10;      &quot;country&quot;: &quot;Zambia&quot;,&#10;      &quot;currencyName&quot;: &quot;Zambian kwacha&quot;,&#10;      &quot;currencySymbol&quot;: &quot;ZMW&quot;,&#10;      &quot;flag&quot;: &quot;https://flagcdn.com/zm.svg&quot;,&#10;      &quot;id&quot;: &quot;rec_ckhg3eg7afgqhtu4ijm0&quot;&#10;    }&#10;  ],&#10;  &quot;similarResults&quot;: false&#10;}" />
+              <option name="code" value="200" />
+              <option name="contentType" value="application/json; charset=utf-8" />
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Date" />
+                    <option name="value" value="Mon, 19 Aug 2024 02:46:38 GMT" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json; charset=utf-8" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Length" />
+                    <option name="value" value="918" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Connection" />
+                    <option name="value" value="keep-alive" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Ray" />
+                    <option name="value" value="8b56d05cfb33bd90-LHR" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Cache-Status" />
+                    <option name="value" value="DYNAMIC" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Encoding" />
+                    <option name="value" value="br" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="ETag" />
+                    <option name="value" value="W/&quot;21a7-0VoKUE5AMUSv3hd43ar9xVSQxBU&quot;" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Vary" />
+                    <option name="value" value="Accept-Encoding" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="rndr-id" />
+                    <option name="value" value="40693a6a-0ebd-4eba" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-powered-by" />
+                    <option name="value" value="Express" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-render-origin-server" />
+                    <option name="value" value="Render" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Server" />
+                    <option name="value" value="cloudflare" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="alt-svc" />
+                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="8a655994-70bd-4a17-8987-4f6a842897d6" />
+              <option name="message" value="OK" />
+              <option name="prettyResponseType" value="JSON" />
+              <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;4.10s&quot;,&quot;timeTakenForB&quot;:&quot;0.47s&quot;,&quot;timeDifference&quot;:&quot;3.63s&quot;,&quot;improvementPercent&quot;:&quot;88.54%&quot;,&quot;resultsA&quot;:[{&quot;code&quot;:&quot;BW&quot;,&quot;country&quot;:&quot;Botswana&quot;,&quot;currencyName&quot;:&quot;Botswana pula&quot;,&quot;currencySymbol&quot;:&quot;BWP&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/bw.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijeg&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;CM&quot;,&quot;country&quot;:&quot;Cameroon&quot;,&quot;currencyName&quot;:&quot;Central African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XAF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/cm.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijf0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;CG&quot;,&quot;country&quot;:&quot;Congo Brazzaville&quot;,&quot;currencyName&quot;:&quot;Central African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XAF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/cg.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijfg&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;CD&quot;,&quot;country&quot;:&quot;DR Congo&quot;,&quot;currencyName&quot;:&quot;Congolese franc&quot;,&quot;currencySymbol&quot;:&quot;CDF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/cd.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijg0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;GA&quot;,&quot;country&quot;:&quot;Gabon&quot;,&quot;currencyName&quot;:&quot;Central African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XAF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ga.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijgg&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;GH&quot;,&quot;country&quot;:&quot;Ghana&quot;,&quot;currencyName&quot;:&quot;Ghanaian cedi&quot;,&quot;currencySymbol&quot;:&quot;GHS&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/gh.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijh0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-06-10T12:23:01.733Z&quot;,&quot;version&quot;:2}},{&quot;code&quot;:&quot;CI&quot;,&quot;country&quot;:&quot;Ivory Coast&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ci.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijhg&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;KE&quot;,&quot;country&quot;:&quot;Kenya&quot;,&quot;currencyName&quot;:&quot;Kenyan shilling&quot;,&quot;currencySymbol&quot;:&quot;KES&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ke.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4iji0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;MW&quot;,&quot;country&quot;:&quot;Malawi&quot;,&quot;currencyName&quot;:&quot;Malawian kwacha&quot;,&quot;currencySymbol&quot;:&quot;MWK&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/mw.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijig&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;NG&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;currencyName&quot;:&quot;Nigerian naira&quot;,&quot;currencySymbol&quot;:&quot;NGN&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ng.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijj0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;RW&quot;,&quot;country&quot;:&quot;Rwanda&quot;,&quot;currencyName&quot;:&quot;Rwandan franc&quot;,&quot;currencySymbol&quot;:&quot;RWF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/rw.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijjg&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;SN&quot;,&quot;country&quot;:&quot;Senegal&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/sn.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijk0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;ZA&quot;,&quot;country&quot;:&quot;South Africa&quot;,&quot;currencyName&quot;:&quot;South African rand&quot;,&quot;currencySymbol&quot;:&quot;ZAR&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/za.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijkg&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;TZ&quot;,&quot;country&quot;:&quot;Tanzania&quot;,&quot;currencyName&quot;:&quot;Tanzanian shilling&quot;,&quot;currencySymbol&quot;:&quot;TZS&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/tz.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijl0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;UG&quot;,&quot;country&quot;:&quot;Uganda&quot;,&quot;currencyName&quot;:&quot;Ugandan shilling&quot;,&quot;currencySymbol&quot;:&quot;UGX&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ug.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijlg&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;ZM&quot;,&quot;country&quot;:&quot;Zambia&quot;,&quot;currencyName&quot;:&quot;Zambian kwacha&quot;,&quot;currencySymbol&quot;:&quot;ZMW&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/zm.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijm0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;ML&quot;,&quot;country&quot;:&quot;Mali&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ml.svg&quot;,&quot;id&quot;:&quot;rec_cmokonriucs274ncjqmg&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;TG&quot;,&quot;country&quot;:&quot;Togo&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/tg.svg&quot;,&quot;id&quot;:&quot;rec_cmokqmfshunmsa7v3rd0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;BF&quot;,&quot;country&quot;:&quot;Burkina Faso&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/bf.svg&quot;,&quot;id&quot;:&quot;rec_cmoksojiucs274ncjqng&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}},{&quot;code&quot;:&quot;BJ&quot;,&quot;country&quot;:&quot;Benin&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/bj.svg&quot;,&quot;id&quot;:&quot;rec_cmol2l3iucs274ncjqs0&quot;,&quot;xata&quot;:{&quot;createdAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;updatedAt&quot;:&quot;2024-01-30T10:06:30.183Z&quot;,&quot;version&quot;:0}}],&quot;resultsB&quot;:[{&quot;code&quot;:&quot;BJ&quot;,&quot;country&quot;:&quot;Benin&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/bj.svg&quot;,&quot;id&quot;:&quot;rec_cmol2l3iucs274ncjqs0&quot;},{&quot;code&quot;:&quot;BW&quot;,&quot;country&quot;:&quot;Botswana&quot;,&quot;currencyName&quot;:&quot;Botswana pula&quot;,&quot;currencySymbol&quot;:&quot;BWP&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/bw.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijeg&quot;},{&quot;code&quot;:&quot;BF&quot;,&quot;country&quot;:&quot;Burkina Faso&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/bf.svg&quot;,&quot;id&quot;:&quot;rec_cmoksojiucs274ncjqng&quot;},{&quot;code&quot;:&quot;CM&quot;,&quot;country&quot;:&quot;Cameroon&quot;,&quot;currencyName&quot;:&quot;Central African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XAF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/cm.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijf0&quot;},{&quot;code&quot;:&quot;CG&quot;,&quot;country&quot;:&quot;Congo Brazzaville&quot;,&quot;currencyName&quot;:&quot;Central African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XAF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/cg.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijfg&quot;},{&quot;code&quot;:&quot;CD&quot;,&quot;country&quot;:&quot;DR Congo&quot;,&quot;currencyName&quot;:&quot;Congolese franc&quot;,&quot;currencySymbol&quot;:&quot;CDF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/cd.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijg0&quot;},{&quot;code&quot;:&quot;GA&quot;,&quot;country&quot;:&quot;Gabon&quot;,&quot;currencyName&quot;:&quot;Central African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XAF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ga.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijgg&quot;},{&quot;code&quot;:&quot;GH&quot;,&quot;country&quot;:&quot;Ghana&quot;,&quot;currencyName&quot;:&quot;Ghanaian cedi&quot;,&quot;currencySymbol&quot;:&quot;GHS&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/gh.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijh0&quot;},{&quot;code&quot;:&quot;CI&quot;,&quot;country&quot;:&quot;Ivory Coast&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ci.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijhg&quot;},{&quot;code&quot;:&quot;KE&quot;,&quot;country&quot;:&quot;Kenya&quot;,&quot;currencyName&quot;:&quot;Kenyan shilling&quot;,&quot;currencySymbol&quot;:&quot;KES&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ke.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4iji0&quot;},{&quot;code&quot;:&quot;MW&quot;,&quot;country&quot;:&quot;Malawi&quot;,&quot;currencyName&quot;:&quot;Malawian kwacha&quot;,&quot;currencySymbol&quot;:&quot;MWK&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/mw.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijig&quot;},{&quot;code&quot;:&quot;ML&quot;,&quot;country&quot;:&quot;Mali&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ml.svg&quot;,&quot;id&quot;:&quot;rec_cmokonriucs274ncjqmg&quot;},{&quot;code&quot;:&quot;NG&quot;,&quot;country&quot;:&quot;Nigeria&quot;,&quot;currencyName&quot;:&quot;Nigerian naira&quot;,&quot;currencySymbol&quot;:&quot;NGN&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ng.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijj0&quot;},{&quot;code&quot;:&quot;RW&quot;,&quot;country&quot;:&quot;Rwanda&quot;,&quot;currencyName&quot;:&quot;Rwandan franc&quot;,&quot;currencySymbol&quot;:&quot;RWF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/rw.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijjg&quot;},{&quot;code&quot;:&quot;SN&quot;,&quot;country&quot;:&quot;Senegal&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/sn.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijk0&quot;},{&quot;code&quot;:&quot;ZA&quot;,&quot;country&quot;:&quot;South Africa&quot;,&quot;currencyName&quot;:&quot;South African rand&quot;,&quot;currencySymbol&quot;:&quot;ZAR&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/za.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijkg&quot;},{&quot;code&quot;:&quot;TZ&quot;,&quot;country&quot;:&quot;Tanzania&quot;,&quot;currencyName&quot;:&quot;Tanzanian shilling&quot;,&quot;currencySymbol&quot;:&quot;TZS&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/tz.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijl0&quot;},{&quot;code&quot;:&quot;TG&quot;,&quot;country&quot;:&quot;Togo&quot;,&quot;currencyName&quot;:&quot;West African CFA franc&quot;,&quot;currencySymbol&quot;:&quot;XOF&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/tg.svg&quot;,&quot;id&quot;:&quot;rec_cmokqmfshunmsa7v3rd0&quot;},{&quot;code&quot;:&quot;UG&quot;,&quot;country&quot;:&quot;Uganda&quot;,&quot;currencyName&quot;:&quot;Ugandan shilling&quot;,&quot;currencySymbol&quot;:&quot;UGX&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/ug.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijlg&quot;},{&quot;code&quot;:&quot;ZM&quot;,&quot;country&quot;:&quot;Zambia&quot;,&quot;currencyName&quot;:&quot;Zambian kwacha&quot;,&quot;currencySymbol&quot;:&quot;ZMW&quot;,&quot;flag&quot;:&quot;https://flagcdn.com/zm.svg&quot;,&quot;id&quot;:&quot;rec_ckhg3eg7afgqhtu4ijm0&quot;}],&quot;similarResults&quot;:false}" />
+              <option name="size" value="918" />
+              <option name="time" value="4741" />
+            </responseState>
+          </option>
+          <option name="workspaceId" value="drafts" />
+        </requestHistoryState>
+        <requestHistoryState>
+          <option name="dateTime" value="1724035693997" />
+          <option name="id" value="1736803c-1de9-4814-b1b6-63349a8df597" />
+          <option name="request">
+            <requestState>
+              <option name="auth">
+                <authState>
+                  <option name="bearer">
+                    <lK>
+                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
+                    </lK>
+                  </option>
+                  <option name="type" value="BEARER" />
+                </authState>
+              </option>
+              <option name="body">
+                <bodyState>
+                  <option name="type" value="JSON" />
+                </bodyState>
+              </option>
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="X-WalletKit-Project-ID" />
+                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
+              <option name="method" value="GET" />
+              <option name="name" value="Draft" />
+              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/rates" />
+            </requestState>
+          </option>
+          <option name="response">
+            <responseState>
+              <option name="bodyBytesBase64" value="eyJ0aW1lVGFrZW5Gb3JBIjoiNC4yNnMiLCJ0aW1lVGFrZW5Gb3JCIjoiMC40NnMiLCJ0aW1lRGlmZmVyZW5jZSI6IjMuODBzIiwiaW1wcm92ZW1lbnRQZXJjZW50IjoiODkuMTYlIiwicmVzdWx0c0EiOlt7ImJ1eSI6MTYuMiwic2VsbCI6MTUuNywibG9jYWxlIjoiR0giLCJyYXRlSWQiOiJjZWRpIiwiY29kZSI6IkdIUyIsInVwZGF0ZWRBdCI6IjIwMjQtMDgtMTlUMDI6NDY6NDEuMDI3WiJ9LHsiYnV5IjoyNzYwLCJzZWxsIjoyMzUwLCJsb2NhbGUiOiJNVyIsInJhdGVJZCI6Im1hbGF3aWFuLWt3YWNoYSIsImNvZGUiOiJNV0siLCJ1cGRhdGVkQXQiOiIyMDI0LTA4LTE5VDAyOjQ2OjQxLjIxNFoifSx7ImJ1eSI6NjU0LCJzZWxsIjo2MjAsImxvY2FsZSI6IkNNIiwicmF0ZUlkIjoiZnJhbmMiLCJjb2RlIjoiWEFGIiwidXBkYXRlZEF0IjoiMjAyNC0wOC0xOVQwMjo0Njo0MS41MzBaIn0seyJidXkiOjE4LjM1LCJzZWxsIjoxOC4xLCJsb2NhbGUiOiJaQSIsInJhdGVJZCI6InNvdXRoLWFmcmljYW4tcmFuZCIsImNvZGUiOiJaQVIiLCJ1cGRhdGVkQXQiOiIyMDI0LTA4LTE5VDAyOjQ2OjQ0LjIwNloifSx7ImJ1eSI6Mjg5MS4yLCJzZWxsIjoyODM3LjE2LCJsb2NhbGUiOiJUWiIsInJhdGVJZCI6InRhbnphbmlhbi1zaGlsbGluZyIsImNvZGUiOiJUWlMiLCJ1cGRhdGVkQXQiOiIyMDI0LTA4LTE5VDAyOjQ2OjQ2LjcwNloifSx7ImJ1eSI6Mzc0Niwic2VsbCI6MzY3MS44MiwibG9jYWxlIjoiVUciLCJyYXRlSWQiOiJ1Z2FuZGFuLXNoaWxsaW5nIiwiY29kZSI6IlVHWCIsInVwZGF0ZWRBdCI6IjIwMjQtMDgtMTlUMDI6NDY6NDcuNTcxWiJ9LHsiYnV5IjoyMiwic2VsbCI6OSwibG9jYWxlIjoiTFMiLCJyYXRlSWQiOiJsZXNvdGhvLWxvdGkiLCJjb2RlIjoiTFNMIiwidXBkYXRlZEF0IjoiMjAyNC0wOC0xOVQwMjo0Njo0OS4xMDRaIn0seyJidXkiOjI3Ljk5LCJzZWxsIjoyNi4xNCwibG9jYWxlIjoiWk0iLCJyYXRlSWQiOiJrd2FjaGEiLCJjb2RlIjoiWk1XIiwidXBkYXRlZEF0IjoiMjAyNC0wOC0xOVQwMjo0Njo0OS42NTFaIn0seyJidXkiOjE0MjAsInNlbGwiOjEzNjQsImxvY2FsZSI6IlJXIiwicmF0ZUlkIjoicndhbmRhbi1mcmFuYyIsImNvZGUiOiJSV0YiLCJ1cGRhdGVkQXQiOiIyMDI0LTA4LTE5VDAyOjQ2OjQ5Ljg0NVoifSx7ImJ1eSI6MTMuNTksInNlbGwiOjEzLjA3LCJsb2NhbGUiOiJCdyIsInJhdGVJZCI6InB1bGEiLCJjb2RlIjoiQldQIiwidXBkYXRlZEF0IjoiMjAyNC0wOC0xOVQwMjo0Njo1Mi4xNzRaIn0seyJidXkiOjE2MTAsInNlbGwiOjE1OTAsImxvY2FsZSI6Ik5HIiwicmF0ZUlkIjoibmFpcmEiLCJjb2RlIjoiTkdOIiwidXBkYXRlZEF0IjoiMjAyNC0wOC0xOVQwMjo0Njo1NC4xMTFaIn0seyJidXkiOjEzMC44OSwic2VsbCI6MTI3LjMxLCJsb2NhbGUiOiJLRSIsInJhdGVJZCI6Imtlbnlhbi1zaGlsbGluZyIsImNvZGUiOiJLRVMiLCJ1cGRhdGVkQXQiOiIyMDI0LTA4LTE5VDAyOjQ2OjU1LjkwNVoifSx7ImJ1eSI6NjE4LjQ3LCJzZWxsIjo2MDkuNTUsImxvY2FsZSI6IkNJIiwicmF0ZUlkIjoid2VzdC1hZnJpY2FuLWZyYW5jIiwiY29kZSI6IlhPRiIsInVwZGF0ZWRBdCI6IjIwMjQtMDgtMTlUMDI6NDY6NTYuOTQ4WiJ9LHsiYnV5IjoyOTUwLCJzZWxsIjoxODAwLCJsb2NhbGUiOiJDRCIsInJhdGVJZCI6ImNvbmdvbGVzZS1mcmFuYyIsImNvZGUiOiJDREYiLCJ1cGRhdGVkQXQiOiIyMDI0LTA4LTE5VDAyOjQ2OjU3Ljk5MFoifV0sInJlc3VsdHNCIjpbeyJidXkiOjE2LjIwMDAwMDc2MjkzOTQ1Mywic2VsbCI6MTUuNjk5OTk5ODA5MjY1MTM3LCJsb2NhbGUiOiJHSCIsImNvZGUiOiJHSFMifSx7ImJ1eSI6Mjc2MCwic2VsbCI6MjM1MCwibG9jYWxlIjoiTVciLCJjb2RlIjoiTVdLIn0seyJidXkiOjY1NCwic2VsbCI6NjIwLCJsb2NhbGUiOiJDTSIsImNvZGUiOiJYQUYifSx7ImJ1eSI6MTguMzUwMDAwMzgxNDY5NzI3LCJzZWxsIjoxOC4xMDAwMDAzODE0Njk3MjcsImxvY2FsZSI6IlpBIiwiY29kZSI6IlpBUiJ9LHsiYnV5IjoyODkxLjE5OTk1MTE3MTg3NSwic2VsbCI6MjgzNy4xNTk5MTIxMDkzNzUsImxvY2FsZSI6IlRaIiwiY29kZSI6IlRaUyJ9LHsiYnV5IjozNzQ2LCJzZWxsIjozNjcxLjgyMDA2ODM1OTM3NSwibG9jYWxlIjoiVUciLCJjb2RlIjoiVUdYIn0seyJidXkiOjIyLCJzZWxsIjo5LCJsb2NhbGUiOiJMUyIsImNvZGUiOiJMU0wifSx7ImJ1eSI6MjcuOTg5OTk5NzcxMTE4MTY0LCJzZWxsIjoyNi4xMzk5OTkzODk2NDg0MzgsImxvY2FsZSI6IlpNIiwiY29kZSI6IlpNVyJ9LHsiYnV5IjoxNDIwLCJzZWxsIjoxMzY0LCJsb2NhbGUiOiJSVyIsImNvZGUiOiJSV0YifSx7ImJ1eSI6MTMuNTkwMDAwMTUyNTg3ODksInNlbGwiOjEzLjA2OTk5OTY5NDgyNDIxOSwibG9jYWxlIjoiQnciLCJjb2RlIjoiQldQIn0seyJidXkiOjE2MTAsInNlbGwiOjE1OTAsImxvY2FsZSI6Ik5HIiwiY29kZSI6Ik5HTiJ9LHsiYnV5IjoxMzAuODg5OTk5Mzg5NjQ4NDQsInNlbGwiOjEyNy4zMDk5OTc1NTg1OTM3NSwibG9jYWxlIjoiS0UiLCJjb2RlIjoiS0VTIn0seyJidXkiOjYxOC40Njk5NzA3MDMxMjUsInNlbGwiOjYwOS41NDk5ODc3OTI5Njg4LCJsb2NhbGUiOiJDSSIsImNvZGUiOiJYT0YifSx7ImJ1eSI6Mjk1MCwic2VsbCI6MTgwMCwibG9jYWxlIjoiQ0QiLCJjb2RlIjoiQ0RGIn1dLCJzaW1pbGFyUmVzdWx0cyI6ZmFsc2V9" />
+              <option name="bodyString" value="{&#10;  &quot;timeTakenForA&quot;: &quot;4.26s&quot;,&#10;  &quot;timeTakenForB&quot;: &quot;0.46s&quot;,&#10;  &quot;timeDifference&quot;: &quot;3.80s&quot;,&#10;  &quot;improvementPercent&quot;: &quot;89.16%&quot;,&#10;  &quot;resultsA&quot;: [&#10;    {&#10;      &quot;buy&quot;: 16.2,&#10;      &quot;sell&quot;: 15.7,&#10;      &quot;locale&quot;: &quot;GH&quot;,&#10;      &quot;rateId&quot;: &quot;cedi&quot;,&#10;      &quot;code&quot;: &quot;GHS&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:41.027Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 2760,&#10;      &quot;sell&quot;: 2350,&#10;      &quot;locale&quot;: &quot;MW&quot;,&#10;      &quot;rateId&quot;: &quot;malawian-kwacha&quot;,&#10;      &quot;code&quot;: &quot;MWK&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:41.214Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 654,&#10;      &quot;sell&quot;: 620,&#10;      &quot;locale&quot;: &quot;CM&quot;,&#10;      &quot;rateId&quot;: &quot;franc&quot;,&#10;      &quot;code&quot;: &quot;XAF&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:41.530Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 18.35,&#10;      &quot;sell&quot;: 18.1,&#10;      &quot;locale&quot;: &quot;ZA&quot;,&#10;      &quot;rateId&quot;: &quot;south-african-rand&quot;,&#10;      &quot;code&quot;: &quot;ZAR&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:44.206Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 2891.2,&#10;      &quot;sell&quot;: 2837.16,&#10;      &quot;locale&quot;: &quot;TZ&quot;,&#10;      &quot;rateId&quot;: &quot;tanzanian-shilling&quot;,&#10;      &quot;code&quot;: &quot;TZS&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:46.706Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 3746,&#10;      &quot;sell&quot;: 3671.82,&#10;      &quot;locale&quot;: &quot;UG&quot;,&#10;      &quot;rateId&quot;: &quot;ugandan-shilling&quot;,&#10;      &quot;code&quot;: &quot;UGX&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:47.571Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 22,&#10;      &quot;sell&quot;: 9,&#10;      &quot;locale&quot;: &quot;LS&quot;,&#10;      &quot;rateId&quot;: &quot;lesotho-loti&quot;,&#10;      &quot;code&quot;: &quot;LSL&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:49.104Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 27.99,&#10;      &quot;sell&quot;: 26.14,&#10;      &quot;locale&quot;: &quot;ZM&quot;,&#10;      &quot;rateId&quot;: &quot;kwacha&quot;,&#10;      &quot;code&quot;: &quot;ZMW&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:49.651Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 1420,&#10;      &quot;sell&quot;: 1364,&#10;      &quot;locale&quot;: &quot;RW&quot;,&#10;      &quot;rateId&quot;: &quot;rwandan-franc&quot;,&#10;      &quot;code&quot;: &quot;RWF&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:49.845Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 13.59,&#10;      &quot;sell&quot;: 13.07,&#10;      &quot;locale&quot;: &quot;Bw&quot;,&#10;      &quot;rateId&quot;: &quot;pula&quot;,&#10;      &quot;code&quot;: &quot;BWP&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:52.174Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 1610,&#10;      &quot;sell&quot;: 1590,&#10;      &quot;locale&quot;: &quot;NG&quot;,&#10;      &quot;rateId&quot;: &quot;naira&quot;,&#10;      &quot;code&quot;: &quot;NGN&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:54.111Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 130.89,&#10;      &quot;sell&quot;: 127.31,&#10;      &quot;locale&quot;: &quot;KE&quot;,&#10;      &quot;rateId&quot;: &quot;kenyan-shilling&quot;,&#10;      &quot;code&quot;: &quot;KES&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:55.905Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 618.47,&#10;      &quot;sell&quot;: 609.55,&#10;      &quot;locale&quot;: &quot;CI&quot;,&#10;      &quot;rateId&quot;: &quot;west-african-franc&quot;,&#10;      &quot;code&quot;: &quot;XOF&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:56.948Z&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 2950,&#10;      &quot;sell&quot;: 1800,&#10;      &quot;locale&quot;: &quot;CD&quot;,&#10;      &quot;rateId&quot;: &quot;congolese-franc&quot;,&#10;      &quot;code&quot;: &quot;CDF&quot;,&#10;      &quot;updatedAt&quot;: &quot;2024-08-19T02:46:57.990Z&quot;&#10;    }&#10;  ],&#10;  &quot;resultsB&quot;: [&#10;    {&#10;      &quot;buy&quot;: 16.200000762939453,&#10;      &quot;sell&quot;: 15.699999809265137,&#10;      &quot;locale&quot;: &quot;GH&quot;,&#10;      &quot;code&quot;: &quot;GHS&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 2760,&#10;      &quot;sell&quot;: 2350,&#10;      &quot;locale&quot;: &quot;MW&quot;,&#10;      &quot;code&quot;: &quot;MWK&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 654,&#10;      &quot;sell&quot;: 620,&#10;      &quot;locale&quot;: &quot;CM&quot;,&#10;      &quot;code&quot;: &quot;XAF&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 18.350000381469727,&#10;      &quot;sell&quot;: 18.100000381469727,&#10;      &quot;locale&quot;: &quot;ZA&quot;,&#10;      &quot;code&quot;: &quot;ZAR&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 2891.199951171875,&#10;      &quot;sell&quot;: 2837.159912109375,&#10;      &quot;locale&quot;: &quot;TZ&quot;,&#10;      &quot;code&quot;: &quot;TZS&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 3746,&#10;      &quot;sell&quot;: 3671.820068359375,&#10;      &quot;locale&quot;: &quot;UG&quot;,&#10;      &quot;code&quot;: &quot;UGX&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 22,&#10;      &quot;sell&quot;: 9,&#10;      &quot;locale&quot;: &quot;LS&quot;,&#10;      &quot;code&quot;: &quot;LSL&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 27.989999771118164,&#10;      &quot;sell&quot;: 26.139999389648438,&#10;      &quot;locale&quot;: &quot;ZM&quot;,&#10;      &quot;code&quot;: &quot;ZMW&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 1420,&#10;      &quot;sell&quot;: 1364,&#10;      &quot;locale&quot;: &quot;RW&quot;,&#10;      &quot;code&quot;: &quot;RWF&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 13.59000015258789,&#10;      &quot;sell&quot;: 13.069999694824219,&#10;      &quot;locale&quot;: &quot;Bw&quot;,&#10;      &quot;code&quot;: &quot;BWP&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 1610,&#10;      &quot;sell&quot;: 1590,&#10;      &quot;locale&quot;: &quot;NG&quot;,&#10;      &quot;code&quot;: &quot;NGN&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 130.88999938964844,&#10;      &quot;sell&quot;: 127.30999755859375,&#10;      &quot;locale&quot;: &quot;KE&quot;,&#10;      &quot;code&quot;: &quot;KES&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 618.469970703125,&#10;      &quot;sell&quot;: 609.5499877929688,&#10;      &quot;locale&quot;: &quot;CI&quot;,&#10;      &quot;code&quot;: &quot;XOF&quot;&#10;    },&#10;    {&#10;      &quot;buy&quot;: 2950,&#10;      &quot;sell&quot;: 1800,&#10;      &quot;locale&quot;: &quot;CD&quot;,&#10;      &quot;code&quot;: &quot;CDF&quot;&#10;    }&#10;  ],&#10;  &quot;similarResults&quot;: false&#10;}" />
+              <option name="code" value="200" />
+              <option name="contentType" value="application/json; charset=utf-8" />
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Date" />
+                    <option name="value" value="Mon, 19 Aug 2024 02:48:15 GMT" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json; charset=utf-8" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Length" />
+                    <option name="value" value="875" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Connection" />
+                    <option name="value" value="keep-alive" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Ray" />
+                    <option name="value" value="8b56d2b80956cdaa-LHR" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Cache-Status" />
+                    <option name="value" value="DYNAMIC" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Encoding" />
+                    <option name="value" value="br" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="ETag" />
+                    <option name="value" value="W/&quot;a89-AwGouLg4zu7HfoOoRs7M/JjKizY&quot;" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Vary" />
+                    <option name="value" value="Accept-Encoding" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="rndr-id" />
+                    <option name="value" value="4292b705-c40a-4c94" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-powered-by" />
+                    <option name="value" value="Express" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-render-origin-server" />
+                    <option name="value" value="Render" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Server" />
+                    <option name="value" value="cloudflare" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="alt-svc" />
+                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="1736803c-1de9-4814-b1b6-63349a8df597" />
+              <option name="message" value="OK" />
+              <option name="prettyResponseType" value="JSON" />
+              <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;4.26s&quot;,&quot;timeTakenForB&quot;:&quot;0.46s&quot;,&quot;timeDifference&quot;:&quot;3.80s&quot;,&quot;improvementPercent&quot;:&quot;89.16%&quot;,&quot;resultsA&quot;:[{&quot;buy&quot;:16.2,&quot;sell&quot;:15.7,&quot;locale&quot;:&quot;GH&quot;,&quot;rateId&quot;:&quot;cedi&quot;,&quot;code&quot;:&quot;GHS&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:41.027Z&quot;},{&quot;buy&quot;:2760,&quot;sell&quot;:2350,&quot;locale&quot;:&quot;MW&quot;,&quot;rateId&quot;:&quot;malawian-kwacha&quot;,&quot;code&quot;:&quot;MWK&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:41.214Z&quot;},{&quot;buy&quot;:654,&quot;sell&quot;:620,&quot;locale&quot;:&quot;CM&quot;,&quot;rateId&quot;:&quot;franc&quot;,&quot;code&quot;:&quot;XAF&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:41.530Z&quot;},{&quot;buy&quot;:18.35,&quot;sell&quot;:18.1,&quot;locale&quot;:&quot;ZA&quot;,&quot;rateId&quot;:&quot;south-african-rand&quot;,&quot;code&quot;:&quot;ZAR&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:44.206Z&quot;},{&quot;buy&quot;:2891.2,&quot;sell&quot;:2837.16,&quot;locale&quot;:&quot;TZ&quot;,&quot;rateId&quot;:&quot;tanzanian-shilling&quot;,&quot;code&quot;:&quot;TZS&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:46.706Z&quot;},{&quot;buy&quot;:3746,&quot;sell&quot;:3671.82,&quot;locale&quot;:&quot;UG&quot;,&quot;rateId&quot;:&quot;ugandan-shilling&quot;,&quot;code&quot;:&quot;UGX&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:47.571Z&quot;},{&quot;buy&quot;:22,&quot;sell&quot;:9,&quot;locale&quot;:&quot;LS&quot;,&quot;rateId&quot;:&quot;lesotho-loti&quot;,&quot;code&quot;:&quot;LSL&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:49.104Z&quot;},{&quot;buy&quot;:27.99,&quot;sell&quot;:26.14,&quot;locale&quot;:&quot;ZM&quot;,&quot;rateId&quot;:&quot;kwacha&quot;,&quot;code&quot;:&quot;ZMW&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:49.651Z&quot;},{&quot;buy&quot;:1420,&quot;sell&quot;:1364,&quot;locale&quot;:&quot;RW&quot;,&quot;rateId&quot;:&quot;rwandan-franc&quot;,&quot;code&quot;:&quot;RWF&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:49.845Z&quot;},{&quot;buy&quot;:13.59,&quot;sell&quot;:13.07,&quot;locale&quot;:&quot;Bw&quot;,&quot;rateId&quot;:&quot;pula&quot;,&quot;code&quot;:&quot;BWP&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:52.174Z&quot;},{&quot;buy&quot;:1610,&quot;sell&quot;:1590,&quot;locale&quot;:&quot;NG&quot;,&quot;rateId&quot;:&quot;naira&quot;,&quot;code&quot;:&quot;NGN&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:54.111Z&quot;},{&quot;buy&quot;:130.89,&quot;sell&quot;:127.31,&quot;locale&quot;:&quot;KE&quot;,&quot;rateId&quot;:&quot;kenyan-shilling&quot;,&quot;code&quot;:&quot;KES&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:55.905Z&quot;},{&quot;buy&quot;:618.47,&quot;sell&quot;:609.55,&quot;locale&quot;:&quot;CI&quot;,&quot;rateId&quot;:&quot;west-african-franc&quot;,&quot;code&quot;:&quot;XOF&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:56.948Z&quot;},{&quot;buy&quot;:2950,&quot;sell&quot;:1800,&quot;locale&quot;:&quot;CD&quot;,&quot;rateId&quot;:&quot;congolese-franc&quot;,&quot;code&quot;:&quot;CDF&quot;,&quot;updatedAt&quot;:&quot;2024-08-19T02:46:57.990Z&quot;}],&quot;resultsB&quot;:[{&quot;buy&quot;:16.200000762939453,&quot;sell&quot;:15.699999809265137,&quot;locale&quot;:&quot;GH&quot;,&quot;code&quot;:&quot;GHS&quot;},{&quot;buy&quot;:2760,&quot;sell&quot;:2350,&quot;locale&quot;:&quot;MW&quot;,&quot;code&quot;:&quot;MWK&quot;},{&quot;buy&quot;:654,&quot;sell&quot;:620,&quot;locale&quot;:&quot;CM&quot;,&quot;code&quot;:&quot;XAF&quot;},{&quot;buy&quot;:18.350000381469727,&quot;sell&quot;:18.100000381469727,&quot;locale&quot;:&quot;ZA&quot;,&quot;code&quot;:&quot;ZAR&quot;},{&quot;buy&quot;:2891.199951171875,&quot;sell&quot;:2837.159912109375,&quot;locale&quot;:&quot;TZ&quot;,&quot;code&quot;:&quot;TZS&quot;},{&quot;buy&quot;:3746,&quot;sell&quot;:3671.820068359375,&quot;locale&quot;:&quot;UG&quot;,&quot;code&quot;:&quot;UGX&quot;},{&quot;buy&quot;:22,&quot;sell&quot;:9,&quot;locale&quot;:&quot;LS&quot;,&quot;code&quot;:&quot;LSL&quot;},{&quot;buy&quot;:27.989999771118164,&quot;sell&quot;:26.139999389648438,&quot;locale&quot;:&quot;ZM&quot;,&quot;code&quot;:&quot;ZMW&quot;},{&quot;buy&quot;:1420,&quot;sell&quot;:1364,&quot;locale&quot;:&quot;RW&quot;,&quot;code&quot;:&quot;RWF&quot;},{&quot;buy&quot;:13.59000015258789,&quot;sell&quot;:13.069999694824219,&quot;locale&quot;:&quot;Bw&quot;,&quot;code&quot;:&quot;BWP&quot;},{&quot;buy&quot;:1610,&quot;sell&quot;:1590,&quot;locale&quot;:&quot;NG&quot;,&quot;code&quot;:&quot;NGN&quot;},{&quot;buy&quot;:130.88999938964844,&quot;sell&quot;:127.30999755859375,&quot;locale&quot;:&quot;KE&quot;,&quot;code&quot;:&quot;KES&quot;},{&quot;buy&quot;:618.469970703125,&quot;sell&quot;:609.5499877929688,&quot;locale&quot;:&quot;CI&quot;,&quot;code&quot;:&quot;XOF&quot;},{&quot;buy&quot;:2950,&quot;sell&quot;:1800,&quot;locale&quot;:&quot;CD&quot;,&quot;code&quot;:&quot;CDF&quot;}],&quot;similarResults&quot;:false}" />
+              <option name="size" value="875" />
+              <option name="time" value="5173" />
+            </responseState>
+          </option>
+          <option name="workspaceId" value="drafts" />
+        </requestHistoryState>
+        <requestHistoryState>
+          <option name="dateTime" value="1724035825080" />
+          <option name="id" value="f780eaf8-dd9d-474b-92f9-620b9fc1b904" />
+          <option name="request">
+            <requestState>
+              <option name="auth">
+                <authState>
+                  <option name="bearer">
+                    <lK>
+                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
+                    </lK>
+                  </option>
+                  <option name="type" value="BEARER" />
+                </authState>
+              </option>
+              <option name="body">
+                <bodyState>
+                  <option name="type" value="JSON" />
+                </bodyState>
+              </option>
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="X-WalletKit-Project-ID" />
+                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
+              <option name="method" value="GET" />
+              <option name="name" value="Draft" />
+              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/quotes" />
+            </requestState>
+          </option>
+          <option name="response">
+            <responseState>
+              <option name="bodyBytesBase64" value="eyJ0aW1lVGFrZW5Gb3JBIjoiNy40NXMiLCJ0aW1lVGFrZW5Gb3JCIjoiMC43NHMiLCJ0aW1lRGlmZmVyZW5jZSI6IjYuNzBzIiwiaW1wcm92ZW1lbnRQZXJjZW50IjoiOTAuMDElIiwicmVzdWx0c0EiOnsicmF0ZSI6MTU5MCwiZmVlIjowLjAxfSwicmVzdWx0c0IiOnsicmF0ZSI6MTU5MCwiZmVlIjowLjAxfSwic2ltaWxhclJlc3VsdHMiOnRydWV9" />
+              <option name="bodyString" value="{&#10;  &quot;timeTakenForA&quot;: &quot;7.45s&quot;,&#10;  &quot;timeTakenForB&quot;: &quot;0.74s&quot;,&#10;  &quot;timeDifference&quot;: &quot;6.70s&quot;,&#10;  &quot;improvementPercent&quot;: &quot;90.01%&quot;,&#10;  &quot;resultsA&quot;: {&#10;    &quot;rate&quot;: 1590,&#10;    &quot;fee&quot;: 0.01&#10;  },&#10;  &quot;resultsB&quot;: {&#10;    &quot;rate&quot;: 1590,&#10;    &quot;fee&quot;: 0.01&#10;  },&#10;  &quot;similarResults&quot;: true&#10;}" />
+              <option name="code" value="200" />
+              <option name="contentType" value="application/json; charset=utf-8" />
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Date" />
+                    <option name="value" value="Mon, 19 Aug 2024 02:50:26 GMT" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json; charset=utf-8" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Length" />
+                    <option name="value" value="127" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Connection" />
+                    <option name="value" value="keep-alive" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Ray" />
+                    <option name="value" value="8b56d5d76b559535-LHR" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Cache-Status" />
+                    <option name="value" value="DYNAMIC" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Encoding" />
+                    <option name="value" value="br" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="ETag" />
+                    <option name="value" value="W/&quot;c6-tilxKICjGTH4NJBXQFm7VVlQjp8&quot;" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Vary" />
+                    <option name="value" value="Accept-Encoding" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="rndr-id" />
+                    <option name="value" value="5de15622-94e6-4d6b" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-powered-by" />
+                    <option name="value" value="Express" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-render-origin-server" />
+                    <option name="value" value="Render" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Server" />
+                    <option name="value" value="cloudflare" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="alt-svc" />
+                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="f780eaf8-dd9d-474b-92f9-620b9fc1b904" />
+              <option name="message" value="OK" />
+              <option name="prettyResponseType" value="JSON" />
+              <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;7.45s&quot;,&quot;timeTakenForB&quot;:&quot;0.74s&quot;,&quot;timeDifference&quot;:&quot;6.70s&quot;,&quot;improvementPercent&quot;:&quot;90.01%&quot;,&quot;resultsA&quot;:{&quot;rate&quot;:1590,&quot;fee&quot;:0.01},&quot;resultsB&quot;:{&quot;rate&quot;:1590,&quot;fee&quot;:0.01},&quot;similarResults&quot;:true}" />
+              <option name="size" value="127" />
+              <option name="time" value="8371" />
+            </responseState>
+          </option>
+          <option name="workspaceId" value="drafts" />
+        </requestHistoryState>
+        <requestHistoryState>
+          <option name="dateTime" value="1724035900046" />
+          <option name="id" value="f37463b5-88cc-4ce4-8acd-98fbce6e36c4" />
+          <option name="request">
+            <requestState>
+              <option name="auth">
+                <authState>
+                  <option name="bearer">
+                    <lK>
+                      <option name="token" value="wkm_PD9678eQaQBdJl43eEWuJx5d0UmPPJES" />
+                    </lK>
+                  </option>
+                  <option name="type" value="BEARER" />
+                </authState>
+              </option>
+              <option name="body">
+                <bodyState>
+                  <option name="type" value="JSON" />
+                </bodyState>
+              </option>
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="X-WalletKit-Project-ID" />
+                    <option name="value" value="ff63f6e2-8696-4a58-9aba-851948a76636" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="4a145ba7-cb30-4f4f-b183-3dd1c7839428" />
+              <option name="method" value="GET" />
+              <option name="name" value="Draft" />
+              <option name="url" value="https://social-fi-bot.onrender.com/api/test/benchmark/payment-methods" />
+            </requestState>
+          </option>
+          <option name="response">
+            <responseState>
+              <option name="bodyBytesBase64" value="eyJ0aW1lVGFrZW5Gb3JBIjoiNC4zMHMiLCJ0aW1lVGFrZW5Gb3JCIjoiMC40MnMiLCJ0aW1lRGlmZmVyZW5jZSI6IjMuODhzIiwiaW1wcm92ZW1lbnRQZXJjZW50IjoiOTAuMzElIiwicmVzdWx0c0EiOnsicGF5bWVudENoYW5uZWxzIjpbeyJjaGFubmVsTmFtZSI6ImJhbmsiLCJjaGFubmVsSWQiOiJhZjk0NGYwYy1iYTcwLTQ3YzctODZkYy0xYmFkNWE2YWI0ZTQifV0sImNvdW50cnlGaWF0TGltaXRzIjp7Im1heCI6NTAwMDAwMCwibWluIjo1MDB9fSwicmVzdWx0c0IiOnsicGF5bWVudENoYW5uZWxzIjpbeyJjaGFubmVsTmFtZSI6ImJhbmsiLCJjaGFubmVsSWQiOiJhZjk0NGYwYy1iYTcwLTQ3YzctODZkYy0xYmFkNWE2YWI0ZTQifV0sImNvdW50cnlGaWF0TGltaXRzIjp7Im1pbiI6NTAwLCJtYXgiOjUwMDAwMDB9fSwic2ltaWxhclJlc3VsdHMiOmZhbHNlfQ==" />
+              <option name="bodyString" value="{&#10;  &quot;timeTakenForA&quot;: &quot;4.30s&quot;,&#10;  &quot;timeTakenForB&quot;: &quot;0.42s&quot;,&#10;  &quot;timeDifference&quot;: &quot;3.88s&quot;,&#10;  &quot;improvementPercent&quot;: &quot;90.31%&quot;,&#10;  &quot;resultsA&quot;: {&#10;    &quot;paymentChannels&quot;: [&#10;      {&#10;        &quot;channelName&quot;: &quot;bank&quot;,&#10;        &quot;channelId&quot;: &quot;af944f0c-ba70-47c7-86dc-1bad5a6ab4e4&quot;&#10;      }&#10;    ],&#10;    &quot;countryFiatLimits&quot;: {&#10;      &quot;max&quot;: 5000000,&#10;      &quot;min&quot;: 500&#10;    }&#10;  },&#10;  &quot;resultsB&quot;: {&#10;    &quot;paymentChannels&quot;: [&#10;      {&#10;        &quot;channelName&quot;: &quot;bank&quot;,&#10;        &quot;channelId&quot;: &quot;af944f0c-ba70-47c7-86dc-1bad5a6ab4e4&quot;&#10;      }&#10;    ],&#10;    &quot;countryFiatLimits&quot;: {&#10;      &quot;min&quot;: 500,&#10;      &quot;max&quot;: 5000000&#10;    }&#10;  },&#10;  &quot;similarResults&quot;: false&#10;}" />
+              <option name="code" value="200" />
+              <option name="contentType" value="application/json; charset=utf-8" />
+              <option name="headers">
+                <list>
+                  <headerState>
+                    <option name="key" value="Date" />
+                    <option name="value" value="Mon, 19 Aug 2024 02:51:41 GMT" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Type" />
+                    <option name="value" value="application/json; charset=utf-8" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Length" />
+                    <option name="value" value="216" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Connection" />
+                    <option name="value" value="keep-alive" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Ray" />
+                    <option name="value" value="8b56d7c199f8cd8e-LHR" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="CF-Cache-Status" />
+                    <option name="value" value="DYNAMIC" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Content-Encoding" />
+                    <option name="value" value="br" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="ETag" />
+                    <option name="value" value="W/&quot;1b1-KvNpGMXSSL5nELuQXi3NKPpzYJM&quot;" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Vary" />
+                    <option name="value" value="Accept-Encoding" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="rndr-id" />
+                    <option name="value" value="3b47af7b-e992-4f23" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-powered-by" />
+                    <option name="value" value="Express" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="x-render-origin-server" />
+                    <option name="value" value="Render" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="Server" />
+                    <option name="value" value="cloudflare" />
+                  </headerState>
+                  <headerState>
+                    <option name="key" value="alt-svc" />
+                    <option name="value" value="h3=&quot;:443&quot;; ma=86400" />
+                  </headerState>
+                </list>
+              </option>
+              <option name="id" value="f37463b5-88cc-4ce4-8acd-98fbce6e36c4" />
+              <option name="message" value="OK" />
+              <option name="prettyResponseType" value="JSON" />
+              <option name="rawBodyString" value="{&quot;timeTakenForA&quot;:&quot;4.30s&quot;,&quot;timeTakenForB&quot;:&quot;0.42s&quot;,&quot;timeDifference&quot;:&quot;3.88s&quot;,&quot;improvementPercent&quot;:&quot;90.31%&quot;,&quot;resultsA&quot;:{&quot;paymentChannels&quot;:[{&quot;channelName&quot;:&quot;bank&quot;,&quot;channelId&quot;:&quot;af944f0c-ba70-47c7-86dc-1bad5a6ab4e4&quot;}],&quot;countryFiatLimits&quot;:{&quot;max&quot;:5000000,&quot;min&quot;:500}},&quot;resultsB&quot;:{&quot;paymentChannels&quot;:[{&quot;channelName&quot;:&quot;bank&quot;,&quot;channelId&quot;:&quot;af944f0c-ba70-47c7-86dc-1bad5a6ab4e4&quot;}],&quot;countryFiatLimits&quot;:{&quot;min&quot;:500,&quot;max&quot;:5000000}},&quot;similarResults&quot;:false}" />
+              <option name="size" value="216" />
+              <option name="time" value="4907" />
             </responseState>
           </option>
           <option name="workspaceId" value="drafts" />

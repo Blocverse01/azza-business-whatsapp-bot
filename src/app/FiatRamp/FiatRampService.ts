@@ -77,9 +77,13 @@ class FiatRampService {
     }
 
     public static async getPaymentMethods(countryCode: CountryCode, route: 'onramp' | 'offramp') {
-        // TODO: add flag control statement
+        const args = [countryCode, route] as const;
 
-        return await FiatRampsApiService.getPaymentMethods(countryCode, route);
+        if (this.USE_API_SERVICE) {
+            return await FiatRampsApiService.getPaymentMethods(...args);
+        }
+
+        return await FiatRampsRpcService.getPaymentMethods(...args);
     }
 
     public static formatPaymentMethodName(channelName: string, route: 'onramp' | 'offramp') {
