@@ -10,6 +10,7 @@ import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService'
 
 class FiatRampService {
     private static readonly USE_API_SERVICE = false;
+    public static readonly SERVICE_ENABLED = false;
 
     public static async getSupportedCurrencies() {
         if (this.USE_API_SERVICE) {

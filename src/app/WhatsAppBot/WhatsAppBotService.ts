@@ -725,6 +725,13 @@ class WhatsAppBotService {
         phoneParams: PhoneNumberParams,
         assetId: AssetInteractiveButtonIds
     ) {
+        if (!FiatRampService.SERVICE_ENABLED) {
+            return await this.sendArbitraryTextMessage(
+                phoneParams.userPhoneNumber,
+                'Sorry, we currently do not support selling crypto.'
+            );
+        }
+
         const { userPhoneNumber } = phoneParams;
 
         if (SumSubService.SERVICE_IS_ACTIVE) {
@@ -756,6 +763,13 @@ class WhatsAppBotService {
         phoneParams: PhoneNumberParams,
         assetId: AssetInteractiveButtonIds
     ) {
+        if (!FiatRampService.SERVICE_ENABLED) {
+            return await this.sendArbitraryTextMessage(
+                phoneParams.userPhoneNumber,
+                'Sorry, we currently do not support selling crypto.'
+            );
+        }
+
         if (SumSubService.SERVICE_IS_ACTIVE && this.SHOULD_REQUEST_KYC_FOR_OFFRAMP) {
             const userKycStatus = await UserService.getUserKycStatus(phoneParams.userPhoneNumber);
 
