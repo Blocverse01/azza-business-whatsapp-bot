@@ -728,7 +728,7 @@ class WhatsAppBotService {
         if (!FiatRampService.SERVICE_ENABLED) {
             return await this.sendArbitraryTextMessage(
                 phoneParams.userPhoneNumber,
-                "Sorry, we are currently our onramp services. We'd let you know once this service is back up."
+                "Sorry, we are currently maintaining our onramp services. We'd let you know once this service is back up."
             );
         }
 
@@ -766,7 +766,7 @@ class WhatsAppBotService {
         if (!FiatRampService.SERVICE_ENABLED) {
             return await this.sendArbitraryTextMessage(
                 phoneParams.userPhoneNumber,
-                "Sorry, we are currently our offramp services. We'd let you know once this service is back up."
+                "Sorry, we are currently maintaining our offramp services. We'd let you know once this service is back up."
             );
         }
 
