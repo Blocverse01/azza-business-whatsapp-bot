@@ -93,6 +93,9 @@ class FiatRampService {
 
     public static async postOnRampTransaction(transactionPayload: OnrampTransactionPayload) {
         // TODO: add flag control statement
+        if (!this.SERVICE_ENABLED) {
+            throw new Error('Service is disabled');
+        }
         return await FiatRampsApiService.postOnRampTransaction(transactionPayload);
     }
 
@@ -143,6 +146,9 @@ class FiatRampService {
 
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
         // TODO: add flag control statement
+        if (!this.SERVICE_ENABLED) {
+            throw new Error('Service is disabled');
+        }
         return await FiatRampsApiService.postOfframpTransaction(params);
     }
 
