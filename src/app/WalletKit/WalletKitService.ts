@@ -196,16 +196,9 @@ class WalletKitService {
     public static async exportWallet(params: ExportWalletParams) {
         const requestUrl = `${this.API_URL}${EXPORT_WALLET}`;
 
-        const response = await axios.post<ExportWalletResponse>(
-            requestUrl,
-            {
-                ...params,
-                developer_secret: this.DEVELOPER_SECRET,
-            },
-            {
-                headers: this.requiredRequestHeaders,
-            }
-        );
+        const response = await axios.post<ExportWalletResponse>(requestUrl, params, {
+            headers: this.requiredRequestHeaders,
+        });
 
         return response.data;
     }
