@@ -12,9 +12,12 @@ import {
     TransferTokenParams,
     TokenBalancesResponse,
     BatchTransferTokenParams,
+    ExportWalletParams,
+    ExportWalletResponse,
 } from '@/app/WalletKit/walletKitSchema';
 import {
     BATCH_TRANSFER_TOKEN,
+    EXPORT_WALLET,
     GET_TOKEN_BALANCES,
     GET_WALLET_BY_ADDRESS,
     GET_WALLET_BY_OWNER_ID,
@@ -186,6 +189,23 @@ class WalletKitService {
         const response = await axios.post<TransactionResponse>(requestUrl, params, {
             headers: this.requiredRequestHeaders,
         });
+
+        return response.data;
+    }
+
+    public static async exportWallet(params: ExportWalletParams) {
+        const requestUrl = `${this.API_URL}${EXPORT_WALLET}`;
+
+        const response = await axios.post<ExportWalletResponse>(
+            requestUrl,
+            {
+                ...params,
+                developer_secret: this.DEVELOPER_SECRET,
+            },
+            {
+                headers: this.requiredRequestHeaders,
+            }
+        );
 
         return response.data;
     }

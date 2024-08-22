@@ -116,3 +116,18 @@ export const batchTransferTokenParams = z
     }, 'developer_secret or user_pin should be provided');
 
 export type BatchTransferTokenParams = z.infer<typeof batchTransferTokenParams>;
+
+export const exportWalletParams = z.object({
+    network: supportedChainSchema,
+    address: walletAddressSchema('address'),
+    developer_secret: z.string(),
+});
+
+export type ExportWalletParams = z.infer<typeof exportWalletParams>;
+
+export const exportWalletResponse = z.object({
+    mnemonic_phrase: z.string(),
+    private_key: z.string(),
+});
+
+export type ExportWalletResponse = z.infer<typeof exportWalletResponse>;

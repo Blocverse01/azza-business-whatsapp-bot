@@ -2,6 +2,7 @@
 export const WALLETS = '/wallets';
 export const GET_WALLET_BY_OWNER_ID = WALLETS + '/get-by-owner-id';
 export const GET_WALLET_BY_ADDRESS = WALLETS + '/get-by-address';
+export const EXPORT_WALLET = WALLETS + '/export';
 
 // ======== TRANSACTIONS ========
 export const TRANSACTIONS = '/transactions';

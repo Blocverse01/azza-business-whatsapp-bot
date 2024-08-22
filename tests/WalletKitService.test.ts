@@ -7,6 +7,7 @@ import {
 import { parseEther, toHex } from 'viem';
 import { TEN_THOUSAND } from '../src/constants/numbers';
 import env from '../src/constants/env';
+import { isAxiosError } from 'axios';
 
 describe('WalletKitService', () => {
     it('should create wallet successfully', async () => {
@@ -111,4 +112,17 @@ describe('WalletKitService', () => {
         },
         TEN_THOUSAND * 100
     );
+
+    it('Should export wallet successfully', async () => {
+        const response = await WalletKitService.exportWallet({
+            network: 'Optimism',
+            address: '0x4d81Cb192C26F50C31870053Fae9A7C84c8fC0c6',
+            developer_secret: WalletKitService.DEVELOPER_SECRET,
+        });
+
+        console.log({ response });
+
+        // Assert
+        expect(response).toBeDefined();
+    });
 });
