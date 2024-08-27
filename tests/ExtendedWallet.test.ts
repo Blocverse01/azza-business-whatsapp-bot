@@ -1,6 +1,5 @@
 import ExtendedTronWallet from '../src/app/ExtendedWallet/tron/ExtendedTronWallet';
 import ExtendedTronWalletLibrary from '../src/app/ExtendedWallet/tron/ExtendedTronWalletLibrary';
-import { BigNumber } from 'tronweb';
 import {
     createPrivateNodeConfig,
     getTronNodeConfig,
@@ -13,6 +12,7 @@ import {
 import { TEN_THOUSAND } from '../src/constants/numbers';
 import * as fs from 'node:fs';
 import { devWalletSchema } from '../src/app/ExtendedWallet/extendedWalletSchema';
+import { formatUnits } from 'viem';
 
 const nodeKey: TronNode = 'tron-grid-shasta';
 
@@ -57,13 +57,14 @@ describe('ExtendedWallet', () => {
 
         it('should return the correct wallet native balance', async () => {
             // Arrange
-            const randomWallet = tronNetworkClient.createRandom();
-            const mnemonic = randomWallet.mnemonic?.phrase ?? '';
-            const expectedBalance = await tronNetworkClient.trx.getBalance(randomWallet.address);
+            const expectedBalance = Number(
+                tronNetworkClient.fromSun(
+                    await tronNetworkClient.trx.getBalance(DEV_EXTENDED_TRON_WALLET.address)
+                )
+            );
 
             // Act
-            const tronWallet = new ExtendedTronWallet(mnemonic, nodeKey);
-            const balance = await tronWallet.getWalletNativeBalance();
+            const balance = await DEV_EXTENDED_TRON_WALLET.getWalletNativeBalance();
 
             // Assert
             expect(balance).toBe(expectedBalance);
@@ -81,11 +82,14 @@ describe('ExtendedWallet', () => {
                 tronNetworkClient.setAddress(targetWalletAddress); // This is a workaround for this issue: https://github.com/tronprotocol/tronweb/issues/90
 
                 // Call balanceOf method
-                const tokenBalance = await contract.methods.balanceOf(targetWalletAddress).call();
+                const [decimals, tokenBalance] = await Promise.all([
+                    ExtendedTronWalletLibrary.getTokenDecimals(tronNetworkClient, tokenAddress),
+                    contract.methods.balanceOf(targetWalletAddress).call(),
+                ]);
 
                 // Convert token balance to decimal
-                const expectedBalance = tronNetworkClient.toDecimal(
-                    tokenBalance as unknown as BigNumber
+                const expectedBalance = Number(
+                    formatUnits(tokenBalance as unknown as bigint, decimals)
                 );
 
                 // Act
@@ -121,9 +125,9 @@ describe('ExtendedWallet', () => {
                     createPrivateNodeConfig(nodeKey, DEV_EXTENDED_TRON_WALLET.privateKey)
                 );
 
-                const amount = 100;
+                const amount = 2000;
                 const tokenAddress = TESTNET_TRC20_TOKEN;
-                const toAddress = DEV_EXTENDED_TRON_WALLET.address;
+                const toAddress = 'TRSUjm3VvfMGu5BjW3B1ACoeXsGBGYr5Js'; // Replace with any other address
 
                 const transactionHash = await ExtendedTronWalletLibrary.transferToken(
                     privateTronClient,

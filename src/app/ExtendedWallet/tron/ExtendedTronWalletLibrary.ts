@@ -3,7 +3,7 @@ import {
     extendedWalletIdentitySchema,
 } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { BigNumber, TronWeb } from 'tronweb';
-import { parseUnits } from 'viem';
+import { formatUnits, parseUnits } from 'viem';
 import { BroadcastReturn, SignedTransaction } from 'tronweb/lib/commonjs/types';
 
 class ExtendedTronWalletLibrary {
@@ -39,7 +39,9 @@ class ExtendedTronWalletLibrary {
         tronClient: TronWeb,
         address: string
     ): Promise<number> {
-        return await tronClient.trx.getBalance(address);
+        const rawBalance = await tronClient.trx.getBalance(address);
+
+        return Number(tronClient.fromSun(rawBalance));
     }
 
     /**
@@ -58,9 +60,12 @@ class ExtendedTronWalletLibrary {
         const contract = await tronClient.contract().at(tokenAddress);
         tronClient.setAddress(address); // This is a workaround for this issue: https://github.com/tronprotocol/tronweb/issues/90
 
-        const balance = await contract.methods.balanceOf(address).call();
+        const [decimals, balance] = await Promise.all([
+            this.getTokenDecimals(tronClient, tokenAddress),
+            contract.methods.balanceOf(address).call(),
+        ]);
 
-        return tronClient.toDecimal(balance as unknown as BigNumber);
+        return Number(formatUnits(balance as unknown as bigint, decimals));
     }
 
     /**
