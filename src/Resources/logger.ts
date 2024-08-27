@@ -13,4 +13,21 @@ const getLogger = () => {
     return logger;
 };
 
+// Use this function to log messages synchronously, necessary for silencing missing await warnings
+export function logSync(
+    level: 'debug' | 'info' | 'warn' | 'error',
+    message: string,
+    context?: object
+) {
+    getLogger()
+        // eslint-disable-next-line no-unexpected-multiline
+        [level](message, context)
+        .then(() => {
+            // Handle any post-logging operations if necessary
+        })
+        .catch((err) => {
+            console.error(`Logging error: ${err}`);
+        });
+}
+
 export default getLogger();

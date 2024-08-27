@@ -35,6 +35,7 @@ import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import env from '@/constants/env';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { CountryCode } from 'libphonenumber-js';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 
 enum OffRampFlowScreens {
     AMOUNT_INPUT = 'AMOUNT_INPUT',
@@ -92,7 +93,7 @@ type AmountInputScreenData = {
 };
 
 type TokenAmountPattern =
-    `${number} ${TokenNames} (${SupportedChain})\n---------------------------------\nFee = ${number} ${TokenNames}`;
+    `${number} ${TokenNames} (${SupportedChain | ExtendedWalletSupportedNetworks})\n---------------------------------\nFee = ${number} ${TokenNames}`;
 type TokenAmountToDebitPattern = `${number} ${TokenNames}`;
 type DestinationPattern = `${string} | ${string} | ${string}`;
 type FiatToReceivePattern =
@@ -408,27 +409,26 @@ class WhatsAppBotOffRampFlowService {
 
         try {
             const { transactionId, hotWalletAddress } = await UserService.sendUserAssetForOfframp(
-                {
-                    walletAddress: walletInfo.walletAddress,
-                    network: assetConfig.network,
-                    tokenAddress: assetConfig.tokenAddress,
-                    name: assetConfig.tokenName,
-                    listItemId: assetId,
-                },
+                walletInfo,
                 tokenAmountToDebit.toString()
             );
 
             // Process in background and return early processing response
-            this.processOfframpInBackground(transactionId, {
-                beneficiaryId,
-                usdAmount: tokenAmount,
-                localAmount: fiatAmount,
-                tokenAddress: assetConfig.tokenAddress,
-                chainName: assetConfig.network,
-                tokenName: assetConfig.tokenName,
-                userWalletAddress: walletInfo.walletAddress,
-                hotWalletAddress,
-            });
+            this.processOfframpInBackground(
+                transactionId,
+                {
+                    beneficiaryId,
+                    usdAmount: tokenAmount,
+                    localAmount: fiatAmount,
+                    tokenAddress: assetConfig.tokenAddress,
+                    chainName: assetConfig.network,
+                    tokenName: assetConfig.tokenName,
+                    userWalletAddress: walletInfo.walletAddress,
+                    hotWalletAddress,
+                },
+                assetConfig.network,
+                userId
+            );
 
             return {
                 status: 'processing',
@@ -447,11 +447,15 @@ class WhatsAppBotOffRampFlowService {
 
     public static processOfframpInBackground(
         onChainTransactionId: string,
-        offrampParams: Omit<SendOfframpRequestPayload, 'txHash'>
+        offrampParams: Omit<SendOfframpRequestPayload, 'txHash'>,
+        network: SupportedChain | ExtendedWalletSupportedNetworks,
+        userId: string
     ) {
         const serializedParams = JSON.stringify({
             ...offrampParams,
             onChainTransactionId,
+            network,
+            userId,
         } satisfies ProcessOfframpInBackgroundParams);
 
         // Spawn the background process

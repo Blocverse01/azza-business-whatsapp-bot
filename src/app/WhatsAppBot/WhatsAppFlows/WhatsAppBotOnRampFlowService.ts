@@ -29,6 +29,7 @@ import {
 import { validateWalletAddress } from '@/Resources/utils/validators';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import env from '@/constants/env';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 
 enum OnRampFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',
@@ -154,7 +155,7 @@ type DataExchangePayload = {
 };
 
 type TokenAmountPattern =
-    `${number} ${TokenNames} (${SupportedChain})\n---------------------------------\nFee = ${number} ${TokenNames}`;
+    `${number} ${TokenNames} (${SupportedChain | ExtendedWalletSupportedNetworks})\n---------------------------------\nFee = ${number} ${TokenNames}`;
 
 type FiatToPayPattern = `${string}\n---------------------------------\n1 ${TokenNames} = ${string}`;
 

@@ -21,6 +21,7 @@ import env from '@/constants/env';
 import { type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { validateWalletAddress } from '@/Resources/utils/validators';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
+import { WaitForTransactionReceiptInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlows/backgroundProcesses/waitForTransactionReceipt';
 
 enum TransferToWalletFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',
@@ -230,13 +231,7 @@ class WhatsAppBotTransferToWalletFlowService {
         try {
             const transactionResponse =
                 await WalletAssetManagementService.transferUserAssetToWallet(
-                    {
-                        tokenAddress: walletInfo.tokenAddress,
-                        network: walletInfo.assetNetwork,
-                        walletAddress: walletInfo.walletAddress,
-                        listItemId: walletInfo.listItemId,
-                        name: walletInfo.assetName,
-                    },
+                    walletInfo,
                     data.wallet_address,
                     data.amount
                 );
@@ -257,17 +252,18 @@ class WhatsAppBotTransferToWalletFlowService {
 
             const message = MessageGenerators.generateTextMessage(
                 data.user_id,
-                `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${data.wallet_address}\n\n➡️ Request ID: ${transactionResponse.transaction_id}`
+                `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${data.wallet_address}\n\n➡️ Request ID: ${transactionResponse.transactionId}`
             );
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
 
             this.waitForTransactionReceiptInBackground({
-                transactionId: transactionResponse.transaction_id,
+                transactionId: transactionResponse.transactionId,
                 userId: data.user_id,
                 destination: data.wallet_address,
                 amount: data.amount,
                 assetLabel,
+                network: walletInfo.assetNetwork,
             });
 
             return {
@@ -298,13 +294,9 @@ class WhatsAppBotTransferToWalletFlowService {
         }
     }
 
-    private static waitForTransactionReceiptInBackground(params: {
-        transactionId: string;
-        userId: string;
-        destination: string;
-        amount: string;
-        assetLabel: string;
-    }) {
+    private static waitForTransactionReceiptInBackground(
+        params: WaitForTransactionReceiptInBackgroundParams
+    ) {
         const transactionParams = JSON.stringify(params);
 
         // Spawn the background process

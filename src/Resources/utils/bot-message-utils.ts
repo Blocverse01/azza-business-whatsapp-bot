@@ -6,6 +6,7 @@ import {
 import { UserAssetInfo } from '@/app/User/userSchema';
 import { TWO } from '@/constants/numbers';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 
 type BankInfo = {
     bankName: string;
@@ -79,11 +80,14 @@ export function generateReceivedTokenMessage(params: {
     return `🔔 Crypto Deposit Notification.\n\n🧾 *Summary:*\nReceived *${tokenAmount} ${assetName}* on *${assetNetwork}* from ${senderAddress}\n\n*You now have: ${newTokenBalance} ${assetName}*\n\n➡️ *Transaction Hash:* ${transactionHash}\n\n🔍 *View In Explorer:* ${explorerUrl}`;
 }
 
-const EMOJIS_FOR_NETWORKS: Record<SupportedChain, string> = {
+const EMOJIS_FOR_NETWORKS: Record<SupportedChain | ExtendedWalletSupportedNetworks, string> = {
     Ethereum: '🔷',
     Optimism: '🎯',
     Polygon: '💜',
     Base: '🔵',
+    Tron: '🟠',
+    Bep20: '🟡',
+    Solana: '🟢',
 };
 
 export function generateAssetBalanceMessage(

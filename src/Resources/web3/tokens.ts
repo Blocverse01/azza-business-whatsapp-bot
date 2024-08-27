@@ -1,7 +1,8 @@
 import env from '@/constants/env';
 import { DUMMY_ETH_PRICE, DUMMY_MATIC_PRICE, DUMMY_USD_PRICE } from '@/constants/numbers';
-import { AssetInteractiveButtonIds } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { AssetInteractiveButtonIds, ExploreAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 
 export enum TokenAddresses {
     /**
@@ -43,6 +44,13 @@ export enum TokenAddresses {
     // USDT
     USDT_OPTIMISM_MAINNET = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     USDT_OPTIMISM_SEPOLIA_TESTNET = '0xf884B63217D3427677c7b045370Bb269FabF1FA7',
+
+    /**
+     * Tron Asset Addresses
+     */
+    // USDT
+    USDT_TRON_MAINNET = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+    USDT_TRON_TESTNET = 'TWy8FMyiDX3UAmU2RMpLTUEUWpjc84M3RF',
 }
 
 export enum TokenNames {
@@ -56,8 +64,11 @@ export type AssetConfig = {
     tokenAddress: string;
     tokenName: TokenNames;
     listItemId: string;
-    network: SupportedChain;
+    network: SupportedChain | ExtendedWalletSupportedNetworks;
+    supportedAssetActions: ExploreAssetActions[];
 };
+
+const ALL_ASSET_ACTIONS: ExploreAssetActions[] = Object.values(ExploreAssetActions);
 
 // Asset Configurations
 // Polygon Assets
@@ -70,6 +81,7 @@ export const usdcPolygonConfig = {
     tokenName: TokenNames.USDC,
     listItemId: AssetInteractiveButtonIds.USDC_POLYGON,
     network: 'Polygon' as const,
+    supportedAssetActions: ALL_ASSET_ACTIONS,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtPolygonConfig = {
@@ -80,6 +92,7 @@ export const usdtPolygonConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_POLYGON,
     network: 'Polygon' as const,
+    supportedAssetActions: ALL_ASSET_ACTIONS,
 } satisfies AssetConfig;
 /// ============== MATIC ==============
 export const maticConfig = {
@@ -87,6 +100,7 @@ export const maticConfig = {
     listItemId: AssetInteractiveButtonIds.MATIC_POLYGON,
     tokenAddress: 'MATIC',
     network: 'Polygon' as const,
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
 } satisfies AssetConfig;
 
 // Base Assets
@@ -99,6 +113,7 @@ export const usdcBaseConfig = {
     tokenName: TokenNames.USDC,
     listItemId: AssetInteractiveButtonIds.USDC_BASE,
     network: 'Base' as const,
+    supportedAssetActions: ALL_ASSET_ACTIONS,
 } satisfies AssetConfig;
 /// ============== ETH ==============
 export const ethBaseConfig = {
@@ -106,6 +121,7 @@ export const ethBaseConfig = {
     listItemId: AssetInteractiveButtonIds.ETH_BASE,
     tokenAddress: 'ETH',
     network: 'Base' as const,
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
 } satisfies AssetConfig;
 
 // Ethereum Assets
@@ -118,6 +134,7 @@ export const usdcEthConfig = {
     tokenName: TokenNames.USDC,
     listItemId: AssetInteractiveButtonIds.USDC_ETH,
     network: 'Ethereum' as const,
+    supportedAssetActions: ALL_ASSET_ACTIONS,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtEthConfig = {
@@ -128,6 +145,7 @@ export const usdtEthConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_ETH,
     network: 'Ethereum' as const,
+    supportedAssetActions: ALL_ASSET_ACTIONS,
 } satisfies AssetConfig;
 
 // Optimism Assets
@@ -140,6 +158,7 @@ export const usdcOptimismConfig = {
     tokenName: TokenNames.USDC,
     listItemId: AssetInteractiveButtonIds.USDC_OPTIMISM,
     network: 'Optimism' as const,
+    supportedAssetActions: ALL_ASSET_ACTIONS,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtOptimismConfig = {
@@ -150,6 +169,20 @@ export const usdtOptimismConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_OPTIMISM,
     network: 'Optimism' as const,
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+} satisfies AssetConfig;
+
+// Tron Assets
+/// ============== USDT ==============
+export const usdtTronConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDT_TRON_TESTNET
+            : TokenAddresses.USDT_TRON_MAINNET,
+    tokenName: TokenNames.USDT,
+    listItemId: AssetInteractiveButtonIds.USDT_TRON,
+    network: 'Tron' as const,
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
 } satisfies AssetConfig;
 
 // Dummy USD value for testing

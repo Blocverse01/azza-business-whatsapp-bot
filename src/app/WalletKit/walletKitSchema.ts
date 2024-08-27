@@ -119,7 +119,7 @@ export type BatchTransferTokenParams = z.infer<typeof batchTransferTokenParams>;
 
 export const exportWalletParams = z.object({
     network: supportedChainSchema,
-    address: walletAddressSchema('address'),
+    address: z.string(),
     developer_secret: z.string(),
 });
 

@@ -5,6 +5,7 @@ import {
     CreateWalletKitWalletParams,
     CreateWalletKitWalletResponse,
     SUPPORTED_CHAINS,
+    SupportedChain,
 } from '@/app/WalletKit/walletKitSchema';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
 import {
@@ -22,6 +23,11 @@ import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import AlchemyNotifyService from '@/app/AlchemyNotify/AlchemyNotifyService';
 import logger from '@/Resources/logger';
 import { parseUnknownError } from '@/Resources/requestHelpers/handleRequestError';
+import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
+import ExtendedTronWallet from '@/app/ExtendedWallet/tron/ExtendedTronWallet';
+import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { validateWalletAddress } from '@/Resources/utils/validators';
 
 class UserService {
     private static USER_TABLE = dbClient.User;
@@ -42,18 +48,6 @@ class UserService {
             return false;
         } catch (error) {
             throw new HttpException(INTERNAL_SERVER_ERROR, `User not found`);
-        }
-    }
-
-    public static async getUserByMessageId(messageId: string) {
-        const record = await this.USER_TABLE.filter({ messageId }).getFirst();
-        return record;
-    }
-
-    public static async markMessageProcessed(messageId: string) {
-        const record = await this.getUserByMessageId(messageId);
-        if (record) {
-            await record.update({ messageId: null });
         }
     }
 
@@ -138,7 +132,7 @@ class UserService {
     }
 
     public static computeUserWalletAssetsList(
-        userWallets: Array<CreateWalletKitWalletResponse>
+        userWallets: Array<CreateWalletKitWalletResponse | ExtendedWallet>
     ): Array<UserAssetItem> {
         const enabledAssets = userWallets.map((wallet) => {
             const assets = ENABLED_ASSETS.filter((asset) => asset.network === wallet.network);
@@ -162,8 +156,35 @@ class UserService {
         );
     }
 
+    public static async getExtendedWallet(
+        userPhoneNumber: string,
+        network: ExtendedWalletSupportedNetworks
+    ): Promise<ExtendedWallet> {
+        const mnemonic = await this.getMnemonicForExtendedWallet(userPhoneNumber);
+
+        switch (network) {
+            case 'Tron':
+                return new ExtendedTronWallet(mnemonic);
+            default:
+                throw new Error('Supported not added yet');
+        }
+    }
+
     public static async getUserAssetWalletOrThrow(phoneNumber: string, assetListItemId: string) {
         const assetConfig = getAssetConfigOrThrow(assetListItemId);
+
+        if (isExtendedNetwork(assetConfig.network)) {
+            const extendedWallet = await this.getExtendedWallet(phoneNumber, assetConfig.network);
+
+            return {
+                listItemId: assetConfig.listItemId,
+                walletAddress: extendedWallet.address,
+                name: assetConfig.tokenName,
+                tokenAddress: assetConfig.tokenAddress,
+                network: assetConfig.network,
+                extendedWallet,
+            };
+        }
 
         const wallet = await WalletKitService.getUserWalletByNetwork(
             phoneNumber,
@@ -189,13 +210,21 @@ class UserService {
             throw new HttpException(BAD_REQUEST, `Asset not found`);
         }
 
-        const tokenBalance = await WalletKitService.getBalance(
-            assetWallet.walletAddress,
-            assetWallet.network,
-            assetWallet.tokenAddress
-        );
+        let tokenBalanceAsNumber: number;
 
-        const tokenBalanceAsNumber = parseFloat(tokenBalance);
+        if (assetWallet.extendedWallet) {
+            tokenBalanceAsNumber = await assetWallet.extendedWallet.getWalletTokenBalance(
+                assetWallet.tokenAddress
+            );
+        } else {
+            const tokenBalance = await WalletKitService.getBalance(
+                assetWallet.walletAddress,
+                assetWallet.network,
+                assetWallet.tokenAddress
+            );
+            tokenBalanceAsNumber = parseFloat(tokenBalance);
+        }
+
         const usdBalance = getDummyUsdValue(assetWallet.name as TokenNames) * tokenBalanceAsNumber;
 
         const usdBalanceDisplay = formatNumberAsCurrency(fixNumber(usdBalance, THREE), 'USD');
@@ -209,14 +238,30 @@ class UserService {
             assetName: assetWallet.name,
             assetNetwork: assetWallet.network,
             tokenAddress: assetWallet.tokenAddress,
+            extendedWallet: assetWallet.extendedWallet,
         };
     }
 
-    public static async sendUserAssetForOfframp(asset: UserAssetItem, usdAmount: string) {
+    public static async sendUserAssetForOfframp(asset: UserAssetInfo, usdAmount: string) {
         const hotWalletAddress = await FiatRampService.getHotWalletForNetwork('evm');
 
+        if (!validateWalletAddress(hotWalletAddress, asset.assetNetwork)) {
+            throw new Error('Hot wallet address is invalid');
+        }
+
+        if (isExtendedNetwork(asset.assetNetwork)) {
+            // TODO: get hot wallet address for non-EVM chains
+            const transactionResponse = await asset.extendedWallet!.transferToken(
+                asset.tokenAddress,
+                Number(usdAmount),
+                hotWalletAddress
+            );
+
+            return { transactionId: transactionResponse.transactionHash, hotWalletAddress };
+        }
+
         const transactionResponse = await WalletKitService.transferToken({
-            network: asset.network,
+            network: asset.assetNetwork,
             developer_secret: WalletKitService.DEVELOPER_SECRET,
             from: asset.walletAddress,
             token: asset.tokenAddress,
@@ -308,9 +353,10 @@ class UserService {
 
     public static async syncUserWalletsWithSupportedChains(
         userPhoneNumber: string,
-        userWallets: Array<CreateWalletKitWalletResponse>
+        userWallets: Array<CreateWalletKitWalletResponse | ExtendedWallet>
     ) {
-        const promises: Array<Promise<CreateWalletKitWalletResponse>> = [];
+        const promises: Array<Promise<CreateWalletKitWalletResponse | ExtendedWallet>> = [];
+        const mnemonic = await this.getMnemonicForExtendedWallet(userPhoneNumber);
 
         SUPPORTED_CHAINS.forEach((network) => {
             const wallet = userWallets.find((wallet) => wallet.network === network);
@@ -331,13 +377,30 @@ class UserService {
             }
         });
 
+        // Add Tron Extended Wallet
+        promises.push(Promise.resolve(new ExtendedTronWallet(mnemonic)));
+
         const settledPromises = await Promise.allSettled(promises);
 
         const fulfilledSettlements = settledPromises.filter(
             (settlement) => settlement.status === 'fulfilled'
-        ) as Array<PromiseFulfilledResult<CreateWalletKitWalletResponse>>;
+        ) as Array<PromiseFulfilledResult<CreateWalletKitWalletResponse | ExtendedWallet>>;
 
         return fulfilledSettlements.map((settlement) => settlement.value);
+    }
+
+    private static async getMnemonicForExtendedWallet(phoneNumber: string) {
+        const network: SupportedChain = 'Ethereum'; // This should never change once set, else a different mnemonic will be generated
+
+        const wallet = await WalletKitService.getUserWalletByNetwork(phoneNumber, network);
+
+        const walletIdentity = await WalletKitService.exportWallet({
+            network: wallet.network,
+            address: wallet.address,
+            developer_secret: WalletKitService.DEVELOPER_SECRET,
+        });
+
+        return walletIdentity.mnemonic_phrase;
     }
 }
 

@@ -2,21 +2,39 @@ import { SendOfframpRequestPayload } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
-import logger from '@/Resources/logger';
+import logger, { logSync } from '@/Resources/logger';
+import { SupportedChain, TransactionResponse } from '@/app/WalletKit/walletKitSchema';
+import {
+    ExtendedWalletSupportedNetworks,
+    ExtendedWalletTransaction,
+} from '@/app/ExtendedWallet/extendedWalletSchema';
+import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
+import UserService from '@/app/User/UserService';
 
 export type ProcessOfframpInBackgroundParams = Omit<SendOfframpRequestPayload, 'txHash'> & {
     onChainTransactionId: string;
+    network: SupportedChain | ExtendedWalletSupportedNetworks;
+    userId: string;
 };
 
 const offrampParams: ProcessOfframpInBackgroundParams = JSON.parse(process.argv[2]);
 
+type TransactionDetails = TransactionResponse | ExtendedWalletTransaction;
+
 async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
-    const { onChainTransactionId } = txParams;
+    const { onChainTransactionId, userId } = txParams;
 
     try {
-        const transactionDetails = await WalletKitService.getTransactionById(onChainTransactionId);
+        let transactionDetails: TransactionDetails;
 
-        logger.debug('Running process in background', {
+        if (isExtendedNetwork(txParams.network)) {
+            const extendedWallet = await UserService.getExtendedWallet(userId, txParams.network);
+            transactionDetails = await extendedWallet.getTransaction(onChainTransactionId);
+        } else {
+            transactionDetails = await WalletKitService.getTransactionById(onChainTransactionId);
+        }
+
+        logSync('debug', 'Running process in background', {
             transactionDetails,
         });
 
@@ -26,15 +44,20 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
             }, 5000);
         }
 
-        if (transactionDetails.status === 'success' && transactionDetails.transaction_hash) {
+        const transactionHash =
+            'transaction_hash' in transactionDetails
+                ? transactionDetails.transaction_hash
+                : transactionDetails.transactionHash;
+
+        if (transactionDetails.status === 'success' && transactionHash) {
             try {
-                logger.info('Processing offramp', {
+                logSync('debug', 'Processing offramp', {
                     onChainTransactionId,
                 });
 
                 const sequenceId = await FiatRampService.postOfframpTransaction({
                     ...txParams,
-                    txHash: transactionDetails.transaction_hash,
+                    txHash: transactionHash,
                     chainName: txParams.chainName.toUpperCase(),
                     tokenName: txParams.tokenName.toUpperCase(),
                 });
@@ -49,4 +72,4 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
     }
 }
 
-processInBackground(offrampParams);
+processInBackground(offrampParams).then(() => console.log('Process completed'));

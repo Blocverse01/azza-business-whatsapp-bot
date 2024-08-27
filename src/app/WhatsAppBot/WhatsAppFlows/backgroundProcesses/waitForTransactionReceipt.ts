@@ -4,14 +4,24 @@ import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { HttpException } from '@/Resources/exceptions/HttpException';
+import { SupportedChain, TransactionResponse } from '@/app/WalletKit/walletKitSchema';
+import {
+    ExtendedWalletSupportedNetworks,
+    ExtendedWalletTransaction,
+} from '@/app/ExtendedWallet/extendedWalletSchema';
+import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
+import UserService from '@/app/User/UserService';
 
-type WaitForTransactionReceiptInBackgroundParams = {
+export type WaitForTransactionReceiptInBackgroundParams = {
     transactionId: string;
     userId: string;
     destination: string;
     amount: string;
     assetLabel: string;
+    network: SupportedChain | ExtendedWalletSupportedNetworks;
 };
+
+type TransactionDetails = TransactionResponse | ExtendedWalletTransaction;
 
 const transactionParams: WaitForTransactionReceiptInBackgroundParams = JSON.parse(process.argv[2]);
 
@@ -19,7 +29,14 @@ async function processInBackground(params: WaitForTransactionReceiptInBackground
     const { transactionId, userId, amount, destination, assetLabel } = params;
 
     try {
-        const transactionDetails = await WalletKitService.getTransactionById(transactionId);
+        let transactionDetails: TransactionDetails;
+
+        if (isExtendedNetwork(params.network)) {
+            const extendedWallet = await UserService.getExtendedWallet(userId, params.network);
+            transactionDetails = await extendedWallet.getTransaction(transactionId);
+        } else {
+            transactionDetails = await WalletKitService.getTransactionById(transactionId);
+        }
 
         if (transactionDetails.status === 'submitted' || transactionDetails.status === 'pending') {
             setTimeout(() => {
@@ -27,10 +44,19 @@ async function processInBackground(params: WaitForTransactionReceiptInBackground
             }, 5000);
         }
 
-        if (transactionDetails.status === 'success' && transactionDetails.transaction_hash) {
+        const transactionHash =
+            'transaction_hash' in transactionDetails
+                ? transactionDetails.transaction_hash
+                : transactionDetails.transactionHash;
+        const explorerUrl =
+            'explorer_url' in transactionDetails
+                ? transactionDetails.explorer_url
+                : transactionDetails.explorerUrl;
+
+        if (transactionDetails.status === 'success' && transactionHash) {
             const message = MessageGenerators.generateTextMessage(
                 userId,
-                `✅ Your Transaction with the following details has been completed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${destination}\n\n➡️ Request ID: ${transactionId}\n\n➡️ Transaction Hash: ${transactionDetails.transaction_hash}\n\n🔍 View In Explorer: ${transactionDetails.explorer_url}`
+                `✅ Your Transaction with the following details has been completed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${destination}${transactionId !== transactionHash ? `\n\n➡️ Request ID: ${transactionId}` : ''}\n\n➡️ Transaction Hash: ${transactionHash}\n\n🔍 View In Explorer: ${explorerUrl}`
             );
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
@@ -57,4 +83,6 @@ async function processInBackground(params: WaitForTransactionReceiptInBackground
     }
 }
 
-processInBackground(transactionParams);
+processInBackground(transactionParams).then(() =>
+    console.log('Transaction receipt processed in background')
+);

@@ -1,13 +1,15 @@
 import { z } from 'zod';
 import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 import { TokenNames } from '@/Resources/web3/tokens';
+import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
 
 export const userAssetSchema = z.object({
     listItemId: z.string(),
     walletAddress: z.string(),
     name: z.nativeEnum(TokenNames),
     tokenAddress: z.string(),
-    network: supportedChainSchema,
+    network: supportedChainSchema.or(extendedWalletSupportedNetworks),
 });
 
 export type UserAssetItem = z.infer<typeof userAssetSchema>;
@@ -18,8 +20,9 @@ export const userAssetInfoSchema = z.object({
     walletAddress: z.string(),
     listItemId: z.string(),
     assetName: z.nativeEnum(TokenNames),
-    assetNetwork: supportedChainSchema,
+    assetNetwork: supportedChainSchema.or(extendedWalletSupportedNetworks),
     tokenAddress: z.string(),
+    extendedWallet: z.custom<ExtendedWallet>().optional(),
 });
 
 export type UserAssetInfo = z.infer<typeof userAssetInfoSchema>;

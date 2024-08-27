@@ -1,4 +1,5 @@
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 
 type NetworkTransactionFeeConfig = {
     minimumFee: number;
@@ -11,7 +12,7 @@ type NetworkTransactionFeeConfig = {
  * @description Fee configuration for stable token transfer on different networks. Stable token tokens are tokens like USDC, USDT, etc.
  * */
 export const networkStableTokenTransferFeeConfig: Record<
-    SupportedChain,
+    SupportedChain | ExtendedWalletSupportedNetworks,
     NetworkTransactionFeeConfig
 > = {
     Base: {
@@ -38,10 +39,29 @@ export const networkStableTokenTransferFeeConfig: Record<
         feeThreshold: 10,
         feePerThreshold: 0.2, // 0.2 for every 10 USDT | USDC
     },
+    Bep20: {
+        minimumFee: 0.1, // 0.1 USDT | USDC
+        maximumFee: 0.5,
+        feeThreshold: 10,
+        feePerThreshold: 0.001, // 0.001 for every 10 USDT | USDC
+    },
+    // Solana and Tron network fees are paid in the native token and directly by the user.
+    Solana: {
+        minimumFee: 0, // 0 USDT | USDC
+        maximumFee: 0,
+        feeThreshold: 0,
+        feePerThreshold: 0, // 0 for every 10 USDT | USDC
+    },
+    Tron: {
+        minimumFee: 0, // 0 USDT | USDC
+        maximumFee: 0,
+        feeThreshold: 0,
+        feePerThreshold: 0, // 0 for every 10 USDT | USDC
+    },
 };
 
 export function calculateStableTokenTransferTransactionFee(
-    chain: SupportedChain,
+    chain: SupportedChain | ExtendedWalletSupportedNetworks,
     amount: number
 ): number {
     const config = networkStableTokenTransferFeeConfig[chain];

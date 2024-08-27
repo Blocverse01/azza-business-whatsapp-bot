@@ -7,7 +7,7 @@ import {
     FlowNfmReplyResponse,
     InteractiveButtonReplyTypes,
     InteractiveListReplyTypes,
-    InteractiveNfmReplyActions,
+    //InteractiveNfmReplyActions,
     manageAssetActions,
     MORE_CURRENCIES_COMMAND_REGEX_PATTERN,
     PhoneNumberParams,
@@ -29,10 +29,8 @@ import {
 } from '@/app/FiatRamp/fiatRampSchema';
 import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { TokenNames } from '@/Resources/web3/tokens';
 import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import {
-    SELL_BENEFICIARY_AMOUNT_PATTERN,
     SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN,
     SELL_ASSET_DESTINATION_CHOICE_REGEX,
     TRADE_ASSET_REGEX,
@@ -243,21 +241,19 @@ class WhatsAppBotService {
     public static async walletDetailsMessage(
         businessPhoneNumberId: string,
         recipient: string,
-        userAssetInfo: {
-            usdDisplayBalance: string;
-            tokenBalance: string;
-            walletAddress: string;
-            listItemId: string;
-            assetName: string;
-            assetNetwork: string;
-        }
+        userAssetInfo: UserAssetInfo
     ) {
         const { usdDisplayBalance, listItemId, tokenBalance, assetName, assetNetwork } =
             userAssetInfo;
 
+        const assetConfig = getAssetConfigOrThrow(listItemId);
+        const actionsToDisplay = manageAssetActions.filter((action) =>
+            assetConfig.supportedAssetActions.includes(action.action)
+        );
+
         const interactiveListMessage = MessageGenerators.generateInteractiveListMessage({
             recipient,
-            listItems: manageAssetActions.map((assetAction) => ({
+            listItems: actionsToDisplay.map((assetAction) => ({
                 id: `${assetAction.action}:${listItemId}`,
                 title: assetAction.text,
                 description: assetAction.description,
@@ -383,26 +379,6 @@ class WhatsAppBotService {
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
     }
 
-    // TODO: Remove dead code
-    public static async isMessageProcessed(messageId: string) {
-        try {
-            const data = await UserService.getUserByMessageId(messageId);
-            return !!data;
-        } catch (error) {
-            await logServiceError(error, 'Error checking processed messages:');
-        }
-    }
-
-    // Function to mark message as processed
-    // TODO: Remove dead code
-    public static async markMessageProcessed(messageId: string): Promise<void> {
-        try {
-            await UserService.markMessageProcessed(messageId);
-        } catch (error) {
-            await logServiceError(error, 'Error marking message as processed:');
-        }
-    }
-
     public static async ratesCommandHandler(
         userPhoneNumber: string,
         businessPhoneNumberId: string
@@ -455,58 +431,6 @@ class WhatsAppBotService {
         await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, messagePayload);
     }
 
-    /**
-     * @deprecated
-     */
-    public static async processTransactionInDemoMode(
-        userPhoneNumber: string,
-        businessPhoneNumberId: string,
-        params: { assetId: string; beneficiaryId: string; usdAmount: string }
-    ) {
-        const asset = await UserService.getUserAssetWalletOrThrow(userPhoneNumber, params.assetId);
-
-        // Can only offramp USDC in demo mode
-        if (asset.name !== TokenNames.USDC) {
-            return;
-        }
-
-        const quote = await FiatRampService.getQuotes('NGN', 'NG', 'offramp');
-
-        const numericUsdAmount = parseFloat(params.usdAmount);
-        const fiatAmountToReceive = (quote.rate * numericUsdAmount).toFixed(2);
-
-        const cryptoAmountToDebit = (numericUsdAmount + numericUsdAmount * quote.fee).toFixed(2);
-
-        const { transactionId, hotWalletAddress } = await UserService.sendUserAssetForOfframp(
-            asset,
-            cryptoAmountToDebit
-        );
-
-        const messagePayload: WhatsAppTextMessage = {
-            type: WhatsAppMessageType.TEXT,
-            text: {
-                body: `🚀Processing Bank Account Withdrawal\n\nAsset:${asset.name}\nAmount: ${cryptoAmountToDebit} USDC\nEquivalent: ${fiatAmountToReceive} NGN\nTransaction ID: ${transactionId}`,
-                preview_url: false,
-            },
-            messaging_product: 'whatsapp',
-            recipient_type: 'individual',
-            to: userPhoneNumber,
-        };
-
-        await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, messagePayload);
-
-        await UserService.processOfframpTransactionInDemoMode(transactionId, {
-            beneficiaryId: params.beneficiaryId,
-            usdAmount: cryptoAmountToDebit,
-            localAmount: fiatAmountToReceive,
-            tokenAddress: asset.tokenAddress,
-            hotWalletAddress: hotWalletAddress,
-            chainName: asset.network.toUpperCase(),
-            tokenName: 'USDC',
-            userWalletAddress: asset.walletAddress,
-        });
-    }
-
     public static determineInteractiveButtonReplyAction(
         interactiveButtonId: string
     ): InteractiveButtonReplyTypes {
@@ -516,10 +440,6 @@ class WhatsAppBotService {
 
         if (interactiveButtonId.match(SELL_ASSET_DESTINATION_CHOICE_REGEX)) {
             return 'sell-asset-destination-choice';
-        }
-
-        if (interactiveButtonId.match(SELL_BENEFICIARY_AMOUNT_PATTERN)) {
-            return 'demo-withdraw-amount-to-beneficiary';
         }
 
         if (assetInteractiveButtonsIds.includes(interactiveButtonId as AssetInteractiveButtonIds)) {

@@ -66,6 +66,7 @@ const envSchema = z.object({
         .enum(['true', 'false'])
         .default('false')
         .transform((data) => data === 'true'),
+    TRON_GRID_API_KEY: z.string().optional().default(''),
 });
 
 const env = envSchema.parse(process.env);

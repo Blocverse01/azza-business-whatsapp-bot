@@ -7,9 +7,11 @@ import { decimalToString } from '@/Resources/utils/currency';
 import { getPayoutSpenderWalletAddress } from '@/app/CryptoPayout/config';
 import env from '@/constants/env';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
-import logger from '@/Resources/logger';
+import logger, { logSync } from '@/Resources/logger';
 import { spawn } from 'child_process';
 import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 
 type CryptoOrderInput = {
     recipient: string;
@@ -19,7 +21,7 @@ type CryptoOrderInput = {
 
 export type CryptoPendingOrderGroup = {
     tokenAddress: string;
-    network: SupportedChain;
+    network: SupportedChain | ExtendedWalletSupportedNetworks;
     orders: Array<CryptoOrderInput>;
 };
 
@@ -93,20 +95,25 @@ class CryptoPayoutCronJobService {
         );
 
         backgroundProcess.on('spawn', () => {
-            logger.info(`Began background process to get transaction receipt`, {
+            logSync('debug', `Began background process to get transaction receipt`, {
                 orderId,
                 transactionId,
             });
         });
 
         backgroundProcess.on('error', (err) => {
-            logger.error('Failed to start background process:', err);
+            logSync('debug', 'Failed to start background process:', err);
         });
     }
 
     private static async processCryptoPayoutGroup(
         group: CryptoPendingOrderGroup
     ): Promise<ProcessCryptoPayoutGroupResponse | undefined> {
+        if (isExtendedNetwork(group.network)) {
+            // Todo: Implement extended network payout
+            return;
+        }
+
         const spenderWalletAddress = getPayoutSpenderWalletAddress(
             group.network,
             env.WEB3_ENVIRONMENT
@@ -197,10 +204,15 @@ class CryptoPayoutCronJobService {
         },
         config: {
             tokenAddress: string;
-            network: SupportedChain;
+            network: SupportedChain | ExtendedWalletSupportedNetworks;
             spenderWalletAddress: string;
         }
     ) {
+        if (isExtendedNetwork(config.network)) {
+            // Todo: Implement extended network payout
+            throw new Error('Extended network payout not implemented');
+        }
+
         const transactionResponse = await WalletKitService.transferToken({
             amount: order.amount,
             network: config.network,

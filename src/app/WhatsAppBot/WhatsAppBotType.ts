@@ -89,6 +89,8 @@ export enum AssetInteractiveButtonIds {
 
     USDC_OPTIMISM = 'usdc-optimism',
     USDT_OPTIMISM = 'usdt-optimism',
+
+    USDT_TRON = 'usdt-tron',
 }
 
 export enum ExploreAssetActions {
@@ -115,7 +117,7 @@ export const RATES_COMMAND = 'rates';
 
 type AssetAction = {
     text: string;
-    action: string;
+    action: ExploreAssetActions;
     description: string;
 };
 
@@ -145,8 +147,7 @@ export const manageAssetActions: Array<AssetAction> = [
 export type InteractiveButtonReplyTypes =
     | 'create-wallet'
     | 'explore-asset'
-    | 'sell-asset-destination-choice'
-    | 'demo-withdraw-amount-to-beneficiary';
+    | 'sell-asset-destination-choice';
 export type InteractiveListReplyTypes =
     | 'explore-asset-action'
     | 'trade-asset-with-currency'

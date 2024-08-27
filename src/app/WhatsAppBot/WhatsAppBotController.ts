@@ -2,16 +2,14 @@ import { Request, Response } from 'express';
 import env from '@/constants/env';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import UserService from '@/app/User/UserService';
-import logger from '@/Resources/logger';
+import { logSync } from '@/Resources/logger';
 import { OK } from '@/constants/status-codes';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import {
     extractSellAssetDestinationChoiceGroups,
     extractSellAssetToBeneficiaryGroups,
     extractTradeAssetGroups,
-    SELL_BENEFICIARY_AMOUNT_PATTERN,
 } from '@/constants/regex';
-import { isAxiosError } from 'axios';
 import {
     ASSET_ACTION_REGEX_PATTERN,
     AssetActionRegexMatch,
@@ -83,7 +81,7 @@ class WhatsAppBotController {
     public static async receiveMessageWebhook(req: Request, res: Response) {
         try {
             res.sendStatus(OK);
-            logger.info('Original Body Received', {
+            logSync('debug', 'Original Body Received', {
                 webhookBody: req.body,
             });
 
@@ -91,11 +89,13 @@ class WhatsAppBotController {
 
             const { message, displayName, businessPhoneNumberId } = messageParts;
 
-            const _ = message?.id
-                ? await WhatsAppBotService.markMassageAsRead(businessPhoneNumberId, message.id)
-                : null;
+            if (message?.id) {
+                WhatsAppBotService.markMassageAsRead(businessPhoneNumberId, message.id).then(() =>
+                    console.log('Done => Marked as read')
+                ); // Don't wait for this to finish
+            }
 
-            logger.info('Extracted message parts', {
+            logSync('debug', 'Extracted message parts', {
                 messageParts,
             });
 
@@ -106,17 +106,9 @@ class WhatsAppBotController {
                     displayName
                 );
             } else {
-                logger.info('Message object not found');
+                logSync('debug', 'Message object not found');
             }
         } catch (error) {
-            if (isAxiosError(error)) {
-                logger.error('Error in receiving message webhook', {
-                    errorResponse: error.response,
-                });
-
-                return;
-            }
-
             handleRequestError(error, res, true);
         }
     }
@@ -129,13 +121,13 @@ class WhatsAppBotController {
         const firstChangeValue = firstChange?.value;
 
         if (!firstChangeValue) {
-            logger.info('Un-extracted request body', requestBody);
+            logSync('info', 'Un-extracted request body', requestBody);
 
             return {};
         }
 
         if (!firstChangeValue.metadata || !firstChangeValue.metadata.phone_number_id) {
-            logger.info('No phone number id found in request body', {
+            logSync('info', 'No phone number id found in request body', {
                 firstChangeValue,
             });
 
@@ -145,7 +137,7 @@ class WhatsAppBotController {
         const businessPhoneNumberId = firstChangeValue.metadata.phone_number_id;
 
         if (!firstChangeValue.messages) {
-            logger.info('No messages found in request body', {
+            logSync('info', 'No messages found in request body', {
                 firstChangeValue,
             });
 
@@ -168,7 +160,7 @@ class WhatsAppBotController {
         if (mode === 'subscribe' && token === env.WEBHOOK_VERIFY_TOKEN) {
             // respond with 200 OK and challenge token from the request
             res.status(200).send(challenge);
-            logger.info('Webhook verified successfully!');
+            logSync('info', 'Webhook verified successfully!');
         } else {
             // respond with '403 Forbidden' if verify tokens do not match
             res.sendStatus(403);
@@ -182,7 +174,7 @@ class WhatsAppBotController {
     ) {
         const { type, from, text, interactive } = message;
 
-        logger.info(`message data type: ${typeof message}`, {
+        logSync('debug', `message data type: ${typeof message}`, {
             message,
         });
 
@@ -237,7 +229,7 @@ class WhatsAppBotController {
 
         // ============== HANDLE INTERACTIVE MESSAGES ============== //
         if (type === WhatsAppMessageType.INTERACTIVE && interactive) {
-            logger.info(`message-interactive : ${JSON.stringify(interactive)}`);
+            logSync('debug', `message-interactive : ${JSON.stringify(interactive)}`);
 
             // =========== HANDLE INTERACTIVE BUTTON REPLIES =========== //
             if (interactive.type === 'button_reply' && interactive.button_reply) {
@@ -248,7 +240,7 @@ class WhatsAppBotController {
                 const interactiveActionResponse =
                     WhatsAppBotService.determineInteractiveButtonReplyAction(interactiveButtonId);
 
-                logger.info('Interactive button reply action', {
+                logSync('debug', 'Interactive button reply action', {
                     interactiveActionResponse,
                     interactiveButtonId,
                 });
@@ -281,31 +273,9 @@ class WhatsAppBotController {
                         );
                         return;
 
-                    case 'demo-withdraw-amount-to-beneficiary':
-                        const { sell, beneficiaryId, amount } = interactiveButtonId.match(
-                            SELL_BENEFICIARY_AMOUNT_PATTERN
-                        )?.groups as { sell: string; beneficiaryId: string; amount: string };
-
-                        await WhatsAppBotService.processTransactionInDemoMode(
-                            from,
-                            businessPhoneNumberId,
-                            {
-                                assetId: sell,
-                                beneficiaryId,
-                                usdAmount: amount,
-                            }
-                        );
-
-                        return;
-
                     case 'sell-asset-destination-choice':
                         const { assetId, beneficiaryAction, countryCode } =
                             extractSellAssetDestinationChoiceGroups(interactiveButtonId);
-
-                        logger.info(
-                            'Sell asset destination choice groups',
-                            extractSellAssetDestinationChoiceGroups(interactiveButtonId)
-                        );
 
                         if (beneficiaryAction === 'chooseExisting') {
                             const usersBeneficiaries = await FiatRampService.getBeneficiaries(
@@ -344,7 +314,7 @@ class WhatsAppBotController {
                 const interactiveActionResponse =
                     WhatsAppBotService.determineInteractiveListReplyAction(interactiveListId);
 
-                logger.info('Interactive list reply action', {
+                logSync('debug', 'Interactive list reply action', {
                     interactiveActionResponse,
                     interactiveListId,
                 });
@@ -425,10 +395,6 @@ class WhatsAppBotController {
                         const [_interactiveListId, assetAction, assetId] = interactiveListId.match(
                             ASSET_ACTION_REGEX_PATTERN
                         ) as AssetActionRegexMatch;
-
-                        logger.info('Explore asset regex groups', {
-                            regexMatch: [_interactiveListId, assetAction, assetId],
-                        });
 
                         if (assetAction === 'sell') {
                             await WhatsAppBotService.handleSellAssetAction(phoneParams, assetId);
