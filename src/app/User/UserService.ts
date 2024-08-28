@@ -231,8 +231,9 @@ class UserService {
         const tokenBalanceDisplay = prettifyNumber(tokenBalanceAsNumber, THREE);
 
         return {
+            tokenBalanceDisplay,
             usdDisplayBalance: usdBalanceDisplay,
-            tokenBalance: tokenBalanceDisplay,
+            tokenBalance: tokenBalanceAsNumber,
             walletAddress: assetWallet.walletAddress,
             listItemId: assetListItemId,
             assetName: assetWallet.name,

@@ -243,7 +243,7 @@ class WhatsAppBotService {
         recipient: string,
         userAssetInfo: UserAssetInfo
     ) {
-        const { usdDisplayBalance, listItemId, tokenBalance, assetName, assetNetwork } =
+        const { usdDisplayBalance, listItemId, tokenBalanceDisplay, assetName, assetNetwork } =
             userAssetInfo;
 
         const assetConfig = getAssetConfigOrThrow(listItemId);
@@ -258,7 +258,7 @@ class WhatsAppBotService {
                 title: assetAction.text,
                 description: assetAction.description,
             })),
-            bodyText: `\n*Asset Balance* 💰: ${tokenBalance}\n\n*Asset Balance(USD)* 💰: ${usdDisplayBalance}`,
+            bodyText: `\n*Asset Balance* 💰: ${tokenBalanceDisplay}\n\n*Asset Balance(USD)* 💰: ${usdDisplayBalance}`,
             headerText: `${assetName} (${assetNetwork})`,
             actionButtonText: 'Manage Asset',
         });

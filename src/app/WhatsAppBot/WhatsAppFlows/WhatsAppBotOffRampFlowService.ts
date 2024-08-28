@@ -20,7 +20,7 @@ import {
 } from '@/Resources/utils/currency';
 import UserService from '@/app/User/UserService';
 import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
-import logger from '@/Resources/logger';
+import { logSync } from '@/Resources/logger';
 import { ProcessOfframpInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlows/backgroundProcesses/processOfframp';
 import { spawn } from 'child_process';
 import path from 'path';
@@ -146,7 +146,7 @@ class WhatsAppBotOffRampFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logger.info('Next screen data', nextScreenData);
+            logSync('debug', 'Next screen data', nextScreenData);
 
             return {
                 ...nextScreenData,
@@ -222,7 +222,7 @@ class WhatsAppBotOffRampFlowService {
         ];
 
         // Asset Config
-        const { assetName, assetNetwork, tokenBalance } = assetWallet;
+        const { assetName, assetNetwork, tokenBalance: userBalance } = assetWallet;
 
         const errorMessages: AmountInputScreenData['error_messages'] = {};
 
@@ -249,7 +249,6 @@ class WhatsAppBotOffRampFlowService {
         }
 
         if (Object.keys(errorMessages).length > 0) {
-            const userBalance = parseFloat(tokenBalance);
             const userBalanceFormatted = prettifyNumber(userBalance) + ' ' + assetName;
             const userBalanceInFiat = formatNumberAsCurrency(
                 fixNumber(userBalance * conversionRate, THREE),
@@ -396,7 +395,7 @@ class WhatsAppBotOffRampFlowService {
 
         const assetConfig = getAssetConfigOrThrow(assetId);
         const walletInfo = await UserService.getUserAssetInfo(userId, assetId);
-        const assetBalance = parseFloat(walletInfo.tokenBalance);
+        const assetBalance = walletInfo.tokenBalance;
 
         if (assetBalance < tokenAmountToDebit) {
             const insufficientBalanceMessage = `You're trying to pay: ${tokenAmountToDebit} ${assetConfig.tokenName}\nYou have only: ${assetBalance} ${assetConfig.tokenName}`;
@@ -468,7 +467,7 @@ class WhatsAppBotOffRampFlowService {
         );
 
         backgroundProcess.on('error', (err) => {
-            logger.error('Failed to start background process:', err);
+            logSync('error', 'Failed to start background process:', err);
         });
     }
 
@@ -494,7 +493,7 @@ class WhatsAppBotOffRampFlowService {
 
         const sellMessage = `Sell ${assetLabel} for ${getCountryFlagEmoji(beneficiary.country.code)} ${beneficiary.country.currencySymbol}`;
 
-        const userBalance = parseFloat(asset.tokenBalance);
+        const userBalance = asset.tokenBalance;
         const userBalanceFormatted = prettifyNumber(userBalance) + ' ' + asset.assetName;
         const userBalanceInFiat = formatNumberAsCurrency(
             fixNumber(userBalance * params.fiatConversionRate, THREE),

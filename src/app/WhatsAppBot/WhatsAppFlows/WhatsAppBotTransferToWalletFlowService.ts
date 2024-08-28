@@ -3,7 +3,7 @@ import {
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
-import logger from '@/Resources/logger';
+import { logSync } from '@/Resources/logger';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import { SIXTEEN, TWO } from '@/constants/numbers';
 import { decimalToString, fixNumber } from '@/Resources/utils/currency';
@@ -118,7 +118,7 @@ class WhatsAppBotTransferToWalletFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logger.info('Next screen data', nextScreenData);
+            logSync('debug', 'Next screen data', nextScreenData);
 
             return {
                 ...nextScreenData,
@@ -143,13 +143,11 @@ class WhatsAppBotTransferToWalletFlowService {
         const assetLabel = `${asset.tokenName} (${asset.network})`;
 
         const userBalanceMatch = data.user_balance.match(this.USER_BALANCE_PATTERN);
-        logger.debug('User balance match', { userBalanceMatch });
+        logSync('debug', 'User balance match', { userBalanceMatch });
 
         const userBalance = userBalanceMatch
             ? parseFloat(userBalanceMatch[1])
-            : parseFloat(
-                  (await UserService.getUserAssetInfo(data.user_id, data.asset_id)).tokenBalance
-              );
+            : (await UserService.getUserAssetInfo(data.user_id, data.asset_id)).tokenBalance;
         const amount = parseFloat(data.amount);
 
         const errorMessages: ScreenDataPayload['TRANSACTION_DETAILS']['error_messages'] = {};
@@ -194,7 +192,7 @@ class WhatsAppBotTransferToWalletFlowService {
 
     private static async getFeedbackScreenData(data: DataExchangePayload['TRANSACTION_SUMMARY']) {
         const walletInfo = await UserService.getUserAssetInfo(data.user_id, data.asset_id);
-        const assetBalance = parseFloat(walletInfo.tokenBalance);
+        const assetBalance = walletInfo.tokenBalance;
 
         const transactionFee = parseFloat(data.transaction_fee);
         const amount = parseFloat(data.amount);
@@ -312,7 +310,7 @@ class WhatsAppBotTransferToWalletFlowService {
         );
 
         backgroundProcess.on('error', (err) => {
-            logger.error('Failed to start background process:', err);
+            logSync('error', 'Failed to start background process:', err);
         });
     }
 

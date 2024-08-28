@@ -100,11 +100,10 @@ export function generateAssetBalanceMessage(
 ) {
     const { assetName, assetNetwork, usdDisplayBalance, tokenBalance } = assetInfo;
 
-    const tokenBalanceNumber = Number(tokenBalance);
-    const assetBalance = prettifyNumber(tokenBalanceNumber, TWO);
+    const assetBalance = prettifyNumber(tokenBalance, TWO);
     const localCurrencyBalance = fiatConfig
         ? formatNumberAsCurrency(
-              tokenBalanceNumber * fiatConfig.conversionRate,
+              tokenBalance * fiatConfig.conversionRate,
               fiatConfig.localCurrencySymbol
           )
         : '';
