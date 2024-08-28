@@ -166,8 +166,10 @@ class UserService {
         switch (network) {
             case 'Tron':
                 return new ExtendedTronWallet(mnemonic);
+            case 'Solana':
+                return new ExtendedSolanaWallet(mnemonic);
             default:
-                throw new Error('Supported not added yet');
+                throw new Error(`Extended wallet implementation for: ${network} not added yet`);
         }
     }
 

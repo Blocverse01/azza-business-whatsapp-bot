@@ -2,6 +2,7 @@ import { isAddress } from 'viem';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { publicTronWebClient } from '@/app/ExtendedWallet/tron/tronNetworkClient';
+import { PublicKey } from '@solana/web3.js';
 
 export const validateWalletAddress = (
     address: string,
@@ -15,6 +16,15 @@ export const validateWalletAddress = (
 
     if (networkFamily === 'tron') {
         return publicTronWebClient.isAddress(address);
+    }
+
+    if (networkFamily === 'solana') {
+        try {
+            new PublicKey(address);
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
 
     throw new Error('Unsupported network family');
