@@ -85,7 +85,7 @@ const EMOJIS_FOR_NETWORKS: Record<SupportedChain | ExtendedWalletSupportedNetwor
     Optimism: '🎯',
     Polygon: '💜',
     Base: '🔵',
-    Tron: '🟠',
+    Tron: '♦️',
     Bep20: '🟡',
     Solana: '🟢',
 };
