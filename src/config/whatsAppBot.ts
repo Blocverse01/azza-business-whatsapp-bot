@@ -8,6 +8,8 @@ import {
     usdtOptimismConfig,
     usdtPolygonConfig,
     usdtTronConfig,
+    usdcSolanaConfig,
+    usdtSolanaConfig,
 } from '@/Resources/web3/tokens';
 
 export const ENABLED_ASSETS = [
@@ -19,6 +21,8 @@ export const ENABLED_ASSETS = [
     usdtPolygonConfig,
     usdcBaseConfig,
     usdtTronConfig,
+    usdcSolanaConfig,
+    usdtSolanaConfig,
 ];
 
 // Get asset config by list item id

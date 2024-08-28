@@ -67,6 +67,11 @@ const envSchema = z.object({
         .default('false')
         .transform((data) => data === 'true'),
     TRON_GRID_API_KEY: z.string().optional().default(''),
+
+    // RPC Provider Keys
+    ANKR_PROJECT_KEY: z.string().optional().default(''),
+    HELIUS_API_KEY: z.string().optional().default(''),
+    QUICKNODE_API_KEY: z.string().optional().default(''),
 });
 
 const env = envSchema.parse(process.env);

@@ -91,6 +91,9 @@ export enum AssetInteractiveButtonIds {
     USDT_OPTIMISM = 'usdt-optimism',
 
     USDT_TRON = 'usdt-tron',
+
+    USDC_SOLANA = 'usdc-solana',
+    USDT_SOLANA = 'usdt-solana',
 }
 
 export enum ExploreAssetActions {

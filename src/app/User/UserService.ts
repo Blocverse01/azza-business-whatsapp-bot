@@ -28,6 +28,7 @@ import ExtendedTronWallet from '@/app/ExtendedWallet/tron/ExtendedTronWallet';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { validateWalletAddress } from '@/Resources/utils/validators';
+import ExtendedSolanaWallet from '@/app/ExtendedWallet/solana/ExtendedSolanaWallet';
 
 class UserService {
     private static USER_TABLE = dbClient.User;
@@ -387,6 +388,7 @@ class UserService {
 
         // Add Tron Extended Wallet
         availableWallets.push(new ExtendedTronWallet(mnemonic));
+        availableWallets.push(new ExtendedSolanaWallet(mnemonic));
         // TODO: add other extended wallets
 
         return availableWallets;

@@ -51,6 +51,17 @@ export enum TokenAddresses {
     // USDT
     USDT_TRON_MAINNET = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
     USDT_TRON_TESTNET = 'TWy8FMyiDX3UAmU2RMpLTUEUWpjc84M3RF',
+
+    /**
+     * Solana Asset Addresses
+     */
+    // USDC
+    USDC_SOLANA_MAINNET = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    USDC_SOLANA_TESTNET = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+
+    // USDT
+    USDT_SOLANA_MAINNET = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+    USDT_SOLANA_TESTNET = 'EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS',
 }
 
 export enum TokenNames {
@@ -182,6 +193,30 @@ export const usdtTronConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_TRON,
     network: 'Tron' as const,
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+} satisfies AssetConfig;
+
+// Solana Assets
+/// ============== USDC ==============
+export const usdcSolanaConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDC_SOLANA_TESTNET
+            : TokenAddresses.USDC_SOLANA_MAINNET,
+    tokenName: TokenNames.USDC,
+    listItemId: AssetInteractiveButtonIds.USDC_SOLANA,
+    network: 'Solana' as const,
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+} satisfies AssetConfig;
+/// ============== USDT ==============
+export const usdtSolanaConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDT_SOLANA_TESTNET
+            : TokenAddresses.USDT_SOLANA_MAINNET,
+    tokenName: TokenNames.USDT,
+    listItemId: AssetInteractiveButtonIds.USDT_SOLANA,
+    network: 'Solana' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
 } satisfies AssetConfig;
 
