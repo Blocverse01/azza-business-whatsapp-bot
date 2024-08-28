@@ -20,7 +20,7 @@ import {
 import axios from 'axios';
 import env from '@/constants/env';
 import UserService from '@/app/User/UserService';
-import logger from '@/Resources/logger';
+import logger, { logSync } from '@/Resources/logger';
 import { UserAssetInfo, UserAssetItem } from '@/app/User/userSchema';
 import {
     BankBeneficiary,
@@ -109,41 +109,13 @@ class WhatsAppBotService {
                 recipient,
                 listItems: walletAssets.map((asset) => ({
                     id: asset.listItemId,
-                    title: `${asset.name} (${asset.network})`,
+                    title: `${getNetworkEmoji(asset.network)} ${asset.name} (${asset.network})`,
                     description: `${asset.name} on ${asset.network}`,
                 })),
                 bodyText: text,
                 headerText: 'Manage Your Assets',
                 actionButtonText: 'Manage Assets',
             });
-
-        // TODO: Review new implementation with stakeholders and remove dead code.
-
-        // const walletAssetsButton: WhatsAppInteractiveButton[] = walletAssets
-        //     .map((asset) => ({
-        //         type: 'reply' as const,
-        //         reply: {
-        //             id: asset.listItemId,
-        //             title: `${asset.name} (${asset.network.toUpperCase()})`,
-        //         },
-        //     }))
-        //     .slice(0, 2);
-
-        // const interactiveMessage: WhatsAppInteractiveMessage = {
-        //     type: 'interactive',
-        //     interactive: {
-        //         type: 'button',
-        //         body: {
-        //             text: text,
-        //         },
-        //         action: {
-        //             buttons: walletAssetsButton,
-        //         },
-        //     },
-        //     messaging_product: 'whatsapp',
-        //     recipient_type: 'individual',
-        //     to: recipient,
-        // };
         await this.sendWhatsappMessage(businessPhoneNumberId, interactiveListMessage);
     }
 
@@ -313,7 +285,7 @@ class WhatsAppBotService {
                 requestOptions
             );
 
-            logger.info('Message marked as read successfully:', response.data); // Handle successful response (optional)
+            logSync('debug', 'Message marked as read successfully:', response.data); // Handle successful response (optional)
         } catch (error) {
             await logServiceError(error, 'Error marking message as read:');
         }
