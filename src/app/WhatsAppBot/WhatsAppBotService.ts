@@ -230,7 +230,7 @@ class WhatsAppBotService {
                 title: assetAction.text,
                 description: assetAction.description,
             })),
-            bodyText: `\n- 💰*Balance:* ${tokenBalanceDisplay} ${assetName}\n- 💰*USD Value:* ${usdDisplayBalance}`,
+            bodyText: `\n- *💰Balance:* ${tokenBalanceDisplay} ${assetName}\n- *💰USD Value:* ${usdDisplayBalance}`,
             headerText: `${getNetworkEmoji(assetNetwork)} ${assetName} (${assetNetwork})`,
             actionButtonText: 'Manage Asset',
         });
