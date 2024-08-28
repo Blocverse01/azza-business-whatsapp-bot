@@ -276,42 +276,6 @@ class UserService {
         return { transactionId: transactionResponse.transaction_id, hotWalletAddress };
     }
 
-    public static async processOfframpTransactionInDemoMode(
-        onChainTransactionId: string,
-        params: {
-            beneficiaryId: string;
-            usdAmount: string;
-            localAmount: string;
-            tokenAddress: string;
-            hotWalletAddress: string;
-            chainName: string;
-            tokenName: string;
-            userWalletAddress: string;
-        }
-    ) {
-        const transactionDetails = await WalletKitService.getTransactionById(onChainTransactionId);
-
-        if (transactionDetails.status === 'submitted') {
-            setTimeout(() => {
-                this.processOfframpTransactionInDemoMode(onChainTransactionId, params);
-            }, 5000);
-        }
-
-        if (transactionDetails.status === 'success' && transactionDetails.transaction_hash) {
-            await FiatRampService.postOfframpTransaction({
-                usdAmount: Number(params.usdAmount),
-                localAmount: Number(params.localAmount),
-                txHash: transactionDetails.transaction_hash,
-                beneficiaryId: params.beneficiaryId,
-                tokenAddress: params.tokenAddress,
-                chainName: params.chainName,
-                tokenName: params.tokenName,
-                userWalletAddress: params.userWalletAddress,
-                hotWalletAddress: params.hotWalletAddress,
-            });
-        }
-    }
-
     public static async getUserKycStatus(phoneNumber: string): Promise<KycStatus> {
         const user = await this.getUserByPhoneNumber(phoneNumber);
 
