@@ -21,7 +21,7 @@ import { fixNumber, formatNumberAsCurrency, prettifyNumber } from '@/Resources/u
 import { THREE } from '@/constants/numbers';
 import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import AlchemyNotifyService from '@/app/AlchemyNotify/AlchemyNotifyService';
-import logger from '@/Resources/logger';
+import { logSync } from '@/Resources/logger';
 import { parseUnknownError } from '@/Resources/requestHelpers/handleRequestError';
 import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
 import ExtendedTronWallet from '@/app/ExtendedWallet/tron/ExtendedTronWallet';
@@ -344,7 +344,7 @@ class UserService {
         } catch (error) {
             const parsedError = parseUnknownError(error);
 
-            logger.error('Error adding webhook address', {
+            logSync('error', 'Error adding webhook address', {
                 error: JSON.stringify(parsedError, null, 2),
             });
         }
@@ -357,7 +357,6 @@ class UserService {
         userWallets: Array<CreateWalletKitWalletResponse | ExtendedWallet>
     ) {
         const promises: Array<Promise<CreateWalletKitWalletResponse | ExtendedWallet>> = [];
-        const mnemonic = await this.getMnemonicForExtendedWallet(userPhoneNumber);
 
         SUPPORTED_CHAINS.forEach((network) => {
             const wallet = userWallets.find((wallet) => wallet.network === network);
@@ -378,16 +377,19 @@ class UserService {
             }
         });
 
-        // Add Tron Extended Wallet
-        promises.push(Promise.resolve(new ExtendedTronWallet(mnemonic)));
-
-        const settledPromises = await Promise.allSettled(promises);
-
+        const settledPromises = await Promise.allSettled(promises); // Sync wallet kit wallets
         const fulfilledSettlements = settledPromises.filter(
             (settlement) => settlement.status === 'fulfilled'
         ) as Array<PromiseFulfilledResult<CreateWalletKitWalletResponse | ExtendedWallet>>;
+        const availableWallets = fulfilledSettlements.map((settlement) => settlement.value);
 
-        return fulfilledSettlements.map((settlement) => settlement.value);
+        const mnemonic = await this.getMnemonicForExtendedWallet(userPhoneNumber);
+
+        // Add Tron Extended Wallet
+        availableWallets.push(new ExtendedTronWallet(mnemonic));
+        // TODO: add other extended wallets
+
+        return availableWallets;
     }
 
     private static async getMnemonicForExtendedWallet(phoneNumber: string) {
