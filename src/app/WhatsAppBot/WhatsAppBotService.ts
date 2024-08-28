@@ -55,7 +55,7 @@ import {
     getUserCountryCodeFromPhoneNumber,
     prettifyNumber,
 } from '@/Resources/utils/currency';
-import { generateAssetBalanceMessage } from '@/Resources/utils/bot-message-utils';
+import { generateAssetBalanceMessage, getNetworkEmoji } from '@/Resources/utils/bot-message-utils';
 import { TWO } from '@/constants/numbers';
 
 class WhatsAppBotService {
@@ -259,7 +259,7 @@ class WhatsAppBotService {
                 description: assetAction.description,
             })),
             bodyText: `\n*Asset Balance* 💰: ${tokenBalanceDisplay}\n\n*Asset Balance(USD)* 💰: ${usdDisplayBalance}`,
-            headerText: `${assetName} (${assetNetwork})`,
+            headerText: `${getNetworkEmoji(assetNetwork)} ${assetName} (${assetNetwork})`,
             actionButtonText: 'Manage Asset',
         });
 

@@ -90,6 +90,9 @@ const EMOJIS_FOR_NETWORKS: Record<SupportedChain | ExtendedWalletSupportedNetwor
     Solana: '🟢',
 };
 
+export const getNetworkEmoji = (network: SupportedChain | ExtendedWalletSupportedNetworks) =>
+    EMOJIS_FOR_NETWORKS[network];
+
 export function generateAssetBalanceMessage(
     assetInfo: UserAssetInfo,
     fiatConfig?: {
