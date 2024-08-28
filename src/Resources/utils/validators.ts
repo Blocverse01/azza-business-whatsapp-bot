@@ -29,6 +29,7 @@ export const getNetworkFamily = (
         case 'Optimism':
         case 'Polygon':
         case 'Bep20':
+            return 'evm';
         case 'Tron':
             return 'tron';
         case 'Solana':
