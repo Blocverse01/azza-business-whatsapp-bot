@@ -18,7 +18,7 @@ import { AzzaUserRecord, UserAssetInfo } from '@/app/User/userSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
-import { type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { validateWalletAddress } from '@/Resources/utils/validators';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { WaitForTransactionReceiptInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlows/backgroundProcesses/waitForTransactionReceipt';
@@ -50,6 +50,11 @@ type ScreenDataPayload = {
             amount?: string;
             azza_phone_number?: string;
         };
+        all_recipient_types: Array<
+            DropdownOption & {
+                id: TransferRecipientType;
+            }
+        >;
     };
     TRANSACTION_SUMMARY: {
         amount: string;
@@ -92,6 +97,17 @@ type DataExchangePayload = {
 const BACKGROUND_PROCESSES_SCRIPTS_FOLDER = path.join(__dirname, 'backgroundProcesses');
 
 const flowConfig = getFlowConfig('TRANSFER', env.WA_PHONE_NUMBER_ID);
+
+const ALL_RECIPIENT_TYPES: ScreenDataPayload['TRANSACTION_DETAILS']['all_recipient_types'] = [
+    {
+        id: 'wallet-address',
+        title: 'Wallet Address',
+    },
+    {
+        id: 'azza-phone-number',
+        title: 'Azza Phone Number',
+    },
+];
 
 class WhatsAppBotTransferToWalletFlowService {
     private static FLOW_MODE: FlowMode = flowConfig.flowMode;
@@ -205,6 +221,7 @@ class WhatsAppBotTransferToWalletFlowService {
                         azza_phone_number: data.azza_phone_number,
                         recipient_type: data.recipient_type,
                     },
+                    all_recipient_types: ALL_RECIPIENT_TYPES,
                 } satisfies ScreenDataPayload['TRANSACTION_DETAILS'],
             };
         }
@@ -435,6 +452,7 @@ class WhatsAppBotTransferToWalletFlowService {
                                 asset_id: asset.listItemId,
                                 user_id: recipient,
                                 user_balance: userBalanceMessage,
+                                all_recipient_types: ALL_RECIPIENT_TYPES,
                             } satisfies ScreenDataPayload['TRANSACTION_DETAILS'],
                         },
                     },
