@@ -254,7 +254,6 @@ class WhatsAppBotTransferToWalletFlowService {
 
         if (data.recipient_type === 'azza-phone-number') {
             const cleanPhoneInput = cleanPhoneNumberInput(data.azza_phone_number);
-            console.log({ cleanPhoneInput });
             azzaUserRecipient = await UserService.searchUserByPhoneNumber(cleanPhoneInput);
 
             if (!azzaUserRecipient?.phoneNumber) {
@@ -335,7 +334,7 @@ class WhatsAppBotTransferToWalletFlowService {
 
             const message = MessageGenerators.generateTextMessage(
                 data.user_id,
-                `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${data.wallet_address}\n\n➡️ Request ID: ${transactionResponse.transactionId}`
+                `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${walletAddress}\n\n➡️ Request ID: ${transactionResponse.transactionId}`
             );
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
