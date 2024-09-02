@@ -343,7 +343,7 @@ class WhatsAppBotTransferToWalletFlowService {
             this.waitForTransactionReceiptInBackground({
                 transactionId: transactionResponse.transactionId,
                 userId: data.user_id,
-                destination: data.wallet_address,
+                destination: walletAddress,
                 amount: data.amount,
                 assetLabel,
                 network: walletInfo.assetNetwork,
