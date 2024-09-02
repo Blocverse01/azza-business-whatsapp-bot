@@ -3,6 +3,8 @@ import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 import { TokenNames } from '@/Resources/web3/tokens';
 import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
+import { UserRecord } from '@/Db/xata';
+import { SelectedPick } from '@xata.io/client';
 
 export const userAssetSchema = z.object({
     listItemId: z.string(),
@@ -45,3 +47,5 @@ export const userIdentityInfoSchema = z.object({
 });
 
 export type UserIdentityInfo = z.infer<typeof userIdentityInfoSchema>;
+
+export type AzzaUserRecord = Readonly<SelectedPick<UserRecord, ['*']>>;

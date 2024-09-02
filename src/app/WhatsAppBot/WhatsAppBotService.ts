@@ -52,7 +52,7 @@ import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFl
 import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
 import {
     getCountryFlagEmoji,
-    getUserCountryCodeFromPhoneNumber,
+    getUserCountryCodeFromPhoneNumberOrThrow,
     prettifyNumber,
 } from '@/Resources/utils/currency';
 import { generateAssetBalanceMessage, getNetworkEmoji } from '@/Resources/utils/bot-message-utils';
@@ -357,7 +357,7 @@ class WhatsAppBotService {
     ) {
         const rates = await FiatRampService.getAllRates();
 
-        const userCountryCode = getUserCountryCodeFromPhoneNumber(userPhoneNumber);
+        const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
         const userCountry = rates.find(
             (rate) => rate.locale.toLowerCase() === userCountryCode.toLowerCase()
         );
@@ -520,7 +520,7 @@ class WhatsAppBotService {
     ) {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
-        const userCountryCode = getUserCountryCodeFromPhoneNumber(userPhoneNumber);
+        const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
         const supportedCurrencies = await FiatRampService.getSupportedCurrencies();
 
         const userCountry = supportedCurrencies.find(
@@ -790,7 +790,7 @@ class WhatsAppBotService {
 
     public static async getUserCountryFromPhoneNumber(userPhoneNumber: string) {
         const supportedCountries = await FiatRampService.getSupportedCurrencies();
-        const userCountryCode = getUserCountryCodeFromPhoneNumber(userPhoneNumber);
+        const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
 
         return supportedCountries.find(
             (country) => country.code.toLowerCase() === userCountryCode.toLowerCase()

@@ -14,7 +14,7 @@ import { TransactionResponse } from '@/app/WalletKit/walletKitSchema';
 import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
 import { spawn } from 'child_process';
 import path from 'path';
-import { UserAssetInfo } from '@/app/User/userSchema';
+import { AzzaUserRecord, UserAssetInfo } from '@/app/User/userSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
@@ -22,6 +22,7 @@ import { type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { validateWalletAddress } from '@/Resources/utils/validators';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { WaitForTransactionReceiptInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlows/backgroundProcesses/waitForTransactionReceipt';
+import { getPhoneNumberObject, cleanPhoneNumberInput } from '@/Resources/utils/phone-numbers';
 
 enum TransferToWalletFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',
@@ -29,6 +30,8 @@ enum TransferToWalletFlowScreens {
     PROCESSING_FEEDBACK = 'PROCESSING_FEEDBACK',
     ERROR_FEEDBACK = 'ERROR_FEEDBACK',
 }
+type TransferRecipientType = 'azza-phone-number' | 'wallet-address';
+
 type ScreenDataPayload = {
     TRANSACTION_DETAILS: {
         dynamic_page_title: string;
@@ -39,10 +42,13 @@ type ScreenDataPayload = {
         init_values?: {
             wallet_address: string;
             amount: string;
+            recipient_type: TransferRecipientType;
+            azza_phone_number: string;
         };
         error_messages?: {
             wallet_address?: string;
             amount?: string;
+            azza_phone_number?: string;
         };
     };
     TRANSACTION_SUMMARY: {
@@ -50,6 +56,8 @@ type ScreenDataPayload = {
         asset_id: string;
         user_id: string;
         wallet_address: string;
+        azza_phone_number: string;
+        recipient_type: TransferRecipientType;
         asset_label: string;
         transaction_fee: string;
     };
@@ -67,12 +75,16 @@ type DataExchangePayload = {
         user_id: string;
         wallet_address: string;
         user_balance: string;
+        azza_phone_number: string;
+        recipient_type: TransferRecipientType;
     };
     TRANSACTION_SUMMARY: {
         amount: string;
         asset_id: string;
         user_id: string;
         wallet_address: string;
+        azza_phone_number: string;
+        recipient_type: TransferRecipientType;
         transaction_fee: string;
     };
 };
@@ -150,6 +162,7 @@ class WhatsAppBotTransferToWalletFlowService {
             : (await UserService.getUserAssetInfo(data.user_id, data.asset_id)).tokenBalance;
         const amount = parseFloat(data.amount);
 
+        let azzaUserRecipient: AzzaUserRecord | null;
         const errorMessages: ScreenDataPayload['TRANSACTION_DETAILS']['error_messages'] = {};
 
         if (amount <= 0) {
@@ -158,8 +171,22 @@ class WhatsAppBotTransferToWalletFlowService {
         if (userBalance < amount) {
             errorMessages.amount = `Insufficient balance, you have only ${userBalance} ${asset.tokenName}`;
         }
-        if (!validateWalletAddress(data.wallet_address, asset.network)) {
+        if (
+            data.recipient_type === 'wallet-address' &&
+            !validateWalletAddress(data.wallet_address, asset.network)
+        ) {
             errorMessages.wallet_address = 'Invalid wallet address';
+        } else if (data.recipient_type === 'azza-phone-number') {
+            const cleanPhoneInput = cleanPhoneNumberInput(data.azza_phone_number);
+            const phoneNumber = getPhoneNumberObject(cleanPhoneInput);
+
+            azzaUserRecipient = phoneNumber
+                ? await UserService.searchUserByPhoneNumber(phoneNumber)
+                : await UserService.searchUserByPhoneNumber(cleanPhoneInput);
+
+            if (!azzaUserRecipient) {
+                errorMessages.azza_phone_number = 'User does not exist on Azza';
+            }
         }
 
         if (Object.keys(errorMessages).length > 0) {
@@ -175,6 +202,8 @@ class WhatsAppBotTransferToWalletFlowService {
                     init_values: {
                         wallet_address: data.wallet_address,
                         amount: data.amount,
+                        azza_phone_number: data.azza_phone_number,
+                        recipient_type: data.recipient_type,
                     },
                 } satisfies ScreenDataPayload['TRANSACTION_DETAILS'],
             };
@@ -200,7 +229,12 @@ class WhatsAppBotTransferToWalletFlowService {
             ? fixNumber(amount + transactionFee, TWO)
             : amount;
 
-        if (!validateWalletAddress(data.wallet_address, walletInfo.assetNetwork)) {
+        let azzaUserRecipient: AzzaUserRecord | null = null;
+
+        if (
+            data.recipient_type === 'wallet-address' &&
+            !validateWalletAddress(data.wallet_address, walletInfo.assetNetwork)
+        ) {
             return {
                 screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
                 data: {
@@ -210,6 +244,27 @@ class WhatsAppBotTransferToWalletFlowService {
                     is_transfer_transaction: true,
                 } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
             };
+        }
+
+        if (data.recipient_type === 'azza-phone-number') {
+            const cleanPhoneInput = cleanPhoneNumberInput(data.azza_phone_number);
+            const phoneNumber = getPhoneNumberObject(cleanPhoneInput);
+
+            azzaUserRecipient = phoneNumber
+                ? await UserService.searchUserByPhoneNumber(phoneNumber)
+                : await UserService.searchUserByPhoneNumber(cleanPhoneInput);
+
+            if (!azzaUserRecipient?.phoneNumber) {
+                return {
+                    screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                    data: {
+                        message: 'User does not exist on Azza',
+                        status: 'failed',
+                        asset_id: data.asset_id,
+                        is_transfer_transaction: true,
+                    } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                };
+            }
         }
 
         if (assetBalance < totalAmount) {
@@ -227,10 +282,37 @@ class WhatsAppBotTransferToWalletFlowService {
         }
 
         try {
+            let walletAddress = data.wallet_address;
+
+            if (
+                data.recipient_type === 'azza-phone-number' &&
+                azzaUserRecipient &&
+                azzaUserRecipient.phoneNumber
+            ) {
+                walletAddress = (
+                    await UserService.getUserAssetWalletOrThrow(
+                        azzaUserRecipient.phoneNumber,
+                        data.asset_id
+                    )
+                ).walletAddress;
+            }
+
+            if (!validateWalletAddress(walletAddress, walletInfo.assetNetwork)) {
+                return {
+                    screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                    data: {
+                        message: 'Invalid wallet address',
+                        status: 'failed',
+                        asset_id: data.asset_id,
+                        is_transfer_transaction: true,
+                    } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                };
+            }
+
             const transactionResponse =
                 await WalletAssetManagementService.transferUserAssetToWallet(
                     walletInfo,
-                    data.wallet_address,
+                    walletAddress,
                     data.amount
                 );
 

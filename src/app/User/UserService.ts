@@ -29,6 +29,8 @@ import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { validateWalletAddress } from '@/Resources/utils/validators';
 import ExtendedSolanaWallet from '@/app/ExtendedWallet/solana/ExtendedSolanaWallet';
+import { PhoneNumber } from 'libphonenumber-js/types';
+import { getPhoneNumberObject, cleanPhoneNumberInput } from '@/Resources/utils/phone-numbers';
 
 class UserService {
     private static USER_TABLE = dbClient.User;
@@ -59,6 +61,56 @@ class UserService {
 
     public static async getUserByPhoneNumber(phoneNumber: string) {
         return await this.USER_TABLE.filter({ phoneNumber }).getFirst();
+    }
+
+    /**
+     * Search for a user by phone number
+     * @param phoneNumber
+     * @description The phone number string can be in any of the following formats:
+     * - +2341234567890
+     * - +23401234567890
+     * - 1234567890
+     * - 2341234567890
+     */
+    public static async searchUserByPhoneNumber(phoneNumber: string | PhoneNumber) {
+        if (typeof phoneNumber === 'string') {
+            const existingUserRecord = await this.USER_TABLE.filter({
+                phoneNumber: {
+                    $contains: phoneNumber,
+                },
+            }).getFirst();
+
+            console.log({ existingUserRecord });
+
+            if (!existingUserRecord?.phoneNumber) {
+                return null;
+            }
+            const dbRecordPhoneNumberObject = getPhoneNumberObject(existingUserRecord.phoneNumber);
+
+            if (!dbRecordPhoneNumberObject?.countryCallingCode) {
+                return null;
+            }
+
+            const concatenatedPhoneNumber = `${dbRecordPhoneNumberObject.countryCallingCode}${cleanPhoneNumberInput(phoneNumber)}`;
+            const userInputPhoneNumberObject = getPhoneNumberObject(concatenatedPhoneNumber);
+
+            if (!userInputPhoneNumberObject) {
+                return null;
+            }
+
+            if (
+                cleanPhoneNumberInput(userInputPhoneNumberObject.number) !==
+                cleanPhoneNumberInput(dbRecordPhoneNumberObject.number)
+            ) {
+                return null;
+            }
+
+            return existingUserRecord;
+        }
+
+        return await this.USER_TABLE.filter({
+            phoneNumber: cleanPhoneNumberInput(phoneNumber.number),
+        }).getFirst();
     }
 
     public static async updateUserInfoFromKyc(
