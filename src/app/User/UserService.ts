@@ -18,7 +18,7 @@ import { getDummyUsdValue, TokenNames } from '@/Resources/web3/tokens';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { UserRecord } from '@/Db/xata';
 import { fixNumber, formatNumberAsCurrency, prettifyNumber } from '@/Resources/utils/currency';
-import { THREE } from '@/constants/numbers';
+import { ONE, THREE } from '@/constants/numbers';
 import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import AlchemyNotifyService from '@/app/AlchemyNotify/AlchemyNotifyService';
 import { logSync } from '@/Resources/logger';
@@ -29,7 +29,6 @@ import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { validateWalletAddress } from '@/Resources/utils/validators';
 import ExtendedSolanaWallet from '@/app/ExtendedWallet/solana/ExtendedSolanaWallet';
-import { PhoneNumber } from 'libphonenumber-js/types';
 import { getPhoneNumberObject, cleanPhoneNumberInput } from '@/Resources/utils/phone-numbers';
 
 class UserService {
@@ -72,45 +71,43 @@ class UserService {
      * - 1234567890
      * - 2341234567890
      */
-    public static async searchUserByPhoneNumber(phoneNumber: string | PhoneNumber) {
-        if (typeof phoneNumber === 'string') {
-            const existingUserRecord = await this.USER_TABLE.filter({
-                phoneNumber: {
-                    $contains: phoneNumber,
-                },
-            }).getFirst();
+    public static async searchUserByPhoneNumber(phoneNumber: string) {
+        const existingUserRecord = await this.USER_TABLE.filter({
+            phoneNumber: {
+                $contains: phoneNumber,
+            },
+        }).getFirst();
 
-            console.log({ existingUserRecord });
+        if (!existingUserRecord?.phoneNumber) {
+            return null;
+        }
+        const dbRecordPhoneNumberObject = getPhoneNumberObject(existingUserRecord.phoneNumber);
 
-            if (!existingUserRecord?.phoneNumber) {
-                return null;
-            }
-            const dbRecordPhoneNumberObject = getPhoneNumberObject(existingUserRecord.phoneNumber);
-
-            if (!dbRecordPhoneNumberObject?.countryCallingCode) {
-                return null;
-            }
-
-            const concatenatedPhoneNumber = `${dbRecordPhoneNumberObject.countryCallingCode}${cleanPhoneNumberInput(phoneNumber)}`;
-            const userInputPhoneNumberObject = getPhoneNumberObject(concatenatedPhoneNumber);
-
-            if (!userInputPhoneNumberObject) {
-                return null;
-            }
-
-            if (
-                cleanPhoneNumberInput(userInputPhoneNumberObject.number) !==
-                cleanPhoneNumberInput(dbRecordPhoneNumberObject.number)
-            ) {
-                return null;
-            }
-
-            return existingUserRecord;
+        if (!dbRecordPhoneNumberObject?.countryCallingCode) {
+            return null;
         }
 
-        return await this.USER_TABLE.filter({
-            phoneNumber: cleanPhoneNumberInput(phoneNumber.number),
-        }).getFirst();
+        const countryCallingCode = dbRecordPhoneNumberObject.countryCallingCode;
+        const cleanPhoneNumber = cleanPhoneNumberInput(phoneNumber);
+        const extractedPhoneNumber = cleanPhoneNumber.startsWith(countryCallingCode)
+            ? cleanPhoneNumber.split(countryCallingCode)[ONE]
+            : cleanPhoneNumber;
+        const concatenatedPhoneNumber = `${countryCallingCode}${extractedPhoneNumber}`;
+
+        const userInputPhoneNumberObject = getPhoneNumberObject(concatenatedPhoneNumber);
+
+        if (!userInputPhoneNumberObject) {
+            return null;
+        }
+
+        if (
+            cleanPhoneNumberInput(userInputPhoneNumberObject.number) !==
+            cleanPhoneNumberInput(dbRecordPhoneNumberObject.number)
+        ) {
+            return null;
+        }
+
+        return existingUserRecord;
     }
 
     public static async updateUserInfoFromKyc(
