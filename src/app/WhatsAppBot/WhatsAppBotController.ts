@@ -90,9 +90,7 @@ class WhatsAppBotController {
             const { message, displayName, businessPhoneNumberId } = messageParts;
 
             if (message?.id) {
-                WhatsAppBotService.markMassageAsRead(businessPhoneNumberId, message.id).then(() =>
-                    console.log('Done => Marked as read')
-                ); // Don't wait for this to finish
+                await WhatsAppBotService.markMassageAsRead(businessPhoneNumberId, message.id);
             }
 
             logSync('debug', 'Extracted message parts', {
