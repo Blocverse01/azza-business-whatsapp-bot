@@ -453,6 +453,12 @@ class WhatsAppBotTransferToWalletFlowService {
                                 user_id: recipient,
                                 user_balance: userBalanceMessage,
                                 all_recipient_types: ALL_RECIPIENT_TYPES,
+                                init_values: {
+                                    recipient_type: 'wallet-address',
+                                    wallet_address: '',
+                                    amount: '',
+                                    azza_phone_number: '',
+                                },
                             } satisfies ScreenDataPayload['TRANSACTION_DETAILS'],
                         },
                     },
