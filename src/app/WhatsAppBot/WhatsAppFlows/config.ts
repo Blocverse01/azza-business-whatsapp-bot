@@ -42,7 +42,7 @@ const flowConfigs: FlowConfigs = {
         },
         [PHONE_NUMBER_IDS.AMARA_FROM_AZZA_PHONE_NUMBER_ID]: {
             flowId: '517401727642636',
-            flowMode: 'draft',
+            flowMode: 'published',
         },
     },
     ADD_BENEFICIARY: {
