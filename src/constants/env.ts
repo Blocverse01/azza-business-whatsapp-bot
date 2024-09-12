@@ -38,9 +38,6 @@ const envSchema = z.object({
     SUM_SUB_APP_TOKEN: notEmptyStringSchema('SUM_SUB_APP_TOKEN'),
     SUM_SUB_APP_TOKEN_SECRET: notEmptyStringSchema('SUM_SUB_APP_TOKEN_SECRET'),
     SUM_SUB_WEBHOOK_PRIVATE_KEY: notEmptyStringSchema('SUM_SUB_WEBHOOK_PRIVATE_KEY'),
-    CDP_KEY_NAME: notEmptyStringSchema('CDP_KEY_NAME'),
-    CDP_KEY_SECRET: notEmptyStringSchema('CDP_KEY_SECRET'),
-    CDP_PROJECT_ID: notEmptyStringSchema('CDP_PROJECT_ID'),
     WA_PHONE_NUMBER_ID: notEmptyStringSchema('WA_PHONE_NUMBER_ID').and(
         z.nativeEnum(PHONE_NUMBER_IDS)
     ),
