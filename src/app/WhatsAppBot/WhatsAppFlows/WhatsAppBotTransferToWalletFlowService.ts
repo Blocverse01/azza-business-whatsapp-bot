@@ -181,6 +181,15 @@ class WhatsAppBotTransferToWalletFlowService {
         if (userBalance < amount) {
             errorMessages.amount = `Insufficient balance, you have only ${userBalance} ${asset.tokenName}`;
         }
+
+        logSync('debug', 'Recipient validation', {
+            recipientType,
+            walletAddress: data.wallet_address,
+            azzaPhoneNumber: data.azza_phone_number,
+            recipientTypeIsWalletAddress: recipientType === 'wallet-address',
+            walletAddressIsValid: validateWalletAddress(data.wallet_address, asset.network),
+        });
+
         if (
             recipientType === 'wallet-address' &&
             !validateWalletAddress(data.wallet_address, asset.network)
