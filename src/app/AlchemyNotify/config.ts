@@ -10,10 +10,10 @@ import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 const WEBHOOK_IDS: {
     [key in SupportedChain]: string;
 } = {
-    Base: 'wh_jj5gugj65pifoq77',
-    Ethereum: 'wh_womq044l3rjzvip5',
-    Optimism: 'wh_5044b13c616n0gj3',
-    Polygon: 'wh_mzkvd0x4ephzca9b',
+    Base: 'wh_m2tq7i37fj4u8n5m',
+    Ethereum: 'wh_ohv91kqssbz8nj46',
+    Optimism: 'wh_q7qhcmkf11eq25vv',
+    Polygon: 'wh_s2kxghl9wa76cxuc',
 };
 
 export const getWebhookId = (network: SupportedChain) => WEBHOOK_IDS[network];

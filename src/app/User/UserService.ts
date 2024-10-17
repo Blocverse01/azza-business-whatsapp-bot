@@ -30,6 +30,7 @@ import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWa
 import { validateWalletAddress } from '@/Resources/utils/validators';
 import ExtendedSolanaWallet from '@/app/ExtendedWallet/solana/ExtendedSolanaWallet';
 import { getPhoneNumberObject, cleanPhoneNumberInput } from '@/Resources/utils/phone-numbers';
+import { getWebhookId } from '@/app/AlchemyNotify/config';
 
 class UserService {
     private static USER_TABLE = dbClient.User;
@@ -355,8 +356,10 @@ class UserService {
     private static async initializeUserWallet(params: CreateWalletKitWalletParams) {
         const wallet = await WalletKitService.createUserWallet(params);
 
+        const webhookId = getWebhookId(wallet.network);
+
         try {
-            await AlchemyNotifyService.addWebhookAddresses([wallet.address], wallet.network);
+            await AlchemyNotifyService.addWebhookAddresses([wallet.address], webhookId);
         } catch (error) {
             const parsedError = parseUnknownError(error);
 

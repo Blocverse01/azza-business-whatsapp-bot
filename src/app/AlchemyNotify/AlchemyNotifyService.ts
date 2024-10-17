@@ -8,11 +8,13 @@ import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
 import env from '@/constants/env';
-import { BASE_URL, UPDATE_WEBHOOK_ADDRESSES } from '@/app/AlchemyNotify/endpoints';
+import {
+    BASE_URL,
+    UPDATE_WEBHOOK_ADDRESSES,
+    WEBHOOK_ADDRESSES,
+} from '@/app/AlchemyNotify/endpoints';
 import axios from 'axios';
-import { getWebhookId } from '@/app/AlchemyNotify/config';
 import { OK } from '@/constants/status-codes';
-import { convertBase64ToAsciiString, decryptWithPrivateKey } from '@/Resources/utils/encryption';
 
 enum AlchemyActivityCategory {
     TOKEN = 'token',
@@ -22,6 +24,7 @@ const transferLogTopicHash = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a116
 
 class AlchemyNotifyService {
     private static readonly BASE_API_URL = BASE_URL;
+    private static authToken: string = env.ALCHEMY_AUTH_TOKEN;
 
     public static async handleAddressActivityNotification(
         payload: AlchemyAddressActivityWebhookEvent,
@@ -110,22 +113,19 @@ class AlchemyNotifyService {
         }
     }
 
-    public static async addWebhookAddresses(
-        walletAddresses: Array<string>,
-        network: SupportedChain
-    ) {
+    public static async addWebhookAddresses(walletAddresses: Array<string>, webhookId: string) {
         const requestUrl = `${this.BASE_API_URL}${UPDATE_WEBHOOK_ADDRESSES}`;
 
         const response = await axios.patch(
             requestUrl,
             {
-                webhook_id: getWebhookId(network),
+                webhook_id: webhookId,
                 addresses_to_add: walletAddresses,
                 addresses_to_remove: [],
             },
             {
                 headers: {
-                    'X-Alchemy-Token': env.ALCHEMY_AUTH_TOKEN,
+                    'X-Alchemy-Token': this.authToken,
                 },
             }
         );
@@ -133,14 +133,37 @@ class AlchemyNotifyService {
         return response.status === OK;
     }
 
-    public static get signingKeys(): Record<SupportedChain, string> {
-        const decryptedKeysString = decryptWithPrivateKey(
-            env.ALCHEMY_NOTIFY_SIGNING_KEYS,
-            convertBase64ToAsciiString(env.CRYPTO_PAYOUT_AUTHORIZER_PRIVATE_KEY),
-            env.CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE
-        );
+    public static async getWebhookAddresses(
+        webhookId: string,
+        pagination: {
+            limit: number;
+            offset: number;
+        }
+    ) {
+        const requestUrl = `${this.BASE_API_URL}${WEBHOOK_ADDRESSES}?webhook_id=${webhookId}&limit=${pagination.limit}&after=${pagination.offset}`;
 
-        return JSON.parse(decryptedKeysString);
+        const response = await axios.get(requestUrl, {
+            headers: {
+                'X-Alchemy-Token': this.authToken,
+            },
+        });
+
+        return response.data;
+    }
+
+    public static get signingKeys(): Record<SupportedChain, string> {
+        return {
+            Base: env.ALCHEMY_NOTIFY_FORWARDER_BASE_SIGNING_KEY,
+            Polygon: env.ALCHEMY_NOTIFY_FORWARDER_POLYGON_SIGNING_KEY,
+            Ethereum: env.ALCHEMY_NOTIFY_FORWARDER_ETH_SIGNING_KEY,
+            Optimism: env.ALCHEMY_NOTIFY_FORWARDER_OPTIMISM_SIGNING_KEY,
+        };
+    }
+
+    public static withAuthToken(authToken: string) {
+        this.authToken = authToken;
+
+        return this;
     }
 }
 

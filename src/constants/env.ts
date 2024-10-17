@@ -57,18 +57,34 @@ const envSchema = z.object({
         .enum(['true', 'false'])
         .default('false')
         .transform((data) => data === 'true'),
-    ALCHEMY_NOTIFY_SIGNING_KEYS: notEmptyStringSchema('ALCHEMY_NOTIFY_SIGNING_KEYS'),
+
+    ///////////////////////////
+    /// Alchemy Notify
+    ///////////////////////////
     ALCHEMY_AUTH_TOKEN: notEmptyStringSchema('ALCHEMY_AUTH_TOKEN'),
+    ALCHEMY_NOTIFY_FORWARDER_ETH_SIGNING_KEY: notEmptyStringSchema(
+        'ALCHEMY_NOTIFY_ETH_SIGNING_KEY'
+    ),
+    ALCHEMY_NOTIFY_FORWARDER_POLYGON_SIGNING_KEY: notEmptyStringSchema(
+        'ALCHEMY_NOTIFY_POLYGON_SIGNING_KEY'
+    ),
+    ALCHEMY_NOTIFY_FORWARDER_BASE_SIGNING_KEY: notEmptyStringSchema(
+        'ALCHEMY_NOTIFY_BASE_SIGNING_KEY'
+    ),
+    ALCHEMY_NOTIFY_FORWARDER_OPTIMISM_SIGNING_KEY: notEmptyStringSchema(
+        'ALCHEMY_NOTIFY_OPTIMISM_SIGNING_KEY'
+    ),
+    //================================================================
     TESTING_GRPC_SERVICE: z
         .enum(['true', 'false'])
         .default('false')
         .transform((data) => data === 'true'),
-    TRON_GRID_API_KEY: z.string().optional().default(''),
 
     // RPC Provider Keys
     ANKR_PROJECT_KEY: z.string().optional().default(''),
     HELIUS_API_KEY: z.string().optional().default(''),
     QUICKNODE_API_KEY: z.string().optional().default(''),
+    TRON_GRID_API_KEY: z.string().optional().default(''),
 });
 
 const env = envSchema.parse(process.env);
