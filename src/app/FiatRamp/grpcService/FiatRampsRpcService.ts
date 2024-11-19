@@ -7,7 +7,7 @@ import {
     ratesSchema,
     supportedCountry,
 } from '@/app/FiatRamp/fiatRampSchema';
-import { transformKeysToCamelCase } from '@/Resources/utils/transformers';
+import { transformKeysToCamelCase } from '@/resources/utils/transformers';
 import { fiatramps } from '@/proto/fiatramps/v1/service';
 import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
 import {
@@ -21,7 +21,7 @@ import {
 import GetRatesRequest = fiatramps.v1.GetRatesRequest;
 import { CountryCode } from 'libphonenumber-js';
 import GetQuotesRequest = fiatramps.v1.GetQuotesRequest;
-import { defaultAmountFixer } from '@/Resources/utils/currency';
+import { defaultAmountFixer } from '@/resources/utils/currency';
 import { HUNDRED } from '@/constants/numbers';
 import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
 import GetBeneficiaryRequest = fiatramps.v1.GetBeneficiaryRequest;

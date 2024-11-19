@@ -1,3 +1,5 @@
+import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
+import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
 import {
     ASSET_ACTION_REGEX_PATTERN,
     AssetInteractiveButtonIds,
@@ -20,14 +22,14 @@ import {
 import axios from 'axios';
 import env from '@/constants/env';
 import UserService from '@/app/User/UserService';
-import logger, { logSync } from '@/Resources/logger';
+import logger, { logSync } from '@/resources/logger';
 import { UserAssetInfo, UserAssetItem } from '@/app/User/userSchema';
 import {
     BankBeneficiary,
     MobileMoneyBeneficiary,
     UsersBeneficiaries,
 } from '@/app/FiatRamp/fiatRampSchema';
-import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import {
@@ -40,13 +42,13 @@ import {
     convertBase64ToAsciiString,
     decryptRequest,
     encryptResponse,
-} from '@/Resources/utils/encryption';
+} from '@/resources/utils/encryption';
 import WhatsAppBotOffRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOffRampFlowService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { CountryCode } from 'libphonenumber-js';
 import WhatsAppBotAddBeneficiaryFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotAddBeneficiaryFlowService';
 import { Message } from '@/app/WhatsAppBot/WhatsAppBotController';
-import { HttpException } from '@/Resources/exceptions/HttpException';
+import { HttpException } from '@/resources/exceptions/HttpException';
 import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
 import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
@@ -54,8 +56,8 @@ import {
     getCountryFlagEmoji,
     getUserCountryCodeFromPhoneNumberOrThrow,
     prettifyNumber,
-} from '@/Resources/utils/currency';
-import { generateAssetBalanceMessage, getNetworkEmoji } from '@/Resources/utils/bot-message-utils';
+} from '@/resources/utils/currency';
+import { generateAssetBalanceMessage, getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import { TWO } from '@/constants/numbers';
 
 class WhatsAppBotService {
@@ -90,6 +92,21 @@ class WhatsAppBotService {
             await logServiceError(error, 'Error sending message');
             throw error;
         }
+    }
+
+    /**
+     * This message is sent immediately after a user onboards on the board and has created a wallet.
+     */
+    public static async sendSetTransactionPinMessage(phoneParams: PhoneNumberParams) {
+        const message = WhatsAppBotSetupTransactionPinFlowService.withPhoneNumberId(
+            phoneParams.businessPhoneNumberId as PhoneNumberId
+        ).createSetupTransactionPinFlowMessage({
+            messageBody:
+                'You have successfully created a wallet. Let us set up your transaction pin to protect your transactions.',
+            messageRecipient: phoneParams.userPhoneNumber,
+        });
+
+        await this.sendWhatsappMessage(phoneParams.businessPhoneNumberId, message);
     }
 
     public static async listWalletAddressMessage(

@@ -1,7 +1,7 @@
 import { NextFunction, Response, Request } from 'express';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import logger from '@/Resources/logger';
-import { handleRequestError } from '@/Resources/requestHelpers/handleRequestError';
+import logger from '@/resources/logger';
+import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 
 const decryptFlowDataExchange = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.body) {

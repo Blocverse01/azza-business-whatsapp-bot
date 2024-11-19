@@ -1,15 +1,15 @@
 import env from '@/constants/env';
 import crypto from 'node:crypto';
-import { HttpException } from '@/Resources/exceptions/HttpException';
+import { HttpException } from '@/resources/exceptions/HttpException';
 import {
     WebhookPayloadDigestAlgorithms,
     webhookPayloadDigestSchema,
     WebhookPayloadDigestConfig,
 } from './sumSubSchema';
 import { BAD_REQUEST, NOT_FOUND, UNAUTHORIZED } from '@/constants/status-codes';
-import { UserRecord } from '@/Db/xata';
+import { UserRecord } from '@/db/xata';
 import UserService from '@/app/User/UserService';
-import logger from '@/Resources/logger';
+import logger from '@/resources/logger';
 import axios from 'axios';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 

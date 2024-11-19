@@ -70,6 +70,30 @@ export interface WhatsAppTextMessage extends WhatsAppMessageBase {
     };
 }
 
+export interface WhatsAppCtaUrlButtonMessage extends WhatsAppMessageBase {
+    type: 'interactive';
+    interactive: {
+        type: 'cta_url';
+        body: {
+            text: string;
+        };
+        header?: {
+            type: string;
+            text: string;
+        };
+        footer?: {
+            text: string;
+        };
+        action: {
+            name: 'cta_url';
+            parameters: {
+                display_text: string;
+                url: string;
+            };
+        };
+    };
+}
+
 export enum BaseInteractiveButtonIds {
     CREATE_WALLET = 'create-wallet',
 }
@@ -175,10 +199,11 @@ export type MoreCurrenciesCommandMatch = [
 export type DecryptedFlowDataExchange = {
     decryptedBody: Record<string, unknown> & {
         version: string;
-        action: 'ping' | 'INIT' | 'data_exchange';
+        action: 'ping' | 'INIT' | 'data_exchange' | 'complete';
         data?: Record<string, unknown> & {
             error?: unknown;
         };
+        flow_token: string;
     };
     aesKeyBuffer: Buffer;
     initialVectorBuffer: Buffer;

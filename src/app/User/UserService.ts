@@ -1,6 +1,8 @@
+import { SecurityQuestion } from '@/app/azza/azza.schema';
+import env from '@/constants/env';
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
-import { dbClient } from '@/Db/dbClient';
-import { HttpException } from '@/Resources/exceptions/HttpException';
+import { dbClient } from '@/db/dbClient';
+import { HttpException } from '@/resources/exceptions/HttpException';
 import {
     CreateWalletKitWalletParams,
     CreateWalletKitWalletResponse,
@@ -14,22 +16,24 @@ import {
     UserAssetItem,
     userIdentityInfoSchema,
 } from '@/app/User/userSchema';
-import { getDummyUsdValue, TokenNames } from '@/Resources/web3/tokens';
+import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
+import { hashString } from '@/resources/utils/hashing';
+import { getDummyUsdValue, TokenNames } from '@/resources/web3/tokens';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { UserRecord } from '@/Db/xata';
-import { fixNumber, formatNumberAsCurrency, prettifyNumber } from '@/Resources/utils/currency';
+import { UserRecord } from '@/db/xata';
+import { fixNumber, formatNumberAsCurrency, prettifyNumber } from '@/resources/utils/currency';
 import { ONE, THREE } from '@/constants/numbers';
 import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import AlchemyNotifyService from '@/app/AlchemyNotify/AlchemyNotifyService';
-import { logSync } from '@/Resources/logger';
-import { parseUnknownError } from '@/Resources/requestHelpers/handleRequestError';
+import { logSync } from '@/resources/logger';
+import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
 import ExtendedTronWallet from '@/app/ExtendedWallet/tron/ExtendedTronWallet';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { validateWalletAddress } from '@/Resources/utils/validators';
+import { validateWalletAddress } from '@/resources/utils/validators';
 import ExtendedSolanaWallet from '@/app/ExtendedWallet/solana/ExtendedSolanaWallet';
-import { getPhoneNumberObject, cleanPhoneNumberInput } from '@/Resources/utils/phone-numbers';
+import { getPhoneNumberObject, cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { getWebhookId } from '@/app/AlchemyNotify/config';
 
 class UserService {
@@ -165,6 +169,21 @@ class UserService {
         } catch (err) {
             throw new HttpException(INTERNAL_SERVER_ERROR, 'KYC status not updated!');
         }
+    }
+
+    public static async storeNewTransactionPin(
+        user: UserRecord,
+        newPin: string,
+        securityQuestionsSetup: Array<SecurityQuestion>
+    ) {
+        const hashedPin = await hashString(newPin);
+        const encryptedSecuritySetup = this.maskUserSecurityQuestions(securityQuestionsSetup);
+
+        return await this.USER_TABLE.update(
+            user.id,
+            { transactionPinHash: hashedPin, securityQuestionsSetup: encryptedSecuritySetup },
+            ['transactionPinHash', 'securityQuestionsSetup']
+        );
     }
 
     public static async createUserWallets(phoneNumber: string) {
@@ -336,41 +355,6 @@ class UserService {
         return this.formatKycStatus(user.kycStatus);
     }
 
-    private static formatKycStatus(kycStatus: string | null | undefined): KycStatus {
-        if (!kycStatus?.trim()) {
-            return 'unverified';
-        }
-
-        switch (kycStatus) {
-            case 'VERIFIED':
-                return 'verified';
-            case 'IN_REVIEW':
-                return 'in_review';
-            case 'REJECTED':
-                return 'rejected';
-            default:
-                return 'pending';
-        }
-    }
-
-    private static async initializeUserWallet(params: CreateWalletKitWalletParams) {
-        const wallet = await WalletKitService.createUserWallet(params);
-
-        const webhookId = getWebhookId(wallet.network);
-
-        try {
-            await AlchemyNotifyService.addWebhookAddresses([wallet.address], webhookId);
-        } catch (error) {
-            const parsedError = parseUnknownError(error);
-
-            logSync('error', 'Error adding webhook address', {
-                error: JSON.stringify(parsedError, null, 2),
-            });
-        }
-
-        return wallet;
-    }
-
     public static async syncUserWalletsWithSupportedChains(
         userPhoneNumber: string,
         userWallets: Array<CreateWalletKitWalletResponse | ExtendedWallet>
@@ -410,6 +394,59 @@ class UserService {
         // TODO: add other extended wallets
 
         return availableWallets;
+    }
+
+    private static maskUserSecurityQuestions(securityQuestionsSetup: Array<SecurityQuestion>) {
+        return encryptWithAES(
+            JSON.stringify(securityQuestionsSetup),
+            env.SECURITY_QUESTIONS_MASK_KEY,
+            env.SECURITY_QUESTIONS_MASK_IV
+        );
+    }
+
+    private static unmaskUserSecurityQuestions(encryptedSecuritySetup: string) {
+        return JSON.parse(
+            decryptWithAES(
+                encryptedSecuritySetup,
+                env.SECURITY_QUESTIONS_MASK_KEY,
+                env.SECURITY_QUESTIONS_MASK_IV
+            )
+        ) as Array<SecurityQuestion>;
+    }
+
+    private static formatKycStatus(kycStatus: string | null | undefined): KycStatus {
+        if (!kycStatus?.trim()) {
+            return 'unverified';
+        }
+
+        switch (kycStatus) {
+            case 'VERIFIED':
+                return 'verified';
+            case 'IN_REVIEW':
+                return 'in_review';
+            case 'REJECTED':
+                return 'rejected';
+            default:
+                return 'pending';
+        }
+    }
+
+    private static async initializeUserWallet(params: CreateWalletKitWalletParams) {
+        const wallet = await WalletKitService.createUserWallet(params);
+
+        const webhookId = getWebhookId(wallet.network);
+
+        try {
+            await AlchemyNotifyService.addWebhookAddresses([wallet.address], webhookId);
+        } catch (error) {
+            const parsedError = parseUnknownError(error);
+
+            logSync('error', 'Error adding webhook address', {
+                error: JSON.stringify(parsedError, null, 2),
+            });
+        }
+
+        return wallet;
     }
 
     private static async getMnemonicForExtendedWallet(phoneNumber: string) {

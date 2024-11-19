@@ -1,4 +1,4 @@
-import { generateOnrampTransactionInitiatedMessage } from '../src/Resources/utils/bot-message-utils';
+import { generateOnrampTransactionInitiatedMessage } from '../src/resources/utils/bot-message-utils';
 import WhatsAppBotService from '../src/app/WhatsAppBot/WhatsAppBotService';
 import { TEN_THOUSAND } from '../src/constants/numbers';
 

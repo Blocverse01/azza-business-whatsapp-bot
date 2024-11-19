@@ -3,26 +3,27 @@ import {
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { logSync } from '@/Resources/logger';
+import { logSync } from '@/resources/logger';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import { SIXTEEN, TWO, ZERO } from '@/constants/numbers';
-import { decimalToString, fixNumber } from '@/Resources/utils/currency';
-import { generateRandomHexString } from '@/Resources/utils/encryption';
+import { decimalToString, fixNumber } from '@/resources/utils/currency';
+import { generateRandomHexString } from '@/resources/utils/encryption';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import UserService from '@/app/User/UserService';
 import { TransactionResponse } from '@/app/WalletKit/walletKitSchema';
-import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
-import { spawn } from 'child_process';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import path from 'path';
 import { AzzaUserRecord, UserAssetInfo } from '@/app/User/userSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
-import { validateWalletAddress } from '@/Resources/utils/validators';
+import { validateWalletAddress } from '@/resources/utils/validators';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
-import { WaitForTransactionReceiptInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlows/backgroundProcesses/waitForTransactionReceipt';
-import { cleanPhoneNumberInput } from '@/Resources/utils/phone-numbers';
+import { WaitForTransactionReceiptInBackgroundParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
+import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
+import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
+import { WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
 
 enum TransferToWalletFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',
@@ -86,8 +87,6 @@ type DataExchangePayload = {
         transaction_fee: string;
     };
 };
-
-const BACKGROUND_PROCESSES_SCRIPTS_FOLDER = path.join(__dirname, 'backgroundProcesses');
 
 const flowConfig = getFlowConfig('TRANSFER', env.WA_PHONE_NUMBER_ID);
 
@@ -379,23 +378,10 @@ class WhatsAppBotTransferToWalletFlowService {
     private static waitForTransactionReceiptInBackground(
         params: WaitForTransactionReceiptInBackgroundParams
     ) {
-        const transactionParams = JSON.stringify(params);
-
-        // Spawn the background process
-        const backgroundProcess = spawn(
-            'tsx',
-            [
-                path.join(BACKGROUND_PROCESSES_SCRIPTS_FOLDER, 'waitForTransactionReceipt.ts'),
-                transactionParams,
-            ],
-            {
-                stdio: 'inherit', // Optional: Inherit stdio to see logs in the parent process console
-            }
+        spawnInBackground<WaitForTransactionReceiptInBackgroundParams>(
+            params,
+            WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH
         );
-
-        backgroundProcess.on('error', (err) => {
-            logSync('error', 'Failed to start background process:', err);
-        });
     }
 
     public static generateTransferToWalletInitMessage(params: {

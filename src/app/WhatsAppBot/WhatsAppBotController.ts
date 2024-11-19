@@ -1,8 +1,9 @@
+import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
 import { Request, Response } from 'express';
 import env from '@/constants/env';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import UserService from '@/app/User/UserService';
-import { logSync } from '@/Resources/logger';
+import { logSync } from '@/resources/logger';
 import { OK } from '@/constants/status-codes';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import {
@@ -19,14 +20,19 @@ import {
     RATES_COMMAND,
     WhatsAppMessageType,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { handleRequestError } from '@/Resources/requestHelpers/handleRequestError';
-import { requestDecryptedDataFlowExchange } from '@/Resources/requestHelpers/requestPropsGuard';
+import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
+import { requestDecryptedDataFlowExchange } from '@/resources/requestHelpers/requestPropsGuard';
 import WhatsAppBotOffRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOffRampFlowService';
 import { CountryCode } from 'libphonenumber-js';
 import WhatsAppBotAddBeneficiaryFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotAddBeneficiaryFlowService';
 import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
 import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
 import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
+import { getUserAgentThread } from '@/app/aiAgent/agent.helpers';
+import { handleUserPrompt } from '@/app/aiAgent/agent.prompter';
+import { getUserCountryCodeFromPhoneNumberOrThrow } from '@/resources/utils/currency';
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import WhatsAppBotTransactionConfirmationFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransactionConfirmationFlowService';
 
 export type Message = {
     id: string;
@@ -202,16 +208,36 @@ class WhatsAppBotController {
             }
 
             // Handle any other text message
-            const user = await UserService.userExists(from);
+            const [user, messages] = await Promise.all([
+                UserService.getUserByPhoneNumber(from),
+                getUserAgentThread(from),
+            ]);
 
             if (user) {
-                const userWallets = await UserService.getUserWalletAssetsList(from);
-                await WhatsAppBotService.listWalletAddressMessage(
-                    businessPhoneNumberId,
-                    displayName,
-                    from,
-                    userWallets,
-                    'old_account'
+                messages.push({
+                    role: 'user',
+                    content: text.body,
+                });
+
+                const response = await handleUserPrompt({
+                    sessionId: user.id,
+                    messages,
+                    userProfile: {
+                        displayName,
+                        countryCode: getUserCountryCodeFromPhoneNumberOrThrow(
+                            phoneParams.userPhoneNumber
+                        ),
+                    },
+                });
+
+                const responseMessage = MessageGenerators.generateTextMessage(
+                    phoneParams.userPhoneNumber,
+                    response
+                );
+
+                await WhatsAppBotService.sendWhatsappMessage(
+                    phoneParams.businessPhoneNumberId,
+                    responseMessage
                 );
             } else {
                 await WhatsAppBotService.createWalletMessage(
@@ -248,14 +274,7 @@ class WhatsAppBotController {
                         const createdNewUser = await UserService.createUser(from, displayName);
 
                         if (createdNewUser) {
-                            const userAssetsList = await UserService.createUserWallets(from);
-                            await WhatsAppBotService.listWalletAddressMessage(
-                                businessPhoneNumberId,
-                                displayName,
-                                from,
-                                userAssetsList,
-                                'new_account'
-                            );
+                            await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams);
                         }
                         return;
 
@@ -508,6 +527,46 @@ class WhatsAppBotController {
                 requestDecryptedDataFlowExchange(req);
 
             const response = await WhatsAppBotOnRampFlowService.receiveDataExchange(decryptedBody);
+
+            return res.send(
+                WhatsAppBotService.encryptFlowResponse(response, {
+                    initialVectorBuffer,
+                    aesKeyBuffer,
+                })
+            );
+        } catch (error) {
+            handleRequestError(error, res);
+        }
+    }
+
+    public static async transactionConfirmationFlowDataExchange(req: Request, res: Response) {
+        try {
+            const { decryptedBody, initialVectorBuffer, aesKeyBuffer } =
+                requestDecryptedDataFlowExchange(req);
+
+            const response =
+                await WhatsAppBotTransactionConfirmationFlowService.receiveDataExchange(
+                    decryptedBody
+                );
+
+            return res.send(
+                WhatsAppBotService.encryptFlowResponse(response, {
+                    initialVectorBuffer,
+                    aesKeyBuffer,
+                })
+            );
+        } catch (error) {
+            handleRequestError(error, res);
+        }
+    }
+
+    public static async setTransactionPinFlowDataExchange(req: Request, res: Response) {
+        try {
+            const { decryptedBody, initialVectorBuffer, aesKeyBuffer } =
+                requestDecryptedDataFlowExchange(req);
+
+            const response =
+                await WhatsAppBotSetupTransactionPinFlowService.receiveDataExchange(decryptedBody);
 
             return res.send(
                 WhatsAppBotService.encryptFlowResponse(response, {

@@ -1,3 +1,4 @@
+import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
 import { z } from 'zod';
 import 'dotenv/config';
 import { PHONE_NUMBER_IDS } from '@/config/whatsAppPhoneNumbers';
@@ -46,10 +47,10 @@ const envSchema = z.object({
     TRANSACTION_FEE_RECIPIENT: notEmptyStringSchema('TRANSACTION_FEE_RECIPIENT'),
     CRYPTO_PAYOUT_AUTHORIZER_PRIVATE_KEY: notEmptyStringSchema(
         'CRYPTO_PAYOUT_AUTHORIZER_PRIVATE_KEY'
-    ),
+    ).transform((value) => convertBase64ToAsciiString(value)),
     CRYPTO_PAYOUT_AUTHORIZER_PUBLIC_KEY: notEmptyStringSchema(
         'CRYPTO_PAYOUT_AUTHORIZER_PUBLIC_KEY'
-    ),
+    ).transform((value) => convertBase64ToAsciiString(value)),
     CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE: notEmptyStringSchema(
         'CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE'
     ),
@@ -85,6 +86,17 @@ const envSchema = z.object({
     HELIUS_API_KEY: z.string().optional().default(''),
     QUICKNODE_API_KEY: z.string().optional().default(''),
     TRON_GRID_API_KEY: z.string().optional().default(''),
+
+    ///////////////////////////
+    /// User security
+    ///////////////////////////
+    SECURITY_QUESTIONS_MASK_KEY: notEmptyStringSchema('SECURITY_QUESTIONS_MASK_KEY'),
+    SECURITY_QUESTIONS_MASK_IV: notEmptyStringSchema('SECURITY_QUESTIONS_MASK_IV'),
+
+    ///////////////////////////
+    /// AI Agent
+    ///////////////////////////
+    GROQ_API_KEY: notEmptyStringSchema('GROQ_API_KEY'),
 });
 
 const env = envSchema.parse(process.env);

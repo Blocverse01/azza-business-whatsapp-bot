@@ -64,7 +64,7 @@ describe('Bot Commands', () => {
     describe('Bot Commands Handling', () => {
         const phoneParams = {
             userPhoneNumber: '2348143100808',
-            businessPhoneNumberId: PHONE_NUMBER_IDS.AMARA_FROM_AZZA_PHONE_NUMBER_ID,
+            businessPhoneNumberId: PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID,
         };
 
         it(

@@ -16,7 +16,7 @@ import {
 } from '@solana/web3.js';
 import { mnemonicToSeedSync } from '@scure/bip39';
 import { derivePath } from 'ed25519-hd-key';
-import { uint8ArrayToHex } from '@/Resources/utils/encoding';
+import { uint8ArrayToHex } from '@/resources/utils/encoding';
 import {
     CONFIRMED_COMMITMENT,
     TOKEN_PROGRAM_ID,
@@ -25,7 +25,7 @@ import {
 import { ZERO } from '@/constants/numbers';
 import { AccountLayout } from '@/app/ExtendedWallet/solana/layouts';
 import { formatUnits, parseUnits } from 'viem';
-import { getTransactionExplorerUrl } from '@/Resources/web3/explorerUrls';
+import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
 import {
     getAssociatedTokenAddress,
     createTransferCheckedInstruction,

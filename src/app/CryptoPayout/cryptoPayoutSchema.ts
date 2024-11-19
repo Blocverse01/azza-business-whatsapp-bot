@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TokenNames } from '@/Resources/web3/tokens';
+import { TokenNames } from '@/resources/web3/tokens';
 import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 
 export enum CryptoPayoutOrderStatus {

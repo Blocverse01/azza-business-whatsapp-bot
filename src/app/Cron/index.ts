@@ -1,6 +1,6 @@
 import cron, { ScheduledTask } from 'node-cron';
-import { parseUnknownError } from '@/Resources/requestHelpers/handleRequestError';
-import logger from '@/Resources/logger';
+import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
+import logger from '@/resources/logger';
 import CryptoPayoutCronJobService from '@/app/CryptoPayout/CryptoPayoutCronJobService';
 
 type JobKeys = 'crypto-payout';

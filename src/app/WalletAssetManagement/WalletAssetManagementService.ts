@@ -1,11 +1,11 @@
 import { UserAssetInfo } from '@/app/User/userSchema';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
 import env from '@/constants/env';
-import { decimalToString, fixNumber } from '@/Resources/utils/currency';
+import { decimalToString, fixNumber } from '@/resources/utils/currency';
 import { TWO, ZERO } from '@/constants/numbers';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { calculateStableTokenTransferTransactionFee } from '@/app/WalletAssetManagement/config';
-import { validateWalletAddress } from '@/Resources/utils/validators';
+import { validateWalletAddress } from '@/resources/utils/validators';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 

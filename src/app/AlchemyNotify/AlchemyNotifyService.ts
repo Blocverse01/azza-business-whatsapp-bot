@@ -2,8 +2,8 @@ import { type AlchemyAddressActivityWebhookEvent } from '@/app/AlchemyNotify/web
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { getAssetConfigByTokenAddress } from '@/config/whatsAppBot';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
-import { generateReceivedTokenMessage } from '@/Resources/utils/bot-message-utils';
-import { getTransactionExplorerUrl } from '@/Resources/web3/explorerUrls';
+import { generateReceivedTokenMessage } from '@/resources/utils/bot-message-utils';
+import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';

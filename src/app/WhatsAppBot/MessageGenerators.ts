@@ -1,4 +1,5 @@
 import {
+    WhatsAppCtaUrlButtonMessage,
     WhatsAppInteractiveMessage,
     WhatsAppMessageType,
     WhatsAppTextMessage,
@@ -22,6 +23,15 @@ type GenerateInteractiveButtonMessageParams = {
         id: string;
         title: string;
     }>;
+};
+
+type GenerateInteractiveCtaUrlButtonMessageParams = {
+    recipient: string;
+    bodyText: string;
+    ctaUrl: string;
+    ctaText: string;
+    headerText?: string;
+    footerText?: string;
 };
 
 class MessageGenerators {
@@ -65,6 +75,37 @@ class MessageGenerators {
                 body: text,
             },
         } satisfies WhatsAppTextMessage;
+    }
+
+    public static generateInteractiveCtaUrlButtonMessage(
+        params: GenerateInteractiveCtaUrlButtonMessageParams
+    ) {
+        const { recipient, bodyText, ctaUrl, ctaText, headerText, footerText } = params;
+
+        const headerObject = headerText ? { header: { type: 'text', text: headerText } } : {};
+        const footerObject = footerText ? { footer: { text: footerText } } : {};
+
+        return {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: recipient,
+            type: WhatsAppMessageType.INTERACTIVE,
+            interactive: {
+                type: 'cta_url',
+                body: {
+                    text: bodyText,
+                },
+                ...headerObject,
+                ...footerObject,
+                action: {
+                    name: 'cta_url',
+                    parameters: {
+                        url: ctaUrl,
+                        display_text: ctaText,
+                    },
+                },
+            },
+        } satisfies WhatsAppCtaUrlButtonMessage;
     }
 
     public static generateInteractiveButtonMessage(params: GenerateInteractiveButtonMessageParams) {

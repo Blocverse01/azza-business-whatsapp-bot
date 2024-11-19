@@ -10,7 +10,7 @@ import {
     usdtTronConfig,
     usdcSolanaConfig,
     usdtSolanaConfig,
-} from '@/Resources/web3/tokens';
+} from '@/resources/web3/tokens';
 
 export const ENABLED_ASSETS = [
     usdcEthConfig,
@@ -40,4 +40,12 @@ export const getAssetConfigByTokenAddress = (tokenAddress: string) => {
     return ENABLED_ASSETS.find(
         (asset) => asset.tokenAddress.toLowerCase() === tokenAddress.toLowerCase()
     );
+};
+
+export const searchAsset = (searchParams: Partial<Pick<AssetConfig, 'network' | 'tokenName'>>) => {
+    return ENABLED_ASSETS.filter((asset) => {
+        return Object.entries(searchParams).every(([key, value]) => {
+            return asset[key as keyof AssetConfig] === value;
+        });
+    });
 };

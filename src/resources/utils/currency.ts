@@ -1,5 +1,5 @@
 import { TEN, TWO } from '@/constants/numbers';
-import { getPhoneNumberObject } from '@/Resources/utils/phone-numbers';
+import { getPhoneNumberObject } from '@/resources/utils/phone-numbers';
 
 export const formatNumberAsCurrency = (number: number, currency: string): string => {
     const formatter = new Intl.NumberFormat('en-US', {

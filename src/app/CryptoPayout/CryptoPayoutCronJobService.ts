@@ -1,15 +1,15 @@
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { SupportedChain, TransactionResponse } from '@/app/WalletKit/walletKitSchema';
-import { CryptoPayoutOrder } from '@/Db/xata';
+import { CryptoPayoutOrder } from '@/db/xata';
 import { ENABLED_ASSETS } from '@/config/whatsAppBot';
-import { decimalToString } from '@/Resources/utils/currency';
+import { decimalToString } from '@/resources/utils/currency';
 import { getPayoutSpenderWalletAddress } from '@/app/CryptoPayout/config';
 import env from '@/constants/env';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
-import logger, { logSync } from '@/Resources/logger';
+import logger, { logSync } from '@/resources/logger';
 import { spawn } from 'child_process';
-import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 

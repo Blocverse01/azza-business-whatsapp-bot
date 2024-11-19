@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import SumSubService from './SumSubService';
-import { handleRequestError } from '@/Resources/requestHelpers/handleRequestError';
+import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import { webhookPayloadDigestSchema } from '@/app/SumSub/sumSubSchema';
 
 class SumSubController {

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
-import { TokenNames } from '@/Resources/web3/tokens';
+import { TokenNames } from '@/resources/web3/tokens';
 import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
-import { UserRecord } from '@/Db/xata';
+import { UserRecord } from '@/db/xata';
 import { SelectedPick } from '@xata.io/client';
 
 export const userAssetSchema = z.object({

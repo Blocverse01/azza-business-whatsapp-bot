@@ -1,8 +1,8 @@
 import { SendOfframpRequestPayload } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
-import logger, { logSync } from '@/Resources/logger';
+import logger, { logSync } from '@/resources/logger';
 import { SupportedChain, TransactionResponse } from '@/app/WalletKit/walletKitSchema';
 import {
     ExtendedWalletSupportedNetworks,

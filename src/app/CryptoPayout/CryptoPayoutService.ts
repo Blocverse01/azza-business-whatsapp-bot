@@ -1,4 +1,4 @@
-import { dbClient, sqlClient } from '@/Db/dbClient';
+import { dbClient, sqlClient } from '@/db/dbClient';
 import {
     CreateCryptoPayoutOrderParams,
     CryptoPayoutAuthorizationPayload,
@@ -10,10 +10,10 @@ import {
     convertBase64ToAsciiString,
     decryptWithPrivateKey,
     encryptWithPublicKey,
-} from '@/Resources/utils/encryption';
+} from '@/resources/utils/encryption';
 import env from '@/constants/env';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { CryptoPayoutOrder } from '@/Db/xata';
+import { CryptoPayoutOrder } from '@/db/xata';
 
 class CryptoPayoutService {
     private static readonly cryptoPayoutOrderRepository = dbClient.CryptoPayoutOrder;
@@ -27,7 +27,7 @@ class CryptoPayoutService {
 
         return encryptWithPublicKey(
             JSON.stringify(cryptoPayoutTrigger),
-            convertBase64ToAsciiString(env.CRYPTO_PAYOUT_AUTHORIZER_PUBLIC_KEY)
+            env.CRYPTO_PAYOUT_AUTHORIZER_PUBLIC_KEY
         );
     }
 

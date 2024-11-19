@@ -1,6 +1,6 @@
 import express from 'express';
 import WhatsAppBotController from '@/app/WhatsAppBot/WhatsAppBotController';
-import decryptFlowDataExchange from '@/Resources/middlewares/decryptFlowDataExchange';
+import decryptFlowDataExchange from '@/resources/middlewares/decryptFlowDataExchange';
 
 const whatsappBotRoutes = express.Router();
 
@@ -26,6 +26,16 @@ whatsappBotRoutes
         '/flows/onramp-data-exchange',
         decryptFlowDataExchange,
         WhatsAppBotController.onRampFlowDataExchange
+    )
+    .post(
+        '/flows/transaction-confirmation',
+        decryptFlowDataExchange,
+        WhatsAppBotController.transactionConfirmationFlowDataExchange
+    )
+    .post(
+        '/flows/set-transaction-pin',
+        decryptFlowDataExchange,
+        WhatsAppBotController.setTransactionPinFlowDataExchange
     );
 
 export default whatsappBotRoutes;

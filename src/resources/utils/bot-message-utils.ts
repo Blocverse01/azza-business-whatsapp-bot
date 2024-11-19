@@ -2,7 +2,7 @@ import {
     formatNumberAsCurrency,
     getCountryFlagEmoji,
     prettifyNumber,
-} from '@/Resources/utils/currency';
+} from '@/resources/utils/currency';
 import { UserAssetInfo } from '@/app/User/userSchema';
 import { TWO } from '@/constants/numbers';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';

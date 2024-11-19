@@ -1,6 +1,6 @@
 import express from 'express';
 import { OK } from '@/constants/status-codes';
-import { benchmark } from '@/Resources/utils/benchmark';
+import { benchmark } from '@/resources/utils/benchmark';
 import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService';
 import FiatRampsApiService from '@/app/FiatRamp/apiService/FiatRampsApiService';
 

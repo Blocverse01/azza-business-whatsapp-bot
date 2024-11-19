@@ -43,7 +43,7 @@ import {
 } from '@/app/FiatRamp/fiatRampSchema';
 import { HUNDRED } from '@/constants/numbers';
 import { CountryCode } from 'libphonenumber-js';
-import { defaultAmountFixer } from '@/Resources/utils/currency';
+import { defaultAmountFixer } from '@/resources/utils/currency';
 
 class FiatRampsApiService {
     private static API_URL = env.FIAT_RAMPS_PROVIDER_API_URL;

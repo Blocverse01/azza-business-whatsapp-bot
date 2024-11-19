@@ -1,9 +1,8 @@
 import express, { type Request } from 'express';
-import cors from 'cors';
 import { NOT_FOUND, OK } from '@/constants/status-codes';
 import env from '@/constants/env';
-import apiRoutes from './Routes';
-import logger from '@/Resources/logger';
+import apiRoutes from './routes';
+import logger from '@/resources/logger';
 import CronHandler from '@/app/Cron';
 import { CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION } from '@/config/backgroundJobs';
 import { addAlchemyContextToRequest } from '@/app/AlchemyNotify/webhookUtils';

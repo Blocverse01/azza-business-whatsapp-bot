@@ -1,9 +1,9 @@
 import WalletKitService from '@/app/WalletKit/WalletKitService';
-import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
-import { HttpException } from '@/Resources/exceptions/HttpException';
+import { HttpException } from '@/resources/exceptions/HttpException';
 import { SupportedChain, TransactionResponse } from '@/app/WalletKit/walletKitSchema';
 import {
     ExtendedWalletSupportedNetworks,
@@ -54,10 +54,14 @@ async function processInBackground(params: WaitForTransactionReceiptInBackground
                 : transactionDetails.explorerUrl;
 
         if (transactionDetails.status === 'success' && transactionHash) {
-            const message = MessageGenerators.generateTextMessage(
-                userId,
-                `✅ Your Transaction with the following details has been completed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${destination}${transactionId !== transactionHash ? `\n\n➡️ Request ID: ${transactionId}` : ''}\n\n➡️ Transaction Hash: ${transactionHash}\n\n🔍 View In Explorer: ${explorerUrl}`
-            );
+            const message = MessageGenerators.generateInteractiveCtaUrlButtonMessage({
+                bodyText: `✅ Your Transaction with the following details has been completed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${destination}${transactionId !== transactionHash ? `\n\n➡️ Request ID: ${transactionId}` : ''}\n\n➡️ Transaction Hash: ${transactionHash}`,
+                ctaText: 'View In Explorer',
+                ctaUrl: explorerUrl!,
+                recipient: userId,
+                headerText: 'Transaction Completed',
+                footerText: 'Thank you for using Azza!',
+            });
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
         }

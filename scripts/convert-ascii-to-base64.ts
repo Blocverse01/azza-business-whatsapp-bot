@@ -1,6 +1,6 @@
 // A script to generate a base64 string from an input.
 
-import { convertAsciiStringToBase64 } from '@/Resources/utils/encryption';
+import { convertAsciiStringToBase64 } from '../src/resources/utils/encryption';
 import * as process from 'node:process';
 
 const input = process.argv[2];

@@ -1,15 +1,15 @@
-import { AssetConfig } from '@/Resources/web3/tokens';
+import { AssetConfig } from '@/resources/web3/tokens';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { DropdownOption, FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
-import logger from '@/Resources/logger';
+import logger from '@/resources/logger';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { CountryCode } from 'libphonenumber-js';
-import { parseUnknownError } from '@/Resources/requestHelpers/handleRequestError';
-import { generateRandomHexString } from '@/Resources/utils/encryption';
+import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
+import { generateRandomHexString } from '@/resources/utils/encryption';
 import { SIXTEEN } from '@/constants/numbers';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import env from '@/constants/env';

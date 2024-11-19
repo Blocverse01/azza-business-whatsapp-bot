@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { isHttpError } from '../exceptions/HttpException';
 import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
-import logger from '@/Resources/logger';
+import logger from '@/resources/logger';
 import { isAxiosError } from 'axios';
 
 const isDefaultError = (error: unknown): error is Error => {

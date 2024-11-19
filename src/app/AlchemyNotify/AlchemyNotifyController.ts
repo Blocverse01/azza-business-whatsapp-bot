@@ -7,7 +7,7 @@ import {
 import { type Request, type Response } from 'express';
 import { BAD_REQUEST, FORBIDDEN, OK } from '@/constants/status-codes';
 import { SUPPORTED_CHAINS, SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import { handleRequestError } from '@/Resources/requestHelpers/handleRequestError';
+import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import AlchemyNotifyService from '@/app/AlchemyNotify/AlchemyNotifyService';
 
 class AlchemyNotifyController {

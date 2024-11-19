@@ -10,7 +10,7 @@ import {
     TransferTransactionResponse,
 } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { Keypair, PublicKey } from '@solana/web3.js';
-import { hexToUint8Array } from '@/Resources/utils/encoding';
+import { hexToUint8Array } from '@/resources/utils/encoding';
 import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
 
 class ExtendedSolanaWallet extends ExtendedWallet {

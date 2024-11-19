@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 import { transactionWebhookPayloadSchema } from '@/app/FiatRamp/fiatRampSchema';
 import { OK } from '@/constants/status-codes';
-import { handleRequestError } from '@/Resources/requestHelpers/handleRequestError';
-import { prettifyNumber } from '@/Resources/utils/currency';
+import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
+import { prettifyNumber } from '@/resources/utils/currency';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import logger from '@/Resources/logger';
+import logger from '@/resources/logger';
 import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
 import { SUPPORTED_CHAINS } from '@/app/WalletKit/walletKitSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
-import { TokenNames } from '@/Resources/web3/tokens';
+import { TokenNames } from '@/resources/web3/tokens';
 
 class FiatRampServiceController {
     // TODO: replace with better authorization guards

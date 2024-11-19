@@ -1,32 +1,32 @@
 import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
-import { AssetConfig, TokenNames } from '@/Resources/web3/tokens';
+import { AssetConfig, TokenNames } from '@/resources/web3/tokens';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { generateRandomHexString } from '@/Resources/utils/encryption';
+import { generateRandomHexString } from '@/resources/utils/encryption';
 import { SIXTEEN, TWO } from '@/constants/numbers';
-import logger from '@/Resources/logger';
+import logger from '@/resources/logger';
 import {
     defaultAmountFixer,
     formatNumberAsCurrency,
     getCountryFlagEmoji,
     prettifyNumber,
-} from '@/Resources/utils/currency';
+} from '@/resources/utils/currency';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { CountryCode } from 'libphonenumber-js';
 import UserService from '@/app/User/UserService';
-import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     generateOnrampTransactionInitiatedMessage,
     generateOnrampTransactionInitiatedWithMomoPaymentMessage,
-} from '@/Resources/utils/bot-message-utils';
-import { validateWalletAddress } from '@/Resources/utils/validators';
+} from '@/resources/utils/bot-message-utils';
+import { validateWalletAddress } from '@/resources/utils/validators';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import env from '@/constants/env';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';

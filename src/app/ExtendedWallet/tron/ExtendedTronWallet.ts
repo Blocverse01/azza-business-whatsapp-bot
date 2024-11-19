@@ -16,7 +16,7 @@ import {
     TronNode,
 } from '@/app/ExtendedWallet/tron/config';
 import { TronWeb } from 'tronweb';
-import { getTransactionExplorerUrl } from '@/Resources/web3/explorerUrls';
+import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
 
 class ExtendedTronWallet extends ExtendedWallet {
     private readonly tronNode: TronNode;

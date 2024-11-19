@@ -1,5 +1,5 @@
 import CryptoPayoutService from '../src/app/CryptoPayout/CryptoPayoutService';
-import { TokenNames } from '../src/Resources/web3/tokens';
+import { TokenNames } from '../src/resources/web3/tokens';
 import { TEN_THOUSAND } from '../src/constants/numbers';
 import CryptoPayoutCronJobService, {
     CryptoPendingOrderGroup,

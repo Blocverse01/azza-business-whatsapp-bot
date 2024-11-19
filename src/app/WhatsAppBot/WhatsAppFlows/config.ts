@@ -1,16 +1,24 @@
 import { PHONE_NUMBER_IDS } from '@/config/whatsAppPhoneNumbers';
 import { FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 
-type PhoneNumberId = (typeof PHONE_NUMBER_IDS)[keyof typeof PHONE_NUMBER_IDS];
+export type PhoneNumberId = (typeof PHONE_NUMBER_IDS)[keyof typeof PHONE_NUMBER_IDS];
 
-type Flows = 'ONRAMP' | 'OFFRAMP' | 'TRANSFER' | 'ADD_BENEFICIARY';
+type Flows =
+    | 'ONRAMP'
+    | 'OFFRAMP'
+    | 'TRANSFER'
+    | 'ADD_BENEFICIARY'
+    | 'TRANSACTION_CONFIRMATION'
+    | 'SET_TRANSACTION_PIN';
+
+export type FlowConfig = {
+    flowId: string;
+    flowMode: FlowMode;
+};
 
 type FlowConfigs = {
     [key in Flows]: {
-        [key in PhoneNumberId]: {
-            flowId: string;
-            flowMode: FlowMode;
-        }; // WA_PHONE_NUMBER_ID -> Flow ID, Flow Mode
+        [key in PhoneNumberId]: FlowConfig; // WA_PHONE_NUMBER_ID -> Flow ID, Flow Mode
     };
 };
 
@@ -20,7 +28,7 @@ const flowConfigs: FlowConfigs = {
             flowId: '457607423727887',
             flowMode: 'draft',
         },
-        [PHONE_NUMBER_IDS.AMARA_FROM_AZZA_PHONE_NUMBER_ID]: {
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '1207890117023139',
             flowMode: 'published',
         },
@@ -30,7 +38,7 @@ const flowConfigs: FlowConfigs = {
             flowId: '1011245846972252',
             flowMode: 'draft',
         },
-        [PHONE_NUMBER_IDS.AMARA_FROM_AZZA_PHONE_NUMBER_ID]: {
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '1558631018412295',
             flowMode: 'published',
         },
@@ -40,7 +48,7 @@ const flowConfigs: FlowConfigs = {
             flowId: '464881709776668',
             flowMode: 'draft',
         },
-        [PHONE_NUMBER_IDS.AMARA_FROM_AZZA_PHONE_NUMBER_ID]: {
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '830879365794971',
             flowMode: 'published',
         },
@@ -50,7 +58,29 @@ const flowConfigs: FlowConfigs = {
             flowId: '482861261039877',
             flowMode: 'published',
         },
-        [PHONE_NUMBER_IDS.AMARA_FROM_AZZA_PHONE_NUMBER_ID]: {
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
+            flowId: '409232385504910',
+            flowMode: 'published',
+        },
+    },
+    TRANSACTION_CONFIRMATION: {
+        [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
+            flowId: '921577032733495',
+            flowMode: 'draft',
+        },
+        // Todo: Update flowId for production number
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
+            flowId: '409232385504910',
+            flowMode: 'published',
+        },
+    },
+    SET_TRANSACTION_PIN: {
+        [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
+            flowId: '952767080217721',
+            flowMode: 'draft',
+        },
+        // Todo: Update flowId for production number
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '409232385504910',
             flowMode: 'published',
         },

@@ -2,7 +2,7 @@ import {
     getPhoneNumberObject,
     cleanPhoneNumberInput,
     validatePhoneNumber,
-} from '../src/Resources/utils/phone-numbers';
+} from '../src/resources/utils/phone-numbers';
 
 describe('Phone number utils', () => {
     it('Should standardise phone number', () => {

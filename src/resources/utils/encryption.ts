@@ -98,3 +98,28 @@ export const convertAsciiStringToBase64 = (key: string) => Buffer.from(key).toSt
 
 export const generateRandomHexString = (length: number) =>
     crypto.randomBytes(length).toString('hex');
+
+// Symmetric encryption
+export const encryptWithAES = (data: string, key: string, iv: string) => {
+    const cipher = crypto.createCipheriv(
+        'aes-256-gcm',
+        Buffer.from(key, 'hex'),
+        Buffer.from(iv, 'hex')
+    );
+    const encrypted = Buffer.concat([cipher.update(data, 'utf-8'), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+    return Buffer.concat([encrypted, authTag]).toString('hex');
+};
+
+export const decryptWithAES = (encryptedData: string, key: string, iv: string) => {
+    const decipher = crypto.createDecipheriv(
+        'aes-256-gcm',
+        Buffer.from(key, 'hex'),
+        Buffer.from(iv, 'hex')
+    );
+    const encryptedDataBuffer = Buffer.from(encryptedData, 'hex');
+    const encryptedDataBody = encryptedDataBuffer.subarray(0, -16);
+    const encryptedDataTag = encryptedDataBuffer.subarray(-16);
+    decipher.setAuthTag(encryptedDataTag);
+    return Buffer.concat([decipher.update(encryptedDataBody), decipher.final()]).toString('utf-8');
+};

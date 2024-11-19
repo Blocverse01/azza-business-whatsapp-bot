@@ -1,9 +1,9 @@
 import express from 'express';
 import whatsappBotRoutes from './whatsappBotRoutes';
-import sumSubRoutes from '@/Routes/sumSubRoutes';
-import fiatRampRoutes from '@/Routes/fiatRampRoutes';
-import alchemyNotifyRoutes from '@/Routes/alchemyNotifyRoutes';
-import testRoutes from '@/Routes/testRoutes';
+import sumSubRoutes from '@/routes/sumSubRoutes';
+import fiatRampRoutes from '@/routes/fiatRampRoutes';
+import alchemyNotifyRoutes from '@/routes/alchemyNotifyRoutes';
+import testRoutes from '@/routes/testRoutes';
 
 const apiRoutes = express
     .Router()

@@ -3,7 +3,7 @@ import {
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { TokenNames } from '@/Resources/web3/tokens';
+import { TokenNames } from '@/resources/web3/tokens';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import {
     BankBeneficiary,
@@ -17,19 +17,19 @@ import {
     formatNumberAsCurrency,
     getCountryFlagEmoji,
     prettifyNumber,
-} from '@/Resources/utils/currency';
+} from '@/resources/utils/currency';
 import UserService from '@/app/User/UserService';
-import { logServiceError } from '@/Resources/requestHelpers/handleRequestError';
-import { logSync } from '@/Resources/logger';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
+import { logSync } from '@/resources/logger';
 import { ProcessOfframpInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlows/backgroundProcesses/processOfframp';
 import { spawn } from 'child_process';
 import path from 'path';
-import { generateRandomHexString } from '@/Resources/utils/encryption';
+import { generateRandomHexString } from '@/resources/utils/encryption';
 import { SIXTEEN, THREE, TWO } from '@/constants/numbers';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { UserAssetInfo } from '@/app/User/userSchema';
-import { generateOfframpProcessingMessage } from '@/Resources/utils/bot-message-utils';
+import { generateOfframpProcessingMessage } from '@/resources/utils/bot-message-utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import env from '@/constants/env';

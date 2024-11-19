@@ -1,4 +1,4 @@
-import { getUserCountryCodeFromPhoneNumberOrThrow } from '../src/Resources/utils/currency';
+import { getUserCountryCodeFromPhoneNumberOrThrow } from '../src/resources/utils/currency';
 
 describe('Currency Utils', () => {
     it('can get user country code from phone number', () => {
