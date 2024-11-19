@@ -202,6 +202,20 @@ class WalletKitService {
 
         return response.data;
     }
+
+    public static async getWalletsByNetwork(network: SupportedChain) {
+        const requestQueryParams = new URLSearchParams({
+            network,
+        });
+
+        const requestUrl = `${this.API_URL}${WALLETS}?${requestQueryParams.toString()}`;
+
+        const response = await axios.get<CreateWalletKitWalletResponse[]>(requestUrl, {
+            headers: this.requiredRequestHeaders,
+        });
+
+        return response.data;
+    }
 }
 
 export default WalletKitService;
