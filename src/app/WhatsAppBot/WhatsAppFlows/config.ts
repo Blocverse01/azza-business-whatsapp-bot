@@ -68,9 +68,8 @@ const flowConfigs: FlowConfigs = {
             flowId: '921577032733495',
             flowMode: 'draft',
         },
-        // Todo: Update flowId for production number
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
-            flowId: '409232385504910',
+            flowId: '550125967814940',
             flowMode: 'published',
         },
     },
@@ -79,9 +78,8 @@ const flowConfigs: FlowConfigs = {
             flowId: '952767080217721',
             flowMode: 'draft',
         },
-        // Todo: Update flowId for production number
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
-            flowId: '409232385504910',
+            flowId: '542347058685024',
             flowMode: 'published',
         },
     },
