@@ -32,7 +32,7 @@ export const toolSet = {
     }),
     depositCrypto: tool({
         description:
-            'Use this tool to handle the user request to deposit a cryptocurrency asset into their wallet. Ensure that the user has specified the asset and blockchain network for the deposit. If these are missing, prompt the user to provide them before proceeding.',
+            'Use this tool to handle the user request to deposit a cryptocurrency asset into their wallet. Ensure that the user has specified the asset and blockchain network for the deposit. If these are missing, prompt the user to provide them before proceeding. The sole purpose of this tool is to respond with the deposit address for the specified asset and network. The response should not include any additional information or instructions.',
         parameters: depositCryptoAssetParamsSchema,
         execute: async (params) => {
             return executeDepositCryptoAsset(params);

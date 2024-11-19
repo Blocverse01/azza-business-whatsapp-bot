@@ -289,16 +289,14 @@ export const executeDepositCryptoAsset = async (params: DepositCryptoAssetParams
         targetAsset.listItemId
     );
 
-    const preWalletAddressMessage = MessageGenerators.generateTextMessage(
+    const walletAddressMessage = MessageGenerators.generateTextMessage(
         unmaskedUserIdentifier,
-        `To deposit ${targetAsset.tokenName} on ${targetAsset.network} to your wallet, copy the wallet address below👇and send from an external wallet or exchange`
+        userWalletInfo.walletAddress
     );
 
-    await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, preWalletAddressMessage);
+    await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, walletAddressMessage);
 
     return {
-        walletAddress: userWalletInfo.walletAddress,
-        nextStep:
-            'Reply the user with a message that contains ONLY the wallet address in the payload',
+        nextSteps: `1. Copy the wallet address above 👆. \n2. Send ${targetAsset.tokenName} on ${targetAsset.network} from an external wallet or exchange to the copied wallet address.`,
     };
 };

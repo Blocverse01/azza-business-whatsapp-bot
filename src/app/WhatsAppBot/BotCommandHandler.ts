@@ -53,6 +53,9 @@ class BotCommandHandler {
             case 'ENTITY_BALANCE':
                 await BotCommandHandler.getAllBalances(phoneParams, botCommand.params);
                 break;
+            case 'DEPOSIT':
+                await BotCommandHandler.depositAsset(phoneParams, botCommand.params);
+                break;
             default:
                 return {
                     handled: false,
@@ -146,6 +149,27 @@ class BotCommandHandler {
         return await WhatsAppBotService.handleWithdrawAssetAction(phoneParams, supportedAsset);
     }
 
+    private static async depositAsset(
+        phoneParams: PhoneNumberParams,
+        params: TradeAssetBotCommandMatchGroups
+    ) {
+        const supportedAsset = assetInteractiveButtonsIds.find(
+            (assetInteractiveButtonId) =>
+                assetInteractiveButtonId ===
+                `${params.asset.toLowerCase()}-${params.network.toLowerCase()}`
+        );
+
+        if (!supportedAsset) {
+            return;
+        }
+
+        return await WhatsAppBotService.depositAssetCommandHandler(
+            phoneParams.userPhoneNumber,
+            phoneParams.businessPhoneNumberId,
+            supportedAsset
+        );
+    }
+
     private static async getAllBalances(
         phoneParams: PhoneNumberParams,
         params?: Partial<TradeAssetBotCommandMatchGroups>
@@ -184,6 +208,7 @@ class BotCommandHandler {
             case 'SELL_ASSET':
             case 'BUY_ASSET':
             case 'TRANSFER':
+            case 'DEPOSIT':
                 const { asset, network } = extractGroups<TradeAssetBotCommandMatchGroups>(
                     command,
                     BOT_COMMANDS_REGEX[commandName]

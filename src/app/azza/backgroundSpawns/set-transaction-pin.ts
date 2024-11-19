@@ -11,15 +11,25 @@ async function executeScript(params: SetTransactionPinParams) {
     try {
         await WhatsAppBotService.sendWhatsappMessage(
             env.WA_PHONE_NUMBER_ID,
-            MessageGenerators.generateTextMessage(params.userId, '🚀 Setting transaction pin...')
+            MessageGenerators.generateTextMessage(params.userId, '🚀 Securing your account 🔐...')
         );
 
         const response = await setTransactionPin(params);
 
         if (response.pinSet) {
+            const possibleActions = [
+                { emoji: '🔁', description: 'Transfer assets to contacts and wallet addresses' },
+                { emoji: '📈', description: 'Check your wallet balance' },
+                { emoji: '💰', description: 'Deposit crypto into your wallet' },
+            ];
+
+            const actionsList = possibleActions
+                .map((action) => `• ${action.emoji} ${action.description}`)
+                .join('\n');
+
             const message = MessageGenerators.generateTextMessage(
                 params.userId,
-                '✅ Transaction pin has been successfully set.\n🫵 Only you should know your transaction pin, do not share it with anyone.'
+                `✅ *Transaction PIN successfully set!*\n\n🔒 _Keep it safe—your PIN is personal and should not be shared._\n\nHere's what you can do next on Azza:\n\n${actionsList}\n\n💬 Type *help* to see all commands or try slash commands like */transfer*, */balance*, or */deposit* to get started!`
             );
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);

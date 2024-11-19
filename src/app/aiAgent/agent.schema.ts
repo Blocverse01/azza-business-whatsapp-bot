@@ -63,12 +63,12 @@ export const depositCryptoAssetParamsSchema = z
         cryptoCurrencySymbol: z
             .nativeEnum(TokenNames)
             .describe(
-                'The symbol of the cryptocurrency to deposit, e.g., USDT, USDC, ETH. Confirm with the user.'
+                'The symbol of the cryptocurrency to deposit, e.g., USDT, USDC, ETH. Never assume the cryptocurrency, the user has to specify it.'
             ),
         blockchainNetwork: supportedChainSchema
             .or(extendedWalletSupportedNetworks)
             .describe(
-                'The blockchain network, such as Ethereum or Binance Smart Chain. Always confirm with the user.'
+                'The blockchain network, such as Ethereum or Binance Smart Chain. Never assume the blockchain network, the user has to specify it.'
             ),
     })
     .merge(baseWalletToolSchema);

@@ -12,7 +12,6 @@ import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import UserService from '@/app/User/UserService';
 import { TransactionResponse } from '@/app/WalletKit/walletKitSchema';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import path from 'path';
 import { AzzaUserRecord, UserAssetInfo } from '@/app/User/userSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -40,6 +39,7 @@ type ScreenDataPayload = {
         asset_id: string;
         user_id: string;
         user_balance: string;
+        form_sub_text: string;
         init_values?: {
             wallet_address: string;
             amount: string;
@@ -89,6 +89,9 @@ type DataExchangePayload = {
 };
 
 const flowConfig = getFlowConfig('TRANSFER', env.WA_PHONE_NUMBER_ID);
+
+const TRANSFER_DETAILS_FORM_SUB_TEXT =
+    'Enter a wallet address OR a phone number to send crypto to.';
 
 class WhatsAppBotTransferToWalletFlowService {
     private static FLOW_MODE: FlowMode = flowConfig.flowMode;
@@ -209,6 +212,7 @@ class WhatsAppBotTransferToWalletFlowService {
                         amount: data.amount,
                         azza_phone_number: azzaUserRecipient?.phoneNumber ?? data.azza_phone_number,
                     },
+                    form_sub_text: TRANSFER_DETAILS_FORM_SUB_TEXT,
                 } satisfies ScreenDataPayload['TRANSACTION_DETAILS'],
             };
         }
@@ -423,11 +427,7 @@ class WhatsAppBotTransferToWalletFlowService {
                                 asset_id: asset.listItemId,
                                 user_id: recipient,
                                 user_balance: userBalanceMessage,
-                                init_values: {
-                                    wallet_address: '',
-                                    amount: '',
-                                    azza_phone_number: '',
-                                },
+                                form_sub_text: TRANSFER_DETAILS_FORM_SUB_TEXT,
                             } satisfies ScreenDataPayload['TRANSACTION_DETAILS'],
                         },
                     },

@@ -102,7 +102,7 @@ class WhatsAppBotService {
             phoneParams.businessPhoneNumberId as PhoneNumberId
         ).createSetupTransactionPinFlowMessage({
             messageBody:
-                'You have successfully created a wallet. Let us set up your transaction pin to protect your transactions.',
+                '🎉You have successfully created a wallet.\n🔐Please set up a transaction pin to secure your account.',
             messageRecipient: phoneParams.userPhoneNumber,
         });
 
@@ -418,6 +418,13 @@ class WhatsAppBotService {
         };
 
         await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, messagePayload);
+
+        const guideMessage = MessageGenerators.generateTextMessage(
+            userPhoneNumber,
+            `Steps to deposit ${asset.name} (${asset.network}):\n\n1. Copy the wallet address above 👆\n2. Go to your wallet or exchange where you have ${asset.name} on ${asset.network} and send the desired amount to the copied address\n3. Wait for the transaction to be confirmed\n4. You will receive a notification once the transaction is successful`
+        );
+
+        await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, guideMessage);
     }
 
     public static determineInteractiveButtonReplyAction(
@@ -806,6 +813,10 @@ class WhatsAppBotService {
     }
 
     public static async getUserCountryFromPhoneNumber(userPhoneNumber: string) {
+        if (!FiatRampService.SERVICE_ENABLED) {
+            return undefined;
+        }
+
         const supportedCountries = await FiatRampService.getSupportedCurrencies();
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
 
