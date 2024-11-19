@@ -186,6 +186,18 @@ class WhatsAppBotController {
 
         // ============== HANDLE TEXT MESSAGES ============== //
         if (type === WhatsAppMessageType.TEXT) {
+            const [user, messages] = await Promise.all([
+                UserService.getUserByPhoneNumber(from),
+                getUserAgentThread(from),
+            ]);
+
+            if (user && !user?.transactionPinHash) {
+                await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams, {
+                    displayName,
+                });
+                return;
+            }
+
             const botCommand = BotCommandHandler.isCommand(text.body);
 
             // Handle bot commands
@@ -208,10 +220,6 @@ class WhatsAppBotController {
             }
 
             // Handle any other text message
-            const [user, messages] = await Promise.all([
-                UserService.getUserByPhoneNumber(from),
-                getUserAgentThread(from),
-            ]);
 
             if (user) {
                 messages.push({
