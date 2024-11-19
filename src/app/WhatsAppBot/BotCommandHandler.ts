@@ -143,6 +143,10 @@ class BotCommandHandler {
         );
 
         if (!supportedAsset) {
+            await WhatsAppBotService.sendArbitraryTextMessage(
+                phoneParams.userPhoneNumber,
+                `${params.asset} on ${params.network} is not supported yet.`
+            );
             return;
         }
 

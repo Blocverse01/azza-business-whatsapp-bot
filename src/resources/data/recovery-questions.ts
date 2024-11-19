@@ -1,18 +1,34 @@
 export const RECOVERY_QUESTIONS = {
+    FIRST_PET_BREED: {
+        title: 'What was the breed of your first pet?',
+        id: 'first-pet-breed',
+    },
+    FIRST_CRYPTO_PLATFORM: {
+        title: 'Which platform did you use for your first cryptocurrency purchase?',
+        id: 'first-crypto-platform',
+    },
+    CHILDHOOD_STREET: {
+        title: 'What was the name of the street you grew up on?',
+        id: 'childhood-street',
+    },
     FIRST_PHONE_MODEL: {
-        title: 'What was your first phone model?',
+        title: 'What was the model of your first phone?',
         id: 'first-phone-model',
     },
-    FIRST_EXCHANGE: {
-        title: 'What exchange did you first buy crypto on?',
-        id: 'first-exchange',
+    FAVORITE_CHILDHOOD_TV_SHOW: {
+        title: 'What is the name of your favorite childhood TV show?',
+        id: 'favorite-childhood-tv-show',
     },
-    FAVORITE_ANIMAL: {
-        title: 'What is your favorite animal?',
-        id: 'favorite-animal',
+    FIRST_EMPLOYER: {
+        title: 'What was the name of your first employer?',
+        id: 'first-employer',
     },
-    FIRST_PET_NAME: {
-        title: 'What was your first pet’s name?',
-        id: 'first-pet-name',
+    FIRST_MEMORABLE_VACATION: {
+        title: 'Where did you spend your first memorable holiday or vacation?',
+        id: 'first-memorable-vacation',
+    },
+    FIRST_CRYPTO_PURCHASE: {
+        title: 'What is the name of the first cryptocurrency you purchased?',
+        id: 'first-crypto-purchase',
     },
 } as const;

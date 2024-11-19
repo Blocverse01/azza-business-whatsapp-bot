@@ -31,18 +31,16 @@ const RECOVERY_QUESTIONS_FORM_DESCRIPTION =
     'Please set up your recovery questions. Answer at least 2 questions';
 const MIN_RECOVERY_QUESTIONS_ERROR = 'Please answer at least 2 security questions';
 
-const SECURITY_QUESTIONS_TO_USE: Record<
-    `question_${number}`,
-    {
-        title: string;
-        id: string;
+const getRandomSecurityQuestions = (number: number) => {
+    const questions = Object.values(RECOVERY_QUESTIONS);
+    const randomQuestions = [];
+    for (let i = 0; i < number; i++) {
+        const randomIndex = Math.floor(Math.random() * questions.length);
+        randomQuestions.push(questions[randomIndex]);
+        questions.splice(randomIndex, 1);
     }
-> = {
-    question_1: RECOVERY_QUESTIONS.FIRST_PHONE_MODEL,
-    question_2: RECOVERY_QUESTIONS.FIRST_EXCHANGE,
-    question_3: RECOVERY_QUESTIONS.FAVORITE_ANIMAL,
-    question_4: RECOVERY_QUESTIONS.FIRST_PET_NAME,
-} as const;
+    return randomQuestions;
+};
 
 type ScreenDataPayload = {
     [SetupTransactionPinFlowScreens.SET_TRANSACTION_PIN]: {
@@ -61,6 +59,13 @@ type ScreenDataPayload = {
         };
         transaction_pin: string;
         security_questions_error?: string;
+        all_questions_list: Record<
+            `question_${number}`,
+            {
+                title: string;
+                id: string;
+            }
+        >;
         user_id: string;
     };
 };
@@ -73,7 +78,14 @@ type DataExchangePayload = {
     RECOVERY_QUESTIONS: {
         transaction_pin: string;
         user_id: string;
-        [key: `question_${number}`]: string;
+        [key: `question_${number}`]: string; // Answer to the question
+        all_questions_list: Record<
+            `question_${number}`,
+            {
+                title: string;
+                id: string;
+            }
+        >;
     };
 };
 
@@ -197,6 +209,21 @@ class WhatsAppBotSetupTransactionPinFlowService {
             };
         }
 
+        const randomQuestions = getRandomSecurityQuestions(4);
+
+        const SECURITY_QUESTIONS_TO_USE: Record<
+            `question_${number}`,
+            {
+                title: string;
+                id: string;
+            }
+        > = {
+            question_1: randomQuestions[0],
+            question_2: randomQuestions[1],
+            question_3: randomQuestions[2],
+            question_4: randomQuestions[3],
+        } as const;
+
         return {
             screen: SetupTransactionPinFlowScreens.RECOVERY_QUESTIONS,
             data: {
@@ -204,6 +231,7 @@ class WhatsAppBotSetupTransactionPinFlowService {
                 ...SECURITY_QUESTIONS_TO_USE,
                 transaction_pin: data.transaction_pin,
                 user_id: data.user_id,
+                all_questions_list: SECURITY_QUESTIONS_TO_USE,
             } as ScreenDataPayload[SetupTransactionPinFlowScreens.RECOVERY_QUESTIONS],
         };
     }
@@ -212,14 +240,22 @@ class WhatsAppBotSetupTransactionPinFlowService {
         data: DataExchangePayload['RECOVERY_QUESTIONS'],
         flowToken: string
     ) {
-        const { transaction_pin, question_1, question_2, question_3, question_4, user_id } = data;
+        const {
+            transaction_pin,
+            question_1,
+            question_2,
+            question_3,
+            question_4,
+            user_id,
+            all_questions_list,
+        } = data;
 
         const questionsToSave: Array<SecurityQuestion> = [];
 
         [question_1 ?? '', question_2 ?? '', question_3 ?? '', question_4 ?? ''].forEach(
             (answerToQuestion, index) => {
                 if (answerToQuestion?.trim() !== '') {
-                    const targetQuestion = SECURITY_QUESTIONS_TO_USE[`question_${index + 1}`];
+                    const targetQuestion = all_questions_list[`question_${index + 1}`];
                     questionsToSave.push({
                         question: targetQuestion.title,
                         answer: answerToQuestion,
@@ -234,10 +270,11 @@ class WhatsAppBotSetupTransactionPinFlowService {
                 screen: SetupTransactionPinFlowScreens.RECOVERY_QUESTIONS,
                 data: {
                     security_questions_form_description: RECOVERY_QUESTIONS_FORM_DESCRIPTION,
-                    ...SECURITY_QUESTIONS_TO_USE,
+                    ...all_questions_list,
                     transaction_pin: transaction_pin,
                     security_questions_error: MIN_RECOVERY_QUESTIONS_ERROR,
                     user_id: user_id,
+                    all_questions_list,
                 } as ScreenDataPayload[SetupTransactionPinFlowScreens.RECOVERY_QUESTIONS],
             };
         }
