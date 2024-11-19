@@ -165,17 +165,17 @@ class WhatsAppBotTransferToWalletFlowService {
         let azzaUserRecipient: AzzaUserRecord | null = null;
         const errorMessages: ScreenDataPayload['TRANSACTION_DETAILS']['error_messages'] = {};
 
-        if (!data.wallet_address.trim() && !data.azza_phone_number.trim()) {
+        if (!data.wallet_address?.trim() && !data.azza_phone_number?.trim()) {
             errorMessages.wallet_address = 'Please provide a wallet address or Azza phone number';
         }
 
-        if (data.wallet_address.trim() && data.azza_phone_number.trim()) {
+        if (data.wallet_address?.trim() && data.azza_phone_number?.trim()) {
             // Only set an error for the second field
             errorMessages.azza_phone_number = 'Please provide only one recipient type';
         }
 
         const recipientType: TransferRecipientType =
-            data.wallet_address.trim().length > 0 ? 'wallet-address' : 'azza-phone-number';
+            data.wallet_address?.trim().length > 0 ? 'wallet-address' : 'azza-phone-number';
 
         if (amount <= ZERO) {
             errorMessages.amount = 'Amount must be greater than 0';
