@@ -19,7 +19,7 @@ type HandleUserPromptParams = {
 };
 export const handleUserPrompt = async (params: HandleUserPromptParams) => {
     const { text, response } = await generateText({
-        model: groq(LLAMA3_GROQ_70B_8192_TOOL_USE),
+        model: groq(LLAMA3_GROQ_8B_8192_TOOL_USE),
         tools: toolSet,
         maxSteps: MAX_STEPS,
         messages: params.messages,

@@ -157,6 +157,8 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
+        const assetId = [params.asset, params.network].join('-');
+
         const supportedAsset = assetInteractiveButtonsIds.find(
             (assetInteractiveButtonId) =>
                 assetInteractiveButtonId ===
