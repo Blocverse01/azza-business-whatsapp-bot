@@ -10,6 +10,9 @@ import {
     usdtTronConfig,
     usdcSolanaConfig,
     usdtSolanaConfig,
+    solConfig,
+    ethBaseConfig,
+    ethEthereumConfig,
 } from '@/resources/web3/tokens';
 
 export const ENABLED_ASSETS = [
@@ -23,6 +26,9 @@ export const ENABLED_ASSETS = [
     usdtTronConfig,
     usdcSolanaConfig,
     usdtSolanaConfig,
+    solConfig,
+    ethBaseConfig,
+    ethEthereumConfig,
 ];
 
 // Get asset config by list item id

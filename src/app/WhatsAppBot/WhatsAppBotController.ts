@@ -222,9 +222,13 @@ class WhatsAppBotController {
             // Handle any other text message
 
             if (user) {
+                const normalizedPrompt = text.body.startsWith('/')
+                    ? text.body.replace('/', '')
+                    : text.body;
+
                 messages.push({
                     role: 'user',
-                    content: text.body,
+                    content: normalizedPrompt,
                 });
 
                 const response = await handleUserPrompt({

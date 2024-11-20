@@ -24,7 +24,7 @@ import {
 ////////////////////
 export const toolSet = {
     transferCrypto: tool({
-        description: `A transaction tool for transferring a crypto asset to a specified address or phone number. Always confirm with the user the cryptocurrency, amount, recipient, and blockchain network before proceeding. If any of these are missing, ask the user to specify them in one prompt.`,
+        description: `A transaction tool for transferring a crypto asset to a specified address or phone number. Always confirm with the user the cryptocurrency, amount, recipient, and blockchain network before proceeding. If any of these are missing, ask the user to specify them in one prompt. The recipient can be a wallet address or a phone number`,
         parameters: transferCryptoAssetParamsSchema,
         execute: async (params) => {
             return executeTransferAsset(params);

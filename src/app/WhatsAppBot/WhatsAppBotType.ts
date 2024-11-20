@@ -101,6 +101,7 @@ export enum BaseInteractiveButtonIds {
 export enum AssetInteractiveButtonIds {
     ETH_BASE = 'eth-base',
     MATIC_POLYGON = 'matic-polygon',
+    ETH_ETHEREUM = 'eth-ethereum',
 
     // StableCoins
     USDC_BASE = 'usdc-base',
@@ -118,6 +119,9 @@ export enum AssetInteractiveButtonIds {
 
     USDC_SOLANA = 'usdc-solana',
     USDT_SOLANA = 'usdt-solana',
+
+    SOL = 'sol',
+    TRX = 'trx',
 }
 
 export enum ExploreAssetActions {

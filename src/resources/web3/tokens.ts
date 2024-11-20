@@ -69,6 +69,7 @@ export enum TokenNames {
     USDC = 'USDC',
     MATIC = 'MATIC',
     ETH = 'ETH',
+    SOL = 'SOL',
 }
 
 export type AssetConfig = {
@@ -77,6 +78,7 @@ export type AssetConfig = {
     listItemId: string;
     network: SupportedChain | ExtendedWalletSupportedNetworks;
     supportedAssetActions: ExploreAssetActions[];
+    showOnAssetsMenu?: boolean;
 };
 
 const ALL_ASSET_ACTIONS: ExploreAssetActions[] = Object.values(ExploreAssetActions);
@@ -93,6 +95,7 @@ export const usdcPolygonConfig = {
     listItemId: AssetInteractiveButtonIds.USDC_POLYGON,
     network: 'Polygon' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtPolygonConfig = {
@@ -104,6 +107,7 @@ export const usdtPolygonConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_POLYGON,
     network: 'Polygon' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== MATIC ==============
 export const maticConfig = {
@@ -125,6 +129,7 @@ export const usdcBaseConfig = {
     listItemId: AssetInteractiveButtonIds.USDC_BASE,
     network: 'Base' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== ETH ==============
 export const ethBaseConfig = {
@@ -133,6 +138,7 @@ export const ethBaseConfig = {
     tokenAddress: 'ETH',
     network: 'Base' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    showOnAssetsMenu: false,
 } satisfies AssetConfig;
 
 // Ethereum Assets
@@ -146,6 +152,7 @@ export const usdcEthConfig = {
     listItemId: AssetInteractiveButtonIds.USDC_ETH,
     network: 'Ethereum' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtEthConfig = {
@@ -157,6 +164,16 @@ export const usdtEthConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_ETH,
     network: 'Ethereum' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: true,
+} satisfies AssetConfig;
+/// ============== ETH ==============
+export const ethEthereumConfig = {
+    tokenName: TokenNames.ETH,
+    listItemId: AssetInteractiveButtonIds.ETH_ETHEREUM,
+    tokenAddress: 'ETH',
+    network: 'Ethereum' as const,
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    showOnAssetsMenu: false,
 } satisfies AssetConfig;
 
 // Optimism Assets
@@ -170,6 +187,7 @@ export const usdcOptimismConfig = {
     listItemId: AssetInteractiveButtonIds.USDC_OPTIMISM,
     network: 'Optimism' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtOptimismConfig = {
@@ -181,6 +199,7 @@ export const usdtOptimismConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_OPTIMISM,
     network: 'Optimism' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: false,
 } satisfies AssetConfig;
 
 // Tron Assets
@@ -194,9 +213,19 @@ export const usdtTronConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_TRON,
     network: 'Tron' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 
 // Solana Assets
+/// ============== SOL ==============
+export const solConfig = {
+    tokenName: TokenNames.SOL,
+    listItemId: AssetInteractiveButtonIds.SOL,
+    tokenAddress: 'SOL',
+    network: 'Solana' as const,
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    showOnAssetsMenu: true,
+} satisfies AssetConfig;
 /// ============== USDC ==============
 export const usdcSolanaConfig = {
     tokenAddress:
@@ -207,6 +236,7 @@ export const usdcSolanaConfig = {
     listItemId: AssetInteractiveButtonIds.USDC_SOLANA,
     network: 'Solana' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtSolanaConfig = {
@@ -218,6 +248,7 @@ export const usdtSolanaConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_SOLANA,
     network: 'Solana' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 
 // Dummy USD value for testing

@@ -205,7 +205,9 @@ class UserService {
         userWallets: Array<CreateWalletKitWalletResponse | ExtendedWallet>
     ): Array<UserAssetItem> {
         const enabledAssets = userWallets.map((wallet) => {
-            const assets = ENABLED_ASSETS.filter((asset) => asset.network === wallet.network);
+            const assets = ENABLED_ASSETS.filter((asset) => {
+                return asset.network === wallet.network && asset.showOnAssetsMenu;
+            });
             return assets.map((asset) => ({
                 listItemId: asset.listItemId,
                 walletAddress: wallet.address,
