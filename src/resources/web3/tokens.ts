@@ -79,6 +79,7 @@ export type AssetConfig = {
     network: SupportedChain | ExtendedWalletSupportedNetworks;
     supportedAssetActions: ExploreAssetActions[];
     showOnAssetsMenu?: boolean;
+    isNative?: boolean;
 };
 
 const ALL_ASSET_ACTIONS: ExploreAssetActions[] = Object.values(ExploreAssetActions);
@@ -225,6 +226,7 @@ export const solConfig = {
     network: 'Solana' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
     showOnAssetsMenu: true,
+    isNative: true,
 } satisfies AssetConfig;
 /// ============== USDC ==============
 export const usdcSolanaConfig = {

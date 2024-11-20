@@ -278,6 +278,7 @@ class UserService {
         phoneNumber: string,
         assetListItemId: string
     ): Promise<UserAssetInfo> {
+        const assetConfig = getAssetConfigOrThrow(assetListItemId);
         const assetWallet = await this.getUserAssetWalletOrThrow(phoneNumber, assetListItemId);
 
         if (!assetWallet) {
@@ -287,9 +288,9 @@ class UserService {
         let tokenBalanceAsNumber: number;
 
         if (assetWallet.extendedWallet) {
-            tokenBalanceAsNumber = await assetWallet.extendedWallet.getWalletTokenBalance(
-                assetWallet.tokenAddress
-            );
+            tokenBalanceAsNumber = assetConfig.isNative
+                ? await assetWallet.extendedWallet.getWalletNativeBalance()
+                : await assetWallet.extendedWallet.getWalletTokenBalance(assetWallet.tokenAddress);
         } else {
             const tokenBalance = await WalletKitService.getBalance(
                 assetWallet.walletAddress,
