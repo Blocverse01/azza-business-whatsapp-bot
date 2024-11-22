@@ -1,3 +1,4 @@
+import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import { CoreToolCallUnion, CoreToolResultUnion, tool, CoreTool } from 'ai';
 import { z } from 'zod';
 import { createOpenAI } from '@ai-sdk/openai';
@@ -40,8 +41,9 @@ export const toolSet = {
     }),
     walletBalance: tool({
         description:
-            "Use this tool to check the balance of a user's wallet for a specified cryptocurrency and/or network. " +
-            'If the user does not specify a cryptocurrency or blockchain network, we would return the balance for all supported assets and networks.',
+            "Retrieve the balance of a user's wallet for a specified cryptocurrency or blockchain network. " +
+            'If no cryptocurrency or network is specified, return balances for all supported assets and networks, grouping them as needed by asset and network (only when listing balances for multiple networks). ' +
+            'Use the unique emoji provided by the `networkEmoji` parameter in the tool result as a visual identifier for each network following this text arrangement format [emoji] [network]. Never guess or assume the emoji for any network. Also, the format for displaying a crypto asset balance should be [amount] [cryptocurrency symbol] [usd value], e.g 0.5 USDT ($0.5)',
         parameters: walletBalanceParamsSchema,
         execute: async (params) => {
             return executeWalletBalanceQuery(params);
@@ -132,6 +134,18 @@ export const toolSet = {
         parameters: requestTransactionPinSetupParams,
         execute: async (params) => {
             return executeRequestTransactionPinSetup(params);
+        },
+    }),
+    getNetworkSpecificEmoji: tool({
+        parameters: z.object({
+            blockchainNetwork: supportedChainSchema
+                .or(extendedWalletSupportedNetworks)
+                .describe('The blockchain network to retrieve the emoji for'),
+        }),
+        description:
+            'Retrieve the unique emoji assigned to a blockchain network. These emojis act as visual identifiers and must precede the network name in messages (e.g., 🔷Ethereum, where 🔷 represents Ethereum). Use the exact emoji provided by this tool to maintain accuracy and consistency. Avoid guessing or assuming the emoji for any network.',
+        execute: async ({ blockchainNetwork }) => {
+            return getNetworkEmoji(blockchainNetwork);
         },
     }),
 } satisfies Record<string, CoreTool>;

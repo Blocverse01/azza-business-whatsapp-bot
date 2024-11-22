@@ -1,4 +1,5 @@
 import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
+import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { Request, Response } from 'express';
 import env from '@/constants/env';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -225,6 +226,15 @@ class WhatsAppBotController {
                 const normalizedPrompt = text.body.startsWith('/')
                     ? text.body.replace('/', '')
                     : text.body;
+
+                const userIdMessage = {
+                    role: 'system',
+                    content: `Here's the user's system-provided ID: '${convertAsciiStringToBase64(user.id)}'. Always use this value for the 'userId' parameter in tool calls, extract it without any confirmation from the user.`,
+                } as const;
+
+                if (!messages.find((message) => message.content === userIdMessage.content)) {
+                    messages.push(userIdMessage);
+                }
 
                 messages.push({
                     role: 'user',

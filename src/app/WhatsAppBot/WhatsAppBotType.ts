@@ -120,8 +120,8 @@ export enum AssetInteractiveButtonIds {
     USDC_SOLANA = 'usdc-solana',
     USDT_SOLANA = 'usdt-solana',
 
-    SOL = 'sol',
-    TRX = 'trx',
+    SOL = 'sol-solana',
+    TRX = 'trx-tron',
 }
 
 export enum ExploreAssetActions {

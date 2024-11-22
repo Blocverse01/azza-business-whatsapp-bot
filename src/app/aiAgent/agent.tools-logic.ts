@@ -6,6 +6,7 @@ import {
 } from '@/app/aiAgent/agent.schema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
+import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
 import { ENABLED_ASSETS, searchAsset } from '@/config/whatsAppBot';
 import UserService from '@/app/User/UserService';
@@ -163,6 +164,7 @@ export const executeWalletBalanceQuery = async (params: WalletBalanceParams) => 
             return {
                 balance: otherInfo,
                 asset: balanceQueryMode.entity,
+                networkEmoji: getNetworkEmoji(assetInfo.assetNetwork),
             };
 
         case 'asset on any network':
@@ -179,7 +181,10 @@ export const executeWalletBalanceQuery = async (params: WalletBalanceParams) => 
                 _assetsInfo.map((assetInfo) => {
                     const { extendedWallet: _extendedWallet, ...otherInfo } = assetInfo;
 
-                    return [assetInfo.assetNetwork, otherInfo];
+                    return [
+                        assetInfo.assetNetwork,
+                        { ...otherInfo, networkEmoji: getNetworkEmoji(assetInfo.assetNetwork) },
+                    ];
                 })
             );
 
@@ -209,6 +214,7 @@ export const executeWalletBalanceQuery = async (params: WalletBalanceParams) => 
             return {
                 balances,
                 network: balanceQueryMode.entity,
+                networkEmoji: getNetworkEmoji(balanceQueryMode.entity),
             };
 
         case 'all':
@@ -226,10 +232,20 @@ export const executeWalletBalanceQuery = async (params: WalletBalanceParams) => 
                     if (!acc[network]) {
                         acc[network] = [];
                     }
-                    acc[network].push(otherInfo);
+                    acc[network].push({
+                        ...otherInfo,
+                        networkEmoji: getNetworkEmoji(network),
+                    });
                     return acc;
                 },
-                {} as Record<string, Array<UserAssetInfo>>
+                {} as Record<
+                    string,
+                    Array<
+                        UserAssetInfo & {
+                            networkEmoji: string;
+                        }
+                    >
+                >
             );
 
             return {

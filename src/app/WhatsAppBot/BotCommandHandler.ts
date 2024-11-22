@@ -78,9 +78,10 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
+        const assetId = [params.asset, params.network].join('-').toLowerCase();
+
         const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) =>
-                assetInteractiveButtonId === `${params.asset}-${params.network}`
+            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
         );
 
         if (!supportedAsset) {
@@ -94,9 +95,10 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
+        const assetId = [params.asset, params.network].join('-').toLowerCase();
+
         const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) =>
-                assetInteractiveButtonId === `${params.asset}-${params.network}`
+            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
         );
 
         if (!supportedAsset) {
@@ -137,9 +139,10 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
+        const assetId = [params.asset, params.network].join('-').toLowerCase();
+
         const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) =>
-                assetInteractiveButtonId === `${params.asset}-${params.network}`
+            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
         );
 
         if (!supportedAsset) {
@@ -157,12 +160,10 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
-        const assetId = [params.asset, params.network].join('-');
+        const assetId = [params.asset, params.network].join('-').toLowerCase();
 
         const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) =>
-                assetInteractiveButtonId ===
-                `${params.asset.toLowerCase()}-${params.network.toLowerCase()}`
+            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
         );
 
         if (!supportedAsset) {
@@ -187,9 +188,10 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
+        const assetId = [params.asset, params.network].join('-').toLowerCase();
+
         const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) =>
-                assetInteractiveButtonId === `${params.asset}-${params.network}`
+            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
         );
 
         if (!supportedAsset) {

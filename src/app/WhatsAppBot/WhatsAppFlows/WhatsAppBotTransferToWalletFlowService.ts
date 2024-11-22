@@ -17,6 +17,7 @@ import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { compareHashedString } from '@/resources/utils/hashing';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { WaitForTransactionReceiptInBackgroundParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
@@ -60,6 +61,13 @@ type ScreenDataPayload = {
         recipient_type: TransferRecipientType;
         asset_label: string;
         transaction_fee: string;
+        transaction_pin?: string;
+        error_messages?: {
+            transaction_pin?: string;
+        };
+        init_values?: {
+            transaction_pin?: string;
+        };
     };
     FEEDBACK_SCREEN: {
         message: string;
@@ -85,6 +93,7 @@ type DataExchangePayload = {
         azza_phone_number: string;
         recipient_type: TransferRecipientType;
         transaction_fee: string;
+        transaction_pin: string;
     };
 };
 
@@ -174,14 +183,21 @@ class WhatsAppBotTransferToWalletFlowService {
             errorMessages.azza_phone_number = 'Please provide only one recipient type';
         }
 
-        const recipientType: TransferRecipientType =
-            data.wallet_address?.trim().length > 0 ? 'wallet-address' : 'azza-phone-number';
+        const recipientType: TransferRecipientType | null =
+            data.wallet_address?.trim().length > 0
+                ? 'wallet-address'
+                : data.azza_phone_number?.trim().length > 0
+                  ? 'azza-phone-number'
+                  : null;
 
         if (amount <= ZERO) {
             errorMessages.amount = 'Amount must be greater than 0';
         }
         if (userBalance < amount) {
             errorMessages.amount = `Insufficient balance, you have only ${userBalance} ${asset.tokenName}`;
+        }
+        if (!recipientType) {
+            errorMessages.wallet_address = 'Please provide a wallet address or Azza phone number';
         }
 
         if (recipientType === 'wallet-address') {
@@ -217,6 +233,10 @@ class WhatsAppBotTransferToWalletFlowService {
             };
         }
 
+        if (!recipientType) {
+            throw new Error('Recipient type is missing');
+        }
+
         return {
             screen: TransferToWalletFlowScreens.TRANSACTION_SUMMARY,
             data: {
@@ -229,7 +249,11 @@ class WhatsAppBotTransferToWalletFlowService {
     }
 
     private static async getFeedbackScreenData(data: DataExchangePayload['TRANSACTION_SUMMARY']) {
-        const walletInfo = await UserService.getUserAssetInfo(data.user_id, data.asset_id);
+        const [walletInfo, user] = await Promise.all([
+            UserService.getUserAssetInfo(data.user_id, data.asset_id),
+            UserService.getUserByPhoneNumber(data.user_id),
+        ]);
+
         const assetBalance = walletInfo.tokenBalance;
 
         const transactionFee = parseFloat(data.transaction_fee);
@@ -283,6 +307,45 @@ class WhatsAppBotTransferToWalletFlowService {
                     asset_id: data.asset_id,
                     is_transfer_transaction: true,
                 } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+            };
+        }
+
+        if (!user?.transactionPinHash) {
+            return {
+                screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                data: {
+                    message: 'Transaction pin not set',
+                    status: 'failed',
+                    asset_id: data.asset_id,
+                    is_transfer_transaction: true,
+                } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+            };
+        }
+
+        const pinIsValid = await compareHashedString(
+            data.transaction_pin,
+            user.transactionPinHash!
+        );
+        if (!pinIsValid) {
+            return {
+                screen: TransferToWalletFlowScreens.TRANSACTION_SUMMARY,
+                data: {
+                    amount: data.amount,
+                    asset_id: data.asset_id,
+                    user_id: data.user_id,
+                    wallet_address: data.wallet_address,
+                    azza_phone_number: data.azza_phone_number,
+                    recipient_type: data.recipient_type,
+                    asset_label: `${walletInfo.assetName} (${walletInfo.assetNetwork})`,
+                    transaction_fee: data.transaction_fee,
+                    transaction_pin: data.transaction_pin,
+                    error_messages: {
+                        transaction_pin: 'Invalid transaction pin',
+                    },
+                    init_values: {
+                        transaction_pin: data.transaction_pin,
+                    },
+                } satisfies ScreenDataPayload['TRANSACTION_SUMMARY'],
             };
         }
 

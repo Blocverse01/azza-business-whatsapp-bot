@@ -96,7 +96,7 @@ export const usdcPolygonConfig = {
     listItemId: AssetInteractiveButtonIds.USDC_POLYGON,
     network: 'Polygon' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
-    showOnAssetsMenu: true,
+    showOnAssetsMenu: false,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtPolygonConfig = {
@@ -108,7 +108,7 @@ export const usdtPolygonConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_POLYGON,
     network: 'Polygon' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
-    showOnAssetsMenu: true,
+    showOnAssetsMenu: false,
 } satisfies AssetConfig;
 /// ============== MATIC ==============
 export const maticConfig = {
@@ -117,6 +117,7 @@ export const maticConfig = {
     tokenAddress: 'MATIC',
     network: 'Polygon' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    showOnAssetsMenu: false,
 } satisfies AssetConfig;
 
 // Base Assets
@@ -139,7 +140,7 @@ export const ethBaseConfig = {
     tokenAddress: 'ETH',
     network: 'Base' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
-    showOnAssetsMenu: false,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 
 // Ethereum Assets
@@ -188,7 +189,7 @@ export const usdcOptimismConfig = {
     listItemId: AssetInteractiveButtonIds.USDC_OPTIMISM,
     network: 'Optimism' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
-    showOnAssetsMenu: true,
+    showOnAssetsMenu: false,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtOptimismConfig = {

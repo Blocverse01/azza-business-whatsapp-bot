@@ -97,6 +97,7 @@ const envSchema = z.object({
     /// AI Agent
     ///////////////////////////
     GROQ_API_KEY: notEmptyStringSchema('GROQ_API_KEY'),
+    OPENAI_API_KEY: z.string().optional().default(''),
 });
 
 const env = envSchema.parse(process.env);

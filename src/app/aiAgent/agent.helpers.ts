@@ -1,4 +1,3 @@
-import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { CoreMessage } from 'ai';
 import { dbClient } from '@/db/dbClient';
 
@@ -18,18 +17,8 @@ export const createOrUpdateUserAgentThread = async (params: UpdateUserAgentThrea
 
     let messages = newMessages;
 
-    if (!thread?.messages.length) {
-        messages = [
-            {
-                role: 'system',
-                content: `Here's the user's system-provided ID: '${convertAsciiStringToBase64(userId)}'. Always use this value for the 'userId' parameter in tool calls, extract it without any confirmation from the user.`,
-            },
-            ...newMessages,
-        ];
-    }
-
     if (!thread) {
-        await dbClient.user_agent_thread.create({
+        await dbClient.user_agent_thread.createOrUpdate({
             user: userId,
             messages,
         });

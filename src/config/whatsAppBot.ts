@@ -13,6 +13,7 @@ import {
     solConfig,
     ethBaseConfig,
     ethEthereumConfig,
+    maticConfig,
 } from '@/resources/web3/tokens';
 
 export const ENABLED_ASSETS = [
@@ -29,6 +30,7 @@ export const ENABLED_ASSETS = [
     solConfig,
     ethBaseConfig,
     ethEthereumConfig,
+    maticConfig,
 ];
 
 // Get asset config by list item id
@@ -51,7 +53,8 @@ export const getAssetConfigByTokenAddress = (tokenAddress: string) => {
 export const searchAsset = (searchParams: Partial<Pick<AssetConfig, 'network' | 'tokenName'>>) => {
     return ENABLED_ASSETS.filter((asset) => {
         return Object.entries(searchParams).every(([key, value]) => {
-            return asset[key as keyof AssetConfig] === value;
+            const typedKey = key as keyof Partial<Pick<AssetConfig, 'network' | 'tokenName'>>;
+            return asset[typedKey] === value;
         });
     });
 };

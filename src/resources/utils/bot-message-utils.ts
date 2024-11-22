@@ -80,15 +80,16 @@ export function generateReceivedTokenMessage(params: {
     return `🔔 Crypto Deposit Notification.\n\n🧾 *Summary:*\nReceived *${tokenAmount} ${assetName}* on *${assetNetwork}* from ${senderAddress}\n\n*You now have: ${newTokenBalance} ${assetName}*\n\n➡️ *Transaction Hash:* ${transactionHash}\n\n🔍 *View In Explorer:* ${explorerUrl}`;
 }
 
-const EMOJIS_FOR_NETWORKS: Record<SupportedChain | ExtendedWalletSupportedNetworks, string> = {
-    Ethereum: '🔷',
-    Optimism: '🎯',
-    Polygon: '💜',
-    Base: '🔵',
-    Tron: '♦️',
-    Bep20: '🟡',
-    Solana: '🟢',
-};
+export const EMOJIS_FOR_NETWORKS: Record<SupportedChain | ExtendedWalletSupportedNetworks, string> =
+    {
+        Ethereum: '🔷',
+        Optimism: '🎯',
+        Polygon: '💜',
+        Base: '🔵',
+        Tron: '♦️',
+        Bep20: '🟡',
+        Solana: '🟢',
+    };
 
 export const getNetworkEmoji = (network: SupportedChain | ExtendedWalletSupportedNetworks) =>
     EMOJIS_FOR_NETWORKS[network];
