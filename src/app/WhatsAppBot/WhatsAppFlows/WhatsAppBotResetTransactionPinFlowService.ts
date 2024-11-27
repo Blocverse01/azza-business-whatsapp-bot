@@ -235,12 +235,14 @@ class WhatsAppBotResetTransactionPinFlowService {
             };
         }
 
-        const normalizedSecurityQuestionAnswers = Object.values(all_questions_list)
-            .map((question, index) => {
+        const normalizedSecurityQuestionAnswers = Object.keys(all_questions_list)
+            .map((questionInputName, index) => {
+                const question = all_questions_list[questionInputName as QuestionKey];
+
                 return {
                     questionId: question.id,
-                    providedAnswer: data[`question_${index + 1}`] ?? '',
-                    flowInputName: `question_${index + 1}`,
+                    providedAnswer: data[questionInputName as QuestionKey] ?? '',
+                    flowInputName: questionInputName as QuestionKey,
                 } as const;
             })
             .filter((answer) => answer.questionId !== '');
