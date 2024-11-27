@@ -435,7 +435,8 @@ class UserService {
                 scoreSheet[question.immutableId] = false;
             } else {
                 scoreSheet[question.immutableId] =
-                    question.answer.toLowerCase() === targetAnswer.providedAnswer.toLowerCase();
+                    question.answer?.trim().toLowerCase() ===
+                    targetAnswer.providedAnswer?.trim().toLowerCase();
             }
         });
 
