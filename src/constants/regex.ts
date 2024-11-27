@@ -25,6 +25,8 @@ export const BOT_COMMANDS_REGEX = {
     BALANCES: /^\/balance$/, // matches /balance
     ASSET_BALANCE: /^\/balance\s+(?<asset>\w+)\s+(?<network>\w+)$/, // /balance <asset> <network>
     ENTITY_BALANCE: /^\/balance\s+(?<entity>\w+)$/, // /balance <asset> or /balance <network>
+    RESET_PIN: /^\/reset_pin$/,
+    CHANGE_PIN: /^\/change_pin$/,
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {

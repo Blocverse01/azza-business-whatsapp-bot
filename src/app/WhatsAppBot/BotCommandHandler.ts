@@ -1,4 +1,8 @@
 import { assetInteractiveButtonsIds, PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
+import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
+import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
+import env from '@/constants/env';
 import {
     BOT_COMMANDS_REGEX,
     extractGroups,
@@ -55,6 +59,12 @@ class BotCommandHandler {
                 break;
             case 'DEPOSIT':
                 await BotCommandHandler.depositAsset(phoneParams, botCommand.params);
+                break;
+            case 'RESET_PIN':
+                await BotCommandHandler.resetTransactionPin(phoneParams);
+                break;
+            case 'CHANGE_PIN':
+                await BotCommandHandler.changeTransactionPin(phoneParams);
                 break;
             default:
                 return {
@@ -199,6 +209,51 @@ class BotCommandHandler {
         }
 
         return await WhatsAppBotService.handleUserAssetBalanceQuery(phoneParams, supportedAsset);
+    }
+
+    private static async resetTransactionPin(params: PhoneNumberParams) {
+        const user = await UserService.getUserByPhoneNumber(params.userPhoneNumber);
+
+        if (!user?.transactionPinHash) {
+            return await WhatsAppBotService.sendArbitraryTextMessage(
+                params.userPhoneNumber,
+                'Transaction PIN not set for your account.'
+            );
+        }
+
+        const userSecurityQuestions = UserService.retrieveUserSecurityQuestions(user);
+
+        const message = WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
+            params.businessPhoneNumberId as PhoneNumberId
+        ).createTransactionPinResetFlowMessage({
+            messageRecipient: params.userPhoneNumber,
+            messageBody: 'Click on `Reset Transaction PIN` to reset your transaction PIN',
+            flowCTA: 'Reset Transaction PIN',
+            userSecurityQuestions,
+        });
+
+        await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
+    }
+
+    private static async changeTransactionPin(params: PhoneNumberParams) {
+        const user = await UserService.getUserByPhoneNumber(params.userPhoneNumber);
+
+        if (!user?.transactionPinHash) {
+            return await WhatsAppBotService.sendArbitraryTextMessage(
+                params.userPhoneNumber,
+                'Transaction PIN not set for your account.'
+            );
+        }
+
+        const message = WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
+            env.WA_PHONE_NUMBER_ID
+        ).createTransactionPinChangeFlowMessage({
+            messageRecipient: params.userPhoneNumber,
+            messageBody: 'Click on `Change Transaction PIN` to change your transaction PIN',
+            flowCTA: 'Change Transaction PIN',
+        });
+
+        await WhatsAppBotService.sendWhatsappMessage(params.businessPhoneNumberId, message);
     }
 
     public static isCommand(command: string) {
