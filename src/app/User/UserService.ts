@@ -415,6 +415,46 @@ class UserService {
         );
     }
 
+    public static scoreUserSecurityQuestionsAnswers(
+        user: UserRecord,
+        answers: Array<{
+            questionId: string;
+            providedAnswer: string;
+        }>
+    ) {
+        const userSecurityQuestions = this.unmaskUserSecurityQuestions(user.securityQuestionsSetup);
+
+        const scoreSheet: Record<string, boolean> = {};
+
+        userSecurityQuestions.forEach((question, index) => {
+            const targetAnswer = answers.find(
+                (answer) => answer.questionId === question.immutableId
+            );
+
+            if (!targetAnswer) {
+                scoreSheet[question.immutableId] = false;
+            } else {
+                scoreSheet[question.immutableId] =
+                    question.answer.toLowerCase() === targetAnswer.providedAnswer.toLowerCase();
+            }
+        });
+
+        return scoreSheet;
+    }
+
+    public static retrieveUserSecurityQuestions(
+        user: UserRecord
+    ): Array<Pick<SecurityQuestion, 'question' | 'immutableId'>> {
+        const unmaskedSecurityQuestions = this.unmaskUserSecurityQuestions(
+            user.securityQuestionsSetup
+        );
+
+        return unmaskedSecurityQuestions.map((question) => ({
+            immutableId: question.immutableId,
+            question: question.question,
+        }));
+    }
+
     private static unmaskUserSecurityQuestions(encryptedSecuritySetup: string) {
         return JSON.parse(
             decryptWithAES(

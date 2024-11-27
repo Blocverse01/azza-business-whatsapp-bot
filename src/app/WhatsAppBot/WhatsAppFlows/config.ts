@@ -10,7 +10,8 @@ type Flows =
     | 'ADD_BENEFICIARY'
     | 'TRANSACTION_CONFIRMATION'
     | 'SET_TRANSACTION_PIN'
-    | 'CHANGE_TRANSACTION_PIN';
+    | 'CHANGE_TRANSACTION_PIN'
+    | 'RESET_TRANSACTION_PIN';
 
 export type FlowConfig = {
     flowId: string;
@@ -92,6 +93,16 @@ const flowConfigs: FlowConfigs = {
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '588962750198700',
             flowMode: 'published',
+        },
+    },
+    RESET_TRANSACTION_PIN: {
+        [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
+            flowId: '492902789785189',
+            flowMode: 'draft',
+        },
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
+            flowId: '1224675291952815',
+            flowMode: 'draft',
         },
     },
 };

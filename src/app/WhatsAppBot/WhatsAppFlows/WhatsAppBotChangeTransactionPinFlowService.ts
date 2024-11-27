@@ -218,7 +218,6 @@ class WhatsAppBotChangeTransactionPinFlowService {
         }
 
         // Update user's transaction pin in background
-        // Save the transaction pin and security questions
         spawnInBackground<ChangeTransactionPinParams>(
             {
                 newPin: new_pin,
@@ -230,7 +229,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
         return {
             screen: ChangeTransactionPinFlowScreens.FEEDBACK,
             data: {
-                feedback_title: 'Updating your Transaction PIN',
+                feedback_title: 'Transaction PIN update request sent successfully',
                 feedback_message:
                     'The request to update your Transaction PIN has been sent successfully. You will receive a confirmation message once the update is complete.',
                 feedback_sub_message:

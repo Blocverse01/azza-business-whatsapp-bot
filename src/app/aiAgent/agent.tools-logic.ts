@@ -7,6 +7,7 @@ import {
 } from '@/app/aiAgent/agent.schema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
+import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
 import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
@@ -115,7 +116,7 @@ export const executeTransferAsset = async (params: TransferCryptoAssetParams) =>
 
     return {
         nextStep:
-            'The transaction has been initiated. Please click on the `Confirm Transaction` button above to confirm the transaction with your PIN',
+            'Please click on the `Confirm Transaction` button above to confirm the transaction with your PIN',
         transactionAmount: amount,
         transactionFee,
         totalAmount,
@@ -282,7 +283,7 @@ export const executeRequestTransactionPinSetup = async (
 
     return {
         nextStep:
-            'The transaction PIN setup has been initiated. Please click on the `Set up Transaction PIN` button above to set up your transaction PIN',
+            'Please click on the `Set up Transaction PIN` button above to set up your transaction PIN',
     };
 };
 
@@ -342,6 +343,36 @@ export const executeChangeTransactionPin = async (params: BaseWalletToolParams) 
 
     return {
         nextStep:
-            'The transaction PIN change has been initiated. Please click on the `Change Transaction PIN` button above to change your transaction PIN',
+            'Please click on the `Change Transaction PIN` button above to change your transaction PIN',
+    };
+};
+
+export const executeResetTransactionPin = async (params: BaseWalletToolParams) => {
+    const unmaskedUserIdentifier = convertBase64ToAsciiString(params.userId);
+
+    const user = await UserService.getUserByPhoneNumber(unmaskedUserIdentifier);
+
+    if (!user?.transactionPinHash) {
+        return {
+            error: 'Transaction pin not set',
+        };
+    }
+
+    const userSecurityQuestions = UserService.retrieveUserSecurityQuestions(user);
+
+    const message = WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
+        env.WA_PHONE_NUMBER_ID
+    ).createTransactionPinResetFlowMessage({
+        messageRecipient: unmaskedUserIdentifier,
+        messageBody: 'Click on `Reset Transaction PIN` to reset your transaction PIN',
+        flowCTA: 'Reset Transaction PIN',
+        userSecurityQuestions,
+    });
+
+    await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
+
+    return {
+        nextStep:
+            'Please click on the `Reset Transaction PIN` button above to reset your transaction PIN',
     };
 };

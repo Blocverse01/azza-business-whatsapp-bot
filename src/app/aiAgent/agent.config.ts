@@ -18,6 +18,7 @@ import {
     executeChangeTransactionPin,
     executeDepositCryptoAsset,
     executeRequestTransactionPinSetup,
+    executeResetTransactionPin,
     executeTransferAsset,
     executeWalletBalanceQuery,
 } from '@/app/aiAgent/agent.tools-logic';
@@ -155,6 +156,13 @@ export const toolSet = {
         description: 'Use this tool to handle the user request to change their transaction pin',
         execute: async ({ userId }) => {
             return executeChangeTransactionPin({ userId });
+        },
+    }),
+    resetTransactionPin: tool({
+        parameters: baseWalletToolSchema,
+        description: 'Use this tool to handle the user request to reset their transaction pin',
+        execute: async ({ userId }) => {
+            return executeResetTransactionPin({ userId });
         },
     }),
 } satisfies Record<string, CoreTool>;
