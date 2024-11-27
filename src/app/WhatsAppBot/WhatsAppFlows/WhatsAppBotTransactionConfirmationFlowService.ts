@@ -136,10 +136,10 @@ class WhatsAppBotTransactionConfirmationFlowService {
         return {
             screen: TransactionConfirmationFlowScreens.FEEDBACK,
             data: {
-                feedback_title: 'Transaction Confirmed',
+                feedback_title: 'Transaction Submitted',
                 footer_cta_text: 'Done',
                 feedback_message:
-                    'Transaction confirmed successfully. We will notify you once the transaction is completed.',
+                    'Transaction submitted successfully. We will notify you once the transaction is completed.',
                 feedback_sub_message: 'Click the button below to continue using the bot.',
                 icon_src: SUCCESS_FEEDBACK_ICON,
             } satisfies ScreenDataPayload['FEEDBACK'],
