@@ -440,6 +440,12 @@ class UserService {
             }
         });
 
+        logSync('debug', 'User security questions', {
+            userSecurityQuestions,
+            scoreSheet,
+            answers,
+        });
+
         return scoreSheet;
     }
 
