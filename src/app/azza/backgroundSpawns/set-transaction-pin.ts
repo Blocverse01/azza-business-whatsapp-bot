@@ -29,7 +29,7 @@ async function executeScript(params: SetTransactionPinParams) {
 
             const message = MessageGenerators.generateTextMessage(
                 params.userId,
-                `✅ *Transaction PIN successfully set!*\n\n🔒 _Keep it safe—your PIN is personal and should not be shared._\n\nHere's what you can do next on Azza:\n\n${actionsList}\n\n💬 Type *help* to see all commands or try slash commands like */transfer usdc base*, */balance*, or */deposit usdc base* to get started!`
+                `✅ *Transaction PIN successfully updated!*\n\n🔒 _Keep it safe—your PIN is personal and should not be shared._\n\nHere's what you can do next on Azza:\n\n${actionsList}\n\n💬 Type *help* to ask the bot for guidance or try slash commands like */transfer*, */balance*, or */deposit* to get started!`
             );
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);

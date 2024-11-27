@@ -48,6 +48,11 @@ export const setTransactionPinParamsSchema = z.object({
     securityQuestions: z.array(securityQuestionSchema),
 });
 
+export const changeTransactionPinParamsSchema = z.object({
+    userId: z.string(),
+    newPin: transactionPinSchema,
+});
+
 ////////////////////
 // Inferred Types
 ////////////////////
@@ -56,3 +61,4 @@ export type SupportedTransactionTypes = z.infer<typeof supportedTransactionTypes
 export type TransferProcessingMode = z.infer<typeof transferProcessingModeSchema>;
 export type SetTransactionPinParams = z.infer<typeof setTransactionPinParamsSchema>;
 export type SecurityQuestion = z.infer<typeof securityQuestionSchema>;
+export type ChangeTransactionPinParams = z.infer<typeof changeTransactionPinParamsSchema>;

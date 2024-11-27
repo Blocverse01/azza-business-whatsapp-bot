@@ -9,7 +9,8 @@ type Flows =
     | 'TRANSFER'
     | 'ADD_BENEFICIARY'
     | 'TRANSACTION_CONFIRMATION'
-    | 'SET_TRANSACTION_PIN';
+    | 'SET_TRANSACTION_PIN'
+    | 'CHANGE_TRANSACTION_PIN';
 
 export type FlowConfig = {
     flowId: string;
@@ -49,8 +50,8 @@ const flowConfigs: FlowConfigs = {
             flowMode: 'draft',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
-            flowId: '879860527466643',
-            flowMode: 'published',
+            flowId: '1282536476102435',
+            flowMode: 'draft', // Todo: Mark as published
         },
     },
     ADD_BENEFICIARY: {
@@ -69,8 +70,8 @@ const flowConfigs: FlowConfigs = {
             flowMode: 'draft',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
-            flowId: '550125967814940',
-            flowMode: 'published',
+            flowId: '570618359103734',
+            flowMode: 'draft', // Todo: Mark as published
         },
     },
     SET_TRANSACTION_PIN: {
@@ -79,8 +80,18 @@ const flowConfigs: FlowConfigs = {
             flowMode: 'draft',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
-            flowId: '533365456277285',
-            flowMode: 'published',
+            flowId: '1085794556420284',
+            flowMode: 'draft', // Todo: Mark as published
+        },
+    },
+    CHANGE_TRANSACTION_PIN: {
+        [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
+            flowId: '520973614271230',
+            flowMode: 'draft',
+        },
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
+            flowId: '588962750198700',
+            flowMode: 'draft', // Todo: Mark as published
         },
     },
 };

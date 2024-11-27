@@ -186,6 +186,14 @@ class UserService {
         );
     }
 
+    public static async updateTransactionPin(user: UserRecord, newPin: string) {
+        const hashedPin = await hashString(newPin);
+
+        return await this.USER_TABLE.update(user.id, { transactionPinHash: hashedPin }, [
+            'transactionPinHash',
+        ]);
+    }
+
     public static async createUserWallets(phoneNumber: string) {
         const promises = SUPPORTED_CHAINS.map((chain) =>
             this.initializeUserWallet({

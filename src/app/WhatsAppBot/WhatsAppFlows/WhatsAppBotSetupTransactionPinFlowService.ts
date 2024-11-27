@@ -11,6 +11,8 @@ import {
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
+import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
 import { RECOVERY_QUESTIONS } from '@/resources/data/recovery-questions';
 import { logSync } from '@/resources/logger';
@@ -290,14 +292,16 @@ class WhatsAppBotSetupTransactionPinFlowService {
         );
 
         return {
-            screen: 'SUCCESS',
+            screen: 'FEEDBACK',
             data: {
-                extension_message_response: {
-                    params: {
-                        flow_token: flowToken,
-                    },
-                },
-            },
+                feedback_title: 'Setting up your Transaction PIN',
+                feedback_message:
+                    'Your transaction PIN and security questions are being set up. We will notify you once the setup is complete.',
+                footer_cta_text: 'Done',
+                feedback_sub_message:
+                    'Click on the button below to return to continue using the bot.',
+                icon_src: SUCCESS_FEEDBACK_ICON,
+            } satisfies FeedbackScreenPayload,
         };
     }
 }

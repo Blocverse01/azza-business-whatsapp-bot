@@ -8,12 +8,14 @@ import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 import { ENABLED_ASSETS } from '@/config/whatsAppBot';
 import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import {
+    baseWalletToolSchema,
     depositCryptoAssetParamsSchema,
     requestTransactionPinSetupParams,
     transferCryptoAssetParamsSchema,
     walletBalanceParamsSchema,
 } from '@/app/aiAgent/agent.schema';
 import {
+    executeChangeTransactionPin,
     executeDepositCryptoAsset,
     executeRequestTransactionPinSetup,
     executeTransferAsset,
@@ -146,6 +148,13 @@ export const toolSet = {
             'Retrieve the unique emoji assigned to a blockchain network. These emojis act as visual identifiers and must precede the network name in messages (e.g., 🔷Ethereum, where 🔷 represents Ethereum). Use the exact emoji provided by this tool to maintain accuracy and consistency. Avoid guessing or assuming the emoji for any network.',
         execute: async ({ blockchainNetwork }) => {
             return getNetworkEmoji(blockchainNetwork);
+        },
+    }),
+    changeTransactionPin: tool({
+        parameters: baseWalletToolSchema,
+        description: 'Use this tool to handle the user request to change their transaction pin',
+        execute: async ({ userId }) => {
+            return executeChangeTransactionPin({ userId });
         },
     }),
 } satisfies Record<string, CoreTool>;

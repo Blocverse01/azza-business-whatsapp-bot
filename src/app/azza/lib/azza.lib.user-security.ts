@@ -1,4 +1,6 @@
 import {
+    ChangeTransactionPinParams,
+    changeTransactionPinParamsSchema,
     type SetTransactionPinParams,
     setTransactionPinParamsSchema,
 } from '@/app/azza/azza.schema';
@@ -28,5 +30,31 @@ export const setTransactionPin = async (params: SetTransactionPinParams) => {
 
     return {
         pinSet: true,
+    };
+};
+
+export const changeTransactionPin = async (params: ChangeTransactionPinParams) => {
+    const { newPin } = params;
+
+    const validParams = changeTransactionPinParamsSchema.parse(params);
+
+    const user = await UserService.getUserByPhoneNumber(validParams.userId);
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    if (!user.transactionPinHash) {
+        throw new Error('Transaction pin has not been set');
+    }
+
+    // Update user's transaction pin
+    const updatedRecord = await UserService.updateTransactionPin(user, newPin);
+
+    if (!updatedRecord) {
+        throw new Error('Transaction pin not set');
+    }
+
+    return {
+        pinChanged: true,
     };
 };

@@ -3,6 +3,7 @@ import {
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { logSync } from '@/resources/logger';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import { SIXTEEN, TWO, ZERO } from '@/constants/numbers';
@@ -10,13 +11,12 @@ import { decimalToString, fixNumber } from '@/resources/utils/currency';
 import { generateRandomHexString } from '@/resources/utils/encryption';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import UserService from '@/app/User/UserService';
-import { TransactionResponse } from '@/app/WalletKit/walletKitSchema';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { AzzaUserRecord, UserAssetInfo } from '@/app/User/userSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
-import { type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { FeedbackScreenPayload, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
@@ -28,8 +28,7 @@ import { WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH } from '@/app/azza/backgroundS
 enum TransferToWalletFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',
     TRANSACTION_SUMMARY = 'TRANSACTION_SUMMARY',
-    PROCESSING_FEEDBACK = 'PROCESSING_FEEDBACK',
-    ERROR_FEEDBACK = 'ERROR_FEEDBACK',
+    FEEDBACK = 'FEEDBACK',
 }
 type TransferRecipientType = 'azza-phone-number' | 'wallet-address';
 
@@ -69,12 +68,7 @@ type ScreenDataPayload = {
             transaction_pin?: string;
         };
     };
-    FEEDBACK_SCREEN: {
-        message: string;
-        status: TransactionResponse['status'];
-        asset_id: string;
-        is_transfer_transaction: boolean;
-    };
+    FEEDBACK: FeedbackScreenPayload;
 };
 type DataExchangePayload = {
     TRANSACTION_DETAILS: {
@@ -269,13 +263,14 @@ class WhatsAppBotTransferToWalletFlowService {
             !validateWalletAddress(data.wallet_address, walletInfo.assetNetwork)
         ) {
             return {
-                screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                screen: TransferToWalletFlowScreens.FEEDBACK,
                 data: {
-                    message: 'Invalid wallet address',
-                    status: 'failed',
-                    asset_id: data.asset_id,
-                    is_transfer_transaction: true,
-                } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                    feedback_title: 'An error occurred',
+                    feedback_message: 'Invalid wallet address',
+                    feedback_sub_message: 'Confirm the wallet address and try again',
+                    footer_cta_text: 'Try again',
+                    icon_src: ERROR_FEEDBACK_ICON,
+                } satisfies ScreenDataPayload['FEEDBACK'],
             };
         }
 
@@ -285,13 +280,14 @@ class WhatsAppBotTransferToWalletFlowService {
 
             if (!azzaUserRecipient?.phoneNumber) {
                 return {
-                    screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                    screen: TransferToWalletFlowScreens.FEEDBACK,
                     data: {
-                        message: 'User does not exist on Azza',
-                        status: 'failed',
-                        asset_id: data.asset_id,
-                        is_transfer_transaction: true,
-                    } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                        feedback_title: 'An error occurred',
+                        feedback_message: 'User does not exist on Azza',
+                        feedback_sub_message: 'Confirm the phone number and try again',
+                        footer_cta_text: 'Try again',
+                        icon_src: ERROR_FEEDBACK_ICON,
+                    } satisfies ScreenDataPayload['FEEDBACK'],
                 };
             }
         }
@@ -300,25 +296,27 @@ class WhatsAppBotTransferToWalletFlowService {
             const insufficientBalanceMessage = `You're trying to pay: ${totalAmount} ${walletInfo.assetName}\nYou have only: ${assetBalance} ${walletInfo.assetName}`;
 
             return {
-                screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                screen: TransferToWalletFlowScreens.FEEDBACK,
                 data: {
-                    message: insufficientBalanceMessage,
-                    status: 'failed',
-                    asset_id: data.asset_id,
-                    is_transfer_transaction: true,
-                } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                    feedback_title: 'An error occurred',
+                    feedback_message: insufficientBalanceMessage,
+                    feedback_sub_message: 'Top up your balance and try again',
+                    footer_cta_text: 'Try again',
+                    icon_src: ERROR_FEEDBACK_ICON,
+                } satisfies ScreenDataPayload['FEEDBACK'],
             };
         }
 
         if (!user?.transactionPinHash) {
             return {
-                screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                screen: TransferToWalletFlowScreens.FEEDBACK,
                 data: {
-                    message: 'Transaction pin not set',
-                    status: 'failed',
-                    asset_id: data.asset_id,
-                    is_transfer_transaction: true,
-                } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                    feedback_title: 'An error occurred',
+                    feedback_message: 'Transaction pin not set',
+                    feedback_sub_message: 'Set your transaction pin and try again',
+                    footer_cta_text: 'Try again',
+                    icon_src: ERROR_FEEDBACK_ICON,
+                } satisfies ScreenDataPayload['FEEDBACK'],
             };
         }
 
@@ -367,13 +365,14 @@ class WhatsAppBotTransferToWalletFlowService {
 
             if (!validateWalletAddress(walletAddress, walletInfo.assetNetwork)) {
                 return {
-                    screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                    screen: TransferToWalletFlowScreens.FEEDBACK,
                     data: {
-                        message: 'Invalid wallet address',
-                        status: 'failed',
-                        asset_id: data.asset_id,
-                        is_transfer_transaction: true,
-                    } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                        feedback_title: 'An error occurred',
+                        feedback_message: 'Invalid wallet address',
+                        feedback_sub_message: 'Confirm the wallet address and try again',
+                        footer_cta_text: 'Try again',
+                        icon_src: ERROR_FEEDBACK_ICON,
+                    } satisfies ScreenDataPayload['FEEDBACK'],
                 };
             }
 
@@ -386,13 +385,14 @@ class WhatsAppBotTransferToWalletFlowService {
 
             if (transactionResponse.status === 'failed') {
                 return {
-                    screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                    screen: TransferToWalletFlowScreens.FEEDBACK,
                     data: {
-                        message: 'Submitting transaction failed, please retry',
-                        status: 'failed',
-                        asset_id: data.asset_id,
-                        is_transfer_transaction: true,
-                    } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                        feedback_title: 'An error occurred',
+                        feedback_message: 'Submitting transaction failed.',
+                        feedback_sub_message: 'Click on the button below to exit the flow',
+                        footer_cta_text: 'Exit',
+                        icon_src: ERROR_FEEDBACK_ICON,
+                    } satisfies ScreenDataPayload['FEEDBACK'],
                 };
             }
 
@@ -415,14 +415,15 @@ class WhatsAppBotTransferToWalletFlowService {
             });
 
             return {
-                screen: TransferToWalletFlowScreens.PROCESSING_FEEDBACK,
+                screen: TransferToWalletFlowScreens.FEEDBACK,
                 data: {
-                    message:
+                    feedback_title: 'Transaction Submitted',
+                    feedback_message:
                         "Your transaction is currently being processed, we'll send updates on the status of your transaction in your DM",
-                    status: transactionResponse.status,
-                    asset_id: data.asset_id,
-                    is_transfer_transaction: true,
-                } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                    feedback_sub_message: 'Click on the button below to continue using the bot.',
+                    footer_cta_text: 'Done',
+                    icon_src: SUCCESS_FEEDBACK_ICON,
+                } satisfies ScreenDataPayload['FEEDBACK'],
             };
         } catch (error) {
             await logServiceError(
@@ -431,13 +432,14 @@ class WhatsAppBotTransferToWalletFlowService {
             );
 
             return {
-                screen: TransferToWalletFlowScreens.ERROR_FEEDBACK,
+                screen: TransferToWalletFlowScreens.FEEDBACK,
                 data: {
-                    message: 'Submitting transaction failed, please retry',
-                    status: 'failed',
-                    asset_id: data.asset_id,
-                    is_transfer_transaction: true,
-                } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
+                    feedback_title: 'An error occurred',
+                    feedback_message: 'Submitting transaction failed, please retry',
+                    feedback_sub_message: 'Click on the button below to exit the flow',
+                    icon_src: ERROR_FEEDBACK_ICON,
+                    footer_cta_text: 'Exit',
+                } satisfies ScreenDataPayload['FEEDBACK'],
             };
         }
     }

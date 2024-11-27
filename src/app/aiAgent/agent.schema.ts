@@ -6,7 +6,7 @@ import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWa
 ////////////////////
 // Schema Definition
 ////////////////////
-const baseWalletToolSchema = z.object({
+export const baseWalletToolSchema = z.object({
     userId: z.string().describe(
         `A system-provided parameter. 
             - This parameter MUST NEVER be requested or confirmed from the user.
@@ -82,3 +82,4 @@ export type TransferCryptoAssetParams = z.infer<typeof transferCryptoAssetParams
 export type WalletBalanceParams = z.infer<typeof walletBalanceParamsSchema>;
 export type RequestTransactionPinSetupParams = z.infer<typeof requestTransactionPinSetupParams>;
 export type DepositCryptoAssetParams = z.infer<typeof depositCryptoAssetParamsSchema>;
+export type BaseWalletToolParams = z.infer<typeof baseWalletToolSchema>;

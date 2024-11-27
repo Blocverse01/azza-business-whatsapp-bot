@@ -5,6 +5,8 @@ import {
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { logSync } from '@/resources/logger';
 import { convertBase64ToAsciiString, generateRandomHexString } from '@/resources/utils/encryption';
 import { SIXTEEN } from '@/constants/numbers';
@@ -15,8 +17,7 @@ import { compareHashedString } from '@/resources/utils/hashing';
 
 enum TransactionConfirmationFlowScreens {
     ENTER_TRANSACTION_PIN = 'ENTER_TRANSACTION_PIN',
-    SUCCESS_FEEDBACK = 'SUCCESS_FEEDBACK',
-    ERROR_FEEDBACK = 'ERROR_FEEDBACK',
+    FEEDBACK = 'FEEDBACK',
 }
 
 type TransactionDetails = TransferAssetTransactionDetails;
@@ -29,12 +30,7 @@ type ScreenDataPayload = {
         };
         transaction_details: TransactionDetails;
     };
-    SUCCESS_FEEDBACK: {
-        message: string;
-    };
-    ERROR_FEEDBACK: {
-        message: string;
-    };
+    FEEDBACK: FeedbackScreenPayload;
 };
 type DataExchangePayload = {
     ENTER_TRANSACTION_PIN: {
@@ -98,10 +94,14 @@ class WhatsAppBotTransactionConfirmationFlowService {
 
         if (!user?.transactionPinHash) {
             return {
-                screen: TransactionConfirmationFlowScreens.ERROR_FEEDBACK,
+                screen: TransactionConfirmationFlowScreens.FEEDBACK,
                 data: {
-                    message: 'Transaction pin not set',
-                } satisfies ScreenDataPayload['ERROR_FEEDBACK'],
+                    feedback_title: 'An error occurred',
+                    feedback_message: 'Transaction pin not set',
+                    feedback_sub_message: 'Exit the flow and set your transaction pin to continue',
+                    footer_cta_text: 'Exit',
+                    icon_src: ERROR_FEEDBACK_ICON,
+                } satisfies ScreenDataPayload['FEEDBACK'],
             };
         }
 
@@ -134,11 +134,15 @@ class WhatsAppBotTransactionConfirmationFlowService {
         }
 
         return {
-            screen: TransactionConfirmationFlowScreens.SUCCESS_FEEDBACK,
+            screen: TransactionConfirmationFlowScreens.FEEDBACK,
             data: {
-                message:
+                feedback_title: 'Transaction Confirmed',
+                footer_cta_text: 'Done',
+                feedback_message:
                     'Transaction confirmed successfully. We will notify you once the transaction is completed.',
-            },
+                feedback_sub_message: 'Click the button below to continue using the bot.',
+                icon_src: SUCCESS_FEEDBACK_ICON,
+            } satisfies ScreenDataPayload['FEEDBACK'],
         };
     }
 

@@ -1,10 +1,12 @@
 import {
+    BaseWalletToolParams,
     DepositCryptoAssetParams,
     RequestTransactionPinSetupParams,
     TransferCryptoAssetParams,
     WalletBalanceParams,
 } from '@/app/aiAgent/agent.schema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
 import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
@@ -314,5 +316,32 @@ export const executeDepositCryptoAsset = async (params: DepositCryptoAssetParams
 
     return {
         nextSteps: `1. Copy the wallet address above 👆. \n2. Send ${targetAsset.tokenName} on ${targetAsset.network} from an external wallet or exchange to the copied wallet address.`,
+    };
+};
+
+export const executeChangeTransactionPin = async (params: BaseWalletToolParams) => {
+    const unmaskedUserIdentifier = convertBase64ToAsciiString(params.userId);
+
+    const user = await UserService.getUserByPhoneNumber(unmaskedUserIdentifier);
+
+    if (!user?.transactionPinHash) {
+        return {
+            error: 'Transaction pin not set',
+        };
+    }
+
+    const message = WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
+        env.WA_PHONE_NUMBER_ID
+    ).createTransactionPinChangeFlowMessage({
+        messageRecipient: unmaskedUserIdentifier,
+        messageBody: 'Click on `Change Transaction PIN` to change your transaction PIN',
+        flowCTA: 'Change Transaction PIN',
+    });
+
+    await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
+
+    return {
+        nextStep:
+            'The transaction PIN change has been initiated. Please click on the `Change Transaction PIN` button above to change your transaction PIN',
     };
 };

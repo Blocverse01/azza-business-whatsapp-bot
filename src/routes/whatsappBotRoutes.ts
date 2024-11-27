@@ -36,6 +36,11 @@ whatsappBotRoutes
         '/flows/set-transaction-pin',
         decryptFlowDataExchange,
         WhatsAppBotController.setTransactionPinFlowDataExchange
+    )
+    .post(
+        '/flows/change-transaction-pin',
+        decryptFlowDataExchange,
+        WhatsAppBotController.changeTransactionPinFlowDataExchange
     );
 
 export default whatsappBotRoutes;

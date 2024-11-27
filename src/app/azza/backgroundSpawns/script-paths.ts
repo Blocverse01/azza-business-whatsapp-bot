@@ -6,3 +6,6 @@ export const WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH =
 
 export const SET_TRANSACTION_PIN_SCRIPT_PATH =
     'src/app/azza/backgroundSpawns/set-transaction-pin.ts';
+
+export const CHANGE_TRANSACTION_PIN_SCRIPT_PATH =
+    'src/app/azza/backgroundSpawns/change-transaction-pin.ts';

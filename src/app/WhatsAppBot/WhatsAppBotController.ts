@@ -1,3 +1,4 @@
+import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
 import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { Request, Response } from 'express';
@@ -589,6 +590,25 @@ class WhatsAppBotController {
 
             const response =
                 await WhatsAppBotSetupTransactionPinFlowService.receiveDataExchange(decryptedBody);
+
+            return res.send(
+                WhatsAppBotService.encryptFlowResponse(response, {
+                    initialVectorBuffer,
+                    aesKeyBuffer,
+                })
+            );
+        } catch (error) {
+            handleRequestError(error, res);
+        }
+    }
+
+    public static async changeTransactionPinFlowDataExchange(req: Request, res: Response) {
+        try {
+            const { decryptedBody, initialVectorBuffer, aesKeyBuffer } =
+                requestDecryptedDataFlowExchange(req);
+
+            const response =
+                await WhatsAppBotChangeTransactionPinFlowService.receiveDataExchange(decryptedBody);
 
             return res.send(
                 WhatsAppBotService.encryptFlowResponse(response, {
