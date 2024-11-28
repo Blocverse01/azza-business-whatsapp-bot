@@ -1,5 +1,9 @@
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import { sendTransferAssetTransaction } from '@/app/azza/lib/azza.lib.transaction';
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import env from '@/constants/env';
+import { logSync } from '@/resources/logger';
 
 /**
  * This script is used to send a transfer asset transaction to the blockchain.
@@ -9,4 +13,20 @@ import { sendTransferAssetTransaction } from '@/app/azza/lib/azza.lib.transactio
  */
 const transactionParams: TransferAssetTransactionDetails = JSON.parse(process.argv[2]);
 
-void sendTransferAssetTransaction(transactionParams);
+async function executeScript() {
+    try {
+        await sendTransferAssetTransaction(transactionParams);
+    } catch (error) {
+        logSync('error', 'Error executing transaction in background', { error });
+
+        const message = MessageGenerators.generateTextMessage(
+            transactionParams.userId,
+            `An error occurred while sending your transaction. Please try again.`
+        );
+        await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
+
+        process.exit(2);
+    }
+}
+
+void executeScript();
