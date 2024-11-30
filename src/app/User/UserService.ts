@@ -49,6 +49,8 @@ class UserService {
                     phoneNumber: phoneNumber,
                 });
 
+                await this.createUserWallets(phoneNumber);
+
                 return true;
             }
 
