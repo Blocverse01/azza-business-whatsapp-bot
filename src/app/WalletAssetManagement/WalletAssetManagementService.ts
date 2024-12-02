@@ -8,6 +8,7 @@ import { calculateStableTokenTransferTransactionFee } from '@/app/WalletAssetMan
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
+import { getAddress, parseEther, toHex } from 'viem';
 
 class WalletAssetManagementService {
     public static readonly SHOULD_CHARGE_TRANSACTION_FEE = false;
@@ -17,11 +18,13 @@ class WalletAssetManagementService {
         walletAddress: string,
         amount: string
     ) {
-        if (!validateWalletAddress(asset.tokenAddress, asset.assetNetwork)) {
-            throw new Error('Only Tokens are supported for transfer at the moment');
-        }
+        const isNativeTokenTransfer = !validateWalletAddress(
+            asset.tokenAddress,
+            asset.assetNetwork
+        );
 
-        if (this.SHOULD_CHARGE_TRANSACTION_FEE) {
+        if (this.SHOULD_CHARGE_TRANSACTION_FEE && !isNativeTokenTransfer) {
+            // Todo: Implement transaction fee for native token transfers
             const transactionFee = this.calculateStableTokenTransferTransactionFee(
                 amount,
                 asset.assetNetwork
@@ -50,19 +53,31 @@ class WalletAssetManagementService {
         }
 
         const transactionResponse = isExtendedNetwork(asset.assetNetwork)
-            ? await asset.extendedWallet!.transferToken(
-                  asset.tokenAddress,
-                  Number(amount),
-                  walletAddress
-              )
-            : await WalletKitService.transferToken({
-                  amount: amount,
-                  network: asset.assetNetwork,
-                  developer_secret: WalletKitService.DEVELOPER_SECRET,
-                  token: asset.tokenAddress,
-                  from: asset.walletAddress,
-                  recipient: walletAddress,
-              });
+            ? isNativeTokenTransfer
+                ? await asset.extendedWallet!.transferNativeToken(Number(amount), walletAddress)
+                : await asset.extendedWallet!.transferToken(
+                      asset.tokenAddress,
+                      Number(amount),
+                      walletAddress
+                  )
+            : isNativeTokenTransfer
+              ? await WalletKitService.signAndSendTransaction({
+                    network: asset.assetNetwork,
+                    signer_wallet_address: getAddress(asset.walletAddress),
+                    developer_secret: WalletKitService.DEVELOPER_SECRET,
+                    unsigned_transaction: {
+                        to: getAddress(walletAddress),
+                        value: toHex(parseEther(amount)),
+                    },
+                })
+              : await WalletKitService.transferToken({
+                    amount: amount,
+                    network: asset.assetNetwork,
+                    developer_secret: WalletKitService.DEVELOPER_SECRET,
+                    token: asset.tokenAddress,
+                    from: asset.walletAddress,
+                    recipient: walletAddress,
+                });
 
         return 'transactionHash' in transactionResponse
             ? {
