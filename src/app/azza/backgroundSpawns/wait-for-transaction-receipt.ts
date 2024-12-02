@@ -11,6 +11,7 @@ import {
 } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import UserService from '@/app/User/UserService';
+import { delay } from '@/resources/utils/delay';
 
 export type WaitForTransactionReceiptInBackgroundParams = {
     transactionId: string;
@@ -39,9 +40,9 @@ async function processInBackground(params: WaitForTransactionReceiptInBackground
         }
 
         if (transactionDetails.status === 'submitted' || transactionDetails.status === 'pending') {
-            setTimeout(() => {
-                processInBackground(params);
-            }, 5000);
+            await delay(3000);
+
+            return processInBackground(params);
         }
 
         const transactionHash =

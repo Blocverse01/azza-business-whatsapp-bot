@@ -1,4 +1,7 @@
+import Web3Library from '@/app/WalletAssetManagement/Web3Library';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
+import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
+import { getPublicClient } from '@/resources/web3/evm/viem/clients';
 import { CoreToolCallUnion, CoreToolResultUnion, tool, CoreTool } from 'ai';
 import { z } from 'zod';
 import { createOpenAI } from '@ai-sdk/openai';
@@ -11,6 +14,7 @@ import {
     baseWalletToolSchema,
     depositCryptoAssetParamsSchema,
     requestTransactionPinSetupParams,
+    swapTokensOnBaseParamsSchema,
     transferCryptoAssetParamsSchema,
     walletBalanceParamsSchema,
 } from '@/app/aiAgent/agent.schema';
@@ -19,6 +23,7 @@ import {
     executeDepositCryptoAsset,
     executeRequestTransactionPinSetup,
     executeResetTransactionPin,
+    executeSwapTokensOnBase,
     executeTransferAsset,
     executeWalletBalanceQuery,
 } from '@/app/aiAgent/agent.tools-logic';
@@ -163,6 +168,40 @@ export const toolSet = {
         description: 'Use this tool to handle the user request to reset their transaction pin',
         execute: async ({ userId }) => {
             return executeResetTransactionPin({ userId });
+        },
+    }),
+    swapTokensOnBaseNetwork: tool({
+        parameters: swapTokensOnBaseParamsSchema,
+        description:
+            'This tool defines exclusive support for swapping tokens on Base. Use this tool when a user wants to swap one token for another or buy a token with another one. This functionality is similar to the swapping feature on Dexs like Uniswap.',
+        execute: async (params) => executeSwapTokensOnBase(params),
+    }),
+    retrieveTokenMetadata: tool({
+        parameters: z.object({
+            tokenAddress: z.string().describe('The address of the token to retrieve metadata for'),
+            blockchainNetwork: supportedChainSchema,
+        }),
+        description:
+            'Use this tool to retrieve metadata for a token on a specified blockchain network. The metadata includes the token name, symbol, and decimals. This tool is useful for displaying token information to the user.',
+        execute: async ({ tokenAddress, blockchainNetwork }) => {
+            try {
+                const networkConfig = getAppDefaultEvmConfig(
+                    blockchainNetwork,
+                    env.WEB3_ENVIRONMENT
+                );
+                const publicClient = getPublicClient(networkConfig.viemChain, networkConfig.rpcUrl);
+
+                return {
+                    tokenMetadata: await Web3Library.getErc20TokenMetadata(
+                        publicClient,
+                        tokenAddress
+                    ),
+                };
+            } catch (error) {
+                return {
+                    error: `Please confirm that the token address is correct and that the token is deployed on the ${blockchainNetwork} network.`,
+                };
+            }
         },
     }),
 } satisfies Record<string, CoreTool>;

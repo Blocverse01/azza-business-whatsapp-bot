@@ -10,9 +10,15 @@ import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-
 import { logSync } from '@/resources/logger';
 import { convertBase64ToAsciiString, generateRandomHexString } from '@/resources/utils/encryption';
 import { SIXTEEN } from '@/constants/numbers';
-import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
+import {
+    SwapTokensOnBaseTransactionDetails,
+    TransferAssetTransactionDetails,
+} from '@/app/azza/azza.schema';
 import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
-import { TRANSFER_TRANSACTION_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
+import {
+    SWAP_TOKENS_ON_BASE_SCRIPT_PATH,
+    TRANSFER_TRANSACTION_SCRIPT_PATH,
+} from '@/app/azza/backgroundSpawns/script-paths';
 import { compareHashedString } from '@/resources/utils/hashing';
 
 enum TransactionConfirmationFlowScreens {
@@ -20,7 +26,7 @@ enum TransactionConfirmationFlowScreens {
     FEEDBACK = 'FEEDBACK',
 }
 
-type TransactionDetails = TransferAssetTransactionDetails;
+type TransactionDetails = TransferAssetTransactionDetails | SwapTokensOnBaseTransactionDetails;
 
 type ScreenDataPayload = {
     ENTER_TRANSACTION_PIN: {
@@ -129,6 +135,17 @@ class WhatsAppBotTransactionConfirmationFlowService {
                         transactionPin: transaction_pin,
                     },
                     TRANSFER_TRANSACTION_SCRIPT_PATH
+                );
+                break;
+
+            case 'SWAP_TOKENS_ON_BASE':
+                spawnInBackground(
+                    {
+                        ...transaction_details,
+                        userId: convertBase64ToAsciiString(transaction_details.userId),
+                        transactionPin: transaction_pin,
+                    },
+                    SWAP_TOKENS_ON_BASE_SCRIPT_PATH
                 );
                 break;
         }

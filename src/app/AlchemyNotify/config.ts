@@ -14,6 +14,7 @@ const WEBHOOK_IDS: {
     Ethereum: 'wh_ohv91kqssbz8nj46',
     Optimism: 'wh_q7qhcmkf11eq25vv',
     Polygon: 'wh_s2kxghl9wa76cxuc',
+    Lisk: '', // Todo: Verify if Lisk is supported by Alchemy Notify
 };
 
 export const getWebhookId = (network: SupportedChain) => WEBHOOK_IDS[network];

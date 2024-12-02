@@ -21,6 +21,12 @@ export const networkStableTokenTransferFeeConfig: Record<
         feeThreshold: 10,
         feePerThreshold: 0.001, // 0.001 for every 10 USDT | USDC
     },
+    Lisk: {
+        minimumFee: 0.01, // 0.01 USDT | USDC
+        maximumFee: 0.5,
+        feeThreshold: 10,
+        feePerThreshold: 0.001, // 0.001 for every 10 USDT | USDC
+    },
     Polygon: {
         minimumFee: 0.1, // 0.1 USDT | USDC
         maximumFee: 0.5,

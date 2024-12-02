@@ -37,6 +37,10 @@ const EXPLORER_URLS: {
         testnet: 'https://explorer.solana.com',
         mainnet: 'https://explorer.solana.com',
     },
+    Lisk: {
+        testnet: 'https://sepolia-blockscout.lisk.com',
+        mainnet: 'https://blockscout.lisk.com',
+    },
 };
 
 export const getTransactionExplorerUrl = (

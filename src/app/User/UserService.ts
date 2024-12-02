@@ -491,7 +491,9 @@ class UserService {
         const webhookId = getWebhookId(wallet.network);
 
         try {
-            await AlchemyNotifyService.addWebhookAddresses([wallet.address], webhookId);
+            if (webhookId !== '') {
+                await AlchemyNotifyService.addWebhookAddresses([wallet.address], webhookId);
+            }
         } catch (error) {
             const parsedError = parseUnknownError(error);
 

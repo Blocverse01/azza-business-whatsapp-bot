@@ -53,6 +53,35 @@ export const changeTransactionPinParamsSchema = z.object({
     newPin: transactionPinSchema,
 });
 
+export const baseNameSchema = z
+    .custom<`${string}.base.eth`>()
+    .refine((data) => data.endsWith('.base.eth'), {
+        message: 'Invalid Base Name',
+    });
+
+export const tokenMetadataSchema = z.object({
+    name: z.string(),
+    symbol: z.string(),
+    id: z.string(),
+    decimals: z.coerce.number(),
+});
+
+export const swapTokensOnBaseTransactionDetailsSchema = z.object({
+    transactionType: z.literal('SWAP_TOKENS_ON_BASE'),
+    userId: z.string(),
+    fromToken: tokenMetadataSchema,
+    toToken: tokenMetadataSchema,
+    fromAmount: z.string(),
+    approvalAddress: z.string(),
+    transactionRequest: z.object({
+        to: z.string().optional(),
+        from: z.string().optional(),
+        data: z.string().optional(),
+        value: z.string().optional(),
+    }),
+    transactionPin: transactionPinSchema.optional(),
+});
+
 ////////////////////
 // Inferred Types
 ////////////////////
@@ -62,3 +91,7 @@ export type TransferProcessingMode = z.infer<typeof transferProcessingModeSchema
 export type SetTransactionPinParams = z.infer<typeof setTransactionPinParamsSchema>;
 export type SecurityQuestion = z.infer<typeof securityQuestionSchema>;
 export type ChangeTransactionPinParams = z.infer<typeof changeTransactionPinParamsSchema>;
+export type TokenMetadata = z.infer<typeof tokenMetadataSchema>;
+export type SwapTokensOnBaseTransactionDetails = z.infer<
+    typeof swapTokensOnBaseTransactionDetailsSchema
+>;

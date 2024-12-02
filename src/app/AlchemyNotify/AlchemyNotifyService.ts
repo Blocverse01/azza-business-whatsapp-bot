@@ -157,6 +157,7 @@ class AlchemyNotifyService {
             Polygon: env.ALCHEMY_NOTIFY_FORWARDER_POLYGON_SIGNING_KEY,
             Ethereum: env.ALCHEMY_NOTIFY_FORWARDER_ETH_SIGNING_KEY,
             Optimism: env.ALCHEMY_NOTIFY_FORWARDER_OPTIMISM_SIGNING_KEY,
+            Lisk: '', // Todo: Verify if Lisk is supported by Alchemy Notify
         };
     }
 

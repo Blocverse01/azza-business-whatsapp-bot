@@ -1,3 +1,4 @@
+import { ZERO } from '@/constants/numbers';
 import { z } from 'zod';
 import { TokenNames } from '@/resources/web3/tokens';
 import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
@@ -75,6 +76,24 @@ export const depositCryptoAssetParamsSchema = z
 
 export const requestTransactionPinSetupParams = baseWalletToolSchema;
 
+export const supportedTokenSymbolsForBaseSwap = [TokenNames.USDC, TokenNames.ETH]; // Tokens the user can reference with their symbols for the swap on base feature. These tokens are supported by default on Azza
+
+export const swapTokensOnBaseParamsSchema = z
+    .object({
+        fromToken: z
+            .string()
+            .describe(
+                `The token to swap from. This parameter can either be the token symbol or the token address. If the user specifies a token symbol, the recognized token symbols for this action are: ${supportedTokenSymbolsForBaseSwap.join(', ')}. The user can also specify just the token address. If  the user specifies a token address, use the 'retrieveTokenMetadata' tool to get the token symbol (useful for displaying to the user).`
+            ),
+        toToken: z
+            .string()
+            .describe(
+                `The token to swap to. This parameter can either be the token symbol or the token address. If the user specifies a token symbol, the recognized token symbols for this action are: ${supportedTokenSymbolsForBaseSwap.join(', ')}. The user can also specify just the token address. If  the user specifies a token address, use the 'retrieveTokenMetadata' tool to get the token symbol (useful for displaying to the user).`
+            ),
+        fromAmount: z.coerce.number().gt(ZERO).describe('The amount of `fromToken` to swap.'),
+    })
+    .merge(baseWalletToolSchema);
+
 ////////////////////
 // Inferred Types
 ////////////////////
@@ -83,3 +102,4 @@ export type WalletBalanceParams = z.infer<typeof walletBalanceParamsSchema>;
 export type RequestTransactionPinSetupParams = z.infer<typeof requestTransactionPinSetupParams>;
 export type DepositCryptoAssetParams = z.infer<typeof depositCryptoAssetParamsSchema>;
 export type BaseWalletToolParams = z.infer<typeof baseWalletToolSchema>;
+export type SwapTokensOnBaseParams = z.infer<typeof swapTokensOnBaseParamsSchema>;

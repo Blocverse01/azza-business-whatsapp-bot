@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { isAddress, isHex } from 'viem';
 
-export const SUPPORTED_CHAINS = ['Polygon', 'Base', 'Optimism', 'Ethereum'] as const;
+export const SUPPORTED_CHAINS = ['Polygon', 'Base', 'Optimism', 'Ethereum', 'Lisk'] as const;
 export const supportedChainSchema = z.enum(SUPPORTED_CHAINS);
 export type SupportedChain = z.infer<typeof supportedChainSchema>;
 
@@ -44,7 +44,7 @@ export const signAndSendTransactionSchema = z.object({
     network: supportedChainSchema,
     signer_wallet_address: walletAddressSchema('signer_wallet_address'),
     unsigned_transaction: z.object({
-        to: walletAddressSchema('signer_wallet_address'),
+        to: walletAddressSchema('to'),
         input: hexStringSchema('input').optional(),
         value: hexStringSchema('value').optional(),
     }),

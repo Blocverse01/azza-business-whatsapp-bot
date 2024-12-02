@@ -2,26 +2,39 @@ import {
     BaseWalletToolParams,
     DepositCryptoAssetParams,
     RequestTransactionPinSetupParams,
+    supportedTokenSymbolsForBaseSwap,
+    SwapTokensOnBaseParams,
     TransferCryptoAssetParams,
     WalletBalanceParams,
 } from '@/app/aiAgent/agent.schema';
+import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
+import Web3Library from '@/app/WalletAssetManagement/Web3Library';
+import WalletKitService from '@/app/WalletKit/WalletKitService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
 import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
 import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
-import { ENABLED_ASSETS, searchAsset } from '@/config/whatsAppBot';
+import { ENABLED_ASSETS, getAssetConfigByTokenAddress, searchAsset } from '@/config/whatsAppBot';
 import UserService from '@/app/User/UserService';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import { UserAssetInfo } from '@/app/User/userSchema';
-import { getUserCountryCodeFromPhoneNumberOrThrow } from '@/resources/utils/currency';
+import {
+    getUserCountryCodeFromPhoneNumberOrThrow,
+    prettifyNumber,
+} from '@/resources/utils/currency';
 import WhatsAppBotTransactionConfirmationFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransactionConfirmationFlowService';
 import env from '@/constants/env';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
+import { AssetTransferRecipientType, TokenMetadata } from '@/app/azza/azza.schema';
+import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
+import { getPublicClient } from '@/resources/web3/evm/viem/clients';
+import { TokenNames } from '@/resources/web3/tokens';
+import { formatUnits, isAddress, parseUnits } from 'viem';
 
 export const executeTransferAsset = async (params: TransferCryptoAssetParams) => {
     const { cryptoCurrencySymbol, recipient, amount, blockchainNetwork, userId } = params;
@@ -374,5 +387,153 @@ export const executeResetTransactionPin = async (params: BaseWalletToolParams) =
     return {
         nextStep:
             'Please click on the `Reset Transaction PIN` button above to reset your transaction PIN',
+    };
+};
+
+export const executeSwapTokensOnBase = async (params: SwapTokensOnBaseParams) => {
+    const { fromToken, fromAmount, toToken, userId } = params;
+
+    const supportedTokenSymbols = supportedTokenSymbolsForBaseSwap;
+
+    if (fromToken.toLowerCase() === toToken.toLowerCase()) {
+        return {
+            error: 'Tokens to swap must be different',
+        };
+    }
+
+    if (
+        !validateWalletAddress(fromToken, 'Base') &&
+        supportedTokenSymbols.indexOf(fromToken.toUpperCase() as TokenNames) === -1
+    ) {
+        return {
+            error: `${fromToken} is not a valid token address`,
+        };
+    }
+    if (
+        !validateWalletAddress(toToken, 'Base') &&
+        supportedTokenSymbols.indexOf(fromToken.toUpperCase() as TokenNames) === -1
+    ) {
+        return {
+            error: `${toToken} is not a valid token address`,
+        };
+    }
+
+    const [fromTokenAddress, toTokenAddress] = [fromToken, toToken].map((token) => {
+        if (validateWalletAddress(token, 'Base') || token.toUpperCase() === TokenNames.ETH) {
+            return token;
+        }
+
+        const asset = searchAsset({
+            tokenName: token.toUpperCase() as TokenNames,
+            network: 'Base',
+        })[0];
+
+        return asset?.tokenAddress;
+    });
+
+    let fromTokenMetadata: TokenMetadata;
+    let toTokenMetadata: TokenMetadata;
+
+    const networkConfig = getAppDefaultEvmConfig('Base', env.WEB3_ENVIRONMENT);
+    const publicClient = getPublicClient(networkConfig.viemChain, networkConfig.rpcUrl);
+
+    const ETH_METADATA = {
+        id: 'ETH',
+        name: 'Ethereum',
+        symbol: 'ETH',
+        decimals: 18,
+    };
+
+    try {
+        fromTokenMetadata =
+            fromToken === TokenNames.ETH
+                ? ETH_METADATA
+                : await Web3Library.getErc20TokenMetadata(publicClient, fromTokenAddress);
+    } catch (error) {
+        return {
+            error: `${fromTokenAddress} possibly does not exist on the Base network`,
+        };
+    }
+    try {
+        toTokenMetadata =
+            toToken === TokenNames.ETH
+                ? ETH_METADATA
+                : await Web3Library.getErc20TokenMetadata(publicClient, toTokenAddress);
+    } catch (error) {
+        return {
+            error: `${toTokenAddress} possibly does not exist on the Base network`,
+        };
+    }
+
+    const unmaskedUserId = convertBase64ToAsciiString(userId);
+    const userWallet = await WalletKitService.getUserWalletByNetwork(unmaskedUserId, 'Base');
+
+    const quote = await LiFiIntegrationLibrary.getQuote({
+        fromToken: fromTokenMetadata.id,
+        fromAmount: parseUnits(`${fromAmount}`, fromTokenMetadata.decimals).toString(),
+        fromAddress: userWallet.address,
+        toToken: toTokenMetadata.id,
+        fromChain: networkConfig.viemChain.id,
+        toChain: networkConfig.viemChain.id,
+    });
+
+    const quote_fromToken = quote.action.fromToken;
+    const quote_toToken = quote.action.toToken;
+    const slippage = quote.action.slippage;
+    const quoteEstimate = quote.estimate;
+    const transactionRequest = quote.transactionRequest;
+
+    if (!transactionRequest) {
+        return {
+            error: 'Failed to get transaction request',
+        };
+    }
+
+    const formattedFromAmount = formatUnits(
+        BigInt(quoteEstimate.fromAmount),
+        quote_fromToken.decimals
+    );
+    const formattedToAmount = formatUnits(BigInt(quoteEstimate.toAmount), quote_toToken.decimals);
+
+    const [prettifiedFromAmount, prettifiedToAmount] = [
+        prettifyNumber(Number(formattedFromAmount), 6),
+        prettifyNumber(Number(formattedToAmount), 6),
+    ];
+
+    const swapRate = prettifyNumber(Number(formattedToAmount) / Number(formattedFromAmount), 6);
+
+    const transactionSummaryMessageBody = [
+        `🔄 _Swap_ *_${quote_fromToken.name} (${quote_fromToken.symbol})_* to *_${quote_toToken.name} (${quote_toToken.symbol})_*\n`,
+        `From Amount: *${prettifiedFromAmount} ${quote_fromToken.symbol}*`,
+        `To Amount: *${prettifiedToAmount} ${quote_toToken.symbol}*`,
+        `1 ${quote_fromToken.symbol} = ${swapRate} ${quote_toToken.symbol}`,
+        `Slippage: *${slippage * 100}%*`,
+    ].join('\n');
+
+    const transactionSummaryMessage =
+        WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
+            env.WA_PHONE_NUMBER_ID as PhoneNumberId
+        ).createTransactionConfirmationFlowMessage({
+            msgRecipient: unmaskedUserId,
+            transactionSummary: transactionSummaryMessageBody
+                .replaceAll('_', '')
+                .replaceAll('*', ''),
+            transactionMessageBody: `${transactionSummaryMessageBody}\n\nClick on 'Confirm Transaction' to confirm the swap`,
+            transactionDetails: {
+                transactionType: 'SWAP_TOKENS_ON_BASE',
+                userId: userId,
+                fromToken: fromTokenMetadata,
+                toToken: toTokenMetadata,
+                fromAmount: quoteEstimate.fromAmount,
+                transactionRequest: transactionRequest,
+                approvalAddress: quote.estimate.approvalAddress,
+            },
+        });
+
+    await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, transactionSummaryMessage);
+
+    return {
+        nextStep:
+            'The previous message already contains details of the swap, no need to repeat it, Just emphasise clicking on the `Confirm Transaction` button to the user.',
     };
 };

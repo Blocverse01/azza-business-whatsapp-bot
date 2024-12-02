@@ -5,7 +5,7 @@ import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { logSync } from '@/resources/logger';
 
-const transactionParams: SetTransactionPinParams = JSON.parse(process.argv[2]);
+const setTransactionParams: SetTransactionPinParams = JSON.parse(process.argv[2]);
 
 async function executeScript(params: SetTransactionPinParams) {
     try {
@@ -51,4 +51,4 @@ async function executeScript(params: SetTransactionPinParams) {
     }
 }
 
-void executeScript(transactionParams);
+void executeScript(setTransactionParams);

@@ -67,12 +67,12 @@ describe('WalletKitService', () => {
     it('should transfer token successfully', async () => {
         // TODO: replace params.token with an actual token address
         const response = await WalletKitService.transferToken({
-            network: 'Polygon',
-            from: '0xc29c9D44b64dBA49a61FF76BB9EcBd7c0E542796',
-            token: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-            recipient: '0xc29c9D44b64dBA49a61FF76BB9EcBd7c0E542796',
-            amount: '0.01',
-            developer_secret: WalletKitService.DEVELOPER_SECRET,
+            network: 'Base',
+            from: '0x60f50c703CAb09e9525c97AB921a6b5E1Aa87747',
+            token: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+            recipient: '0x4d81Cb192C26F50C31870053Fae9A7C84c8fC0c6',
+            amount: '5',
+            developer_secret: 'uPdEemxVaGWJ4MhHHXYqCOSUoC9YLm4C2BL2Bk0M+Z7vAZm4SYm71Tm0mxhQt2lL',
         });
 
         // Assert
