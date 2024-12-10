@@ -22,7 +22,7 @@ export const userAssetInfoSchema = z.object({
     tokenBalanceDisplay: z.string(),
     walletAddress: z.string(),
     listItemId: z.string(),
-    assetName: z.nativeEnum(TokenNames).or(z.string()),
+    assetName: z.nativeEnum(TokenNames),
     assetNetwork: supportedChainSchema.or(extendedWalletSupportedNetworks),
     tokenAddress: z.string(),
     extendedWallet: z.custom<ExtendedWallet>().optional(),

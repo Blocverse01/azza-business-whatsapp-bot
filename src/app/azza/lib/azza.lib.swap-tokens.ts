@@ -18,6 +18,7 @@ import { validateWalletAddress } from '@/resources/utils/validators';
 import { SPENDING_APPROVAL_ABI } from '@/resources/web3/evm/abis/erc20';
 import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
+import { TokenNames } from '@/resources/web3/tokens';
 import { PublicKey } from '@solana/web3.js';
 import { Address, encodeFunctionData, formatUnits, getAddress, Hex, parseUnits } from 'viem';
 

@@ -263,7 +263,7 @@ class UserService {
             return {
                 listItemId: assetConfig.listItemId,
                 walletAddress: extendedWallet.address,
-                name: assetConfig.tokenName,
+                name: assetConfig.tokenName as TokenNames,
                 tokenAddress: assetConfig.tokenAddress,
                 network: assetConfig.network,
                 extendedWallet,
@@ -278,7 +278,7 @@ class UserService {
         return {
             listItemId: assetConfig.listItemId,
             walletAddress: wallet.address,
-            name: assetConfig.tokenName,
+            name: assetConfig.tokenName as TokenNames,
             tokenAddress: assetConfig.tokenAddress,
             network: assetConfig.network,
         };
@@ -314,12 +314,6 @@ class UserService {
 
         const usdBalanceDisplay = formatNumberAsCurrency(fixNumber(usdBalance, SIX), 'USD');
         const tokenBalanceDisplay = prettifyNumber(tokenBalanceAsNumber, SIX);
-
-        console.log({
-            usdBalanceDisplay,
-            tokenBalanceAsNumber,
-            tokenBalanceDisplay,
-        });
 
         return {
             tokenBalanceDisplay,

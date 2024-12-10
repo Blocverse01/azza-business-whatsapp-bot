@@ -1,12 +1,12 @@
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import {
-    extendedWalletSupportedNetworks,
+    activeExtendedWalletSupportedNetworks,
     ExtendedWalletSupportedNetworks,
 } from '@/app/ExtendedWallet/extendedWalletSchema';
 
 export const isExtendedNetwork = (
     network: SupportedChain | ExtendedWalletSupportedNetworks
 ): network is ExtendedWalletSupportedNetworks => {
-    const validation = extendedWalletSupportedNetworks.safeParse(network);
+    const validation = activeExtendedWalletSupportedNetworks.safeParse(network);
     return validation.success;
 };

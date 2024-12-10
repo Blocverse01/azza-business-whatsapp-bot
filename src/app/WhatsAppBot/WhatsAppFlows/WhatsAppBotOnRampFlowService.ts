@@ -225,7 +225,7 @@ class WhatsAppBotOnRampFlowService {
         asset: AssetConfig,
         fiatAmount: number
     ) {
-        return `${formatNumberAsCurrency(fiatAmount, currency)}${SECTION_SEPARATOR}1 ${asset.tokenName} = ${formatNumberAsCurrency(rate, currency)}` satisfies FiatToPayPattern;
+        return `${formatNumberAsCurrency(fiatAmount, currency)}${SECTION_SEPARATOR}1 ${asset.tokenName as TokenNames} = ${formatNumberAsCurrency(rate, currency)}` satisfies FiatToPayPattern;
     }
 
     private static generateTokenAmountPattern(
@@ -233,7 +233,7 @@ class WhatsAppBotOnRampFlowService {
         asset: AssetConfig,
         transactionFee: number
     ) {
-        const tokenAmount: TokenAmountPattern = `${amount} ${asset.tokenName} (${asset.network})${SECTION_SEPARATOR}Fee = ${transactionFee} ${asset.tokenName}`;
+        const tokenAmount: TokenAmountPattern = `${amount} ${asset.tokenName as TokenNames} (${asset.network})${SECTION_SEPARATOR}Fee = ${transactionFee} ${asset.tokenName as TokenNames}`;
 
         return tokenAmount;
     }
