@@ -103,9 +103,9 @@ export function generateAssetBalanceMessage(
         conversionRate: number;
     }
 ) {
-    const { assetName, assetNetwork, usdDisplayBalance, tokenBalance } = assetInfo;
+    const { assetName, assetNetwork, usdDisplayBalance, tokenBalance, tokenBalanceDisplay } =
+        assetInfo;
 
-    const assetBalance = prettifyNumber(tokenBalance, TWO);
     const localCurrencyBalance = fiatConfig
         ? formatNumberAsCurrency(
               tokenBalance * fiatConfig.conversionRate,
@@ -119,5 +119,5 @@ export function generateAssetBalanceMessage(
 
     const assetLabel = `${assetName} on ${assetNetwork}`;
 
-    return `_*${EMOJIS_FOR_NETWORKS[assetNetwork]} ${assetLabel}*_\n- *Balance:* ${assetBalance}\n- *USD Value:*  ${usdDisplayBalance}${localCurrencyEquivalent ? `\n- ${localCurrencyEquivalent}` : ''}`;
+    return `_*${EMOJIS_FOR_NETWORKS[assetNetwork]} ${assetLabel}*_\n- *Balance:* ${tokenBalanceDisplay}\n- *USD Value:*  ${usdDisplayBalance}${localCurrencyEquivalent ? `\n- ${localCurrencyEquivalent}` : ''}`;
 }

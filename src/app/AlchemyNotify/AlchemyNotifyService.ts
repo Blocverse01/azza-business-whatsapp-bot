@@ -1,3 +1,4 @@
+import { ChainsWithNotifySupport } from '@/app/AlchemyNotify/config';
 import { type AlchemyAddressActivityWebhookEvent } from '@/app/AlchemyNotify/webhookUtils';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { getAssetConfigByTokenAddress } from '@/config/whatsAppBot';
@@ -151,13 +152,12 @@ class AlchemyNotifyService {
         return response.data;
     }
 
-    public static get signingKeys(): Record<SupportedChain, string> {
+    public static get signingKeys(): Record<ChainsWithNotifySupport, string> {
         return {
             Base: env.ALCHEMY_NOTIFY_FORWARDER_BASE_SIGNING_KEY,
             Polygon: env.ALCHEMY_NOTIFY_FORWARDER_POLYGON_SIGNING_KEY,
             Ethereum: env.ALCHEMY_NOTIFY_FORWARDER_ETH_SIGNING_KEY,
             Optimism: env.ALCHEMY_NOTIFY_FORWARDER_OPTIMISM_SIGNING_KEY,
-            Lisk: '', // Todo: Verify if Lisk is supported by Alchemy Notify
         };
     }
 

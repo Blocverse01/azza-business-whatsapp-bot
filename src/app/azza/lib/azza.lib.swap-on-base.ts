@@ -54,12 +54,6 @@ export const sendTokenSwapTransactionOnBase = async (
     );
     const transactionSummaryForWhatsApp = `🔄 *_Swap ${prettifiedFromAmount} ${fromToken.symbol} to ${toToken.symbol}_*`;
 
-    console.log({
-        prettifiedFromAmount,
-        transactionSummaryForWhatsApp,
-        ...params,
-    });
-
     const appNetworkConfig = getAppDefaultEvmConfig('Base', env.WEB3_ENVIRONMENT);
     const publicClient = getPublicClient(appNetworkConfig.viemChain, appNetworkConfig.rpcUrl);
 
@@ -82,6 +76,7 @@ export const sendTokenSwapTransactionOnBase = async (
     let finalApprovalResponse: TransactionResponse | null = null;
 
     if (
+        approvalAddress &&
         validateWalletAddress(approvalAddress, 'Base') &&
         validateWalletAddress(fromToken.id, 'Base')
     ) {

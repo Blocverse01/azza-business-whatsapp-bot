@@ -100,7 +100,9 @@ export enum BaseInteractiveButtonIds {
 
 export enum AssetInteractiveButtonIds {
     ETH_BASE = 'eth-base',
-    MATIC_POLYGON = 'matic-polygon',
+    ETH_OPTIMISM = 'eth-optimism',
+    OP_OPTIMISM = 'op-optimism',
+    POL_POLYGON = 'pol-polygon',
     ETH_ETHEREUM = 'eth-ethereum',
 
     // StableCoins
@@ -166,7 +168,7 @@ export const manageAssetActions: Array<AssetAction> = [
     {
         text: 'Withdraw To Wallet',
         action: ExploreAssetActions.WITHDRAW_ASSET,
-        description: `Send crypto asset to a wallet outside ${APP_NAME}`,
+        description: `Send crypto asset to an ${APP_NAME} phone number or a wallet outside ${APP_NAME}`,
     },
     {
         text: 'Sell',

@@ -1,14 +1,35 @@
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { Chain } from 'viem';
-import { base, baseSepolia } from 'viem/chains';
+import {
+    base,
+    baseSepolia,
+    lisk,
+    mainnet,
+    optimism,
+    optimismSepolia,
+    polygon,
+    polygonAmoy,
+    sepolia,
+} from 'viem/chains';
 import { ANKR_BASE_MAINNET_RPC_URL, ANKR_BASE_SEPOLIA_RPC_URL } from '@/constants/strings';
 
-export type EvmNode = 'ankr-base-mainnet' | 'ankr-base-sepolia';
+export type EvmNetwork = Exclude<SupportedChain, 'Solana'>;
+export type EvmNode =
+    | 'ankr-base-mainnet'
+    | 'ankr-base-sepolia'
+    | 'default-optimism-sepolia'
+    | 'default-optimism-mainnet'
+    | 'default-polygon'
+    | 'default-polygon-amoy'
+    | 'default-ethereum'
+    | 'default-ethereum-sepolia'
+    | 'default-lisk'
+    | 'default-lisk-sepolia';
 
 export type EvmNetworkConfig = {
     rpcUrl: string;
     key: EvmNode;
-    network: SupportedChain;
+    network: EvmNetwork;
     viemChain: Chain;
 };
 
@@ -25,17 +46,90 @@ export const ankrBaseSepolia: EvmNetworkConfig = {
     viemChain: baseSepolia,
 };
 
-const APP_DEFAULT_EVM_NETWORK_CONFIGS: Partial<
-    Record<SupportedChain, Record<'testnet' | 'mainnet', EvmNetworkConfig>>
+export const defaultOptimismSepolia: EvmNetworkConfig = {
+    rpcUrl: optimismSepolia.rpcUrls['default'].http[0],
+    key: 'default-optimism-sepolia',
+    network: 'Base',
+    viemChain: baseSepolia,
+};
+
+export const defaultOptimism: EvmNetworkConfig = {
+    rpcUrl: optimism.rpcUrls['default'].http[0],
+    key: 'default-optimism-mainnet',
+    network: 'Optimism',
+    viemChain: optimism,
+};
+
+export const defaultPolygon: EvmNetworkConfig = {
+    rpcUrl: polygon.rpcUrls['default'].http[0],
+    key: 'default-polygon',
+    network: 'Polygon',
+    viemChain: polygon,
+};
+
+export const defaultPolygonAmoy: EvmNetworkConfig = {
+    rpcUrl: polygonAmoy.rpcUrls['default'].http[0],
+    key: 'default-polygon-amoy',
+    network: 'Polygon',
+    viemChain: polygonAmoy,
+};
+
+export const defaultEthereum: EvmNetworkConfig = {
+    rpcUrl: mainnet.rpcUrls['default'].http[0],
+    key: 'default-ethereum',
+    network: 'Ethereum',
+    viemChain: mainnet,
+};
+
+export const defaultEthereumSepolia: EvmNetworkConfig = {
+    rpcUrl: sepolia.rpcUrls['default'].http[0],
+    key: 'default-ethereum-sepolia',
+    network: 'Ethereum',
+    viemChain: sepolia,
+};
+
+export const defaultLisk: EvmNetworkConfig = {
+    rpcUrl: lisk.rpcUrls['default'].http[0],
+    key: 'default-lisk',
+    network: 'Lisk',
+    viemChain: lisk,
+};
+
+export const defaultLiskSepolia: EvmNetworkConfig = {
+    rpcUrl: lisk.rpcUrls['default'].http[0],
+    key: 'default-lisk-sepolia',
+    network: 'Lisk',
+    viemChain: lisk,
+};
+
+const APP_DEFAULT_EVM_NETWORK_CONFIGS: Record<
+    EvmNetworkConfig['network'],
+    Record<'testnet' | 'mainnet', EvmNetworkConfig>
 > = {
     Base: {
         mainnet: ankrBaseMainnet,
         testnet: ankrBaseSepolia,
     },
+    Optimism: {
+        mainnet: defaultOptimism,
+        testnet: defaultOptimismSepolia,
+    },
+    Polygon: {
+        mainnet: defaultPolygon,
+        testnet: defaultPolygonAmoy,
+    },
+    Ethereum: {
+        mainnet: defaultEthereum,
+        testnet: defaultEthereumSepolia,
+    },
+    Lisk: {
+        mainnet: defaultLisk,
+        testnet: defaultLiskSepolia,
+    },
 };
 
 export const getAppDefaultEvmConfig = (
-    network: SupportedChain,
+    network: EvmNetworkConfig['network'],
     environment: 'testnet' | 'mainnet'
 ): EvmNetworkConfig => {
     const config = APP_DEFAULT_EVM_NETWORK_CONFIGS[network];

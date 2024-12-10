@@ -922,7 +922,7 @@ class WhatsAppBotService {
             return generateAssetBalanceMessage(assetInfo, fiatConfig);
         });
 
-        const message = `*💰 Your Wallet Balances 💰*\n\n${userBalancesMessage.join('\n\n')}`;
+        const message = `*💰 Your Wallet Balances  💰*\n\n${userBalancesMessage.join('\n\n')}`;
 
         const messagePayload: WhatsAppTextMessage = MessageGenerators.generateTextMessage(
             userPhoneNumber,

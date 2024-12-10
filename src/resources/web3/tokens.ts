@@ -4,6 +4,9 @@ import { AssetInteractiveButtonIds, ExploreAssetActions } from '@/app/WhatsAppBo
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 
+// For testnet tokens, it's best to deploy a mock token on the intended network to ensure available supply.
+// Especially when there's no official faucet for such token.
+
 export enum TokenAddresses {
     /**
      * Polygon Asset Addresses
@@ -45,6 +48,10 @@ export enum TokenAddresses {
     USDT_OPTIMISM_MAINNET = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     USDT_OPTIMISM_SEPOLIA_TESTNET = '0xf884B63217D3427677c7b045370Bb269FabF1FA7',
 
+    // OP
+    OP_OPTIMISM_MAINNET = '0x4200000000000000000000000000000000000042',
+    OP_OPTIMISM_SEPOLIA_TESTNET = '0x62c021e584702C40D0c14923ba6934791a8DaaD3',
+
     /**
      * Tron Asset Addresses
      */
@@ -67,14 +74,16 @@ export enum TokenAddresses {
 export enum TokenNames {
     USDT = 'USDT',
     USDC = 'USDC',
-    MATIC = 'MATIC',
+    POL = 'POL',
     ETH = 'ETH',
     SOL = 'SOL',
+    OP = 'OP',
+    TRX = 'TRX',
 }
 
 export type AssetConfig = {
     tokenAddress: string;
-    tokenName: TokenNames;
+    tokenName: TokenNames | string;
     listItemId: string;
     network: SupportedChain | ExtendedWalletSupportedNetworks;
     supportedAssetActions: ExploreAssetActions[];
@@ -111,10 +120,10 @@ export const usdtPolygonConfig = {
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
 /// ============== MATIC ==============
-export const maticConfig = {
-    tokenName: TokenNames.MATIC,
-    listItemId: AssetInteractiveButtonIds.MATIC_POLYGON,
-    tokenAddress: 'MATIC',
+export const polConfig = {
+    tokenName: TokenNames.POL,
+    listItemId: AssetInteractiveButtonIds.POL_POLYGON,
+    tokenAddress: 'POL',
     network: 'Polygon' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
     showOnAssetsMenu: false,
@@ -178,8 +187,10 @@ export const ethEthereumConfig = {
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
 
+/////////////////////
 // Optimism Assets
-/// ============== USDC ==============
+/////////////////////
+/// ============ USDC ==============
 export const usdcOptimismConfig = {
     tokenAddress:
         env.WEB3_ENVIRONMENT === 'testnet'
@@ -201,6 +212,27 @@ export const usdtOptimismConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_OPTIMISM,
     network: 'Optimism' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+/// ============== ETH ==============
+export const ethOptimismConfig = {
+    tokenName: TokenNames.ETH,
+    listItemId: AssetInteractiveButtonIds.ETH_OPTIMISM,
+    tokenAddress: 'ETH',
+    network: 'Optimism',
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+/// ============== OP ==============
+export const opOptimismConfig = {
+    tokenName: TokenNames.OP,
+    listItemId: AssetInteractiveButtonIds.OP_OPTIMISM,
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.OP_OPTIMISM_SEPOLIA_TESTNET
+            : TokenAddresses.OP_OPTIMISM_MAINNET,
+    network: 'Optimism',
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
 
@@ -261,7 +293,7 @@ export const getDummyUsdValue = (tokenName: TokenNames) => {
             return DUMMY_USD_PRICE;
         case TokenNames.USDC:
             return DUMMY_USD_PRICE;
-        case TokenNames.MATIC:
+        case TokenNames.POL:
             return DUMMY_MATIC_PRICE;
         case TokenNames.ETH:
             return DUMMY_ETH_PRICE;

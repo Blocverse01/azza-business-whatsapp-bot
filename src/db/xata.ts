@@ -30,12 +30,8 @@ const tables = [
       },
       { name: "kycStatus", type: "string" },
       { name: "transactionPinHash", type: "text" },
-      {
-        name: "securityQuestionsSetup",
-        type: "json",
-        notNull: true,
-        defaultValue: "[]",
-      },
+      { name: "securityQuestionsSetup", type: "text" },
+      { name: "customTokenIds", type: "multiple" },
     ],
     revLinks: [
       { column: "user", table: "OffRampTemporaryTransaction" },
@@ -80,6 +76,20 @@ const tables = [
       { name: "messages", type: "json", notNull: true, defaultValue: "[]" },
     ],
   },
+  {
+    name: "token_registry",
+    columns: [
+      { name: "tokenName", type: "text", notNull: true, defaultValue: "" },
+      { name: "tokenSymbol", type: "text", notNull: true, defaultValue: "" },
+      {
+        name: "blockchainNetwork",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      { name: "tokenAddress", type: "text", notNull: true, defaultValue: "" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -99,11 +109,15 @@ export type CryptoPayoutOrderRecord = CryptoPayoutOrder & XataRecord;
 export type UserAgentThread = InferredTypes["user_agent_thread"];
 export type UserAgentThreadRecord = UserAgentThread & XataRecord;
 
+export type TokenRegistry = InferredTypes["token_registry"];
+export type TokenRegistryRecord = TokenRegistry & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   OffRampTemporaryTransaction: OffRampTemporaryTransactionRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
   user_agent_thread: UserAgentThreadRecord;
+  token_registry: TokenRegistryRecord;
 };
 
 const DatabaseClient = buildClient();

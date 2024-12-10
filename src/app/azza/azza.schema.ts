@@ -1,3 +1,5 @@
+import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 import { z } from 'zod';
 
 export const transactionPinSchema = z.string().min(4).max(6).describe('The transaction pin.');
@@ -72,7 +74,7 @@ export const swapTokensOnBaseTransactionDetailsSchema = z.object({
     fromToken: tokenMetadataSchema,
     toToken: tokenMetadataSchema,
     fromAmount: z.string(),
-    approvalAddress: z.string(),
+    approvalAddress: z.string().optional(),
     transactionRequest: z.object({
         to: z.string().optional(),
         from: z.string().optional(),
@@ -80,6 +82,24 @@ export const swapTokensOnBaseTransactionDetailsSchema = z.object({
         value: z.string().optional(),
     }),
     transactionPin: transactionPinSchema.optional(),
+});
+
+export const swapTokensTransactionDetailsSchema = z.object({
+    transactionType: z.literal('SWAP_TOKENS'),
+    userId: z.string(),
+    fromToken: tokenMetadataSchema,
+    toToken: tokenMetadataSchema,
+    fromAmount: z.string(),
+    transactionRequest: z.object({
+        to: z.string().optional(),
+        from: z.string().optional(),
+        data: z.string().optional(),
+        value: z.string().optional(),
+    }),
+    transactionPin: transactionPinSchema.optional(),
+    fromChain: supportedChainSchema.exclude(['Lisk']),
+    toChain: supportedChainSchema.exclude(['Lisk']),
+    approvalAddress: z.string().optional(),
 });
 
 ////////////////////
@@ -95,3 +115,4 @@ export type TokenMetadata = z.infer<typeof tokenMetadataSchema>;
 export type SwapTokensOnBaseTransactionDetails = z.infer<
     typeof swapTokensOnBaseTransactionDetailsSchema
 >;
+export type SwapTokensTransactionDetails = z.infer<typeof swapTokensTransactionDetailsSchema>;

@@ -1,7 +1,15 @@
 import { z } from 'zod';
 import { isAddress, isHex } from 'viem';
 
-export const SUPPORTED_CHAINS = ['Polygon', 'Base', 'Optimism', 'Ethereum', 'Lisk'] as const;
+// Todo: Migrate Solana to WalletKit provider.
+export const SUPPORTED_CHAINS = [
+    'Polygon',
+    'Base',
+    'Optimism',
+    'Ethereum',
+    'Lisk',
+    'Solana',
+] as const;
 export const supportedChainSchema = z.enum(SUPPORTED_CHAINS);
 export type SupportedChain = z.infer<typeof supportedChainSchema>;
 
@@ -15,7 +23,7 @@ export const createWalletKitWalletParams = z
         control_mode: walletControlMode,
         developer_secret: z.string().optional(),
         user_pin: z.string().optional(),
-        type: z.enum(['eoa', 'contract']),
+        type: z.enum(['eoa', 'contract']).optional(),
     })
     .refine((data) => {
         return data.developer_secret || data.user_pin;

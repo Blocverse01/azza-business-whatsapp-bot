@@ -6,8 +6,6 @@ import {
 } from '@/app/WalletKit/walletKitSchema';
 import { parseEther, toHex } from 'viem';
 import { TEN_THOUSAND } from '../src/constants/numbers';
-import env from '../src/constants/env';
-import { isAxiosError } from 'axios';
 
 describe('WalletKitService', () => {
     it('should create wallet successfully', async () => {
@@ -72,7 +70,7 @@ describe('WalletKitService', () => {
             token: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
             recipient: '0x4d81Cb192C26F50C31870053Fae9A7C84c8fC0c6',
             amount: '5',
-            developer_secret: 'uPdEemxVaGWJ4MhHHXYqCOSUoC9YLm4C2BL2Bk0M+Z7vAZm4SYm71Tm0mxhQt2lL',
+            developer_secret: WalletKitService.DEVELOPER_SECRET,
         });
 
         // Assert

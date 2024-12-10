@@ -84,8 +84,6 @@ class ExtendedSolanaWalletLibrary {
             maxSupportedTransactionVersion: ZERO,
         });
 
-        console.log({ transaction });
-
         let status: ExtendedWalletTransaction['status'] = 'pending';
         const explorerUrl = getTransactionExplorerUrl(transactionHash, 'Solana');
 
@@ -250,7 +248,7 @@ class ExtendedSolanaWalletLibrary {
 
         return null;
     }
-    private static async getTokenDecimals(
+    public static async getTokenDecimals(
         solanaNetworkClient: Connection,
         tokenMintPublicKey: PublicKey
     ): Promise<number> {

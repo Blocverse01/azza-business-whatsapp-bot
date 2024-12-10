@@ -157,6 +157,7 @@ class WalletKitService {
         return transaction as TransactionResponse & { transaction_hash: string };
     }
 
+    // Todo: This functionality can fetch multiple balances for cases where that's needed... Instead of calling it multiple times.
     public static async getBalance(
         walletAddress: string,
         network: SupportedChain,

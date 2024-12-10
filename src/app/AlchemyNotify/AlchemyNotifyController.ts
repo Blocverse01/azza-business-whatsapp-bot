@@ -1,3 +1,4 @@
+import { ChainsWithNotifySupport } from '@/app/AlchemyNotify/config';
 import {
     AlchemyAddressActivityWebhookEvent,
     AlchemyRequest,
@@ -37,7 +38,7 @@ class AlchemyNotifyController {
 
         res.sendStatus(OK);
 
-        const networkAsSupportedChain = network as SupportedChain;
+        const networkAsSupportedChain = network as ChainsWithNotifySupport;
         const signingKey = AlchemyNotifyService.signingKeys[networkAsSupportedChain];
 
         if (!isValidSignatureForAlchemyRequest(req as AlchemyRequest, signingKey)) {

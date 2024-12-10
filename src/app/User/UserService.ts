@@ -22,7 +22,7 @@ import { getDummyUsdValue, TokenNames } from '@/resources/web3/tokens';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { UserRecord } from '@/db/xata';
 import { fixNumber, formatNumberAsCurrency, prettifyNumber } from '@/resources/utils/currency';
-import { ONE, THREE } from '@/constants/numbers';
+import { ONE, SIX } from '@/constants/numbers';
 import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import AlchemyNotifyService from '@/app/AlchemyNotify/AlchemyNotifyService';
 import { logSync } from '@/resources/logger';
@@ -34,7 +34,7 @@ import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWa
 import { validateWalletAddress } from '@/resources/utils/validators';
 import ExtendedSolanaWallet from '@/app/ExtendedWallet/solana/ExtendedSolanaWallet';
 import { getPhoneNumberObject, cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
-import { getWebhookId } from '@/app/AlchemyNotify/config';
+import { getWebhookId, isChainWithNotifySupport } from '@/app/AlchemyNotify/config';
 
 class UserService {
     private static USER_TABLE = dbClient.User;
@@ -203,7 +203,7 @@ class UserService {
                 owner_id: phoneNumber,
                 network: chain,
                 control_mode: 'developer',
-                type: 'contract',
+                ...(chain === 'Solana' ? {} : { type: 'contract' }),
                 developer_secret: WalletKitService.DEVELOPER_SECRET,
             })
         );
@@ -247,8 +247,8 @@ class UserService {
         switch (network) {
             case 'Tron':
                 return new ExtendedTronWallet(mnemonic);
-            case 'Solana':
-                return new ExtendedSolanaWallet(mnemonic);
+            // case 'Solana':
+            //     return new ExtendedSolanaWallet(mnemonic);
             default:
                 throw new Error(`Extended wallet implementation for: ${network} not added yet`);
         }
@@ -312,8 +312,14 @@ class UserService {
 
         const usdBalance = getDummyUsdValue(assetWallet.name as TokenNames) * tokenBalanceAsNumber;
 
-        const usdBalanceDisplay = formatNumberAsCurrency(fixNumber(usdBalance, THREE), 'USD');
-        const tokenBalanceDisplay = prettifyNumber(tokenBalanceAsNumber, THREE);
+        const usdBalanceDisplay = formatNumberAsCurrency(fixNumber(usdBalance, SIX), 'USD');
+        const tokenBalanceDisplay = prettifyNumber(tokenBalanceAsNumber, SIX);
+
+        console.log({
+            usdBalanceDisplay,
+            tokenBalanceAsNumber,
+            tokenBalanceDisplay,
+        });
 
         return {
             tokenBalanceDisplay,
@@ -403,7 +409,7 @@ class UserService {
 
         // Add Tron Extended Wallet
         availableWallets.push(new ExtendedTronWallet(mnemonic));
-        availableWallets.push(new ExtendedSolanaWallet(mnemonic));
+        // availableWallets.push(new ExtendedSolanaWallet(mnemonic));
         // TODO: add other extended wallets
 
         return availableWallets;
@@ -424,6 +430,10 @@ class UserService {
             providedAnswer: string;
         }>
     ) {
+        if (!user.securityQuestionsSetup) {
+            return {};
+        }
+
         const userSecurityQuestions = this.unmaskUserSecurityQuestions(user.securityQuestionsSetup);
 
         const scoreSheet: Record<string, boolean> = {};
@@ -448,6 +458,10 @@ class UserService {
     public static retrieveUserSecurityQuestions(
         user: UserRecord
     ): Array<Pick<SecurityQuestion, 'question' | 'immutableId'>> {
+        if (!user.securityQuestionsSetup) {
+            return [];
+        }
+
         const unmaskedSecurityQuestions = this.unmaskUserSecurityQuestions(
             user.securityQuestionsSetup
         );
@@ -487,6 +501,10 @@ class UserService {
 
     private static async initializeUserWallet(params: CreateWalletKitWalletParams) {
         const wallet = await WalletKitService.createUserWallet(params);
+
+        if (!isChainWithNotifySupport(wallet.network)) {
+            return wallet;
+        }
 
         const webhookId = getWebhookId(wallet.network);
 

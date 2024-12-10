@@ -22,7 +22,7 @@ export const BOT_COMMANDS_REGEX = {
     HELP: /^\/help$/,
     TRANSFER: /^\/transfer\s+(?<asset>\w+)\s+(?<network>\w+)$/,
     DEPOSIT: /^\/deposit\s+(?<asset>\w+)\s+(?<network>\w+)$/,
-    BALANCES: /^\/balance$/, // matches /balance
+    BALANCES: /^\/balance$/, // matches /balance,
     ASSET_BALANCE: /^\/balance\s+(?<asset>\w+)\s+(?<network>\w+)$/, // /balance <asset> <network>
     ENTITY_BALANCE: /^\/balance\s+(?<entity>\w+)$/, // /balance <asset> or /balance <network>
     RESET_PIN: /^\/reset_pin$/,

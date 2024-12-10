@@ -15,6 +15,7 @@ import {
     depositCryptoAssetParamsSchema,
     requestTransactionPinSetupParams,
     swapTokensOnBaseParamsSchema,
+    swapTokensParamsSchema,
     transferCryptoAssetParamsSchema,
     walletBalanceParamsSchema,
 } from '@/app/aiAgent/agent.schema';
@@ -23,6 +24,7 @@ import {
     executeDepositCryptoAsset,
     executeRequestTransactionPinSetup,
     executeResetTransactionPin,
+    executeSwapTokens,
     executeSwapTokensOnBase,
     executeTransferAsset,
     executeWalletBalanceQuery,
@@ -170,39 +172,45 @@ export const toolSet = {
             return executeResetTransactionPin({ userId });
         },
     }),
-    swapTokensOnBaseNetwork: tool({
-        parameters: swapTokensOnBaseParamsSchema,
+    // swapTokensOnBaseNetwork: tool({
+    //     parameters: swapTokensOnBaseParamsSchema,
+    //     description:
+    //         'This tool defines exclusive support for swapping tokens on Base. Use this tool when a user wants to swap one token for another or buy a token with another one. This functionality is similar to the swapping feature on Dexs like Uniswap.',
+    //     execute: async (params) => executeSwapTokensOnBase(params),
+    // }),
+    // retrieveTokenMetadata: tool({
+    //     parameters: z.object({
+    //         tokenAddress: z.string().describe('The address of the token to retrieve metadata for'),
+    //         blockchainNetwork: supportedChainSchema,
+    //     }),
+    //     description:
+    //         'Use this tool to retrieve metadata for a token on a specified blockchain network. The metadata includes the token name, symbol, and decimals. This tool is useful for displaying token information to the user.',
+    //     execute: async ({ tokenAddress, blockchainNetwork }) => {
+    //         try {
+    //             const networkConfig = getAppDefaultEvmConfig(
+    //                 blockchainNetwork,
+    //                 env.WEB3_ENVIRONMENT
+    //             );
+    //             const publicClient = getPublicClient(networkConfig.viemChain, networkConfig.rpcUrl);
+    //
+    //             return {
+    //                 tokenMetadata: await Web3Library.getErc20TokenMetadata(
+    //                     publicClient,
+    //                     tokenAddress
+    //                 ),
+    //             };
+    //         } catch (error) {
+    //             return {
+    //                 error: `Please confirm that the token address is correct and that the token is deployed on the ${blockchainNetwork} network.`,
+    //             };
+    //         }
+    //     },
+    // }),
+    swapTokens: tool({
+        parameters: swapTokensParamsSchema,
+        execute: async (params) => executeSwapTokens(params),
         description:
-            'This tool defines exclusive support for swapping tokens on Base. Use this tool when a user wants to swap one token for another or buy a token with another one. This functionality is similar to the swapping feature on Dexs like Uniswap.',
-        execute: async (params) => executeSwapTokensOnBase(params),
-    }),
-    retrieveTokenMetadata: tool({
-        parameters: z.object({
-            tokenAddress: z.string().describe('The address of the token to retrieve metadata for'),
-            blockchainNetwork: supportedChainSchema,
-        }),
-        description:
-            'Use this tool to retrieve metadata for a token on a specified blockchain network. The metadata includes the token name, symbol, and decimals. This tool is useful for displaying token information to the user.',
-        execute: async ({ tokenAddress, blockchainNetwork }) => {
-            try {
-                const networkConfig = getAppDefaultEvmConfig(
-                    blockchainNetwork,
-                    env.WEB3_ENVIRONMENT
-                );
-                const publicClient = getPublicClient(networkConfig.viemChain, networkConfig.rpcUrl);
-
-                return {
-                    tokenMetadata: await Web3Library.getErc20TokenMetadata(
-                        publicClient,
-                        tokenAddress
-                    ),
-                };
-            } catch (error) {
-                return {
-                    error: `Please confirm that the token address is correct and that the token is deployed on the ${blockchainNetwork} network.`,
-                };
-            }
-        },
+            'Use this tool to handle the user request to swap one token for another. Ensure that the user has specified both the from and to tokens for the swap and other parameters. If these are missing, prompt the user to provide them before proceeding.',
     }),
 } satisfies Record<string, CoreTool>;
 

@@ -223,7 +223,6 @@ class WhatsAppBotController {
             }
 
             // Handle any other text message
-
             if (user) {
                 const normalizedPrompt = text.body.startsWith('/')
                     ? text.body.replace('/', '')

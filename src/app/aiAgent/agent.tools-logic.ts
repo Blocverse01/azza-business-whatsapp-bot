@@ -4,9 +4,12 @@ import {
     RequestTransactionPinSetupParams,
     supportedTokenSymbolsForBaseSwap,
     SwapTokensOnBaseParams,
+    SwapTokensParams,
     TransferCryptoAssetParams,
     WalletBalanceParams,
 } from '@/app/aiAgent/agent.schema';
+import { getDefaultSolanaNode, getSolanaNetworkClient } from '@/app/ExtendedWallet/solana/config';
+import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
 import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
 import Web3Library from '@/app/WalletAssetManagement/Web3Library';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
@@ -15,6 +18,7 @@ import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
 import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
 import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
+import { ZERO } from '@/constants/numbers';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
 import { ENABLED_ASSETS, getAssetConfigByTokenAddress, searchAsset } from '@/config/whatsAppBot';
@@ -34,7 +38,8 @@ import { AssetTransferRecipientType, TokenMetadata } from '@/app/azza/azza.schem
 import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
 import { TokenNames } from '@/resources/web3/tokens';
-import { formatUnits, isAddress, parseUnits } from 'viem';
+import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { formatUnits, getAddress, isAddress, parseUnits } from 'viem';
 
 export const executeTransferAsset = async (params: TransferCryptoAssetParams) => {
     const { cryptoCurrencySymbol, recipient, amount, blockchainNetwork, userId } = params;
@@ -42,7 +47,7 @@ export const executeTransferAsset = async (params: TransferCryptoAssetParams) =>
     const targetAsset = searchAsset({
         tokenName: cryptoCurrencySymbol,
         network: blockchainNetwork,
-    })[0];
+    })[ZERO];
 
     if (!targetAsset) {
         return {
@@ -146,7 +151,7 @@ export const executeWalletBalanceQuery = async (params: WalletBalanceParams) => 
             ? searchAsset({
                   tokenName: cryptoCurrencySymbol,
                   network: blockchainNetwork,
-              })[0]
+              })[ZERO]
             : undefined;
 
     const balanceQueryMode = targetAsset
@@ -527,6 +532,176 @@ export const executeSwapTokensOnBase = async (params: SwapTokensOnBaseParams) =>
                 fromAmount: quoteEstimate.fromAmount,
                 transactionRequest: transactionRequest,
                 approvalAddress: quote.estimate.approvalAddress,
+            },
+        });
+
+    await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, transactionSummaryMessage);
+
+    return {
+        nextStep:
+            'The previous message already contains details of the swap, no need to repeat it, Just emphasise clicking on the `Confirm Transaction` button to the user.',
+    };
+};
+
+/// This function might not be pretty, but works as is... for now
+export const executeSwapTokens = async (params: SwapTokensParams) => {
+    const { fromToken, fromAmount, toToken, userId, fromBlockchainNetwork, toBlockchainNetwork } =
+        params;
+
+    if (fromToken.toLowerCase() === toToken.toLowerCase()) {
+        return {
+            error: 'Tokens to swap must be different',
+        };
+    }
+
+    if (!LiFiIntegrationLibrary.isSupportedChain(fromBlockchainNetwork)) {
+        return {
+            error: `Unsupported chain to swap from: ${fromBlockchainNetwork}`,
+        };
+    }
+
+    if (!LiFiIntegrationLibrary.isSupportedChain(toBlockchainNetwork)) {
+        return {
+            error: `Unsupported chain to swap to: ${toBlockchainNetwork}`,
+        };
+    }
+
+    const [fromTokenConfig, toTokenConfig] = [
+        searchAsset({
+            tokenName: fromToken,
+            network: fromBlockchainNetwork,
+        })[ZERO],
+        searchAsset({
+            tokenName: toToken,
+            network: toBlockchainNetwork,
+        })[ZERO],
+    ];
+
+    const unmaskedUserId = convertBase64ToAsciiString(userId);
+    const userWallet = await WalletKitService.getUserWalletByNetwork(
+        unmaskedUserId,
+        fromBlockchainNetwork
+    );
+
+    const formattedAmount =
+        fromBlockchainNetwork === 'Solana'
+            ? await (async () => {
+                  if (!validateWalletAddress(fromTokenConfig.tokenAddress, fromBlockchainNetwork)) {
+                      return BigInt(fromAmount * LAMPORTS_PER_SOL).toString();
+                  }
+                  const connection = getSolanaNetworkClient(getDefaultSolanaNode());
+                  const decimals = await ExtendedSolanaWalletLibrary.getTokenDecimals(
+                      connection,
+                      new PublicKey(fromTokenConfig.tokenAddress)
+                  );
+
+                  return parseUnits(`${fromAmount}`, decimals).toString();
+              })()
+            : await (async () => {
+                  let decimals: number;
+                  const networkConfig = getAppDefaultEvmConfig(
+                      fromBlockchainNetwork,
+                      env.WEB3_ENVIRONMENT
+                  );
+
+                  if (!validateWalletAddress(fromTokenConfig.tokenAddress, fromBlockchainNetwork)) {
+                      decimals = networkConfig.viemChain.nativeCurrency.decimals;
+                  } else {
+                      const publicClient = getPublicClient(
+                          networkConfig.viemChain,
+                          networkConfig.rpcUrl
+                      );
+                      decimals = await Web3Library.getTokenDecimals(
+                          publicClient,
+                          getAddress(fromTokenConfig.tokenAddress)
+                      );
+                  }
+
+                  return parseUnits(`${fromAmount}`, decimals).toString();
+              })();
+
+    const [fromChainKey, toChainKey] = [
+        LiFiIntegrationLibrary.getChainKey(fromBlockchainNetwork),
+        LiFiIntegrationLibrary.getChainKey(toBlockchainNetwork),
+    ];
+
+    const quote = await LiFiIntegrationLibrary.getQuote({
+        fromToken: fromTokenConfig.tokenAddress,
+        fromAmount: formattedAmount,
+        fromAddress: userWallet.address,
+        toToken: toTokenConfig.tokenAddress,
+        fromChain: fromChainKey,
+        toChain: toChainKey,
+    });
+
+    const quote_fromToken = quote.action.fromToken;
+    const quote_toToken = quote.action.toToken;
+    const slippage = quote.action.slippage;
+    const quoteEstimate = quote.estimate;
+    const transactionRequest = quote.transactionRequest;
+
+    if (!transactionRequest) {
+        return {
+            error: 'Failed to get transaction request',
+        };
+    }
+
+    const formattedFromAmount = formatUnits(
+        BigInt(quoteEstimate.fromAmount),
+        quote_fromToken.decimals
+    );
+    const formattedToAmount = formatUnits(BigInt(quoteEstimate.toAmount), quote_toToken.decimals);
+
+    const [prettifiedFromAmount, prettifiedToAmount] = [
+        prettifyNumber(Number(formattedFromAmount), 6),
+        prettifyNumber(Number(formattedToAmount), 6),
+    ];
+
+    const swapRate = prettifyNumber(Number(formattedToAmount) / Number(formattedFromAmount), 6);
+
+    const chainMessages =
+        fromBlockchainNetwork === toBlockchainNetwork
+            ? [`Chain: *${fromBlockchainNetwork}`]
+            : [`From Chain: *${fromBlockchainNetwork}*`, `To Chain: *${toBlockchainNetwork}*`];
+
+    const transactionSummaryMessageBody = [
+        `🔄 _Swap_ *_${quote_fromToken.symbol}_* to *_${quote_toToken.symbol}_*\n`,
+        `From Amount: *${prettifiedFromAmount} ${quote_fromToken.symbol}*`,
+        `To Amount: *${prettifiedToAmount} ${quote_toToken.symbol}*`,
+        `1 ${quote_fromToken.symbol} = ${swapRate} ${quote_toToken.symbol}\n`,
+        ...chainMessages,
+        `Slippage: *${slippage * 100}%*`,
+    ].join('\n');
+
+    const transactionSummaryMessage =
+        WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
+            env.WA_PHONE_NUMBER_ID as PhoneNumberId
+        ).createTransactionConfirmationFlowMessage({
+            msgRecipient: unmaskedUserId,
+            transactionSummary: transactionSummaryMessageBody
+                .replaceAll('_', '')
+                .replaceAll('*', ''),
+            transactionMessageBody: `${transactionSummaryMessageBody}\n\nClick on 'Confirm Transaction' to confirm the swap`,
+            transactionDetails: {
+                transactionType: 'SWAP_TOKENS',
+                userId: userId,
+                fromToken: {
+                    name: quote_fromToken.name,
+                    symbol: quote_fromToken.symbol,
+                    id: quote_fromToken.address,
+                    decimals: quote_fromToken.decimals,
+                },
+                toToken: {
+                    name: quote_toToken.name,
+                    symbol: quote_toToken.symbol,
+                    id: quote_toToken.address,
+                    decimals: quote_toToken.decimals,
+                },
+                fromAmount: quoteEstimate.fromAmount,
+                transactionRequest: transactionRequest,
+                approvalAddress: quote.estimate.approvalAddress,
+                fromChain: fromBlockchainNetwork,
+                toChain: toBlockchainNetwork,
             },
         });
 

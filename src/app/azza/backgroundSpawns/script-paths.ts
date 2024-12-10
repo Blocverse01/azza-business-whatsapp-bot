@@ -12,3 +12,5 @@ export const CHANGE_TRANSACTION_PIN_SCRIPT_PATH =
 
 export const SWAP_TOKENS_ON_BASE_SCRIPT_PATH =
     'src/app/azza/backgroundSpawns/swap-tokens-on-base.ts';
+
+export const SWAP_TOKENS_SCRIPT_PATH = 'src/app/azza/backgroundSpawns/swap-tokens.ts';

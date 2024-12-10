@@ -94,6 +94,30 @@ export const swapTokensOnBaseParamsSchema = z
     })
     .merge(baseWalletToolSchema);
 
+export const swapTokensParamsSchema = z
+    .object({
+        fromToken: z
+            .nativeEnum(TokenNames)
+            .describe(
+                'The symbol of the cryptocurrency to swap from, e.g., USDT, USDC, ETH. Confirm with the user.'
+            ),
+        toToken: z
+            .nativeEnum(TokenNames)
+            .describe(
+                'The symbol of the cryptocurrency to swap to, e.g., USDT, USDC, ETH. Confirm with the user.'
+            ),
+        fromAmount: z.coerce
+            .number()
+            .describe('The amount of cryptocurrency to swap. Confirm with the user.'),
+        fromBlockchainNetwork: supportedChainSchema.describe(
+            'The blockchain network to swap the asset from, e.g., Ethereum, Solana. Confirm with the user.'
+        ),
+        toBlockchainNetwork: supportedChainSchema.describe(
+            'The blockchain network to swap the asset to, e.g., Ethereum, Solana. Confirm with the user.'
+        ),
+    })
+    .merge(baseWalletToolSchema);
+
 ////////////////////
 // Inferred Types
 ////////////////////
@@ -103,3 +127,4 @@ export type RequestTransactionPinSetupParams = z.infer<typeof requestTransaction
 export type DepositCryptoAssetParams = z.infer<typeof depositCryptoAssetParamsSchema>;
 export type BaseWalletToolParams = z.infer<typeof baseWalletToolSchema>;
 export type SwapTokensOnBaseParams = z.infer<typeof swapTokensOnBaseParamsSchema>;
+export type SwapTokensParams = z.infer<typeof swapTokensParamsSchema>;

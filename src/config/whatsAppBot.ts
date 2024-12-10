@@ -13,7 +13,9 @@ import {
     solConfig,
     ethBaseConfig,
     ethEthereumConfig,
-    maticConfig,
+    polConfig,
+    opOptimismConfig,
+    ethOptimismConfig,
 } from '@/resources/web3/tokens';
 
 export const ENABLED_ASSETS = [
@@ -30,7 +32,9 @@ export const ENABLED_ASSETS = [
     solConfig,
     ethBaseConfig,
     ethEthereumConfig,
-    maticConfig,
+    polConfig,
+    opOptimismConfig,
+    ethOptimismConfig,
 ];
 
 // Get asset config by list item id
