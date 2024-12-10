@@ -427,7 +427,7 @@ class WhatsAppBotService {
 
         const guideMessage = MessageGenerators.generateTextMessage(
             userPhoneNumber,
-            `Steps to deposit ${asset.name} (${asset.network}):\n\n1. Copy the wallet address above 👆\n2. Go to your wallet or exchange where you have ${asset.name} on ${asset.network} and send the desired amount to the copied address\n3. Wait for the transaction to be confirmed\n4. You will receive a notification once the transaction is successful`
+            `Steps to deposit ${asset.name} (${asset.network}):\n\n1. Copy the wallet address above 👆\n2. Go to your wallet or exchange where you have ${asset.name} on ${asset.network} and send the desired amount to the copied address.`
         );
 
         await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, guideMessage);
