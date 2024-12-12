@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/blocverse01/globachain-ramps-grpc-service/fiatramps";
+option go_package = "github.com/blocverse01/fiat-ramps-grpc-service/fiatramps";
 
 package fiatramps.v1;
 
@@ -12,14 +12,23 @@ service FiatRampsService {
   rpc GetBeneficiaries(GetBeneficiariesRequest) returns (GetBeneficiariesResponse) {};
   rpc GetBeneficiary(GetBeneficiaryRequest) returns (Beneficiary) {};
   rpc GetPaymentMethods(GetPaymentMethodsRequest) returns (GetPaymentMethodsResponse) {};
+  rpc AddBeneficiary(AddBeneficiaryRequest) returns(AddBeneficiaryResponse) {};
+  rpc GetPaymentNetworks(GetPaymentNetworksRequest) returns(GetPaymentNetworksResponse) {};
+  rpc GetSupportedCountryByCode(GetSupportedCountryRequest) returns (SupportedCountry) {};
+  rpc CreateBeneficiaryPaymentRequest(CreateBeneficiaryPaymentRequestInput) returns(CreatePaymentRequestResponse) {}
+  rpc GetPaymentRequestTransaction(GetPaymentRequestTransactionRequest) returns (GetPaymentRequestTransactionResponse) {}
+  rpc GetHotWalletAddress(GetHotWalletAddressRequest) returns (GetHotWalletAddressResponse) {}
 }
 
 message GetSupportedCountriesRequest {
 }
+message GetSupportedCountryRequest {
+  string country_code = 1;
+}
 
 message SupportedCountry {
   string id = 1;
-  string country = 2;
+  string name = 2;
   string code = 3;
   string currency_symbol = 4;
   string currency_name = 5;
@@ -83,7 +92,6 @@ message Beneficiary {
   string channel_id = 6;
   string network_id = 7;
   SupportedCountry country = 8;
-  string provider_description = 9;
 }
 
 message GetBeneficiaryRequest {
@@ -108,4 +116,102 @@ message GetPaymentMethodsRequest {
 message GetPaymentMethodsResponse {
   repeated PaymentChannel channels = 1;
   CountryFiatLimits limits = 2;
+}
+
+message AddBeneficiaryRequest {
+  string account_number = 1;
+  string account_name = 2;
+  string account_type = 3;
+  string network_name = 4;
+  string network_id = 6;
+  string channel_id = 7;
+  string country = 8;
+  string owner_id = 9;
+}
+message AddBeneficiaryResponse {
+  string new_beneficiary_id = 1;
+}
+
+message GetPaymentNetworksRequest {
+  string country_code = 1;
+  string channel_id = 2;
+}
+message ActivePaymentNetwork {
+  string name = 1;
+  string network_id = 2;
+  string channel_id = 3;
+}
+message GetPaymentNetworksResponse {
+  repeated ActivePaymentNetwork networks = 1;
+}
+
+message PaymentRequestSender {
+  string name = 1;
+  string phone = 2;
+  string country = 3;
+  string address = 4;
+  string dob = 5;
+  string id_number = 6;
+  string id_type = 7;
+  string additional_id_type = 8;
+  string additional_id_number = 9;
+}
+message PaymentRequestDestination {
+  string account_number = 1;
+  string account_type = 2;
+  string network_id = 3;
+  string network_name = 4;
+  string country = 5;
+  string account_name = 6;
+}
+message CreateBeneficiaryPaymentRequestInput {
+  string beneficiary_id = 1;
+  double local_amount = 2;
+  string owner_id = 3;
+  PaymentRequestSender sender = 4;
+  string token_symbol = 5;
+  string blockchain_network = 6;
+  string token_address = 7;
+  string hot_wallet_address = 8;
+  string from_wallet_address = 9;
+  string transaction_hash = 10;
+  double platform_fee_percentage = 11;
+  double conversion_rate = 12;
+  double usd_amount = 13; // Total USD amount including transaction fees.
+}
+message CreatePaymentRequestResponse {
+  string id = 1;
+  string channel_id = 2;
+  string sequence_id = 3;
+  string currency = 4;
+  string country = 5;
+  double amount = 6; // USD amount
+  string reason = 7;
+  double converted_amount = 8;
+  string status = 9;
+  double rate = 10;
+  PaymentRequestSender sender = 11;
+  PaymentRequestDestination destination = 12;
+}
+
+message GetPaymentRequestTransactionRequest {
+  string sequence_id = 1;
+}
+message GetPaymentRequestTransactionResponse {
+  string sequence_id = 1;
+  double usd_amount = 2;
+  string owner_id = 3;
+  double local_amount = 4;
+  string status = 5;
+  double rate = 6;
+  string local_currency_symbol = 7;
+  string token_symbol = 8;
+  string blockchain_network = 9;
+}
+
+message GetHotWalletAddressRequest {
+  string network_type = 1;
+}
+message GetHotWalletAddressResponse {
+  string address = 1;
 }

@@ -3,7 +3,7 @@ import { type CountryCode, isValidPhoneNumber } from 'libphonenumber-js';
 
 export const supportedCountry = z.object({
     code: z.string(),
-    country: z.string(),
+    name: z.string(),
     currencyName: z.string(),
     currencySymbol: z.string(),
     flag: z.string().url(),
@@ -14,7 +14,7 @@ export const getCurrenciesResponseSchema = z.object({
     data: z.array(
         z.object({
             code: z.string(),
-            country: z.string(),
+            name: z.string(),
             currencyName: z.string(),
             currencySymbol: z.string(),
             flag: z.string().url(),
@@ -90,7 +90,6 @@ export const getMobileProvidersResponseSchema = z.object({
         z.object({
             channelId: z.string(),
             networkId: z.string(),
-            code: z.string(),
             name: z.string(),
         })
     ),
@@ -140,21 +139,13 @@ export const sendOnrampTransactionResponseSchema = z.object({
 
 export type SendOnrampTransactionResponse = z.infer<typeof sendOnrampTransactionResponseSchema>;
 
-export const supportedBankSchema = z.object({
+export const supportedPaymentNetworkSchema = z.object({
     networkId: z.string().min(3),
     channelId: z.string().min(3),
     name: z.string().min(3),
-    slug: z.string().min(3),
-    code: z.string().min(3),
 });
 
-export type SupportedBank = z.infer<typeof supportedBankSchema>;
-
-export const getSupportedBanksResponseSchema = z.object({
-    data: z.array(supportedBankSchema),
-});
-
-export type GetSupportedBanksResponse = z.infer<typeof getSupportedBanksResponseSchema>;
+export type SupportedPaymentNetwork = z.infer<typeof supportedPaymentNetworkSchema>;
 
 const beneficiaryCountrySchema = z.object({
     country: z.string(),
@@ -182,7 +173,6 @@ export const mobileMoneyBeneficiarySchema = (countryCode: CountryCode) =>
         channelId: z.string(),
         id: z.string(),
         mobileProvider: z.string(),
-        mobileProviderCode: z.string(),
         mobileNumber: z
             .string()
             .refine((data) => isValidPhoneNumber(data, countryCode), 'Invalid Mobile Number'),
@@ -252,6 +242,9 @@ export const sendOfframpRequestPayloadSchema = z.object({
     usdAmount: z.number(),
     tokenAddress: z.string(),
     txHash: z.string(),
+    userId: z.string(),
+    platformFeePercentage: z.number(),
+    conversionRate: z.number(),
 });
 
 export type SendOfframpRequestPayload = z.infer<typeof sendOfframpRequestPayloadSchema>;
@@ -272,7 +265,13 @@ export const postOfframpTransactionResponse = z.object({
 
 export type PostOfframpTransactionResponse = z.infer<typeof postOfframpTransactionResponse>;
 
-export const transactionStatusSchema = z.enum(['pending', 'complete', 'failed', 'processing']);
+export const transactionStatusSchema = z.enum([
+    'pending',
+    'complete',
+    'failed',
+    'processing',
+    'created',
+]);
 
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
 

@@ -57,8 +57,8 @@ const flowConfigs: FlowConfigs = {
     },
     ADD_BENEFICIARY: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
-            flowId: '482861261039877',
-            flowMode: 'published',
+            flowId: '597553076140311',
+            flowMode: 'draft',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '409232385504910',

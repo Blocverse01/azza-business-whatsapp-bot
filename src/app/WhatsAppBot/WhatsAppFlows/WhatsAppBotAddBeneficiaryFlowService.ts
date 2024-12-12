@@ -1,3 +1,4 @@
+import { getCountryCallingCodeDigits, getPhoneNumberObject } from '@/resources/utils/phone-numbers';
 import { AssetConfig } from '@/resources/web3/tokens';
 import {
     DataExchangeResponse,
@@ -7,7 +8,7 @@ import {
 import { DropdownOption, FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import logger from '@/resources/logger';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { CountryCode } from 'libphonenumber-js';
+import { type CountryCode } from 'libphonenumber-js';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import { generateRandomHexString } from '@/resources/utils/encryption';
 import { SIXTEEN } from '@/constants/numbers';
@@ -256,6 +257,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
         const selectedAccountType = this.determineSelectedAccountType(account_type, account_types);
 
         const supportedBanks = await FiatRampService.getSupportedBanks(
+            country_code as CountryCode,
             selectedAccountType.channelId
         );
 
@@ -282,16 +284,17 @@ class WhatsAppBotAddBeneficiaryFlowService {
         const selectedAccountType = this.determineSelectedAccountType(account_type, account_types);
 
         const supportedProviders = await FiatRampService.getSupportedMobileProviders(
+            country_code as CountryCode,
             selectedAccountType.channelId
         );
 
         return {
-            screen: AddBeneficiaryFlowScreens.BANK_ACCOUNT_FORM,
+            screen: AddBeneficiaryFlowScreens.MOBILE_MONEY_FORM,
             data: {
                 supported_mobile_providers: supportedProviders.map((provider) => ({
                     title: provider.name,
                     id: provider.networkId,
-                    description: provider.code,
+                    description: provider.name,
                 })),
                 country_code,
                 channel_id: selectedAccountType.channelId,
@@ -393,6 +396,11 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 throw new Error('Invalid country code');
             }
 
+            const countryCallingCode = getCountryCallingCodeDigits(country_code as CountryCode);
+            const phoneNumberObject = getPhoneNumberObject(`${countryCallingCode}${mobile_number}`);
+
+            const phoneNumber = phoneNumberObject?.formatInternational();
+
             const beneficiaryId = await FiatRampService.createBeneficiary(
                 user_id,
                 country_code as CountryCode,
@@ -401,12 +409,11 @@ class WhatsAppBotAddBeneficiaryFlowService {
                     beneficiary: {
                         firstName: first_name,
                         lastName: last_name,
-                        mobileNumber: mobile_number,
+                        mobileNumber: phoneNumber!,
                         mobileProvider: selectedMobileProvider.providerName,
                         networkId: selectedMobileProvider.networkId,
                         channelId: channel_id,
                         countryId: country.id,
-                        mobileProviderCode: selectedMobileProvider.providerCode,
                     },
                 }
             );
@@ -422,7 +429,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
         } catch (error) {
             const parsedError = parseUnknownError(error);
 
-            logger.error('Failed to add beneficiary', {
+            void logger.error('Failed to add beneficiary', {
                 error: parsedError,
             });
 

@@ -1,22 +1,34 @@
+import UserService from '@/app/User/UserService';
 import { z } from 'zod';
 import {
     BankBeneficiary,
+    CreateBeneficiaryParams,
     MobileMoneyBeneficiary,
     paymentMethodsResponseDataSchema,
     quoteSchema,
     ratesSchema,
+    SendOfframpRequestPayload,
+    sendOfframpRequestPayloadSchema,
     supportedCountry,
+    supportedPaymentNetworkSchema,
+    transactionStatusSchema,
 } from '@/app/FiatRamp/fiatRampSchema';
 import { transformKeysToCamelCase } from '@/resources/utils/transformers';
 import { fiatramps } from '@/proto/fiatramps/v1/service';
 import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
 import {
+    addBeneficiary,
+    createBeneficiaryPaymentRequest,
     getBeneficiaries,
     getBeneficiary,
+    getHotWalletAddress,
     getPaymentMethods,
+    getPaymentNetworks,
+    getPaymentRequestTransaction,
     getQuotes,
     getRates,
     getSupportedCountries,
+    getTransactionFees,
 } from './rpcMethods';
 import GetRatesRequest = fiatramps.v1.GetRatesRequest;
 import { CountryCode } from 'libphonenumber-js';
@@ -26,6 +38,13 @@ import { HUNDRED } from '@/constants/numbers';
 import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
 import GetBeneficiaryRequest = fiatramps.v1.GetBeneficiaryRequest;
 import GetPaymentMethodsRequest = fiatramps.v1.GetPaymentMethodsRequest;
+import GetTransactionFeeRequest = fiatramps.v1.GetTransactionFeeRequest;
+import GetPaymentNetworksRequest = fiatramps.v1.GetPaymentNetworksRequest;
+import AddBeneficiaryRequest = fiatramps.v1.AddBeneficiaryRequest;
+import CreateBeneficiaryPaymentRequestInput = fiatramps.v1.CreateBeneficiaryPaymentRequestInput;
+import PaymentRequestSender = fiatramps.v1.PaymentRequestSender;
+import GetPaymentRequestTransactionRequest = fiatramps.v1.GetPaymentRequestTransactionRequest;
+import GetHotWalletAddressRequest = fiatramps.v1.GetHotWalletAddressRequest;
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -136,7 +155,11 @@ class FiatRampsRpcService {
             } satisfies BankBeneficiary;
         }
 
-        const [firstName, lastName] = (deserializedBeneficiary.account_name ?? '').split(' ');
+        const [firstName, lastName] = (deserializedBeneficiary.account_name ?? '')
+            .trim()
+            .split(' ');
+
+        console.log(deserializedBeneficiary.account_name, { firstName, lastName });
 
         return {
             mobileNumber: deserializedBeneficiary.account_number!,
@@ -146,7 +169,6 @@ class FiatRampsRpcService {
             networkId: deserializedBeneficiary.network_id!,
             id: deserializedBeneficiary.id!,
             mobileProvider: deserializedBeneficiary.provider_name!,
-            mobileProviderCode: deserializedBeneficiary.provider_description!,
             firstName: firstName,
             lastName: lastName,
         } satisfies MobileMoneyBeneficiary;
@@ -182,6 +204,161 @@ class FiatRampsRpcService {
             paymentChannels: parsedData.channels,
             countryFiatLimits: parsedData.limits,
         };
+    }
+
+    public static async getTransactionFee(countryCode: CountryCode, route: 'onramp' | 'offramp') {
+        const request = new GetTransactionFeeRequest({
+            country_code: countryCode,
+        });
+
+        const response = await getTransactionFees(request);
+
+        const { offramp_fee_percentage, onramp_fee_percentage } = response.toObject();
+
+        if (offramp_fee_percentage === undefined || onramp_fee_percentage === undefined) {
+            throw new Error('Invalid response');
+        }
+
+        return route === 'onramp'
+            ? defaultAmountFixer(onramp_fee_percentage / HUNDRED)
+            : defaultAmountFixer(offramp_fee_percentage / HUNDRED);
+    }
+
+    public static async getPaymentNetworks(countryCode: CountryCode, channelId: string) {
+        const request = new GetPaymentNetworksRequest({
+            country_code: countryCode,
+            channel_id: channelId,
+        });
+
+        const response = await getPaymentNetworks(request);
+
+        const { networks } = response.toObject();
+
+        return z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
+    }
+
+    public static async addBeneficiary(
+        ownerId: string,
+        countryCode: CountryCode,
+        accountType: 'bank' | 'phone',
+        params: CreateBeneficiaryParams
+    ) {
+        const beneficiaryDetails =
+            'firstName' in params.beneficiary
+                ? (() => ({
+                      accountName: `${params.beneficiary.firstName.trim()} ${params.beneficiary.lastName.trim()}`,
+                      accountType: accountType,
+                      accountNumber: params.beneficiary.mobileNumber,
+                      networkName: params.beneficiary.mobileProvider,
+                  }))()
+                : (() => ({
+                      accountName: params.beneficiary.accountName,
+                      accountType: accountType,
+                      accountNumber: params.beneficiary.accountNumber,
+                      networkName: params.beneficiary.bankName,
+                  }))();
+
+        const request = new AddBeneficiaryRequest({
+            account_name: beneficiaryDetails.accountName.trim(),
+            account_number: beneficiaryDetails.accountNumber,
+            account_type: beneficiaryDetails.accountType,
+            network_id: params.beneficiary.networkId,
+            channel_id: params.beneficiary.channelId,
+            country: countryCode,
+            network_name: beneficiaryDetails.networkName.trim(),
+            owner_id: ownerId,
+        });
+
+        const response = await addBeneficiary(request);
+
+        const { new_beneficiary_id } = response.toObject();
+
+        if (!new_beneficiary_id) throw new Error('Invalid response from addBeneficiary');
+
+        return new_beneficiary_id;
+    }
+
+    public static async createBeneficiaryOfframpRequest(params: SendOfframpRequestPayload) {
+        const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
+        const user = await UserService.getUserByPhoneNumber(params.userId);
+
+        if (!user) throw new Error('User not found');
+
+        const request = new CreateBeneficiaryPaymentRequestInput({
+            beneficiary_id: validatedParams.beneficiaryId,
+            local_amount: validatedParams.localAmount,
+            usd_amount: validatedParams.usdAmount,
+            owner_id: validatedParams.userId,
+            blockchain_network: validatedParams.chainName,
+            token_address: validatedParams.tokenAddress,
+            token_symbol: validatedParams.tokenName,
+            from_wallet_address: validatedParams.userWalletAddress,
+            transaction_hash: validatedParams.txHash,
+            platform_fee_percentage: validatedParams.platformFeePercentage,
+            hot_wallet_address: validatedParams.hotWalletAddress,
+            conversion_rate: validatedParams.conversionRate,
+            sender: new PaymentRequestSender({
+                name: `${user.firstName} ${user.lastName}`,
+                phone: user.phoneNumber!,
+                country: user.country,
+                dob: user.kycDateOfBirth,
+                id_number: user.kycDocumentNumber,
+                id_type: user.kycIdType,
+            }),
+        });
+
+        const response = await createBeneficiaryPaymentRequest(request);
+        const offrampResponse = response.toObject();
+        if (!offrampResponse.sequence_id) throw new Error('Invalid response from offramp service');
+
+        return offrampResponse.sequence_id;
+    }
+
+    public static async getOfframpTransactionStatus(sequenceId: string) {
+        const request = new GetPaymentRequestTransactionRequest({
+            sequence_id: sequenceId,
+        });
+
+        const response = await getPaymentRequestTransaction(request);
+
+        const { status } = response.toObject();
+
+        return transactionStatusSchema.parse(status?.toLowerCase());
+    }
+
+    public static async getOfframpTransaction(sequenceId: string) {
+        const request = new GetPaymentRequestTransactionRequest({
+            sequence_id: sequenceId,
+        });
+
+        const response = await getPaymentRequestTransaction(request);
+
+        const responseObj = response.toObject();
+
+        return z
+            .object({
+                status: transactionStatusSchema,
+                blockchainNetwork: z.string(),
+                usdAmount: z.number(),
+                localAmount: z.number(),
+                localCurrencySymbol: z.string(),
+                tokenSymbol: z.string(),
+                ownerId: z.string(),
+            })
+            .parse(transformKeysToCamelCase(responseObj));
+    }
+
+    public static async getHotWalletAddress(networkType: 'evm') {
+        const request = new GetHotWalletAddressRequest({
+            network_type: networkType,
+        });
+
+        const response = await getHotWalletAddress(request);
+        const { address } = response.toObject();
+
+        if (!address) throw new Error('Hot wallet address not found');
+
+        return address;
     }
 }
 

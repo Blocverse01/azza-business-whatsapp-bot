@@ -418,6 +418,7 @@ class WhatsAppBotOnRampFlowService {
         try {
             if (account_type === 'phone') {
                 const mobileProviders = await FiatRampService.getSupportedMobileProviders(
+                    country_code as CountryCode,
                     transaction_details.channel_id
                 );
 
@@ -535,7 +536,7 @@ class WhatsAppBotOnRampFlowService {
                     screen: OnRampFlowScreens.BANK_PAYMENT,
                     data: {
                         account_number: onrampResponse.bankInfo.accountNumber,
-                        bank_name: onrampResponse.bankInfo.bankName,
+                        bank_name: onrampResponse.bankInfo.name,
                         account_name: onrampResponse.bankInfo.accountName,
                         asset_id,
                         amount: formatNumberAsCurrency(
@@ -704,7 +705,7 @@ class WhatsAppBotOnRampFlowService {
                 momoDetails: {
                     accountName: verifiedUserDetails.firstName + ' ' + verifiedUserDetails.lastName,
                     accountNumber: mobile_number,
-                    bankName: mobile_provider,
+                    name: mobile_provider,
                 },
             });
 

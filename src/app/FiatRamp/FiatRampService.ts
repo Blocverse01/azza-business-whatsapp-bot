@@ -1,51 +1,42 @@
-import env from '@/constants/env';
 import {
     CreateBeneficiaryParams,
     OnrampTransactionPayload,
     SendOfframpRequestPayload,
+    SendOnrampTransactionResponse,
 } from '@/app/FiatRamp/fiatRampSchema';
+import { BAD_REQUEST } from '@/constants/status-codes';
 import { CountryCode } from 'libphonenumber-js';
-import FiatRampsApiService from '@/app/FiatRamp/apiService/FiatRampsApiService';
 import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService';
+import crypto from 'node:crypto';
+import {
+    YellowCardOfframpEvent,
+    YellowCardOfframpEvents,
+    YellowCardOnRampEvent,
+    YellowCardOnRampEvents,
+    YellowCardWebhookPayload,
+} from './types';
+import { HttpException } from '@/resources/exceptions/HttpException';
 
 class FiatRampService {
-    private static readonly USE_API_SERVICE = false;
-    public static readonly SERVICE_ENABLED = false;
+    public static readonly SERVICE_ENABLED = true;
 
     public static async getSupportedCurrencies() {
-        if (this.USE_API_SERVICE) {
-            return await FiatRampsApiService.getSupportedCurrencies();
-        }
-
         return await FiatRampsRpcService.getSupportedCountries();
     }
 
     public static async getTransactionFee(countryCode: CountryCode, route: 'onramp' | 'offramp') {
-        // TODO: add flag control statement
-        return await FiatRampsApiService.getTransactionFee(countryCode, route);
+        return await FiatRampsRpcService.getTransactionFee(countryCode, route);
     }
 
     public static async getAllRates() {
-        if (this.USE_API_SERVICE) {
-            return await FiatRampsApiService.getAllRates();
-        }
-
         return await FiatRampsRpcService.getRates();
     }
 
     public static async getMultipleRates(targetCurrencies: Array<string> = []) {
-        if (this.USE_API_SERVICE) {
-            return await FiatRampsApiService.getMultipleRates(targetCurrencies);
-        }
-
         return await FiatRampsRpcService.getRates(targetCurrencies);
     }
 
     public static async getCurrencyRates(currencySymbol: string) {
-        if (this.USE_API_SERVICE) {
-            return await FiatRampsApiService.getCurrencyRates(currencySymbol);
-        }
-
         return await FiatRampsRpcService.getCurrencyRates(currencySymbol);
     }
 
@@ -62,19 +53,11 @@ class FiatRampService {
         countryCode: CountryCode,
         route: 'onramp' | 'offramp'
     ) {
-        if (this.USE_API_SERVICE) {
-            return await FiatRampsApiService.getQuotes(currencySymbol, countryCode, route);
-        }
-
         return await FiatRampsRpcService.getQuotes(currencySymbol, countryCode, route);
     }
 
     public static async getPaymentMethods(countryCode: CountryCode, route: 'onramp' | 'offramp') {
         const args = [countryCode, route] as const;
-
-        if (this.USE_API_SERVICE) {
-            return await FiatRampsApiService.getPaymentMethods(...args);
-        }
 
         return await FiatRampsRpcService.getPaymentMethods(...args);
     }
@@ -86,22 +69,18 @@ class FiatRampService {
         return channelName === 'bank' ? 'Bank Account' : 'Mobile Money Account';
     }
 
-    public static async getSupportedMobileProviders(channelId: string) {
-        // TODO: add flag control statement
-        return await FiatRampsApiService.getSupportedMobileProviders(channelId);
+    public static async getSupportedMobileProviders(countryCode: CountryCode, channelId: string) {
+        return await FiatRampsRpcService.getPaymentNetworks(countryCode, channelId);
     }
 
-    public static async postOnRampTransaction(transactionPayload: OnrampTransactionPayload) {
-        // TODO: add flag control statement
-        if (!this.SERVICE_ENABLED) {
-            throw new Error('Service is disabled');
-        }
-        return await FiatRampsApiService.postOnRampTransaction(transactionPayload);
+    public static async postOnRampTransaction(
+        transactionPayload: OnrampTransactionPayload
+    ): Promise<SendOnrampTransactionResponse['data']> {
+        throw new Error('Service is disabled');
     }
 
-    public static async getSupportedBanks(channelId: string) {
-        // TODO: add flag control statement
-        return await FiatRampsApiService.getSupportedBanks(channelId);
+    public static async getSupportedBanks(countryCode: CountryCode, channelId: string) {
+        return await FiatRampsRpcService.getPaymentNetworks(countryCode, channelId);
     }
 
     public static async createBeneficiary(
@@ -110,13 +89,7 @@ class FiatRampService {
         accountType: 'bank' | 'phone',
         params: CreateBeneficiaryParams
     ) {
-        // TODO: add flag control statement
-        return await FiatRampsApiService.createBeneficiary(
-            ownerId,
-            countryCode,
-            accountType,
-            params
-        );
+        return await FiatRampsRpcService.addBeneficiary(ownerId, countryCode, accountType, params);
     }
 
     public static async getBeneficiaries(
@@ -124,42 +97,61 @@ class FiatRampService {
         countryCode: CountryCode,
         accountType: 'bank' | 'phone' | undefined = undefined
     ) {
-        if (this.USE_API_SERVICE) {
-            return await FiatRampsApiService.getBeneficiaries(ownerId, countryCode, accountType);
-        }
-
         return FiatRampsRpcService.getBeneficiaries(ownerId, countryCode, accountType);
     }
 
     public static async getBeneficiary(beneficiaryId: string) {
-        if (this.USE_API_SERVICE) {
-            return await FiatRampsApiService.getBeneficiary(beneficiaryId);
-        }
-
         return await FiatRampsRpcService.getBeneficiary(beneficiaryId);
     }
 
-    public static async sendOfframpRequest(params: SendOfframpRequestPayload) {
-        // TODO: add flag control statement
-        return await FiatRampsApiService.sendOfframpRequest(params);
-    }
-
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
-        // TODO: add flag control statement
-        if (!this.SERVICE_ENABLED) {
-            throw new Error('Service is disabled');
-        }
-        return await FiatRampsApiService.postOfframpTransaction(params);
+        return await FiatRampsRpcService.createBeneficiaryOfframpRequest(params);
     }
 
     public static async getTransactionStatus(sequenceId: string, route: 'onramp' | 'offramp') {
-        // TODO: add flag control statement
-        return await FiatRampsApiService.getTransactionStatus(sequenceId, route);
+        if (route === 'offramp')
+            return await FiatRampsRpcService.getOfframpTransactionStatus(sequenceId);
+
+        throw new Error('Unavailable implementation for onramp transaction status');
+    }
+
+    public static async getOfframpTransaction(sequenceId: string) {
+        return await FiatRampsRpcService.getOfframpTransaction(sequenceId);
     }
 
     public static async getHotWalletForNetwork(networkType: 'evm') {
-        // TODO: add flag control statement
-        return await FiatRampsApiService.getHotWalletForNetwork(networkType);
+        return await FiatRampsRpcService.getHotWalletAddress(networkType);
+    }
+
+    public static validateWebHookData(
+        signature: string,
+        body: YellowCardWebhookPayload,
+        secretKey: string
+    ) {
+        if (!signature) {
+            throw new HttpException(BAD_REQUEST, 'Signature is missing from request');
+        }
+
+        const bodyString: string = JSON.stringify(body);
+
+        const calculatedSignature: string = crypto
+            .createHmac('sha256', secretKey)
+            .update(bodyString)
+            .digest('base64');
+
+        if (signature === calculatedSignature) {
+            return JSON.parse(bodyString) as YellowCardWebhookPayload;
+        } else {
+            throw new HttpException(BAD_REQUEST, 'Invalid MetaData');
+        }
+    }
+
+    public static eventTypeIsValid(eventType: string, txType: 'onramp' | 'offramp') {
+        if (txType === 'onramp') {
+            return YellowCardOnRampEvents.includes(eventType as YellowCardOnRampEvent);
+        } else {
+            return YellowCardOfframpEvents.includes(eventType as YellowCardOfframpEvent);
+        }
     }
 }
 

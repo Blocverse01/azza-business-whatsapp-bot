@@ -62,7 +62,7 @@ import { TWO } from '@/constants/numbers';
 
 class WhatsAppBotService {
     private static WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
-    private static readonly SHOULD_REQUEST_KYC_FOR_OFFRAMP = false;
+    private static readonly SHOULD_REQUEST_KYC_FOR_OFFRAMP = true;
 
     private static getRequestConfig() {
         return {
@@ -211,7 +211,7 @@ class WhatsAppBotService {
                                     const mobileMoneyBeneficiaryCast =
                                         beneficiary as MobileMoneyBeneficiary;
                                     title = `${mobileMoneyBeneficiaryCast.firstName} ${mobileMoneyBeneficiaryCast.lastName}`;
-                                    description = `Mobile Number: ${mobileMoneyBeneficiaryCast.firstName}`;
+                                    description = `Provider: ${mobileMoneyBeneficiaryCast.mobileProvider}\nMobile Number: ${mobileMoneyBeneficiaryCast.mobileNumber}`;
                                 } else {
                                     const bankBeneficiaryCast = beneficiary as BankBeneficiary;
                                     title = `${bankBeneficiaryCast.accountName}`;
@@ -527,18 +527,15 @@ class WhatsAppBotService {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
         const kycUrl = await SumSubService.generateKycUrl(userPhoneNumber);
 
-        const messagePayload: WhatsAppTextMessage = {
-            type: WhatsAppMessageType.TEXT,
-            text: {
-                body: `Please click on the link to verify your identity: ${kycUrl}`,
-                preview_url: false,
-            },
-            messaging_product: 'whatsapp',
-            recipient_type: 'individual',
-            to: userPhoneNumber,
-        };
+        const message = MessageGenerators.generateInteractiveCtaUrlButtonMessage({
+            recipient: userPhoneNumber,
+            bodyText: `Please click on the link to verify your identity.\n\nYou will need a valid ID handy to complete the KYC step`,
+            headerText: `Submit KYC details`,
+            ctaUrl: kycUrl,
+            ctaText: 'Submit KYC details',
+        });
 
-        await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, messagePayload);
+        await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message);
     }
 
     public static async sendSelectSupportedCurrenciesMessage(
@@ -588,6 +585,8 @@ class WhatsAppBotService {
 
         const page = Math.floor(sliceFrom / 9) + 1;
 
+        const shouldShowCurrentPageNumber = supportedCurrencies.length > 9;
+
         const interactiveMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
             interactive: {
@@ -597,7 +596,7 @@ class WhatsAppBotService {
                 },
                 header: {
                     type: 'text',
-                    text: `Select Your Local Currency - Page ${page}`,
+                    text: `Select Your Local Currency${shouldShowCurrentPageNumber ? ` - Page ${page}` : ''}`,
                 },
                 action: {
                     button: 'Currencies',
@@ -607,7 +606,7 @@ class WhatsAppBotService {
                                 ...countriesToDisplay.map((country) => {
                                     return {
                                         id: `${assetActionId}:${purchaseAssetId}|currency:${country.currencySymbol}|countryCode:${country.code}`,
-                                        title: `${getCountryFlagEmoji(country.code)} ${country.country}`,
+                                        title: `${getCountryFlagEmoji(country.code)} ${country.name}`,
                                         description: `Currency: ${country.currencySymbol}`,
                                     };
                                 }),

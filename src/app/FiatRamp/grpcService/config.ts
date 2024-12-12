@@ -4,7 +4,7 @@ import * as grpc from '@grpc/grpc-js';
 import env from '@/constants/env';
 
 const servicePort = 50051;
-const internalServiceDns = env.TESTING_GRPC_SERVICE ? 'localhost' : 'globachain-ramps-service';
+const internalServiceDns = env.TESTING_GRPC_SERVICE ? 'localhost' : 'fiat-ramps-service';
 const serviceAddress = `${internalServiceDns}:${servicePort}`;
 
 // Create a client

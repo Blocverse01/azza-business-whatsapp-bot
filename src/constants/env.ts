@@ -98,6 +98,8 @@ const envSchema = z.object({
     ///////////////////////////
     GROQ_API_KEY: notEmptyStringSchema('GROQ_API_KEY'),
     OPENAI_API_KEY: z.string().optional().default(''),
+
+    YC_WEBHOOK_SECRET_KEY: notEmptyStringSchema('YC_WEBHOOK_SECRET_KEY'),
 });
 
 const env = envSchema.parse(process.env);

@@ -25,7 +25,7 @@ import { ProcessOfframpInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlow
 import { spawn } from 'child_process';
 import path from 'path';
 import { generateRandomHexString } from '@/resources/utils/encryption';
-import { SIXTEEN, THREE, TWO } from '@/constants/numbers';
+import { HUNDRED, SIXTEEN, THREE, TWO, ZERO } from '@/constants/numbers';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { UserAssetInfo } from '@/app/User/userSchema';
@@ -36,6 +36,7 @@ import env from '@/constants/env';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { CountryCode } from 'libphonenumber-js';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import * as math from 'mathjs';
 
 enum OffRampFlowScreens {
     AMOUNT_INPUT = 'AMOUNT_INPUT',
@@ -232,8 +233,8 @@ class WhatsAppBotOffRampFlowService {
                 : usdAmount < minLimit;
         const amountGreaterThanLimit =
             amount_denomination === beneficiary.currency_symbol
-                ? amountAsNumber > maxLimit
-                : usdAmount > maxLimit;
+                ? maxLimit > ZERO && amountAsNumber > maxLimit
+                : maxLimit > ZERO && usdAmount > maxLimit;
 
         if (amountLessThanLimit) {
             errorMessages.amount =
@@ -365,9 +366,7 @@ class WhatsAppBotOffRampFlowService {
                 fiatAmount: fiat_to_receive,
             });
 
-            WhatsAppBotService.sendArbitraryTextMessage(user_id, message).then(() =>
-                console.log('Message sent')
-            );
+            void WhatsAppBotService.sendArbitraryTextMessage(user_id, message);
         }
 
         return {
@@ -412,18 +411,28 @@ class WhatsAppBotOffRampFlowService {
                 tokenAmountToDebit.toString()
             );
 
+            const conversionRate = math.divide(fiatAmount, tokenAmount);
+            const transactionFee = math.subtract(tokenAmountToDebit, tokenAmount);
+            const platformFeePercentage = math.multiply(
+                math.divide(transactionFee, tokenAmount),
+                HUNDRED
+            );
+
             // Process in background and return early processing response
             this.processOfframpInBackground(
                 transactionId,
                 {
                     beneficiaryId,
-                    usdAmount: tokenAmount,
+                    usdAmount: tokenAmountToDebit,
                     localAmount: fiatAmount,
                     tokenAddress: assetConfig.tokenAddress,
                     chainName: assetConfig.network,
                     tokenName: assetConfig.tokenName,
                     userWalletAddress: walletInfo.walletAddress,
                     hotWalletAddress,
+                    userId,
+                    platformFeePercentage,
+                    conversionRate,
                 },
                 assetConfig.network,
                 userId

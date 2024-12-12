@@ -3,6 +3,6 @@ import FiatRampServiceController from '@/app/FiatRamp/FiatRampServiceController'
 
 const fiatRampRouter = express.Router();
 
-fiatRampRouter.post('/transactions/webhook', FiatRampServiceController.receiveTransactionWebhook);
+fiatRampRouter.post('/webhook/payment/:state', FiatRampServiceController.offRampWebWebhook);
 
 export default fiatRampRouter;

@@ -9,6 +9,18 @@ import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
 import GetBeneficiaryRequest = fiatramps.v1.GetBeneficiaryRequest;
 import GetPaymentMethodsRequest = fiatramps.v1.GetPaymentMethodsRequest;
 import GetPaymentMethodsResponse = fiatramps.v1.GetPaymentMethodsResponse;
+import GetTransactionFeeRequest = fiatramps.v1.GetTransactionFeeRequest;
+import GetTransactionFeeResponse = fiatramps.v1.GetTransactionFeeResponse;
+import GetPaymentNetworksRequest = fiatramps.v1.GetPaymentNetworksRequest;
+import GetPaymentNetworksResponse = fiatramps.v1.GetPaymentNetworksResponse;
+import AddBeneficiaryRequest = fiatramps.v1.AddBeneficiaryRequest;
+import AddBeneficiaryResponse = fiatramps.v1.AddBeneficiaryResponse;
+import CreateBeneficiaryPaymentRequestInput = fiatramps.v1.CreateBeneficiaryPaymentRequestInput;
+import CreatePaymentRequestResponse = fiatramps.v1.CreatePaymentRequestResponse;
+import GetPaymentRequestTransactionRequest = fiatramps.v1.GetPaymentRequestTransactionRequest;
+import GetPaymentRequestTransactionResponse = fiatramps.v1.GetPaymentRequestTransactionResponse;
+import GetHotWalletAddressRequest = fiatramps.v1.GetHotWalletAddressRequest;
+import GetHotWalletAddressResponse = fiatramps.v1.GetHotWalletAddressResponse;
 
 // Wrap the gRPC methods as promises
 export const getSupportedCountries = promisifyUnary<
@@ -46,3 +58,39 @@ export const getPaymentMethods = promisifyUnary<
     GetPaymentMethodsRequest,
     GetPaymentMethodsResponse
 >(client, 'GetPaymentMethods');
+
+export const getTransactionFees = promisifyUnary<
+    FiatRampsServiceClient,
+    GetTransactionFeeRequest,
+    GetTransactionFeeResponse
+>(client, 'GetTransactionFee');
+
+export const getPaymentNetworks = promisifyUnary<
+    FiatRampsServiceClient,
+    GetPaymentNetworksRequest,
+    GetPaymentNetworksResponse
+>(client, 'GetPaymentNetworks');
+
+export const addBeneficiary = promisifyUnary<
+    FiatRampsServiceClient,
+    AddBeneficiaryRequest,
+    AddBeneficiaryResponse
+>(client, 'AddBeneficiary');
+
+export const createBeneficiaryPaymentRequest = promisifyUnary<
+    FiatRampsServiceClient,
+    CreateBeneficiaryPaymentRequestInput,
+    CreatePaymentRequestResponse
+>(client, 'CreateBeneficiaryPaymentRequest');
+
+export const getPaymentRequestTransaction = promisifyUnary<
+    FiatRampsServiceClient,
+    GetPaymentRequestTransactionRequest,
+    GetPaymentRequestTransactionResponse
+>(client, 'GetPaymentRequestTransaction');
+
+export const getHotWalletAddress = promisifyUnary<
+    FiatRampsServiceClient,
+    GetHotWalletAddressRequest,
+    GetHotWalletAddressResponse
+>(client, 'GetHotWalletAddress');
