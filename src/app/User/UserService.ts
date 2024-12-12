@@ -385,7 +385,7 @@ class UserService {
                         control_mode: 'developer',
                         developer_secret: WalletKitService.DEVELOPER_SECRET,
                         name: `${network} Wallet`,
-                        type: 'contract',
+                        ...(network === 'Solana' ? {} : { type: 'contract' }),
                     })
                 );
             } else {
