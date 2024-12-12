@@ -498,7 +498,7 @@ class WhatsAppBotService {
             const flowResponseParams = flowResponse.wa_flow_response_params;
 
             const flowIsAddBeneficiary = flowResponseParams
-                ? flowResponseParams.flow_id === WhatsAppBotAddBeneficiaryFlowService.FLOW_ID
+                ? flowResponseParams.flow_name.toLowerCase().includes('add beneficiary')
                 : 'asset_id' in flowResponse && 'beneficiary_id' in flowResponse;
 
             if (flowIsAddBeneficiary) {
