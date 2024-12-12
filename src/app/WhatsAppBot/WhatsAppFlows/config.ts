@@ -41,7 +41,7 @@ const flowConfigs: FlowConfigs = {
             flowMode: 'draft',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
-            flowId: '1558631018412295',
+            flowId: '1264192347996610',
             flowMode: 'published',
         },
     },
@@ -61,7 +61,7 @@ const flowConfigs: FlowConfigs = {
             flowMode: 'draft',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
-            flowId: '409232385504910',
+            flowId: '890929746531950',
             flowMode: 'published',
         },
     },

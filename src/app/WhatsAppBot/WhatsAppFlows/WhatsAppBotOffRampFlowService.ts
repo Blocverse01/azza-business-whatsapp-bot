@@ -37,6 +37,7 @@ import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { CountryCode } from 'libphonenumber-js';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import * as math from 'mathjs';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 
 enum OffRampFlowScreens {
     AMOUNT_INPUT = 'AMOUNT_INPUT',
@@ -377,6 +378,8 @@ class WhatsAppBotOffRampFlowService {
             data: {
                 status: response.status[0].toUpperCase() + response.status.slice(1),
                 message: response.message,
+                icon_src:
+                    response.status === 'processing' ? SUCCESS_FEEDBACK_ICON : ERROR_FEEDBACK_ICON,
             },
         };
     }

@@ -1,3 +1,4 @@
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { getCountryCallingCodeDigits, getPhoneNumberObject } from '@/resources/utils/phone-numbers';
 import { AssetConfig } from '@/resources/web3/tokens';
 import {
@@ -48,9 +49,11 @@ type ScreenDataPayload = {
         message: string;
         beneficiary_id: string;
         asset_id: string;
+        icon_src: string;
     };
     ERROR_FEEDBACK_SCREEN: {
         message: string;
+        icon_src: string;
     };
 };
 
@@ -350,12 +353,13 @@ class WhatsAppBotAddBeneficiaryFlowService {
                     message: 'Beneficiary added successfully',
                     beneficiary_id: beneficiaryId,
                     asset_id,
+                    icon_src: SUCCESS_FEEDBACK_ICON,
                 } satisfies ScreenDataPayload['SUCCESS_FEEDBACK_SCREEN'],
             };
         } catch (error) {
             const parsedError = parseUnknownError(error);
 
-            logger.error('Failed to add beneficiary', {
+            void logger.error('Failed to add beneficiary', {
                 error: parsedError,
             });
 
@@ -363,6 +367,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 screen: AddBeneficiaryFlowScreens.ERROR_FEEDBACK,
                 data: {
                     message: parsedError.message,
+                    icon_src: ERROR_FEEDBACK_ICON,
                 } satisfies ScreenDataPayload['ERROR_FEEDBACK_SCREEN'],
             };
         }
@@ -424,6 +429,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
                     message: 'Beneficiary added successfully',
                     beneficiary_id: beneficiaryId,
                     asset_id,
+                    icon_src: SUCCESS_FEEDBACK_ICON,
                 } satisfies ScreenDataPayload['SUCCESS_FEEDBACK_SCREEN'],
             };
         } catch (error) {
@@ -437,6 +443,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 screen: AddBeneficiaryFlowScreens.ERROR_FEEDBACK,
                 data: {
                     message: parsedError.message,
+                    icon_src: ERROR_FEEDBACK_ICON,
                 } satisfies ScreenDataPayload['ERROR_FEEDBACK_SCREEN'],
             };
         }
