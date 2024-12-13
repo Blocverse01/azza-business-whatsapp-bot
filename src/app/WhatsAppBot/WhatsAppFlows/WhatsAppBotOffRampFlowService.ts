@@ -331,6 +331,8 @@ class WhatsAppBotOffRampFlowService {
                     fiat_to_receive: fiatEquivalent.toString(),
                     beneficiary_id: beneficiary.id,
                     token_amount_to_debit: amountToDebit.toString(),
+                    conversion_rate,
+                    usd_amount: token_amount_to_debit,
                 },
                 fiat_currency: beneficiary.currency_symbol,
             },
@@ -414,6 +416,7 @@ class WhatsAppBotOffRampFlowService {
                 tokenAmountToDebit.toString()
             );
 
+            // Todo: Pass exact value for conversionRate, platformPercentage from flow, to prevent rounding errors.
             const conversionRate = math.divide(fiatAmount, tokenAmount);
             const transactionFee = math.subtract(tokenAmountToDebit, tokenAmount);
             const platformFeePercentage = math.multiply(

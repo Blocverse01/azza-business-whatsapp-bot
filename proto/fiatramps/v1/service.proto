@@ -18,6 +18,8 @@ service FiatRampsService {
   rpc CreateBeneficiaryPaymentRequest(CreateBeneficiaryPaymentRequestInput) returns(CreatePaymentRequestResponse) {}
   rpc GetPaymentRequestTransaction(GetPaymentRequestTransactionRequest) returns (GetPaymentRequestTransactionResponse) {}
   rpc GetHotWalletAddress(GetHotWalletAddressRequest) returns (GetHotWalletAddressResponse) {}
+  rpc CreatePlatformCollectionRequest(CreatePlatformCollectionRequestInput) returns(CreateCollectionResponse) {}
+  rpc GetCollectionRequestTransaction(GetCollectionRequestTransactionRequest) returns (GetCollectionRequestResponse) {}
 }
 
 message GetSupportedCountriesRequest {
@@ -145,7 +147,7 @@ message GetPaymentNetworksResponse {
   repeated ActivePaymentNetwork networks = 1;
 }
 
-message PaymentRequestSender {
+message YellowCardRetailCustomer {
   string name = 1;
   string phone = 2;
   string country = 3;
@@ -168,7 +170,7 @@ message CreateBeneficiaryPaymentRequestInput {
   string beneficiary_id = 1;
   double local_amount = 2;
   string owner_id = 3;
-  PaymentRequestSender sender = 4;
+  YellowCardRetailCustomer sender = 4;
   string token_symbol = 5;
   string blockchain_network = 6;
   string token_address = 7;
@@ -190,7 +192,7 @@ message CreatePaymentRequestResponse {
   double converted_amount = 8;
   string status = 9;
   double rate = 10;
-  PaymentRequestSender sender = 11;
+  YellowCardRetailCustomer sender = 11;
   PaymentRequestDestination destination = 12;
 }
 
@@ -214,4 +216,68 @@ message GetHotWalletAddressRequest {
 }
 message GetHotWalletAddressResponse {
   string address = 1;
+}
+
+message CollectionSource {
+  string account_number = 1;
+  string account_type = 2;
+  string network_id = 3;
+}
+message CreatePlatformCollectionRequestInput {
+  string owner_id = 1;
+  CollectionSource source = 2;
+  YellowCardRetailCustomer recipient = 3;
+  string token_symbol = 4;
+  string blockchain_network = 5;
+  string destination_wallet_address = 6;
+  double platform_fee_percentage = 7;
+  double conversion_rate = 8;
+  double usd_amount = 9; // Total USD amount including transaction fees.
+  double local_amount = 10;
+  string channel_id = 11;
+}
+message BankInfo {
+  string name = 1;
+  string account_number = 2;
+  string account_name = 3;
+}
+message CreateCollectionResponse {
+  CollectionSource source = 1;
+  YellowCardRetailCustomer recipient = 2;
+  string channel_id = 3;
+  string sequence_id = 4;
+  double amount = 5;
+  double converted_amount = 6;
+  double rate = 7;
+  string id = 8;
+  string status = 9;
+  string currency = 10;
+  string country = 11;
+  BankInfo bank_info = 12;
+}
+
+message GetCollectionRequestTransactionRequest {
+  string sequence_id = 1;
+}
+
+message GetCollectionRequestResponse {
+  string owner_id = 1;
+  string collection_country = 2;
+  string collection_account_number = 3;
+  string collection_bank_name = 4;
+  string collection_account_type = 5;
+  string collection_account_name = 6;
+  string channel_id = 7;
+  string sequence_id = 8;
+  string blockchain_network = 9;
+  string token_symbol = 10;
+  double conversion_rate = 11;
+  double usd_amount = 12;
+  double local_amount = 13;
+  double platform_fee_percentage = 14;
+  string destination_wallet_address = 15;
+  string network_id = 16;
+  string status = 17;
+  string local_currency_symbol = 18;
+
 }

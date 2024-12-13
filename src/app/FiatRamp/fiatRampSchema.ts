@@ -118,23 +118,25 @@ export const onrampTransactionPayloadSchema = z.object({
         country: z.string(),
     }),
     customerId: z.string(),
+    platformFeePercentage: z.number(),
+    conversionRate: z.number(),
+    usdAmount: z.number(),
 });
 
 export type OnrampTransactionPayload = z.infer<typeof onrampTransactionPayloadSchema>;
 
 export const sendOnrampTransactionResponseSchema = z.object({
-    data: z.object({
-        bankInfo: z
-            .object({
-                accountName: z.string(),
-                accountNumber: z.string(),
-                name: z.string(),
-            })
-            .optional(),
-        narration: z.string(),
-        amount: z.string(),
-        sequenceId: z.string(),
-    }),
+    bankInfo: z
+        .object({
+            accountName: z.string(),
+            accountNumber: z.string(),
+            name: z.string(),
+        })
+        .optional(),
+    narration: z.string().optional(),
+    amount: z.coerce.number(),
+    convertedAmount: z.number(),
+    sequenceId: z.string(),
 });
 
 export type SendOnrampTransactionResponse = z.infer<typeof sendOnrampTransactionResponseSchema>;

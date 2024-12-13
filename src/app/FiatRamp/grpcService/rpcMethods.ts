@@ -21,6 +21,10 @@ import GetPaymentRequestTransactionRequest = fiatramps.v1.GetPaymentRequestTrans
 import GetPaymentRequestTransactionResponse = fiatramps.v1.GetPaymentRequestTransactionResponse;
 import GetHotWalletAddressRequest = fiatramps.v1.GetHotWalletAddressRequest;
 import GetHotWalletAddressResponse = fiatramps.v1.GetHotWalletAddressResponse;
+import CreatePlatformCollectionRequestInput = fiatramps.v1.CreatePlatformCollectionRequestInput;
+import CreateCollectionResponse = fiatramps.v1.CreateCollectionResponse;
+import GetCollectionRequestTransactionRequest = fiatramps.v1.GetCollectionRequestTransactionRequest;
+import GetCollectionRequestResponse = fiatramps.v1.GetCollectionRequestResponse;
 
 // Wrap the gRPC methods as promises
 export const getSupportedCountries = promisifyUnary<
@@ -94,3 +98,15 @@ export const getHotWalletAddress = promisifyUnary<
     GetHotWalletAddressRequest,
     GetHotWalletAddressResponse
 >(client, 'GetHotWalletAddress');
+
+export const createPlatformCollection = promisifyUnary<
+    FiatRampsServiceClient,
+    CreatePlatformCollectionRequestInput,
+    CreateCollectionResponse
+>(client, 'CreatePlatformCollectionRequest');
+
+export const getCollectionRequestTransaction = promisifyUnary<
+    FiatRampsServiceClient,
+    GetCollectionRequestTransactionRequest,
+    GetCollectionRequestResponse
+>(client, 'GetCollectionRequestTransaction');

@@ -4,11 +4,13 @@ import {
     BankBeneficiary,
     CreateBeneficiaryParams,
     MobileMoneyBeneficiary,
+    OnrampTransactionPayload,
     paymentMethodsResponseDataSchema,
     quoteSchema,
     ratesSchema,
     SendOfframpRequestPayload,
     sendOfframpRequestPayloadSchema,
+    sendOnrampTransactionResponseSchema,
     supportedCountry,
     supportedPaymentNetworkSchema,
     transactionStatusSchema,
@@ -19,8 +21,10 @@ import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
 import {
     addBeneficiary,
     createBeneficiaryPaymentRequest,
+    createPlatformCollection,
     getBeneficiaries,
     getBeneficiary,
+    getCollectionRequestTransaction,
     getHotWalletAddress,
     getPaymentMethods,
     getPaymentNetworks,
@@ -42,9 +46,12 @@ import GetTransactionFeeRequest = fiatramps.v1.GetTransactionFeeRequest;
 import GetPaymentNetworksRequest = fiatramps.v1.GetPaymentNetworksRequest;
 import AddBeneficiaryRequest = fiatramps.v1.AddBeneficiaryRequest;
 import CreateBeneficiaryPaymentRequestInput = fiatramps.v1.CreateBeneficiaryPaymentRequestInput;
-import PaymentRequestSender = fiatramps.v1.PaymentRequestSender;
+import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
 import GetPaymentRequestTransactionRequest = fiatramps.v1.GetPaymentRequestTransactionRequest;
 import GetHotWalletAddressRequest = fiatramps.v1.GetHotWalletAddressRequest;
+import CreatePlatformCollectionRequestInput = fiatramps.v1.CreatePlatformCollectionRequestInput;
+import CollectionSource = fiatramps.v1.CollectionSource;
+import GetCollectionRequestTransactionRequest = fiatramps.v1.GetCollectionRequestTransactionRequest;
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -106,6 +113,7 @@ class FiatRampsRpcService {
         return {
             rate: txRate,
             fee: defaultAmountFixer(feePercentage / HUNDRED),
+            rawFeePercentage: feePercentage,
         };
     }
 
@@ -158,8 +166,6 @@ class FiatRampsRpcService {
         const [firstName, lastName] = (deserializedBeneficiary.account_name ?? '')
             .trim()
             .split(' ');
-
-        console.log(deserializedBeneficiary.account_name, { firstName, lastName });
 
         return {
             mobileNumber: deserializedBeneficiary.account_number!,
@@ -282,7 +288,9 @@ class FiatRampsRpcService {
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
         const user = await UserService.getUserByPhoneNumber(params.userId);
 
-        if (!user) throw new Error('User not found');
+        if (!user?.phoneNumber) throw new Error('User not found');
+
+        const standardizedUserPhoneNumber = `+${user.phoneNumber}`;
 
         const request = new CreateBeneficiaryPaymentRequestInput({
             beneficiary_id: validatedParams.beneficiaryId,
@@ -297,9 +305,9 @@ class FiatRampsRpcService {
             platform_fee_percentage: validatedParams.platformFeePercentage,
             hot_wallet_address: validatedParams.hotWalletAddress,
             conversion_rate: validatedParams.conversionRate,
-            sender: new PaymentRequestSender({
+            sender: new YellowCardRetailCustomer({
                 name: `${user.firstName} ${user.lastName}`,
-                phone: user.phoneNumber!,
+                phone: standardizedUserPhoneNumber,
                 country: user.country,
                 dob: user.kycDateOfBirth,
                 id_number: user.kycDocumentNumber,
@@ -314,16 +322,70 @@ class FiatRampsRpcService {
         return offrampResponse.sequence_id;
     }
 
+    public static async createPlatformOnrampRequest(params: OnrampTransactionPayload) {
+        const request = new CreatePlatformCollectionRequestInput({
+            owner_id: params.customerId,
+            source: new CollectionSource({
+                account_type: params.accountType === 'phone' ? 'momo' : params.accountType,
+                account_number: params.accountNumber,
+                network_id: params.networkId,
+            }),
+            recipient: new YellowCardRetailCustomer({
+                name: `${params.userDetails.firstName} ${params.userDetails.lastName}`,
+                phone: `+${params.userDetails.phoneNumber}`,
+                country: params.userDetails.country,
+                address: params.userDetails.address,
+                dob: params.userDetails.kycDateOfBirth,
+                id_number: params.userDetails.kycDocumentNumber,
+                id_type: params.userDetails.kycIdType,
+            }),
+            token_symbol: params.tokenName,
+            blockchain_network: params.chainName,
+            destination_wallet_address: params.userWalletAddress,
+            platform_fee_percentage: params.platformFeePercentage,
+            conversion_rate: params.conversionRate,
+            usd_amount: params.usdAmount,
+            local_amount: params.localAmount,
+            channel_id: params.channelId,
+        });
+
+        const response = await createPlatformCollection(request);
+
+        return sendOnrampTransactionResponseSchema.parse(
+            transformKeysToCamelCase(response.toObject())
+        );
+    }
+
     public static async getOfframpTransactionStatus(sequenceId: string) {
-        const request = new GetPaymentRequestTransactionRequest({
+        return (await this.getOfframpTransaction(sequenceId)).status;
+    }
+
+    public static async getOnrampTransactionStatus(sequenceId: string) {
+        return (await this.getOnrampTransaction(sequenceId)).status;
+    }
+
+    public static async getOnrampTransaction(sequenceId: string) {
+        const request = new GetCollectionRequestTransactionRequest({
             sequence_id: sequenceId,
         });
 
-        const response = await getPaymentRequestTransaction(request);
+        const response = await getCollectionRequestTransaction(request);
 
-        const { status } = response.toObject();
+        const responseObj = response.toObject();
 
-        return transactionStatusSchema.parse(status?.toLowerCase());
+        return z
+            .object({
+                status: transactionStatusSchema,
+                blockchainNetwork: z.string(),
+                usdAmount: z.number(),
+                localAmount: z.number(),
+                localCurrencySymbol: z.string(),
+                tokenSymbol: z.string(),
+                ownerId: z.string(),
+                sequenceId: z.string(),
+                destinationWalletAddress: z.string(),
+            })
+            .parse(transformKeysToCamelCase(responseObj));
     }
 
     public static async getOfframpTransaction(sequenceId: string) {

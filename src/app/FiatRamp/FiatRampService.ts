@@ -75,8 +75,8 @@ class FiatRampService {
 
     public static async postOnRampTransaction(
         transactionPayload: OnrampTransactionPayload
-    ): Promise<SendOnrampTransactionResponse['data']> {
-        throw new Error('Service is disabled');
+    ): Promise<SendOnrampTransactionResponse> {
+        return await FiatRampsRpcService.createPlatformOnrampRequest(transactionPayload);
     }
 
     public static async getSupportedBanks(countryCode: CountryCode, channelId: string) {
@@ -112,11 +112,15 @@ class FiatRampService {
         if (route === 'offramp')
             return await FiatRampsRpcService.getOfframpTransactionStatus(sequenceId);
 
-        throw new Error('Unavailable implementation for onramp transaction status');
+        return await FiatRampsRpcService.getOnrampTransactionStatus(sequenceId);
     }
 
     public static async getOfframpTransaction(sequenceId: string) {
         return await FiatRampsRpcService.getOfframpTransaction(sequenceId);
+    }
+
+    public static async getOnrampTransaction(sequenceId: string) {
+        return await FiatRampsRpcService.getOnrampTransaction(sequenceId);
     }
 
     public static async getHotWalletForNetwork(networkType: 'evm') {

@@ -2381,7 +2381,7 @@ export namespace fiatramps.v1 {
             return GetPaymentNetworksResponse.deserialize(bytes);
         }
     }
-    export class PaymentRequestSender extends pb_1.Message {
+    export class YellowCardRetailCustomer extends pb_1.Message {
         #one_of_decls: number[][] = [];
         constructor(data?: any[] | {
             name?: string;
@@ -2490,8 +2490,8 @@ export namespace fiatramps.v1 {
             id_type?: string;
             additional_id_type?: string;
             additional_id_number?: string;
-        }): PaymentRequestSender {
-            const message = new PaymentRequestSender({});
+        }): YellowCardRetailCustomer {
+            const message = new YellowCardRetailCustomer({});
             if (data.name != null) {
                 message.name = data.name;
             }
@@ -2587,8 +2587,8 @@ export namespace fiatramps.v1 {
             if (!w)
                 return writer.getResultBuffer();
         }
-        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): PaymentRequestSender {
-            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new PaymentRequestSender();
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): YellowCardRetailCustomer {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new YellowCardRetailCustomer();
             while (reader.nextField()) {
                 if (reader.isEndGroup())
                     break;
@@ -2628,8 +2628,8 @@ export namespace fiatramps.v1 {
         serializeBinary(): Uint8Array {
             return this.serialize();
         }
-        static deserializeBinary(bytes: Uint8Array): PaymentRequestSender {
-            return PaymentRequestSender.deserialize(bytes);
+        static deserializeBinary(bytes: Uint8Array): YellowCardRetailCustomer {
+            return YellowCardRetailCustomer.deserialize(bytes);
         }
     }
     export class PaymentRequestDestination extends pb_1.Message {
@@ -2820,7 +2820,7 @@ export namespace fiatramps.v1 {
             beneficiary_id?: string;
             local_amount?: number;
             owner_id?: string;
-            sender?: PaymentRequestSender;
+            sender?: YellowCardRetailCustomer;
             token_symbol?: string;
             blockchain_network?: string;
             token_address?: string;
@@ -2894,9 +2894,9 @@ export namespace fiatramps.v1 {
             pb_1.Message.setField(this, 3, value);
         }
         get sender() {
-            return pb_1.Message.getWrapperField(this, PaymentRequestSender, 4) as PaymentRequestSender;
+            return pb_1.Message.getWrapperField(this, YellowCardRetailCustomer, 4) as YellowCardRetailCustomer;
         }
-        set sender(value: PaymentRequestSender) {
+        set sender(value: YellowCardRetailCustomer) {
             pb_1.Message.setWrapperField(this, 4, value);
         }
         get has_sender() {
@@ -2960,7 +2960,7 @@ export namespace fiatramps.v1 {
             beneficiary_id?: string;
             local_amount?: number;
             owner_id?: string;
-            sender?: ReturnType<typeof PaymentRequestSender.prototype.toObject>;
+            sender?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
             token_symbol?: string;
             blockchain_network?: string;
             token_address?: string;
@@ -2982,7 +2982,7 @@ export namespace fiatramps.v1 {
                 message.owner_id = data.owner_id;
             }
             if (data.sender != null) {
-                message.sender = PaymentRequestSender.fromObject(data.sender);
+                message.sender = YellowCardRetailCustomer.fromObject(data.sender);
             }
             if (data.token_symbol != null) {
                 message.token_symbol = data.token_symbol;
@@ -3018,7 +3018,7 @@ export namespace fiatramps.v1 {
                 beneficiary_id?: string;
                 local_amount?: number;
                 owner_id?: string;
-                sender?: ReturnType<typeof PaymentRequestSender.prototype.toObject>;
+                sender?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
                 token_symbol?: string;
                 blockchain_network?: string;
                 token_address?: string;
@@ -3119,7 +3119,7 @@ export namespace fiatramps.v1 {
                         message.owner_id = reader.readString();
                         break;
                     case 4:
-                        reader.readMessage(message.sender, () => message.sender = PaymentRequestSender.deserialize(reader));
+                        reader.readMessage(message.sender, () => message.sender = YellowCardRetailCustomer.deserialize(reader));
                         break;
                     case 5:
                         message.token_symbol = reader.readString();
@@ -3173,7 +3173,7 @@ export namespace fiatramps.v1 {
             converted_amount?: number;
             status?: string;
             rate?: number;
-            sender?: PaymentRequestSender;
+            sender?: YellowCardRetailCustomer;
             destination?: PaymentRequestDestination;
         }) {
             super();
@@ -3278,9 +3278,9 @@ export namespace fiatramps.v1 {
             pb_1.Message.setField(this, 10, value);
         }
         get sender() {
-            return pb_1.Message.getWrapperField(this, PaymentRequestSender, 11) as PaymentRequestSender;
+            return pb_1.Message.getWrapperField(this, YellowCardRetailCustomer, 11) as YellowCardRetailCustomer;
         }
-        set sender(value: PaymentRequestSender) {
+        set sender(value: YellowCardRetailCustomer) {
             pb_1.Message.setWrapperField(this, 11, value);
         }
         get has_sender() {
@@ -3306,7 +3306,7 @@ export namespace fiatramps.v1 {
             converted_amount?: number;
             status?: string;
             rate?: number;
-            sender?: ReturnType<typeof PaymentRequestSender.prototype.toObject>;
+            sender?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
             destination?: ReturnType<typeof PaymentRequestDestination.prototype.toObject>;
         }): CreatePaymentRequestResponse {
             const message = new CreatePaymentRequestResponse({});
@@ -3341,7 +3341,7 @@ export namespace fiatramps.v1 {
                 message.rate = data.rate;
             }
             if (data.sender != null) {
-                message.sender = PaymentRequestSender.fromObject(data.sender);
+                message.sender = YellowCardRetailCustomer.fromObject(data.sender);
             }
             if (data.destination != null) {
                 message.destination = PaymentRequestDestination.fromObject(data.destination);
@@ -3360,7 +3360,7 @@ export namespace fiatramps.v1 {
                 converted_amount?: number;
                 status?: string;
                 rate?: number;
-                sender?: ReturnType<typeof PaymentRequestSender.prototype.toObject>;
+                sender?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
                 destination?: ReturnType<typeof PaymentRequestDestination.prototype.toObject>;
             } = {};
             if (this.id != null) {
@@ -3469,7 +3469,7 @@ export namespace fiatramps.v1 {
                         message.rate = reader.readDouble();
                         break;
                     case 11:
-                        reader.readMessage(message.sender, () => message.sender = PaymentRequestSender.deserialize(reader));
+                        reader.readMessage(message.sender, () => message.sender = YellowCardRetailCustomer.deserialize(reader));
                         break;
                     case 12:
                         reader.readMessage(message.destination, () => message.destination = PaymentRequestDestination.deserialize(reader));
@@ -3938,6 +3938,1389 @@ export namespace fiatramps.v1 {
             return GetHotWalletAddressResponse.deserialize(bytes);
         }
     }
+    export class CollectionSource extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            account_number?: string;
+            account_type?: string;
+            network_id?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("account_number" in data && data.account_number != undefined) {
+                    this.account_number = data.account_number;
+                }
+                if ("account_type" in data && data.account_type != undefined) {
+                    this.account_type = data.account_type;
+                }
+                if ("network_id" in data && data.network_id != undefined) {
+                    this.network_id = data.network_id;
+                }
+            }
+        }
+        get account_number() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set account_number(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get account_type() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set account_type(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get network_id() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set network_id(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        static fromObject(data: {
+            account_number?: string;
+            account_type?: string;
+            network_id?: string;
+        }): CollectionSource {
+            const message = new CollectionSource({});
+            if (data.account_number != null) {
+                message.account_number = data.account_number;
+            }
+            if (data.account_type != null) {
+                message.account_type = data.account_type;
+            }
+            if (data.network_id != null) {
+                message.network_id = data.network_id;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                account_number?: string;
+                account_type?: string;
+                network_id?: string;
+            } = {};
+            if (this.account_number != null) {
+                data.account_number = this.account_number;
+            }
+            if (this.account_type != null) {
+                data.account_type = this.account_type;
+            }
+            if (this.network_id != null) {
+                data.network_id = this.network_id;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.account_number.length)
+                writer.writeString(1, this.account_number);
+            if (this.account_type.length)
+                writer.writeString(2, this.account_type);
+            if (this.network_id.length)
+                writer.writeString(3, this.network_id);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): CollectionSource {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new CollectionSource();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.account_number = reader.readString();
+                        break;
+                    case 2:
+                        message.account_type = reader.readString();
+                        break;
+                    case 3:
+                        message.network_id = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): CollectionSource {
+            return CollectionSource.deserialize(bytes);
+        }
+    }
+    export class CreatePlatformCollectionRequestInput extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            owner_id?: string;
+            source?: CollectionSource;
+            recipient?: YellowCardRetailCustomer;
+            token_symbol?: string;
+            blockchain_network?: string;
+            destination_wallet_address?: string;
+            platform_fee_percentage?: number;
+            conversion_rate?: number;
+            usd_amount?: number;
+            local_amount?: number;
+            channel_id?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("owner_id" in data && data.owner_id != undefined) {
+                    this.owner_id = data.owner_id;
+                }
+                if ("source" in data && data.source != undefined) {
+                    this.source = data.source;
+                }
+                if ("recipient" in data && data.recipient != undefined) {
+                    this.recipient = data.recipient;
+                }
+                if ("token_symbol" in data && data.token_symbol != undefined) {
+                    this.token_symbol = data.token_symbol;
+                }
+                if ("blockchain_network" in data && data.blockchain_network != undefined) {
+                    this.blockchain_network = data.blockchain_network;
+                }
+                if ("destination_wallet_address" in data && data.destination_wallet_address != undefined) {
+                    this.destination_wallet_address = data.destination_wallet_address;
+                }
+                if ("platform_fee_percentage" in data && data.platform_fee_percentage != undefined) {
+                    this.platform_fee_percentage = data.platform_fee_percentage;
+                }
+                if ("conversion_rate" in data && data.conversion_rate != undefined) {
+                    this.conversion_rate = data.conversion_rate;
+                }
+                if ("usd_amount" in data && data.usd_amount != undefined) {
+                    this.usd_amount = data.usd_amount;
+                }
+                if ("local_amount" in data && data.local_amount != undefined) {
+                    this.local_amount = data.local_amount;
+                }
+                if ("channel_id" in data && data.channel_id != undefined) {
+                    this.channel_id = data.channel_id;
+                }
+            }
+        }
+        get owner_id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set owner_id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get source() {
+            return pb_1.Message.getWrapperField(this, CollectionSource, 2) as CollectionSource;
+        }
+        set source(value: CollectionSource) {
+            pb_1.Message.setWrapperField(this, 2, value);
+        }
+        get has_source() {
+            return pb_1.Message.getField(this, 2) != null;
+        }
+        get recipient() {
+            return pb_1.Message.getWrapperField(this, YellowCardRetailCustomer, 3) as YellowCardRetailCustomer;
+        }
+        set recipient(value: YellowCardRetailCustomer) {
+            pb_1.Message.setWrapperField(this, 3, value);
+        }
+        get has_recipient() {
+            return pb_1.Message.getField(this, 3) != null;
+        }
+        get token_symbol() {
+            return pb_1.Message.getFieldWithDefault(this, 4, "") as string;
+        }
+        set token_symbol(value: string) {
+            pb_1.Message.setField(this, 4, value);
+        }
+        get blockchain_network() {
+            return pb_1.Message.getFieldWithDefault(this, 5, "") as string;
+        }
+        set blockchain_network(value: string) {
+            pb_1.Message.setField(this, 5, value);
+        }
+        get destination_wallet_address() {
+            return pb_1.Message.getFieldWithDefault(this, 6, "") as string;
+        }
+        set destination_wallet_address(value: string) {
+            pb_1.Message.setField(this, 6, value);
+        }
+        get platform_fee_percentage() {
+            return pb_1.Message.getFieldWithDefault(this, 7, 0) as number;
+        }
+        set platform_fee_percentage(value: number) {
+            pb_1.Message.setField(this, 7, value);
+        }
+        get conversion_rate() {
+            return pb_1.Message.getFieldWithDefault(this, 8, 0) as number;
+        }
+        set conversion_rate(value: number) {
+            pb_1.Message.setField(this, 8, value);
+        }
+        get usd_amount() {
+            return pb_1.Message.getFieldWithDefault(this, 9, 0) as number;
+        }
+        set usd_amount(value: number) {
+            pb_1.Message.setField(this, 9, value);
+        }
+        get local_amount() {
+            return pb_1.Message.getFieldWithDefault(this, 10, 0) as number;
+        }
+        set local_amount(value: number) {
+            pb_1.Message.setField(this, 10, value);
+        }
+        get channel_id() {
+            return pb_1.Message.getFieldWithDefault(this, 11, "") as string;
+        }
+        set channel_id(value: string) {
+            pb_1.Message.setField(this, 11, value);
+        }
+        static fromObject(data: {
+            owner_id?: string;
+            source?: ReturnType<typeof CollectionSource.prototype.toObject>;
+            recipient?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
+            token_symbol?: string;
+            blockchain_network?: string;
+            destination_wallet_address?: string;
+            platform_fee_percentage?: number;
+            conversion_rate?: number;
+            usd_amount?: number;
+            local_amount?: number;
+            channel_id?: string;
+        }): CreatePlatformCollectionRequestInput {
+            const message = new CreatePlatformCollectionRequestInput({});
+            if (data.owner_id != null) {
+                message.owner_id = data.owner_id;
+            }
+            if (data.source != null) {
+                message.source = CollectionSource.fromObject(data.source);
+            }
+            if (data.recipient != null) {
+                message.recipient = YellowCardRetailCustomer.fromObject(data.recipient);
+            }
+            if (data.token_symbol != null) {
+                message.token_symbol = data.token_symbol;
+            }
+            if (data.blockchain_network != null) {
+                message.blockchain_network = data.blockchain_network;
+            }
+            if (data.destination_wallet_address != null) {
+                message.destination_wallet_address = data.destination_wallet_address;
+            }
+            if (data.platform_fee_percentage != null) {
+                message.platform_fee_percentage = data.platform_fee_percentage;
+            }
+            if (data.conversion_rate != null) {
+                message.conversion_rate = data.conversion_rate;
+            }
+            if (data.usd_amount != null) {
+                message.usd_amount = data.usd_amount;
+            }
+            if (data.local_amount != null) {
+                message.local_amount = data.local_amount;
+            }
+            if (data.channel_id != null) {
+                message.channel_id = data.channel_id;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                owner_id?: string;
+                source?: ReturnType<typeof CollectionSource.prototype.toObject>;
+                recipient?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
+                token_symbol?: string;
+                blockchain_network?: string;
+                destination_wallet_address?: string;
+                platform_fee_percentage?: number;
+                conversion_rate?: number;
+                usd_amount?: number;
+                local_amount?: number;
+                channel_id?: string;
+            } = {};
+            if (this.owner_id != null) {
+                data.owner_id = this.owner_id;
+            }
+            if (this.source != null) {
+                data.source = this.source.toObject();
+            }
+            if (this.recipient != null) {
+                data.recipient = this.recipient.toObject();
+            }
+            if (this.token_symbol != null) {
+                data.token_symbol = this.token_symbol;
+            }
+            if (this.blockchain_network != null) {
+                data.blockchain_network = this.blockchain_network;
+            }
+            if (this.destination_wallet_address != null) {
+                data.destination_wallet_address = this.destination_wallet_address;
+            }
+            if (this.platform_fee_percentage != null) {
+                data.platform_fee_percentage = this.platform_fee_percentage;
+            }
+            if (this.conversion_rate != null) {
+                data.conversion_rate = this.conversion_rate;
+            }
+            if (this.usd_amount != null) {
+                data.usd_amount = this.usd_amount;
+            }
+            if (this.local_amount != null) {
+                data.local_amount = this.local_amount;
+            }
+            if (this.channel_id != null) {
+                data.channel_id = this.channel_id;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.owner_id.length)
+                writer.writeString(1, this.owner_id);
+            if (this.has_source)
+                writer.writeMessage(2, this.source, () => this.source.serialize(writer));
+            if (this.has_recipient)
+                writer.writeMessage(3, this.recipient, () => this.recipient.serialize(writer));
+            if (this.token_symbol.length)
+                writer.writeString(4, this.token_symbol);
+            if (this.blockchain_network.length)
+                writer.writeString(5, this.blockchain_network);
+            if (this.destination_wallet_address.length)
+                writer.writeString(6, this.destination_wallet_address);
+            if (this.platform_fee_percentage != 0)
+                writer.writeDouble(7, this.platform_fee_percentage);
+            if (this.conversion_rate != 0)
+                writer.writeDouble(8, this.conversion_rate);
+            if (this.usd_amount != 0)
+                writer.writeDouble(9, this.usd_amount);
+            if (this.local_amount != 0)
+                writer.writeDouble(10, this.local_amount);
+            if (this.channel_id.length)
+                writer.writeString(11, this.channel_id);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): CreatePlatformCollectionRequestInput {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new CreatePlatformCollectionRequestInput();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.owner_id = reader.readString();
+                        break;
+                    case 2:
+                        reader.readMessage(message.source, () => message.source = CollectionSource.deserialize(reader));
+                        break;
+                    case 3:
+                        reader.readMessage(message.recipient, () => message.recipient = YellowCardRetailCustomer.deserialize(reader));
+                        break;
+                    case 4:
+                        message.token_symbol = reader.readString();
+                        break;
+                    case 5:
+                        message.blockchain_network = reader.readString();
+                        break;
+                    case 6:
+                        message.destination_wallet_address = reader.readString();
+                        break;
+                    case 7:
+                        message.platform_fee_percentage = reader.readDouble();
+                        break;
+                    case 8:
+                        message.conversion_rate = reader.readDouble();
+                        break;
+                    case 9:
+                        message.usd_amount = reader.readDouble();
+                        break;
+                    case 10:
+                        message.local_amount = reader.readDouble();
+                        break;
+                    case 11:
+                        message.channel_id = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): CreatePlatformCollectionRequestInput {
+            return CreatePlatformCollectionRequestInput.deserialize(bytes);
+        }
+    }
+    export class BankInfo extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            name?: string;
+            account_number?: string;
+            account_name?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("name" in data && data.name != undefined) {
+                    this.name = data.name;
+                }
+                if ("account_number" in data && data.account_number != undefined) {
+                    this.account_number = data.account_number;
+                }
+                if ("account_name" in data && data.account_name != undefined) {
+                    this.account_name = data.account_name;
+                }
+            }
+        }
+        get name() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set name(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get account_number() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set account_number(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get account_name() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set account_name(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        static fromObject(data: {
+            name?: string;
+            account_number?: string;
+            account_name?: string;
+        }): BankInfo {
+            const message = new BankInfo({});
+            if (data.name != null) {
+                message.name = data.name;
+            }
+            if (data.account_number != null) {
+                message.account_number = data.account_number;
+            }
+            if (data.account_name != null) {
+                message.account_name = data.account_name;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                name?: string;
+                account_number?: string;
+                account_name?: string;
+            } = {};
+            if (this.name != null) {
+                data.name = this.name;
+            }
+            if (this.account_number != null) {
+                data.account_number = this.account_number;
+            }
+            if (this.account_name != null) {
+                data.account_name = this.account_name;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.name.length)
+                writer.writeString(1, this.name);
+            if (this.account_number.length)
+                writer.writeString(2, this.account_number);
+            if (this.account_name.length)
+                writer.writeString(3, this.account_name);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): BankInfo {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new BankInfo();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.name = reader.readString();
+                        break;
+                    case 2:
+                        message.account_number = reader.readString();
+                        break;
+                    case 3:
+                        message.account_name = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): BankInfo {
+            return BankInfo.deserialize(bytes);
+        }
+    }
+    export class CreateCollectionResponse extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            source?: CollectionSource;
+            recipient?: YellowCardRetailCustomer;
+            channel_id?: string;
+            sequence_id?: string;
+            amount?: number;
+            converted_amount?: number;
+            rate?: number;
+            id?: string;
+            status?: string;
+            currency?: string;
+            country?: string;
+            bank_info?: BankInfo;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("source" in data && data.source != undefined) {
+                    this.source = data.source;
+                }
+                if ("recipient" in data && data.recipient != undefined) {
+                    this.recipient = data.recipient;
+                }
+                if ("channel_id" in data && data.channel_id != undefined) {
+                    this.channel_id = data.channel_id;
+                }
+                if ("sequence_id" in data && data.sequence_id != undefined) {
+                    this.sequence_id = data.sequence_id;
+                }
+                if ("amount" in data && data.amount != undefined) {
+                    this.amount = data.amount;
+                }
+                if ("converted_amount" in data && data.converted_amount != undefined) {
+                    this.converted_amount = data.converted_amount;
+                }
+                if ("rate" in data && data.rate != undefined) {
+                    this.rate = data.rate;
+                }
+                if ("id" in data && data.id != undefined) {
+                    this.id = data.id;
+                }
+                if ("status" in data && data.status != undefined) {
+                    this.status = data.status;
+                }
+                if ("currency" in data && data.currency != undefined) {
+                    this.currency = data.currency;
+                }
+                if ("country" in data && data.country != undefined) {
+                    this.country = data.country;
+                }
+                if ("bank_info" in data && data.bank_info != undefined) {
+                    this.bank_info = data.bank_info;
+                }
+            }
+        }
+        get source() {
+            return pb_1.Message.getWrapperField(this, CollectionSource, 1) as CollectionSource;
+        }
+        set source(value: CollectionSource) {
+            pb_1.Message.setWrapperField(this, 1, value);
+        }
+        get has_source() {
+            return pb_1.Message.getField(this, 1) != null;
+        }
+        get recipient() {
+            return pb_1.Message.getWrapperField(this, YellowCardRetailCustomer, 2) as YellowCardRetailCustomer;
+        }
+        set recipient(value: YellowCardRetailCustomer) {
+            pb_1.Message.setWrapperField(this, 2, value);
+        }
+        get has_recipient() {
+            return pb_1.Message.getField(this, 2) != null;
+        }
+        get channel_id() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set channel_id(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        get sequence_id() {
+            return pb_1.Message.getFieldWithDefault(this, 4, "") as string;
+        }
+        set sequence_id(value: string) {
+            pb_1.Message.setField(this, 4, value);
+        }
+        get amount() {
+            return pb_1.Message.getFieldWithDefault(this, 5, 0) as number;
+        }
+        set amount(value: number) {
+            pb_1.Message.setField(this, 5, value);
+        }
+        get converted_amount() {
+            return pb_1.Message.getFieldWithDefault(this, 6, 0) as number;
+        }
+        set converted_amount(value: number) {
+            pb_1.Message.setField(this, 6, value);
+        }
+        get rate() {
+            return pb_1.Message.getFieldWithDefault(this, 7, 0) as number;
+        }
+        set rate(value: number) {
+            pb_1.Message.setField(this, 7, value);
+        }
+        get id() {
+            return pb_1.Message.getFieldWithDefault(this, 8, "") as string;
+        }
+        set id(value: string) {
+            pb_1.Message.setField(this, 8, value);
+        }
+        get status() {
+            return pb_1.Message.getFieldWithDefault(this, 9, "") as string;
+        }
+        set status(value: string) {
+            pb_1.Message.setField(this, 9, value);
+        }
+        get currency() {
+            return pb_1.Message.getFieldWithDefault(this, 10, "") as string;
+        }
+        set currency(value: string) {
+            pb_1.Message.setField(this, 10, value);
+        }
+        get country() {
+            return pb_1.Message.getFieldWithDefault(this, 11, "") as string;
+        }
+        set country(value: string) {
+            pb_1.Message.setField(this, 11, value);
+        }
+        get bank_info() {
+            return pb_1.Message.getWrapperField(this, BankInfo, 12) as BankInfo;
+        }
+        set bank_info(value: BankInfo) {
+            pb_1.Message.setWrapperField(this, 12, value);
+        }
+        get has_bank_info() {
+            return pb_1.Message.getField(this, 12) != null;
+        }
+        static fromObject(data: {
+            source?: ReturnType<typeof CollectionSource.prototype.toObject>;
+            recipient?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
+            channel_id?: string;
+            sequence_id?: string;
+            amount?: number;
+            converted_amount?: number;
+            rate?: number;
+            id?: string;
+            status?: string;
+            currency?: string;
+            country?: string;
+            bank_info?: ReturnType<typeof BankInfo.prototype.toObject>;
+        }): CreateCollectionResponse {
+            const message = new CreateCollectionResponse({});
+            if (data.source != null) {
+                message.source = CollectionSource.fromObject(data.source);
+            }
+            if (data.recipient != null) {
+                message.recipient = YellowCardRetailCustomer.fromObject(data.recipient);
+            }
+            if (data.channel_id != null) {
+                message.channel_id = data.channel_id;
+            }
+            if (data.sequence_id != null) {
+                message.sequence_id = data.sequence_id;
+            }
+            if (data.amount != null) {
+                message.amount = data.amount;
+            }
+            if (data.converted_amount != null) {
+                message.converted_amount = data.converted_amount;
+            }
+            if (data.rate != null) {
+                message.rate = data.rate;
+            }
+            if (data.id != null) {
+                message.id = data.id;
+            }
+            if (data.status != null) {
+                message.status = data.status;
+            }
+            if (data.currency != null) {
+                message.currency = data.currency;
+            }
+            if (data.country != null) {
+                message.country = data.country;
+            }
+            if (data.bank_info != null) {
+                message.bank_info = BankInfo.fromObject(data.bank_info);
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                source?: ReturnType<typeof CollectionSource.prototype.toObject>;
+                recipient?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
+                channel_id?: string;
+                sequence_id?: string;
+                amount?: number;
+                converted_amount?: number;
+                rate?: number;
+                id?: string;
+                status?: string;
+                currency?: string;
+                country?: string;
+                bank_info?: ReturnType<typeof BankInfo.prototype.toObject>;
+            } = {};
+            if (this.source != null) {
+                data.source = this.source.toObject();
+            }
+            if (this.recipient != null) {
+                data.recipient = this.recipient.toObject();
+            }
+            if (this.channel_id != null) {
+                data.channel_id = this.channel_id;
+            }
+            if (this.sequence_id != null) {
+                data.sequence_id = this.sequence_id;
+            }
+            if (this.amount != null) {
+                data.amount = this.amount;
+            }
+            if (this.converted_amount != null) {
+                data.converted_amount = this.converted_amount;
+            }
+            if (this.rate != null) {
+                data.rate = this.rate;
+            }
+            if (this.id != null) {
+                data.id = this.id;
+            }
+            if (this.status != null) {
+                data.status = this.status;
+            }
+            if (this.currency != null) {
+                data.currency = this.currency;
+            }
+            if (this.country != null) {
+                data.country = this.country;
+            }
+            if (this.bank_info != null) {
+                data.bank_info = this.bank_info.toObject();
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.has_source)
+                writer.writeMessage(1, this.source, () => this.source.serialize(writer));
+            if (this.has_recipient)
+                writer.writeMessage(2, this.recipient, () => this.recipient.serialize(writer));
+            if (this.channel_id.length)
+                writer.writeString(3, this.channel_id);
+            if (this.sequence_id.length)
+                writer.writeString(4, this.sequence_id);
+            if (this.amount != 0)
+                writer.writeDouble(5, this.amount);
+            if (this.converted_amount != 0)
+                writer.writeDouble(6, this.converted_amount);
+            if (this.rate != 0)
+                writer.writeDouble(7, this.rate);
+            if (this.id.length)
+                writer.writeString(8, this.id);
+            if (this.status.length)
+                writer.writeString(9, this.status);
+            if (this.currency.length)
+                writer.writeString(10, this.currency);
+            if (this.country.length)
+                writer.writeString(11, this.country);
+            if (this.has_bank_info)
+                writer.writeMessage(12, this.bank_info, () => this.bank_info.serialize(writer));
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): CreateCollectionResponse {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new CreateCollectionResponse();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        reader.readMessage(message.source, () => message.source = CollectionSource.deserialize(reader));
+                        break;
+                    case 2:
+                        reader.readMessage(message.recipient, () => message.recipient = YellowCardRetailCustomer.deserialize(reader));
+                        break;
+                    case 3:
+                        message.channel_id = reader.readString();
+                        break;
+                    case 4:
+                        message.sequence_id = reader.readString();
+                        break;
+                    case 5:
+                        message.amount = reader.readDouble();
+                        break;
+                    case 6:
+                        message.converted_amount = reader.readDouble();
+                        break;
+                    case 7:
+                        message.rate = reader.readDouble();
+                        break;
+                    case 8:
+                        message.id = reader.readString();
+                        break;
+                    case 9:
+                        message.status = reader.readString();
+                        break;
+                    case 10:
+                        message.currency = reader.readString();
+                        break;
+                    case 11:
+                        message.country = reader.readString();
+                        break;
+                    case 12:
+                        reader.readMessage(message.bank_info, () => message.bank_info = BankInfo.deserialize(reader));
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): CreateCollectionResponse {
+            return CreateCollectionResponse.deserialize(bytes);
+        }
+    }
+    export class GetCollectionRequestTransactionRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            sequence_id?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("sequence_id" in data && data.sequence_id != undefined) {
+                    this.sequence_id = data.sequence_id;
+                }
+            }
+        }
+        get sequence_id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set sequence_id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        static fromObject(data: {
+            sequence_id?: string;
+        }): GetCollectionRequestTransactionRequest {
+            const message = new GetCollectionRequestTransactionRequest({});
+            if (data.sequence_id != null) {
+                message.sequence_id = data.sequence_id;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                sequence_id?: string;
+            } = {};
+            if (this.sequence_id != null) {
+                data.sequence_id = this.sequence_id;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.sequence_id.length)
+                writer.writeString(1, this.sequence_id);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): GetCollectionRequestTransactionRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new GetCollectionRequestTransactionRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.sequence_id = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): GetCollectionRequestTransactionRequest {
+            return GetCollectionRequestTransactionRequest.deserialize(bytes);
+        }
+    }
+    export class GetCollectionRequestResponse extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            owner_id?: string;
+            collection_country?: string;
+            collection_account_number?: string;
+            collection_bank_name?: string;
+            collection_account_type?: string;
+            collection_account_name?: string;
+            channel_id?: string;
+            sequence_id?: string;
+            blockchain_network?: string;
+            token_symbol?: string;
+            conversion_rate?: number;
+            usd_amount?: number;
+            local_amount?: number;
+            platform_fee_percentage?: number;
+            destination_wallet_address?: string;
+            network_id?: string;
+            status?: string;
+            local_currency_symbol?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("owner_id" in data && data.owner_id != undefined) {
+                    this.owner_id = data.owner_id;
+                }
+                if ("collection_country" in data && data.collection_country != undefined) {
+                    this.collection_country = data.collection_country;
+                }
+                if ("collection_account_number" in data && data.collection_account_number != undefined) {
+                    this.collection_account_number = data.collection_account_number;
+                }
+                if ("collection_bank_name" in data && data.collection_bank_name != undefined) {
+                    this.collection_bank_name = data.collection_bank_name;
+                }
+                if ("collection_account_type" in data && data.collection_account_type != undefined) {
+                    this.collection_account_type = data.collection_account_type;
+                }
+                if ("collection_account_name" in data && data.collection_account_name != undefined) {
+                    this.collection_account_name = data.collection_account_name;
+                }
+                if ("channel_id" in data && data.channel_id != undefined) {
+                    this.channel_id = data.channel_id;
+                }
+                if ("sequence_id" in data && data.sequence_id != undefined) {
+                    this.sequence_id = data.sequence_id;
+                }
+                if ("blockchain_network" in data && data.blockchain_network != undefined) {
+                    this.blockchain_network = data.blockchain_network;
+                }
+                if ("token_symbol" in data && data.token_symbol != undefined) {
+                    this.token_symbol = data.token_symbol;
+                }
+                if ("conversion_rate" in data && data.conversion_rate != undefined) {
+                    this.conversion_rate = data.conversion_rate;
+                }
+                if ("usd_amount" in data && data.usd_amount != undefined) {
+                    this.usd_amount = data.usd_amount;
+                }
+                if ("local_amount" in data && data.local_amount != undefined) {
+                    this.local_amount = data.local_amount;
+                }
+                if ("platform_fee_percentage" in data && data.platform_fee_percentage != undefined) {
+                    this.platform_fee_percentage = data.platform_fee_percentage;
+                }
+                if ("destination_wallet_address" in data && data.destination_wallet_address != undefined) {
+                    this.destination_wallet_address = data.destination_wallet_address;
+                }
+                if ("network_id" in data && data.network_id != undefined) {
+                    this.network_id = data.network_id;
+                }
+                if ("status" in data && data.status != undefined) {
+                    this.status = data.status;
+                }
+                if ("local_currency_symbol" in data && data.local_currency_symbol != undefined) {
+                    this.local_currency_symbol = data.local_currency_symbol;
+                }
+            }
+        }
+        get owner_id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set owner_id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get collection_country() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set collection_country(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get collection_account_number() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set collection_account_number(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        get collection_bank_name() {
+            return pb_1.Message.getFieldWithDefault(this, 4, "") as string;
+        }
+        set collection_bank_name(value: string) {
+            pb_1.Message.setField(this, 4, value);
+        }
+        get collection_account_type() {
+            return pb_1.Message.getFieldWithDefault(this, 5, "") as string;
+        }
+        set collection_account_type(value: string) {
+            pb_1.Message.setField(this, 5, value);
+        }
+        get collection_account_name() {
+            return pb_1.Message.getFieldWithDefault(this, 6, "") as string;
+        }
+        set collection_account_name(value: string) {
+            pb_1.Message.setField(this, 6, value);
+        }
+        get channel_id() {
+            return pb_1.Message.getFieldWithDefault(this, 7, "") as string;
+        }
+        set channel_id(value: string) {
+            pb_1.Message.setField(this, 7, value);
+        }
+        get sequence_id() {
+            return pb_1.Message.getFieldWithDefault(this, 8, "") as string;
+        }
+        set sequence_id(value: string) {
+            pb_1.Message.setField(this, 8, value);
+        }
+        get blockchain_network() {
+            return pb_1.Message.getFieldWithDefault(this, 9, "") as string;
+        }
+        set blockchain_network(value: string) {
+            pb_1.Message.setField(this, 9, value);
+        }
+        get token_symbol() {
+            return pb_1.Message.getFieldWithDefault(this, 10, "") as string;
+        }
+        set token_symbol(value: string) {
+            pb_1.Message.setField(this, 10, value);
+        }
+        get conversion_rate() {
+            return pb_1.Message.getFieldWithDefault(this, 11, 0) as number;
+        }
+        set conversion_rate(value: number) {
+            pb_1.Message.setField(this, 11, value);
+        }
+        get usd_amount() {
+            return pb_1.Message.getFieldWithDefault(this, 12, 0) as number;
+        }
+        set usd_amount(value: number) {
+            pb_1.Message.setField(this, 12, value);
+        }
+        get local_amount() {
+            return pb_1.Message.getFieldWithDefault(this, 13, 0) as number;
+        }
+        set local_amount(value: number) {
+            pb_1.Message.setField(this, 13, value);
+        }
+        get platform_fee_percentage() {
+            return pb_1.Message.getFieldWithDefault(this, 14, 0) as number;
+        }
+        set platform_fee_percentage(value: number) {
+            pb_1.Message.setField(this, 14, value);
+        }
+        get destination_wallet_address() {
+            return pb_1.Message.getFieldWithDefault(this, 15, "") as string;
+        }
+        set destination_wallet_address(value: string) {
+            pb_1.Message.setField(this, 15, value);
+        }
+        get network_id() {
+            return pb_1.Message.getFieldWithDefault(this, 16, "") as string;
+        }
+        set network_id(value: string) {
+            pb_1.Message.setField(this, 16, value);
+        }
+        get status() {
+            return pb_1.Message.getFieldWithDefault(this, 17, "") as string;
+        }
+        set status(value: string) {
+            pb_1.Message.setField(this, 17, value);
+        }
+        get local_currency_symbol() {
+            return pb_1.Message.getFieldWithDefault(this, 18, "") as string;
+        }
+        set local_currency_symbol(value: string) {
+            pb_1.Message.setField(this, 18, value);
+        }
+        static fromObject(data: {
+            owner_id?: string;
+            collection_country?: string;
+            collection_account_number?: string;
+            collection_bank_name?: string;
+            collection_account_type?: string;
+            collection_account_name?: string;
+            channel_id?: string;
+            sequence_id?: string;
+            blockchain_network?: string;
+            token_symbol?: string;
+            conversion_rate?: number;
+            usd_amount?: number;
+            local_amount?: number;
+            platform_fee_percentage?: number;
+            destination_wallet_address?: string;
+            network_id?: string;
+            status?: string;
+            local_currency_symbol?: string;
+        }): GetCollectionRequestResponse {
+            const message = new GetCollectionRequestResponse({});
+            if (data.owner_id != null) {
+                message.owner_id = data.owner_id;
+            }
+            if (data.collection_country != null) {
+                message.collection_country = data.collection_country;
+            }
+            if (data.collection_account_number != null) {
+                message.collection_account_number = data.collection_account_number;
+            }
+            if (data.collection_bank_name != null) {
+                message.collection_bank_name = data.collection_bank_name;
+            }
+            if (data.collection_account_type != null) {
+                message.collection_account_type = data.collection_account_type;
+            }
+            if (data.collection_account_name != null) {
+                message.collection_account_name = data.collection_account_name;
+            }
+            if (data.channel_id != null) {
+                message.channel_id = data.channel_id;
+            }
+            if (data.sequence_id != null) {
+                message.sequence_id = data.sequence_id;
+            }
+            if (data.blockchain_network != null) {
+                message.blockchain_network = data.blockchain_network;
+            }
+            if (data.token_symbol != null) {
+                message.token_symbol = data.token_symbol;
+            }
+            if (data.conversion_rate != null) {
+                message.conversion_rate = data.conversion_rate;
+            }
+            if (data.usd_amount != null) {
+                message.usd_amount = data.usd_amount;
+            }
+            if (data.local_amount != null) {
+                message.local_amount = data.local_amount;
+            }
+            if (data.platform_fee_percentage != null) {
+                message.platform_fee_percentage = data.platform_fee_percentage;
+            }
+            if (data.destination_wallet_address != null) {
+                message.destination_wallet_address = data.destination_wallet_address;
+            }
+            if (data.network_id != null) {
+                message.network_id = data.network_id;
+            }
+            if (data.status != null) {
+                message.status = data.status;
+            }
+            if (data.local_currency_symbol != null) {
+                message.local_currency_symbol = data.local_currency_symbol;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                owner_id?: string;
+                collection_country?: string;
+                collection_account_number?: string;
+                collection_bank_name?: string;
+                collection_account_type?: string;
+                collection_account_name?: string;
+                channel_id?: string;
+                sequence_id?: string;
+                blockchain_network?: string;
+                token_symbol?: string;
+                conversion_rate?: number;
+                usd_amount?: number;
+                local_amount?: number;
+                platform_fee_percentage?: number;
+                destination_wallet_address?: string;
+                network_id?: string;
+                status?: string;
+                local_currency_symbol?: string;
+            } = {};
+            if (this.owner_id != null) {
+                data.owner_id = this.owner_id;
+            }
+            if (this.collection_country != null) {
+                data.collection_country = this.collection_country;
+            }
+            if (this.collection_account_number != null) {
+                data.collection_account_number = this.collection_account_number;
+            }
+            if (this.collection_bank_name != null) {
+                data.collection_bank_name = this.collection_bank_name;
+            }
+            if (this.collection_account_type != null) {
+                data.collection_account_type = this.collection_account_type;
+            }
+            if (this.collection_account_name != null) {
+                data.collection_account_name = this.collection_account_name;
+            }
+            if (this.channel_id != null) {
+                data.channel_id = this.channel_id;
+            }
+            if (this.sequence_id != null) {
+                data.sequence_id = this.sequence_id;
+            }
+            if (this.blockchain_network != null) {
+                data.blockchain_network = this.blockchain_network;
+            }
+            if (this.token_symbol != null) {
+                data.token_symbol = this.token_symbol;
+            }
+            if (this.conversion_rate != null) {
+                data.conversion_rate = this.conversion_rate;
+            }
+            if (this.usd_amount != null) {
+                data.usd_amount = this.usd_amount;
+            }
+            if (this.local_amount != null) {
+                data.local_amount = this.local_amount;
+            }
+            if (this.platform_fee_percentage != null) {
+                data.platform_fee_percentage = this.platform_fee_percentage;
+            }
+            if (this.destination_wallet_address != null) {
+                data.destination_wallet_address = this.destination_wallet_address;
+            }
+            if (this.network_id != null) {
+                data.network_id = this.network_id;
+            }
+            if (this.status != null) {
+                data.status = this.status;
+            }
+            if (this.local_currency_symbol != null) {
+                data.local_currency_symbol = this.local_currency_symbol;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.owner_id.length)
+                writer.writeString(1, this.owner_id);
+            if (this.collection_country.length)
+                writer.writeString(2, this.collection_country);
+            if (this.collection_account_number.length)
+                writer.writeString(3, this.collection_account_number);
+            if (this.collection_bank_name.length)
+                writer.writeString(4, this.collection_bank_name);
+            if (this.collection_account_type.length)
+                writer.writeString(5, this.collection_account_type);
+            if (this.collection_account_name.length)
+                writer.writeString(6, this.collection_account_name);
+            if (this.channel_id.length)
+                writer.writeString(7, this.channel_id);
+            if (this.sequence_id.length)
+                writer.writeString(8, this.sequence_id);
+            if (this.blockchain_network.length)
+                writer.writeString(9, this.blockchain_network);
+            if (this.token_symbol.length)
+                writer.writeString(10, this.token_symbol);
+            if (this.conversion_rate != 0)
+                writer.writeDouble(11, this.conversion_rate);
+            if (this.usd_amount != 0)
+                writer.writeDouble(12, this.usd_amount);
+            if (this.local_amount != 0)
+                writer.writeDouble(13, this.local_amount);
+            if (this.platform_fee_percentage != 0)
+                writer.writeDouble(14, this.platform_fee_percentage);
+            if (this.destination_wallet_address.length)
+                writer.writeString(15, this.destination_wallet_address);
+            if (this.network_id.length)
+                writer.writeString(16, this.network_id);
+            if (this.status.length)
+                writer.writeString(17, this.status);
+            if (this.local_currency_symbol.length)
+                writer.writeString(18, this.local_currency_symbol);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): GetCollectionRequestResponse {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new GetCollectionRequestResponse();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.owner_id = reader.readString();
+                        break;
+                    case 2:
+                        message.collection_country = reader.readString();
+                        break;
+                    case 3:
+                        message.collection_account_number = reader.readString();
+                        break;
+                    case 4:
+                        message.collection_bank_name = reader.readString();
+                        break;
+                    case 5:
+                        message.collection_account_type = reader.readString();
+                        break;
+                    case 6:
+                        message.collection_account_name = reader.readString();
+                        break;
+                    case 7:
+                        message.channel_id = reader.readString();
+                        break;
+                    case 8:
+                        message.sequence_id = reader.readString();
+                        break;
+                    case 9:
+                        message.blockchain_network = reader.readString();
+                        break;
+                    case 10:
+                        message.token_symbol = reader.readString();
+                        break;
+                    case 11:
+                        message.conversion_rate = reader.readDouble();
+                        break;
+                    case 12:
+                        message.usd_amount = reader.readDouble();
+                        break;
+                    case 13:
+                        message.local_amount = reader.readDouble();
+                        break;
+                    case 14:
+                        message.platform_fee_percentage = reader.readDouble();
+                        break;
+                    case 15:
+                        message.destination_wallet_address = reader.readString();
+                        break;
+                    case 16:
+                        message.network_id = reader.readString();
+                        break;
+                    case 17:
+                        message.status = reader.readString();
+                        break;
+                    case 18:
+                        message.local_currency_symbol = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): GetCollectionRequestResponse {
+            return GetCollectionRequestResponse.deserialize(bytes);
+        }
+    }
     interface GrpcUnaryServiceInterface<P, R> {
         (message: P, metadata: grpc_1.Metadata, options: grpc_1.CallOptions, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
         (message: P, metadata: grpc_1.Metadata, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
@@ -4080,6 +5463,24 @@ export namespace fiatramps.v1 {
                 requestDeserialize: (bytes: Buffer) => GetHotWalletAddressRequest.deserialize(new Uint8Array(bytes)),
                 responseSerialize: (message: GetHotWalletAddressResponse) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => GetHotWalletAddressResponse.deserialize(new Uint8Array(bytes))
+            },
+            CreatePlatformCollectionRequest: {
+                path: "/fiatramps.v1.FiatRampsService/CreatePlatformCollectionRequest",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: CreatePlatformCollectionRequestInput) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => CreatePlatformCollectionRequestInput.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: CreateCollectionResponse) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => CreateCollectionResponse.deserialize(new Uint8Array(bytes))
+            },
+            GetCollectionRequestTransaction: {
+                path: "/fiatramps.v1.FiatRampsService/GetCollectionRequestTransaction",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: GetCollectionRequestTransactionRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => GetCollectionRequestTransactionRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: GetCollectionRequestResponse) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => GetCollectionRequestResponse.deserialize(new Uint8Array(bytes))
             }
         };
         [method: string]: grpc_1.UntypedHandleCall;
@@ -4096,6 +5497,8 @@ export namespace fiatramps.v1 {
         abstract CreateBeneficiaryPaymentRequest(call: grpc_1.ServerUnaryCall<CreateBeneficiaryPaymentRequestInput, CreatePaymentRequestResponse>, callback: grpc_1.sendUnaryData<CreatePaymentRequestResponse>): void;
         abstract GetPaymentRequestTransaction(call: grpc_1.ServerUnaryCall<GetPaymentRequestTransactionRequest, GetPaymentRequestTransactionResponse>, callback: grpc_1.sendUnaryData<GetPaymentRequestTransactionResponse>): void;
         abstract GetHotWalletAddress(call: grpc_1.ServerUnaryCall<GetHotWalletAddressRequest, GetHotWalletAddressResponse>, callback: grpc_1.sendUnaryData<GetHotWalletAddressResponse>): void;
+        abstract CreatePlatformCollectionRequest(call: grpc_1.ServerUnaryCall<CreatePlatformCollectionRequestInput, CreateCollectionResponse>, callback: grpc_1.sendUnaryData<CreateCollectionResponse>): void;
+        abstract GetCollectionRequestTransaction(call: grpc_1.ServerUnaryCall<GetCollectionRequestTransactionRequest, GetCollectionRequestResponse>, callback: grpc_1.sendUnaryData<GetCollectionRequestResponse>): void;
     }
     export class FiatRampsServiceClient extends grpc_1.makeGenericClientConstructor(UnimplementedFiatRampsServiceService.definition, "FiatRampsService", {}) {
         constructor(address: string, credentials: grpc_1.ChannelCredentials, options?: Partial<grpc_1.ChannelOptions>) {
@@ -4139,6 +5542,12 @@ export namespace fiatramps.v1 {
         };
         GetHotWalletAddress: GrpcUnaryServiceInterface<GetHotWalletAddressRequest, GetHotWalletAddressResponse> = (message: GetHotWalletAddressRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<GetHotWalletAddressResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<GetHotWalletAddressResponse>, callback?: grpc_1.requestCallback<GetHotWalletAddressResponse>): grpc_1.ClientUnaryCall => {
             return super.GetHotWalletAddress(message, metadata, options, callback);
+        };
+        CreatePlatformCollectionRequest: GrpcUnaryServiceInterface<CreatePlatformCollectionRequestInput, CreateCollectionResponse> = (message: CreatePlatformCollectionRequestInput, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<CreateCollectionResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<CreateCollectionResponse>, callback?: grpc_1.requestCallback<CreateCollectionResponse>): grpc_1.ClientUnaryCall => {
+            return super.CreatePlatformCollectionRequest(message, metadata, options, callback);
+        };
+        GetCollectionRequestTransaction: GrpcUnaryServiceInterface<GetCollectionRequestTransactionRequest, GetCollectionRequestResponse> = (message: GetCollectionRequestTransactionRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<GetCollectionRequestResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<GetCollectionRequestResponse>, callback?: grpc_1.requestCallback<GetCollectionRequestResponse>): grpc_1.ClientUnaryCall => {
+            return super.GetCollectionRequestTransaction(message, metadata, options, callback);
         };
     }
 }

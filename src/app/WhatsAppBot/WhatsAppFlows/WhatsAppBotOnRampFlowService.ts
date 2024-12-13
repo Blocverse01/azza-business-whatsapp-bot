@@ -1,5 +1,6 @@
 import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { AssetConfig, TokenNames } from '@/resources/web3/tokens';
 import {
     DataExchangeResponse,
@@ -72,6 +73,8 @@ type ScreenPayload = {
             transaction_fee: string;
             fiat_to_pay: string;
             external_wallet_address: string;
+            platform_fee_percentage: string;
+            conversion_rate: string;
         };
         buying_to_external_wallet: boolean;
         asset_id: string;
@@ -106,6 +109,7 @@ type ScreenPayload = {
         status: TransactionStatus;
         asset_id: string;
         is_on_ramp_transaction: boolean;
+        icon_src: string;
     };
 };
 
@@ -308,11 +312,13 @@ class WhatsAppBotOnRampFlowService {
 
         console.log('Starting to fetch quotes and payment methods', new Date().toISOString());
 
-        const [{ rate: conversionRate, fee }, { countryFiatLimits: countryLimits }] =
-            await Promise.all([
-                FiatRampService.getQuotes(local_currency, country_code as CountryCode, 'onramp'),
-                FiatRampService.getPaymentMethods(country_code as CountryCode, 'onramp'),
-            ]);
+        const [
+            { rate: conversionRate, fee, rawFeePercentage },
+            { countryFiatLimits: countryLimits },
+        ] = await Promise.all([
+            FiatRampService.getQuotes(local_currency, country_code as CountryCode, 'onramp'),
+            FiatRampService.getPaymentMethods(country_code as CountryCode, 'onramp'),
+        ]);
 
         console.log('Fetched quotes and payment methods', new Date().toISOString());
 
@@ -392,6 +398,8 @@ class WhatsAppBotOnRampFlowService {
                     transaction_fee: transactionFee.toString(),
                     fiat_to_pay: fiatEquivalent.toString(),
                     external_wallet_address: wallet_address || '',
+                    conversion_rate: conversionRate.toString(),
+                    platform_fee_percentage: rawFeePercentage.toString(),
                 },
                 buying_to_external_wallet: !!wallet_address,
                 asset_id,
@@ -454,6 +462,7 @@ class WhatsAppBotOnRampFlowService {
                                 status: 'failed',
                                 asset_id,
                                 is_on_ramp_transaction: true,
+                                icon_src: ERROR_FEEDBACK_ICON,
                             } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                         };
                     }
@@ -471,6 +480,7 @@ class WhatsAppBotOnRampFlowService {
                                 status: 'failed',
                                 asset_id,
                                 is_on_ramp_transaction: true,
+                                icon_src: ERROR_FEEDBACK_ICON,
                             } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                         };
                     }
@@ -489,6 +499,7 @@ class WhatsAppBotOnRampFlowService {
                             status: 'failed',
                             asset_id,
                             is_on_ramp_transaction: true,
+                            icon_src: ERROR_FEEDBACK_ICON,
                         } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                     };
                 }
@@ -505,6 +516,9 @@ class WhatsAppBotOnRampFlowService {
                     country: country_code,
                     userDetails: verifiedUserDetails,
                     customerId: user_id,
+                    platformFeePercentage: parseFloat(transaction_details.platform_fee_percentage),
+                    conversionRate: parseFloat(transaction_details.conversion_rate),
+                    usdAmount: parseFloat(transaction_details.token_amount),
                 });
 
                 if (onrampResponse.bankInfo === undefined) {
@@ -515,6 +529,7 @@ class WhatsAppBotOnRampFlowService {
                             status: 'failed',
                             asset_id,
                             is_on_ramp_transaction: true,
+                            icon_src: ERROR_FEEDBACK_ICON,
                         } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                     };
                 }
@@ -528,9 +543,7 @@ class WhatsAppBotOnRampFlowService {
                     fiatToPay: transaction_details.fiat_to_pay,
                 });
 
-                WhatsAppBotService.sendArbitraryTextMessage(user_id, message).then(() => {
-                    logger.info('WhatsApp message sent');
-                });
+                void WhatsAppBotService.sendArbitraryTextMessage(user_id, message);
 
                 return {
                     screen: OnRampFlowScreens.BANK_PAYMENT,
@@ -540,7 +553,7 @@ class WhatsAppBotOnRampFlowService {
                         account_name: onrampResponse.bankInfo.accountName,
                         asset_id,
                         amount: formatNumberAsCurrency(
-                            parseFloat(onrampResponse.amount),
+                            onrampResponse.convertedAmount,
                             local_currency
                         ),
                         local_currency,
@@ -559,6 +572,7 @@ class WhatsAppBotOnRampFlowService {
                     status: 'failed',
                     asset_id,
                     is_on_ramp_transaction: true,
+                    icon_src: ERROR_FEEDBACK_ICON,
                 } satisfies ScreenPayload['FEEDBACK_SCREEN'],
             };
         }
@@ -584,6 +598,7 @@ class WhatsAppBotOnRampFlowService {
                         status: 'failed',
                         asset_id,
                         is_on_ramp_transaction: true,
+                        icon_src: ERROR_FEEDBACK_ICON,
                     } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                 };
             }
@@ -596,6 +611,7 @@ class WhatsAppBotOnRampFlowService {
                     status: 'processing',
                     asset_id,
                     is_on_ramp_transaction: true,
+                    icon_src: SUCCESS_FEEDBACK_ICON,
                 } satisfies ScreenPayload['FEEDBACK_SCREEN'],
             };
         } catch (error) {
@@ -611,6 +627,7 @@ class WhatsAppBotOnRampFlowService {
                     status: 'failed',
                     asset_id,
                     is_on_ramp_transaction: true,
+                    icon_src: ERROR_FEEDBACK_ICON,
                 } satisfies ScreenPayload['FEEDBACK_SCREEN'],
             };
         }
@@ -640,6 +657,7 @@ class WhatsAppBotOnRampFlowService {
                         status: 'failed',
                         asset_id,
                         is_on_ramp_transaction: true,
+                        icon_src: ERROR_FEEDBACK_ICON,
                     } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                 };
             }
@@ -657,6 +675,7 @@ class WhatsAppBotOnRampFlowService {
                         status: 'failed',
                         asset_id,
                         is_on_ramp_transaction: true,
+                        icon_src: ERROR_FEEDBACK_ICON,
                     } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                 };
             }
@@ -676,6 +695,7 @@ class WhatsAppBotOnRampFlowService {
                         status: 'failed',
                         asset_id,
                         is_on_ramp_transaction: true,
+                        icon_src: ERROR_FEEDBACK_ICON,
                     } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                 };
             }
@@ -694,6 +714,9 @@ class WhatsAppBotOnRampFlowService {
                 chainName: assetWallet.network.toUpperCase(),
                 tokenName: assetWallet.name,
                 customerId: user_id,
+                platformFeePercentage: parseFloat(transaction_details.platform_fee_percentage),
+                conversionRate: parseFloat(transaction_details.conversion_rate),
+                usdAmount: parseFloat(transaction_details.token_amount),
             });
 
             const message = generateOnrampTransactionInitiatedWithMomoPaymentMessage({
@@ -709,9 +732,7 @@ class WhatsAppBotOnRampFlowService {
                 },
             });
 
-            WhatsAppBotService.sendArbitraryTextMessage(user_id, message).then(() =>
-                console.log('WhatsApp message sent')
-            );
+            void WhatsAppBotService.sendArbitraryTextMessage(user_id, message);
 
             return {
                 screen: OnRampFlowScreens.PROCESSING_FEEDBACK,
@@ -721,6 +742,7 @@ class WhatsAppBotOnRampFlowService {
                     status: 'pending',
                     asset_id,
                     is_on_ramp_transaction: true,
+                    icon_src: SUCCESS_FEEDBACK_ICON,
                 } satisfies ScreenPayload['FEEDBACK_SCREEN'],
             };
         } catch (error) {
@@ -736,6 +758,7 @@ class WhatsAppBotOnRampFlowService {
                     status: 'failed',
                     asset_id,
                     is_on_ramp_transaction: true,
+                    icon_src: ERROR_FEEDBACK_ICON,
                 } satisfies ScreenPayload['FEEDBACK_SCREEN'],
             };
         }

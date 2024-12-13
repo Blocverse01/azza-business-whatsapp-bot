@@ -31,7 +31,7 @@ const flowConfigs: FlowConfigs = {
             flowMode: 'draft',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
-            flowId: '1207890117023139',
+            flowId: '8811472538928692',
             flowMode: 'published',
         },
     },

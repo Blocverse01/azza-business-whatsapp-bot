@@ -1,7 +1,7 @@
 import { SUPPORTED_CHAINS, SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import env from '@/constants/env';
 
-export const ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS: Array<SupportedChain> = [...SUPPORTED_CHAINS];
+export const ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS: Array<SupportedChain> = [];
 
 type Web3Environment = typeof env.WEB3_ENVIRONMENT;
 
