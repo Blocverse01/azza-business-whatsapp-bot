@@ -32,6 +32,12 @@ const tables = [
       { name: "transactionPinHash", type: "text" },
       { name: "securityQuestionsSetup", type: "text" },
       { name: "customTokenIds", type: "multiple" },
+      {
+        name: "FEATURE_ACCESS_LEVEL",
+        type: "text",
+        notNull: true,
+        defaultValue: "PRODUCTION",
+      },
     ],
     revLinks: [
       { column: "user", table: "OffRampTemporaryTransaction" },

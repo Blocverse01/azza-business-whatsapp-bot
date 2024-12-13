@@ -1,5 +1,50 @@
+import {
+    BankBeneficiary,
+    MobileMoneyBeneficiary,
+    UsersBeneficiaries,
+} from '@/app/FiatRamp/fiatRampSchema';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import SumSubService from '@/app/SumSub/SumSubService';
+import { UserAssetInfo, UserAssetItem } from '@/app/User/userSchema';
+import UserService from '@/app/User/UserService';
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import { Message } from '@/app/WhatsAppBot/WhatsAppBotController';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
+import WhatsAppBotAddBeneficiaryFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotAddBeneficiaryFlowService';
+import WhatsAppBotOffRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOffRampFlowService';
+import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
 import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
+import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
+import {
+    canAccessFeature,
+    ENABLED_ASSETS,
+    FeatureAccessLevel,
+    getAssetConfigOrThrow,
+} from '@/config/whatsAppBot';
+import env from '@/constants/env';
+import { TWO } from '@/constants/numbers';
+import {
+    SELL_ASSET_DESTINATION_CHOICE_REGEX,
+    SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN,
+    TRADE_ASSET_REGEX,
+} from '@/constants/regex';
+import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
+import { HttpException } from '@/resources/exceptions/HttpException';
+import logger, { logSync } from '@/resources/logger';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
+import { generateAssetBalanceMessage, getNetworkEmoji } from '@/resources/utils/bot-message-utils';
+import {
+    getCountryFlagEmoji,
+    getUserCountryCodeFromPhoneNumberOrThrow,
+    prettifyNumber,
+} from '@/resources/utils/currency';
+import {
+    convertBase64ToAsciiString,
+    decryptRequest,
+    encryptResponse,
+} from '@/resources/utils/encryption';
+import axios from 'axios';
+import { CountryCode } from 'libphonenumber-js';
 import {
     ASSET_ACTION_REGEX_PATTERN,
     AssetInteractiveButtonIds,
@@ -9,56 +54,14 @@ import {
     FlowNfmReplyResponse,
     InteractiveButtonReplyTypes,
     InteractiveListReplyTypes,
-    //InteractiveNfmReplyActions,
     manageAssetActions,
     MORE_CURRENCIES_COMMAND_REGEX_PATTERN,
     PhoneNumberParams,
     TriggerOfframpFromAddBeneficiaryActionParams,
-    //WhatsAppInteractiveButton,
     WhatsAppInteractiveMessage,
     WhatsAppMessageType,
     WhatsAppTextMessage,
 } from './WhatsAppBotType';
-import axios from 'axios';
-import env from '@/constants/env';
-import UserService from '@/app/User/UserService';
-import logger, { logSync } from '@/resources/logger';
-import { UserAssetInfo, UserAssetItem } from '@/app/User/userSchema';
-import {
-    BankBeneficiary,
-    MobileMoneyBeneficiary,
-    UsersBeneficiaries,
-} from '@/app/FiatRamp/fiatRampSchema';
-import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
-import {
-    SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN,
-    SELL_ASSET_DESTINATION_CHOICE_REGEX,
-    TRADE_ASSET_REGEX,
-} from '@/constants/regex';
-import SumSubService from '@/app/SumSub/SumSubService';
-import {
-    convertBase64ToAsciiString,
-    decryptRequest,
-    encryptResponse,
-} from '@/resources/utils/encryption';
-import WhatsAppBotOffRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOffRampFlowService';
-import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import { CountryCode } from 'libphonenumber-js';
-import WhatsAppBotAddBeneficiaryFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotAddBeneficiaryFlowService';
-import { Message } from '@/app/WhatsAppBot/WhatsAppBotController';
-import { HttpException } from '@/resources/exceptions/HttpException';
-import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
-import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
-import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
-import {
-    getCountryFlagEmoji,
-    getUserCountryCodeFromPhoneNumberOrThrow,
-    prettifyNumber,
-} from '@/resources/utils/currency';
-import { generateAssetBalanceMessage, getNetworkEmoji } from '@/resources/utils/bot-message-utils';
-import { TWO } from '@/constants/numbers';
 
 class WhatsAppBotService {
     private static WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -644,9 +647,13 @@ class WhatsAppBotService {
 
     public static async handleBuyAssetAction(
         phoneParams: PhoneNumberParams,
-        assetId: AssetInteractiveButtonIds
+        assetId: AssetInteractiveButtonIds,
+        userFeatureAccessLevel: FeatureAccessLevel
     ) {
-        if (!FiatRampService.SERVICE_ENABLED) {
+        if (
+            !FiatRampService.SERVICE_ENABLED ||
+            !canAccessFeature(userFeatureAccessLevel, FeatureAccessLevel.STAGING)
+        ) {
             return await this.sendArbitraryTextMessage(
                 phoneParams.userPhoneNumber,
                 "Sorry, we are currently maintaining our onramp services. We'd let you know once this service is back up."
@@ -682,9 +689,13 @@ class WhatsAppBotService {
 
     public static async handleSellAssetAction(
         phoneParams: PhoneNumberParams,
-        assetId: AssetInteractiveButtonIds
+        assetId: AssetInteractiveButtonIds,
+        userFeatureAccessLevel: FeatureAccessLevel
     ) {
-        if (!FiatRampService.SERVICE_ENABLED) {
+        if (
+            !FiatRampService.SERVICE_ENABLED ||
+            !canAccessFeature(userFeatureAccessLevel, FeatureAccessLevel.STAGING)
+        ) {
             return await this.sendArbitraryTextMessage(
                 phoneParams.userPhoneNumber,
                 "Sorry, we are currently maintaining our offramp services. We'd let you know once this service is back up."

@@ -1,19 +1,10 @@
-import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
-import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
-import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
-import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
-import { Request, Response } from 'express';
-import env from '@/constants/env';
-import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import UserService from '@/app/User/UserService';
-import { logSync } from '@/resources/logger';
-import { OK } from '@/constants/status-codes';
+import { getUserAgentThread } from '@/app/aiAgent/agent.helpers';
+import { handleUserPrompt } from '@/app/aiAgent/agent.prompter';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import {
-    extractSellAssetDestinationChoiceGroups,
-    extractSellAssetToBeneficiaryGroups,
-    extractTradeAssetGroups,
-} from '@/constants/regex';
+import UserService from '@/app/User/UserService';
+import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     ASSET_ACTION_REGEX_PATTERN,
     AssetActionRegexMatch,
@@ -23,19 +14,29 @@ import {
     RATES_COMMAND,
     WhatsAppMessageType,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
+import WhatsAppBotAddBeneficiaryFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotAddBeneficiaryFlowService';
+import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
+import WhatsAppBotOffRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOffRampFlowService';
+import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
+import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
+import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotSetupTransactionPinFlowService';
+import WhatsAppBotTransactionConfirmationFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransactionConfirmationFlowService';
+import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
+import { deriveUserFeatureAccessLevel } from '@/config/whatsAppBot';
+import env from '@/constants/env';
+import {
+    extractSellAssetDestinationChoiceGroups,
+    extractSellAssetToBeneficiaryGroups,
+    extractTradeAssetGroups,
+} from '@/constants/regex';
+import { OK } from '@/constants/status-codes';
+import { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import { requestDecryptedDataFlowExchange } from '@/resources/requestHelpers/requestPropsGuard';
-import WhatsAppBotOffRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOffRampFlowService';
-import { CountryCode } from 'libphonenumber-js';
-import WhatsAppBotAddBeneficiaryFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotAddBeneficiaryFlowService';
-import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
-import WhatsAppBotOnRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOnRampFlowService';
-import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
-import { getUserAgentThread } from '@/app/aiAgent/agent.helpers';
-import { handleUserPrompt } from '@/app/aiAgent/agent.prompter';
 import { getUserCountryCodeFromPhoneNumberOrThrow } from '@/resources/utils/currency';
-import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import WhatsAppBotTransactionConfirmationFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransactionConfirmationFlowService';
+import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
+import { Request, Response } from 'express';
+import { CountryCode } from 'libphonenumber-js';
 
 export type Message = {
     id: string;
@@ -187,20 +188,25 @@ class WhatsAppBotController {
 
         const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
 
+        const [user, messages] = await Promise.all([
+            UserService.getUserByPhoneNumber(from),
+            getUserAgentThread(from),
+        ]);
+
+        if (!user) {
+            await WhatsAppBotService.createWalletMessage(businessPhoneNumberId, displayName, from);
+            return;
+        }
+
+        if (user && !user?.transactionPinHash) {
+            await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams, {
+                displayName,
+            });
+            return;
+        }
+
         // ============== HANDLE TEXT MESSAGES ============== //
         if (type === WhatsAppMessageType.TEXT) {
-            const [user, messages] = await Promise.all([
-                UserService.getUserByPhoneNumber(from),
-                getUserAgentThread(from),
-            ]);
-
-            if (user && !user?.transactionPinHash) {
-                await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams, {
-                    displayName,
-                });
-                return;
-            }
-
             const botCommand = BotCommandHandler.isCommand(text.body);
 
             // Handle bot commands
@@ -208,7 +214,8 @@ class WhatsAppBotController {
                 const response = await BotCommandHandler.handlePossibleCommand(
                     text.body.toLowerCase(),
                     phoneParams,
-                    displayName
+                    displayName,
+                    deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL)
                 );
 
                 if (response.handled) {
@@ -223,52 +230,44 @@ class WhatsAppBotController {
             }
 
             // Handle any other text message
-            if (user) {
-                const normalizedPrompt = text.body.startsWith('/')
-                    ? text.body.replace('/', '')
-                    : text.body;
+            const normalizedPrompt = text.body.startsWith('/')
+                ? text.body.replace('/', '')
+                : text.body;
 
-                const userIdMessage = {
-                    role: 'system',
-                    content: `Here's the user's system-provided ID: '${convertAsciiStringToBase64(user.id)}'. Always use this value for the 'userId' parameter in tool calls, extract it without any confirmation from the user.`,
-                } as const;
+            const userIdMessage = {
+                role: 'system',
+                content: `Here's the user's system-provided ID: '${convertAsciiStringToBase64(user.id)}'. Always use this value for the 'userId' parameter in tool calls, extract it without any confirmation from the user.`,
+            } as const;
 
-                if (!messages.find((message) => message.content === userIdMessage.content)) {
-                    messages.push(userIdMessage);
-                }
-
-                messages.push({
-                    role: 'user',
-                    content: normalizedPrompt,
-                });
-
-                const response = await handleUserPrompt({
-                    sessionId: user.id,
-                    messages,
-                    userProfile: {
-                        displayName,
-                        countryCode: getUserCountryCodeFromPhoneNumberOrThrow(
-                            phoneParams.userPhoneNumber
-                        ),
-                    },
-                });
-
-                const responseMessage = MessageGenerators.generateTextMessage(
-                    phoneParams.userPhoneNumber,
-                    response
-                );
-
-                await WhatsAppBotService.sendWhatsappMessage(
-                    phoneParams.businessPhoneNumberId,
-                    responseMessage
-                );
-            } else {
-                await WhatsAppBotService.createWalletMessage(
-                    businessPhoneNumberId,
-                    displayName,
-                    from
-                );
+            if (!messages.find((message) => message.content === userIdMessage.content)) {
+                messages.push(userIdMessage);
             }
+
+            messages.push({
+                role: 'user',
+                content: normalizedPrompt,
+            });
+
+            const response = await handleUserPrompt({
+                sessionId: user.id,
+                messages,
+                userProfile: {
+                    displayName,
+                    countryCode: getUserCountryCodeFromPhoneNumberOrThrow(
+                        phoneParams.userPhoneNumber
+                    ),
+                },
+            });
+
+            const responseMessage = MessageGenerators.generateTextMessage(
+                phoneParams.userPhoneNumber,
+                response
+            );
+
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                responseMessage
+            );
 
             return;
         }
@@ -437,13 +436,21 @@ class WhatsAppBotController {
                         ) as AssetActionRegexMatch;
 
                         if (assetAction === 'sell') {
-                            await WhatsAppBotService.handleSellAssetAction(phoneParams, assetId);
+                            await WhatsAppBotService.handleSellAssetAction(
+                                phoneParams,
+                                assetId,
+                                deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL)
+                            );
 
                             return;
                         }
 
                         if (assetAction === 'buy') {
-                            await WhatsAppBotService.handleBuyAssetAction(phoneParams, assetId);
+                            await WhatsAppBotService.handleBuyAssetAction(
+                                phoneParams,
+                                assetId,
+                                deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL)
+                            );
 
                             return;
                         }

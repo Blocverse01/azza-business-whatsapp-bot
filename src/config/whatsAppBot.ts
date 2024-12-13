@@ -62,3 +62,27 @@ export const searchAsset = (searchParams: Partial<Pick<AssetConfig, 'network' | 
         });
     });
 };
+
+export enum FeatureAccessLevel {
+    PRODUCTION = 1,
+    BETA = 2,
+    STAGING = 3,
+}
+
+export const canAccessFeature = (
+    userAccessLevel: FeatureAccessLevel,
+    requiredAccessLevel: FeatureAccessLevel
+) => {
+    return userAccessLevel >= requiredAccessLevel;
+};
+
+export const deriveUserFeatureAccessLevel = (accessLevelString: string) => {
+    const correctlyAssignedAccessLevel =
+        FeatureAccessLevel[accessLevelString as keyof typeof FeatureAccessLevel];
+
+    if (correctlyAssignedAccessLevel) {
+        return correctlyAssignedAccessLevel;
+    }
+
+    return FeatureAccessLevel.PRODUCTION;
+};

@@ -2,6 +2,7 @@ import { assetInteractiveButtonsIds, PhoneNumberParams } from '@/app/WhatsAppBot
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
 import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
+import { FeatureAccessLevel } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import {
     BOT_COMMANDS_REGEX,
@@ -17,7 +18,8 @@ class BotCommandHandler {
     public static async handlePossibleCommand(
         text: string,
         phoneParams: PhoneNumberParams,
-        displayName: string
+        displayName: string,
+        userAccessLevel: FeatureAccessLevel
     ): Promise<{
         handled: boolean;
     }> {
@@ -34,10 +36,10 @@ class BotCommandHandler {
                 await BotCommandHandler.getRates(phoneParams);
                 break;
             case 'SELL_ASSET':
-                await BotCommandHandler.sellAsset(phoneParams, botCommand.params);
+                await BotCommandHandler.sellAsset(phoneParams, botCommand.params, userAccessLevel);
                 break;
             case 'BUY_ASSET':
-                await BotCommandHandler.buyAsset(phoneParams, botCommand.params);
+                await BotCommandHandler.buyAsset(phoneParams, botCommand.params, userAccessLevel);
                 break;
             case 'ASSETS_MENU':
                 await BotCommandHandler.getAssetsMenu(phoneParams, displayName);
@@ -86,7 +88,8 @@ class BotCommandHandler {
 
     private static async sellAsset(
         phoneParams: PhoneNumberParams,
-        params: TradeAssetBotCommandMatchGroups
+        params: TradeAssetBotCommandMatchGroups,
+        userFeatureAccessLevel: FeatureAccessLevel
     ) {
         const assetId = [params.asset, params.network].join('-').toLowerCase();
 
@@ -98,12 +101,17 @@ class BotCommandHandler {
             return;
         }
 
-        return await WhatsAppBotService.handleSellAssetAction(phoneParams, supportedAsset);
+        return await WhatsAppBotService.handleSellAssetAction(
+            phoneParams,
+            supportedAsset,
+            userFeatureAccessLevel
+        );
     }
 
     private static async buyAsset(
         phoneParams: PhoneNumberParams,
-        params: TradeAssetBotCommandMatchGroups
+        params: TradeAssetBotCommandMatchGroups,
+        userFeatureAccessLevel: FeatureAccessLevel
     ) {
         const assetId = [params.asset, params.network].join('-').toLowerCase();
 
@@ -115,7 +123,11 @@ class BotCommandHandler {
             return;
         }
 
-        return await WhatsAppBotService.handleBuyAssetAction(phoneParams, supportedAsset);
+        return await WhatsAppBotService.handleBuyAssetAction(
+            phoneParams,
+            supportedAsset,
+            userFeatureAccessLevel
+        );
     }
 
     private static async getAssetsMenu(phoneParams: PhoneNumberParams, displayName: string) {
