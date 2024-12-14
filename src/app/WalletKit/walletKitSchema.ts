@@ -7,7 +7,6 @@ export const SUPPORTED_CHAINS = [
     'Base',
     'Optimism',
     'Ethereum',
-    'Lisk',
     'Solana',
 ] as const;
 export const supportedChainSchema = z.enum(SUPPORTED_CHAINS);
