@@ -8,6 +8,7 @@ import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     ASSET_ACTION_REGEX_PATTERN,
     AssetActionRegexMatch,
+    BaseInteractiveButtonIds,
     ExploreAssetActions,
     MORE_CURRENCIES_COMMAND_REGEX_PATTERN,
     MoreCurrenciesCommandMatch,
@@ -194,6 +195,15 @@ class WhatsAppBotController {
         ]);
 
         if (!user) {
+            if (interactive.button_reply?.id === BaseInteractiveButtonIds.CREATE_WALLET) {
+                const createdNewUser = await UserService.createUser(from, displayName);
+
+                if (createdNewUser) {
+                    await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams);
+                }
+                return;
+            }
+
             await WhatsAppBotService.createWalletMessage(businessPhoneNumberId, displayName, from);
             return;
         }

@@ -327,6 +327,10 @@ class WhatsAppBotOnRampFlowService {
         const totalAmount = defaultAmountFixer(amountAsNumber + transactionFee);
         const fiatEquivalent = defaultAmountFixer(totalAmount * conversionRate);
 
+        if (amountAsNumber <= 0) {
+            errorMessages.amount = 'Amount must be greater than 0';
+        }
+
         const [minLimit, maxLimit] = [
             countryLimits.min / conversionRate,
             countryLimits.max / conversionRate,
@@ -335,7 +339,7 @@ class WhatsAppBotOnRampFlowService {
         if (amountAsNumber < minLimit) {
             errorMessages.amount = `Amount must be greater than ${prettifyNumber(minLimit, TWO)} ${assetConfig.tokenName}`;
         }
-        if (amountAsNumber > maxLimit) {
+        if (maxLimit > 0 && amountAsNumber > maxLimit) {
             errorMessages.amount = `Amount must be less than ${prettifyNumber(maxLimit, TWO)} ${assetConfig.tokenName}`;
         }
 

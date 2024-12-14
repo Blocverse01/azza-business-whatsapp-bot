@@ -228,6 +228,10 @@ class WhatsAppBotOffRampFlowService {
 
         const errorMessages: AmountInputScreenData['error_messages'] = {};
 
+        if (usdAmount <= 0) {
+            errorMessages.amount = 'Amount must be greater than 0';
+        }
+
         const amountLessThanLimit =
             amount_denomination === beneficiary.currency_symbol
                 ? amountAsNumber < minLimit
