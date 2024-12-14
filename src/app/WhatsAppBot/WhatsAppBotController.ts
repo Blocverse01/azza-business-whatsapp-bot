@@ -195,7 +195,10 @@ class WhatsAppBotController {
         ]);
 
         if (!user) {
-            if (interactive?.button_reply?.id === BaseInteractiveButtonIds.CREATE_WALLET) {
+            if (
+                interactive &&
+                interactive.button_reply?.id === BaseInteractiveButtonIds.CREATE_WALLET
+            ) {
                 const createdNewUser = await UserService.createUser(from, displayName);
 
                 if (createdNewUser) {
