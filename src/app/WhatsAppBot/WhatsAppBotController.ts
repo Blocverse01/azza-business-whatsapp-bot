@@ -211,7 +211,7 @@ class WhatsAppBotController {
             return;
         }
 
-        if (user && !user?.transactionPinHash) {
+        if (type === WhatsAppMessageType.TEXT && user && !user?.transactionPinHash) {
             await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams, {
                 displayName,
             });
