@@ -12,10 +12,6 @@ module.exports = {
             exec_mode: 'cluster',
             instances: 'max',
         },
-        {
-            script: './service-worker/',
-            watch: ['./service-worker'],
-        },
     ],
 
     deploy: {
