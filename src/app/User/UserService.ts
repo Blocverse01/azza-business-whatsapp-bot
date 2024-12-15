@@ -40,6 +40,8 @@ class UserService {
 
     public static async createUser(phoneNumber: string, displayName: string) {
         try {
+            await this.createUserWallets(phoneNumber);
+
             const user = await this.userExists(phoneNumber);
 
             if (!user) {
@@ -47,8 +49,6 @@ class UserService {
                     id: phoneNumber,
                     phoneNumber: phoneNumber,
                 });
-
-                await this.createUserWallets(phoneNumber);
 
                 return true;
             }
@@ -480,7 +480,7 @@ class UserService {
             return 'unverified';
         }
 
-        switch (kycStatus) {
+        switch (kycStatus.trim()) {
             case 'VERIFIED':
                 return 'verified';
             case 'IN_REVIEW':

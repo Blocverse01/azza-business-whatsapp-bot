@@ -90,7 +90,16 @@ class WhatsAppBotService {
 
             const responseData = await response.json();
 
-            await logger.info('Message sent successfully', {
+            if (!response.ok) {
+                await logServiceError(
+                    new HttpException(response.status, 'Error sending message', responseData),
+                    'Error sending message'
+                );
+
+                return;
+            }
+
+            void logger.info('Message sent successfully', {
                 responseData,
             });
         } catch (error) {
@@ -415,7 +424,9 @@ class WhatsAppBotService {
         businessPhoneNumberId: string,
         listItemId: string
     ) {
+        console.time('depositAssetCommandHandler::getUserAssetWalletOrThrow');
         const asset = await UserService.getUserAssetWalletOrThrow(userPhoneNumber, listItemId);
+        console.timeEnd('depositAssetCommandHandler::getUserAssetWalletOrThrow');
 
         const messagePayload: WhatsAppTextMessage = {
             type: WhatsAppMessageType.TEXT,
