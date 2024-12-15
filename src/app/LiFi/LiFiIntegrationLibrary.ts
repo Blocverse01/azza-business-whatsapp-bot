@@ -46,7 +46,7 @@ class LiFiIntegrationLibrary {
                 Optimism: 'OPT',
                 Ethereum: 'ETH',
                 Polygon: 'POL',
-                Base: 'BASE',
+                Base: 'BAS',
             } satisfies Record<ChainsSupportedByLifi, string>
         )[platformChain];
     }
