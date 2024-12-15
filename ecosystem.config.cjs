@@ -4,7 +4,10 @@ module.exports = {
             script: './src/index.ts',
             watch: './src',
             interpreter: 'node',
-            interpreter_args: '--import tsx --env-file=.env',
+            interpreter_args:
+                process.env.NODE_ENV === 'production'
+                    ? '--import tsx'
+                    : '--import tsx --env-file=.env',
             name: 'azza_cluster_app',
             instances: 0,
             exec_mode: 'cluster',
