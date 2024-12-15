@@ -82,14 +82,16 @@ class WhatsAppBotService {
 
         try {
             const requestOptions = this.getRequestConfig();
-            const response = await axios.post(
-                `${env.CLOUD_API_URL}/${endpoint}`,
-                data,
-                requestOptions
-            );
+            const response = await fetch(`${env.CLOUD_API_URL}/${endpoint}`, {
+                method: 'POST',
+                headers: requestOptions.headers,
+                body: JSON.stringify(data),
+            });
+
+            const responseData = await response.json();
 
             await logger.info('Message sent successfully', {
-                responseData: response.data,
+                responseData,
             });
         } catch (error) {
             await logServiceError(error, 'Error sending message');
@@ -311,7 +313,7 @@ class WhatsAppBotService {
                 requestOptions
             );
 
-            logSync('debug', 'Message marked as read successfully:', response.data); // Handle successful response (optional)
+            logSync('debug', 'Message marked as read successfully:', response.data);
         } catch (error) {
             await logServiceError(error, 'Error marking message as read:');
         }
