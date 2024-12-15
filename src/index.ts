@@ -1,4 +1,5 @@
 import express, { type Request } from 'express';
+import compression from 'compression';
 import { NOT_FOUND, OK } from '@/constants/status-codes';
 import env from '@/constants/env';
 import apiRoutes from './routes';
@@ -9,6 +10,7 @@ import { addAlchemyContextToRequest } from '@/app/AlchemyNotify/webhookUtils';
 
 const app = express();
 
+app.use(compression());
 // middleware for capturing raw body
 app.use(
     express.json({
