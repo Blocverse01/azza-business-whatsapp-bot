@@ -9,8 +9,8 @@ module.exports = {
                     ? '--import tsx'
                     : '--import tsx --env-file=.env',
             name: 'azza_cluster_app',
-            instances: 0,
             exec_mode: 'cluster',
+            instances: 'max',
         },
         {
             script: './service-worker/',
