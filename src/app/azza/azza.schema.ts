@@ -97,8 +97,8 @@ export const swapTokensTransactionDetailsSchema = z.object({
         value: z.string().optional(),
     }),
     transactionPin: transactionPinSchema.optional(),
-    fromChain: supportedChainSchema.exclude(['Lisk']),
-    toChain: supportedChainSchema.exclude(['Lisk']),
+    fromChain: supportedChainSchema,
+    toChain: supportedChainSchema,
     approvalAddress: z.string().optional(),
 });
 

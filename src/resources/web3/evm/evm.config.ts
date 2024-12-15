@@ -88,20 +88,6 @@ export const defaultEthereumSepolia: EvmNetworkConfig = {
     viemChain: sepolia,
 };
 
-export const defaultLisk: EvmNetworkConfig = {
-    rpcUrl: lisk.rpcUrls['default'].http[0],
-    key: 'default-lisk',
-    network: 'Lisk',
-    viemChain: lisk,
-};
-
-export const defaultLiskSepolia: EvmNetworkConfig = {
-    rpcUrl: lisk.rpcUrls['default'].http[0],
-    key: 'default-lisk-sepolia',
-    network: 'Lisk',
-    viemChain: lisk,
-};
-
 const APP_DEFAULT_EVM_NETWORK_CONFIGS: Record<
     EvmNetworkConfig['network'],
     Record<'testnet' | 'mainnet', EvmNetworkConfig>
@@ -121,10 +107,6 @@ const APP_DEFAULT_EVM_NETWORK_CONFIGS: Record<
     Ethereum: {
         mainnet: defaultEthereum,
         testnet: defaultEthereumSepolia,
-    },
-    Lisk: {
-        mainnet: defaultLisk,
-        testnet: defaultLiskSepolia,
     },
 };
 

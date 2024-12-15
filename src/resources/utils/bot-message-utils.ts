@@ -89,7 +89,6 @@ export const EMOJIS_FOR_NETWORKS: Record<SupportedChain | ExtendedWalletSupporte
         Tron: '♦️',
         Bep20: '🟡',
         Solana: '🟢',
-        Lisk: '📍',
     };
 
 export const getNetworkEmoji = (network: SupportedChain | ExtendedWalletSupportedNetworks) =>
