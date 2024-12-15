@@ -32,7 +32,6 @@ import ExtendedTronWallet from '@/app/ExtendedWallet/tron/ExtendedTronWallet';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { validateWalletAddress } from '@/resources/utils/validators';
-import ExtendedSolanaWallet from '@/app/ExtendedWallet/solana/ExtendedSolanaWallet';
 import { getPhoneNumberObject, cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { getWebhookId, isChainWithNotifySupport } from '@/app/AlchemyNotify/config';
 
@@ -56,7 +55,7 @@ class UserService {
 
             return false;
         } catch (error) {
-            throw new HttpException(INTERNAL_SERVER_ERROR, `User not found`);
+            throw error;
         }
     }
 
