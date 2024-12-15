@@ -6,6 +6,7 @@ import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
+    ActionExecuted,
     ASSET_ACTION_REGEX_PATTERN,
     AssetActionRegexMatch,
     BaseInteractiveButtonIds,
@@ -91,6 +92,8 @@ interface WebhookRequestBody {
 class WhatsAppBotController {
     public static async receiveMessageWebhook(req: Request, res: Response) {
         try {
+            const messageReceivedAt = new Date();
+
             res.sendStatus(OK);
             logSync('debug', 'Original Body Received', {
                 webhookBody: req.body,
@@ -109,11 +112,20 @@ class WhatsAppBotController {
             });
 
             if (message && message.id && businessPhoneNumberId && displayName) {
-                await WhatsAppBotController.messageTypeCheck(
+                const actionExecuted = await WhatsAppBotController.messageTypeCheck(
                     message,
                     businessPhoneNumberId,
                     displayName
                 );
+
+                const messageHandledAt = new Date();
+                const messageHandledDuration =
+                    messageHandledAt.getTime() - messageReceivedAt.getTime();
+
+                logSync('debug', 'Message handled', {
+                    timeTaken: `${messageHandledDuration}ms`,
+                    actionExecuted,
+                });
             } else {
                 logSync('debug', 'Message object not found');
             }
@@ -180,12 +192,8 @@ class WhatsAppBotController {
         message: Message,
         businessPhoneNumberId: string,
         displayName: string
-    ) {
+    ): Promise<string> {
         const { type, from, text, interactive } = message;
-
-        logSync('debug', `message data type: ${typeof message}`, {
-            message,
-        });
 
         const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
 
@@ -203,19 +211,22 @@ class WhatsAppBotController {
 
                 if (createdNewUser) {
                     await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams);
+
+                    return ActionExecuted.CREATED_NEW_USER;
                 }
-                return;
+
+                return ActionExecuted.FAILED_TO_CREATE_NEW_USER;
             }
 
             await WhatsAppBotService.createWalletMessage(businessPhoneNumberId, displayName, from);
-            return;
+            return ActionExecuted.SEND_CREATE_WALLET_MESSAGE;
         }
 
         if (type === WhatsAppMessageType.TEXT && user && !user?.transactionPinHash) {
             await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams, {
                 displayName,
             });
-            return;
+            return ActionExecuted.SEND_SET_TRANSACTION_PIN_MESSAGE;
         }
 
         // ============== HANDLE TEXT MESSAGES ============== //
@@ -232,14 +243,14 @@ class WhatsAppBotController {
                 );
 
                 if (response.handled) {
-                    return;
+                    return ActionExecuted.HANDLE_BOT_COMMAND + ': ' + botCommand.command;
                 }
             }
 
             // Handle `rates` text message
             if (text.body.toLowerCase() === RATES_COMMAND) {
                 await WhatsAppBotService.ratesCommandHandler(from, businessPhoneNumberId);
-                return;
+                return ActionExecuted.HANDLE_RATES_MESSAGE;
             }
 
             // Handle any other text message
@@ -282,7 +293,7 @@ class WhatsAppBotController {
                 responseMessage
             );
 
-            return;
+            return ActionExecuted.SEND_ASSISTANT_REPLY;
         }
         // ============== END OF HANDLING TEXT MESSAGES ============== //
 
@@ -311,7 +322,8 @@ class WhatsAppBotController {
                         if (createdNewUser) {
                             await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams);
                         }
-                        return;
+
+                        return ActionExecuted.CREATED_NEW_USER;
 
                     case 'explore-asset':
                         const userAssetInfo = await UserService.getUserAssetInfo(
@@ -323,7 +335,7 @@ class WhatsAppBotController {
                             from,
                             userAssetInfo
                         );
-                        return;
+                        return ActionExecuted.SEND_MANAGE_ASSET_MESSAGE;
 
                     case 'sell-asset-destination-choice':
                         const { assetId, beneficiaryAction, countryCode } =
@@ -353,7 +365,7 @@ class WhatsAppBotController {
                             });
                         }
 
-                        return;
+                        return ActionExecuted.SEND_SELL_ASSET_DESTINATION_CHOICE_MESSAGE;
                 }
             }
 
@@ -382,7 +394,7 @@ class WhatsAppBotController {
                             assetId: sell,
                             beneficiaryId,
                         });
-                        return;
+                        return ActionExecuted.SEND_OFFRAMP_FLOW_MESSAGE;
 
                     case 'return-more-currencies':
                         const [
@@ -403,7 +415,7 @@ class WhatsAppBotController {
                             parseInt(nextSliceTo)
                         );
 
-                        return;
+                        return ActionExecuted.SEND_MORE_CURRENCIES_MESSAGE;
 
                     case 'explore-asset':
                         const userAssetInfo = await UserService.getUserAssetInfo(
@@ -415,7 +427,7 @@ class WhatsAppBotController {
                             from,
                             userAssetInfo
                         );
-                        return;
+                        return ActionExecuted.SEND_MANAGE_ASSET_MESSAGE;
 
                     case 'trade-asset-with-currency':
                         const {
@@ -431,7 +443,7 @@ class WhatsAppBotController {
                                 assetInteractiveId,
                                 countryCode
                             );
-                            return;
+                            return ActionExecuted.SEND_TRADE_ASSET_WITH_CURRENCY_MESSAGE;
                         }
 
                         if (tradeAction === ExploreAssetActions.BUY_ASSET) {
@@ -442,7 +454,7 @@ class WhatsAppBotController {
                             });
                         }
 
-                        return;
+                        throw new Error('Invalid trade action');
                     case 'explore-asset-action':
                         const [_interactiveListId, assetAction, assetId] = interactiveListId.match(
                             ASSET_ACTION_REGEX_PATTERN
@@ -455,7 +467,7 @@ class WhatsAppBotController {
                                 deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL)
                             );
 
-                            return;
+                            return ActionExecuted.SEND_SELL_ASSET_MESSAGE;
                         }
 
                         if (assetAction === 'buy') {
@@ -465,7 +477,7 @@ class WhatsAppBotController {
                                 deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL)
                             );
 
-                            return;
+                            return ActionExecuted.SEND_BUY_ASSET_MESSAGE;
                         }
 
                         if (assetAction === 'withdraw') {
@@ -473,6 +485,8 @@ class WhatsAppBotController {
                                 phoneParams,
                                 assetId
                             );
+
+                            return ActionExecuted.SEND_WITHDRAW_ASSET_MESSAGE;
                         }
 
                         if (assetAction === 'deposit') {
@@ -481,9 +495,11 @@ class WhatsAppBotController {
                                 businessPhoneNumberId,
                                 assetId
                             );
+
+                            return ActionExecuted.SEND_DEPOSIT_ASSET_MESSAGE;
                         }
 
-                        return;
+                        throw new Error('Invalid asset action');
                 }
             }
 
@@ -501,11 +517,13 @@ class WhatsAppBotController {
                         assetId: responseAction.data.assetId,
                         beneficiaryId: responseAction.data.beneficiaryId,
                     });
-                }
 
-                return;
+                    return ActionExecuted.SEND_OFFRAMP_FLOW_MESSAGE;
+                }
             }
         }
+
+        return ActionExecuted.NO_ACTION;
     }
 
     public static async offrampFlowDataExchange(req: Request, res: Response) {
