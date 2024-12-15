@@ -1,6 +1,5 @@
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
 import { z } from 'zod';
-import 'dotenv/config';
 import { PHONE_NUMBER_IDS } from '@/config/whatsAppPhoneNumbers';
 
 const notEmptyStringSchema = (variableName: string) =>

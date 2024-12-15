@@ -2,10 +2,6 @@ import { getQuoteRequestParamsSchema } from '@/app/LiFi/app.lifi.schema';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { createConfig, getActiveRoute, getQuote, QuoteRequest } from '@lifi/sdk';
 
-createConfig({
-    integrator: 'azza-bot-service',
-});
-
 export type ChainsSupportedByLifi = Exclude<SupportedChain, 'Lisk'>;
 
 const chainsSupportedByLifi: ChainsSupportedByLifi[] = [
@@ -17,7 +13,23 @@ const chainsSupportedByLifi: ChainsSupportedByLifi[] = [
 ];
 
 class LiFiIntegrationLibrary {
+    private static initialized = false;
+
+    private static initialize() {
+        if (this.initialized) {
+            return;
+        }
+
+        createConfig({
+            integrator: 'azza-bot-service',
+        });
+
+        this.initialized = true;
+    }
+
     public static async getQuote(params: QuoteRequest) {
+        this.initialize();
+
         const validParams = getQuoteRequestParamsSchema.parse(params);
 
         return await getQuote(validParams);
