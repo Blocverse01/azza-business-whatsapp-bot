@@ -548,7 +548,10 @@ export const executeSwapTokens = async (params: SwapTokensParams) => {
     const { fromToken, fromAmount, toToken, userId, fromBlockchainNetwork, toBlockchainNetwork } =
         params;
 
-    if (fromToken.toLowerCase() === toToken.toLowerCase()) {
+    if (
+        fromToken.toLowerCase() === toToken.toLowerCase() &&
+        fromBlockchainNetwork === toBlockchainNetwork
+    ) {
         return {
             error: 'Tokens to swap must be different',
         };
@@ -578,6 +581,11 @@ export const executeSwapTokens = async (params: SwapTokensParams) => {
     ];
 
     const unmaskedUserId = convertBase64ToAsciiString(userId);
+
+    await WhatsAppBotService.sendArbitraryTextMessage(
+        unmaskedUserId,
+        '⏺️ Getting a quote for your swap... Please wait.'
+    );
     const userWallet = await WalletKitService.getUserWalletByNetwork(
         unmaskedUserId,
         fromBlockchainNetwork
