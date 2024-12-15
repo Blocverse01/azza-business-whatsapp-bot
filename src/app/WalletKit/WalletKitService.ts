@@ -26,6 +26,7 @@ import {
     TRANSFER_TOKEN,
     WALLETS,
 } from '@/app/WalletKit/endpoints';
+import { HttpException } from '@/resources/exceptions/HttpException';
 import axios from 'axios';
 
 class WalletKitService {
@@ -72,11 +73,20 @@ class WalletKitService {
         });
         const requestUrl = `${this.API_URL}${GET_WALLET_BY_OWNER_ID}?${requestQueryParams.toString()}`;
 
-        const response = await axios.get<CreateWalletKitWalletResponse>(requestUrl, {
+        const response = await fetch(requestUrl, {
+            method: 'GET',
             headers: this.requiredRequestHeaders,
         });
 
-        return response.data;
+        if (!response.ok) {
+            throw new HttpException(
+                response.status,
+                `Failed to fetch wallet for owner ${ownerId} on network ${network}`,
+                await response.text()
+            );
+        }
+
+        return (await response.json()) as CreateWalletKitWalletResponse;
     }
 
     public static async getWalletByAddress(walletAddress: string, network: SupportedChain) {
