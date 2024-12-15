@@ -26,7 +26,9 @@ app.get('/', async (_, res) => {
 
 app.use('/api', apiRoutes, async () => {
     // flush logs: ensure all logs are sent
+    const startFlush = Date.now();
     await logger.flush();
+    console.log(`Flushing logs took ${Date.now() - startFlush}ms`);
 });
 
 app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found' }));
