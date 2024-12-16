@@ -279,7 +279,6 @@ class WhatsAppBotController {
                 response.text
             );
 
-            console.time('sendWhatsappMessage and storeUserAgentThread');
             await Promise.all([
                 WhatsAppBotService.sendWhatsappMessage(
                     phoneParams.businessPhoneNumberId,
@@ -290,7 +289,6 @@ class WhatsAppBotController {
                     newMessages: response.newMessages,
                 }),
             ]);
-            console.timeEnd('sendWhatsappMessage and storeUserAgentThread');
 
             return ActionExecuted.SEND_ASSISTANT_REPLY;
         }
