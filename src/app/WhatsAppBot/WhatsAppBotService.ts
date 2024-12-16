@@ -78,6 +78,7 @@ class WhatsAppBotService {
     }
 
     public static async sendWhatsappMessage(businessPhoneNumberId: string, data: object) {
+        console.time('sendWhatsappMessage');
         const endpoint = `${businessPhoneNumberId}/messages`;
 
         try {
@@ -88,7 +89,9 @@ class WhatsAppBotService {
                 body: JSON.stringify(data),
             });
 
+            console.time('sendWhatsappMessage::response.json');
             const responseData = await response.json();
+            console.timeEnd('sendWhatsappMessage::response.json');
 
             if (!response.ok) {
                 await logServiceError(
@@ -98,6 +101,8 @@ class WhatsAppBotService {
 
                 return;
             }
+
+            console.timeEnd('sendWhatsappMessage');
 
             void logger.info('Message sent successfully', {
                 responseData,
