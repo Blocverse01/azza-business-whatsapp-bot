@@ -80,13 +80,13 @@ class WhatsAppBotService {
     }
 
     public static async sendWhatsappMessage(businessPhoneNumberId: string, data: object) {
-        console.time('sendWhatsappMessage');
         const endpoint = `${businessPhoneNumberId}/messages`;
 
         try {
             const requestOptions = this.getRequestConfig();
             const compressedData = zlib.gzipSync(JSON.stringify(data));
 
+            console.time('sendWhatsappMessage');
             const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
                 method: 'POST',
                 headers: {
@@ -95,6 +95,7 @@ class WhatsAppBotService {
                 },
                 body: compressedData,
             });
+            console.timeEnd('sendWhatsappMessage');
 
             const responseData = await response.body.json();
 
@@ -106,8 +107,6 @@ class WhatsAppBotService {
 
                 return;
             }
-
-            console.timeEnd('sendWhatsappMessage');
 
             void logger.info('Message sent successfully', {
                 responseData,
