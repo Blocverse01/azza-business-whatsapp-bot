@@ -1,3 +1,4 @@
+import redis from '@/app/cache/redis';
 import env from '@/constants/env';
 import {
     createWalletKitWalletParams,
@@ -73,6 +74,11 @@ class WalletKitService {
         });
         const requestUrl = `${this.API_URL}${GET_WALLET_BY_OWNER_ID}?${requestQueryParams.toString()}`;
 
+        const cachedData = await redis.get(requestUrl);
+        if (cachedData) {
+            return JSON.parse(cachedData) as CreateWalletKitWalletResponse;
+        }
+
         const response = await fetch(requestUrl, {
             method: 'GET',
             headers: this.requiredRequestHeaders,
@@ -86,7 +92,10 @@ class WalletKitService {
             );
         }
 
-        return (await response.json()) as CreateWalletKitWalletResponse;
+        const wallet = (await response.json()) as CreateWalletKitWalletResponse;
+        await redis.set(requestUrl, JSON.stringify(wallet));
+
+        return wallet;
     }
 
     public static async getWalletByAddress(walletAddress: string, network: SupportedChain) {
@@ -96,11 +105,28 @@ class WalletKitService {
         });
         const requestUrl = `${this.API_URL}${GET_WALLET_BY_ADDRESS}?${requestQueryParams.toString()}`;
 
-        const response = await axios.get<CreateWalletKitWalletResponse>(requestUrl, {
+        const cachedData = await redis.get(requestUrl);
+        if (cachedData) {
+            return JSON.parse(cachedData) as CreateWalletKitWalletResponse;
+        }
+
+        const response = await fetch(requestUrl, {
             headers: this.requiredRequestHeaders,
+            method: 'GET',
         });
 
-        return response.data;
+        if (!response.ok) {
+            throw new HttpException(
+                response.status,
+                `Failed to fetch wallet for address ${walletAddress} on network ${network}`,
+                await response.text()
+            );
+        }
+
+        const wallet = (await response.json()) as CreateWalletKitWalletResponse;
+        await redis.set(requestUrl, JSON.stringify(wallet));
+
+        return wallet;
     }
 
     public static async getUserWallets(ownerId: string) {
@@ -180,11 +206,20 @@ class WalletKitService {
 
         const requestUrl = `${this.API_URL}${GET_TOKEN_BALANCES}?${requestQueryParams.toString()}`;
 
-        const response = await axios.get<TokenBalancesResponse>(requestUrl, {
+        const response = await fetch(requestUrl, {
             headers: this.requiredRequestHeaders,
+            method: 'GET',
         });
 
-        const tokenBalances = response.data;
+        if (!response.ok) {
+            throw new HttpException(
+                response.status,
+                `Failed to fetch token balances for wallet ${walletAddress} on network ${network}`,
+                await response.text()
+            );
+        }
+
+        const tokenBalances = (await response.json()) as TokenBalancesResponse;
 
         const tokenBalance = tokenBalances.find(
             (tokenBalance) =>
@@ -221,11 +256,20 @@ class WalletKitService {
 
         const requestUrl = `${this.API_URL}${WALLETS}?${requestQueryParams.toString()}`;
 
-        const response = await axios.get<CreateWalletKitWalletResponse[]>(requestUrl, {
+        const response = await fetch(requestUrl, {
             headers: this.requiredRequestHeaders,
+            method: 'GET',
         });
 
-        return response.data;
+        if (!response.ok) {
+            throw new HttpException(
+                response.status,
+                `Failed to fetch wallets on network ${network}`,
+                await response.text()
+            );
+        }
+
+        return (await response.json()) as CreateWalletKitWalletResponse[];
     }
 }
 

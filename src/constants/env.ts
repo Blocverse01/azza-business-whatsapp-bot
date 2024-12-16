@@ -99,6 +99,8 @@ const envSchema = z.object({
     OPENAI_API_KEY: z.string().optional().default(''),
 
     YC_WEBHOOK_SECRET_KEY: notEmptyStringSchema('YC_WEBHOOK_SECRET_KEY'),
+
+    REDIS_URL: z.string().optional().default('redis://localhost:6379'),
 });
 
 const env = envSchema.parse(process.env);
