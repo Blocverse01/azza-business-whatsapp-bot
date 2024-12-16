@@ -1,10 +1,4 @@
-import {
-    groq,
-    LLAMA3_GROQ_70B_8192_TOOL_USE,
-    LLAMA3_GROQ_8B_8192_TOOL_USE,
-    MAX_STEPS,
-    toolSet,
-} from '@/app/aiAgent/agent.config';
+import { MAX_STEPS, toolSet } from '@/app/aiAgent/agent.config';
 import { openai } from '@ai-sdk/openai';
 import { CoreMessage, CoreUserMessage, generateText } from 'ai';
 import { createOrUpdateUserAgentThread } from '@/app/aiAgent/agent.helpers';
@@ -50,10 +44,12 @@ export const handleUserPrompt = async (params: HandleUserPromptParams) => {
 
     const lastUserMessage = params.messages[params.messages.length - 1] as CoreUserMessage;
 
-    void createOrUpdateUserAgentThread({
+    console.time('createOrUpdateUserAgentThread');
+    await createOrUpdateUserAgentThread({
         userId: params.sessionId,
         newMessages: [lastUserMessage, ...response.messages],
     });
+    console.timeEnd('createOrUpdateUserAgentThread');
 
     return text;
 };
