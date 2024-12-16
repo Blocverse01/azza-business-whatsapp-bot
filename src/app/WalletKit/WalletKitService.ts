@@ -107,6 +107,7 @@ class WalletKitService {
 
         const cachedData = await redis.get(requestUrl);
         if (cachedData) {
+            console.log('Using cached data', cachedData);
             return JSON.parse(cachedData) as CreateWalletKitWalletResponse;
         }
 
