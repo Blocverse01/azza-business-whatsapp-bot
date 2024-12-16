@@ -1,4 +1,5 @@
 import { SecurityQuestion } from '@/app/azza/azza.schema';
+import redis from '@/app/cache/redis';
 import env from '@/constants/env';
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import { dbClient } from '@/db/dbClient';
@@ -166,6 +167,9 @@ class UserService {
         newStatus: 'VERIFIED' | 'IN_REVIEW' | 'REJECTED' | null
     ) {
         try {
+            const cacheKey = `kyc-status-${user.phoneNumber}`;
+
+            await redis.set(cacheKey, newStatus ?? '');
             await this.USER_TABLE.update(user.id, { kycStatus: newStatus }, ['kycStatus']);
         } catch (err) {
             throw new HttpException(INTERNAL_SERVER_ERROR, 'KYC status not updated!');
@@ -358,11 +362,19 @@ class UserService {
     }
 
     public static async getUserKycStatus(phoneNumber: string): Promise<KycStatus> {
+        const cacheKey = `kyc-status-${phoneNumber}`;
+        const cachedKycStatus = await redis.get(cacheKey);
+        if (cachedKycStatus) {
+            return this.formatKycStatus(cachedKycStatus);
+        }
+
         const user = await this.getUserByPhoneNumber(phoneNumber);
 
         if (!user) {
             throw new HttpException(BAD_REQUEST, 'User not found');
         }
+
+        await redis.set(cacheKey, user.kycStatus ?? '');
 
         return this.formatKycStatus(user.kycStatus);
     }

@@ -1,3 +1,4 @@
+import redis from '@/app/cache/redis';
 import UserService from '@/app/User/UserService';
 import { z } from 'zod';
 import {
@@ -55,6 +56,12 @@ import GetCollectionRequestTransactionRequest = fiatramps.v1.GetCollectionReques
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
+        const cacheKey = 'supported_countries';
+        const cachedCountries = await redis.get(cacheKey);
+        if (cachedCountries) {
+            return z.array(supportedCountry).parse(JSON.parse(cachedCountries));
+        }
+
         const request = new GetSupportedCountriesRequest();
         const response = await getSupportedCountries(request);
 
@@ -64,7 +71,12 @@ class FiatRampsRpcService {
             throw new Error('Invalid response');
         }
 
-        return z.array(supportedCountry).parse(transformKeysToCamelCase(countries));
+        const parsedCountries = z
+            .array(supportedCountry)
+            .parse(transformKeysToCamelCase(countries));
+        await redis.set(cacheKey, JSON.stringify(parsedCountries));
+
+        return parsedCountries;
     }
 
     public static async getRates(targetCurrencies: string[] = []) {
@@ -181,13 +193,23 @@ class FiatRampsRpcService {
     }
 
     public static async getBeneficiary(beneficiaryId: string) {
+        const cacheKey = `beneficiary_${beneficiaryId}`;
+        const cachedBeneficiary = await redis.get(cacheKey);
+
+        if (cachedBeneficiary) {
+            return JSON.parse(cachedBeneficiary) as BankBeneficiary | MobileMoneyBeneficiary;
+        }
+
         const request = new GetBeneficiaryRequest({
             beneficiary_id: beneficiaryId,
         });
 
         const response = await getBeneficiary(request);
+        const parsedBeneficiary = this.parseBeneficiary(response);
 
-        return this.parseBeneficiary(response);
+        await redis.set(cacheKey, JSON.stringify(parsedBeneficiary));
+
+        return parsedBeneficiary;
     }
 
     public static async getPaymentMethods(countryCode: CountryCode, route: 'onramp' | 'offramp') {
