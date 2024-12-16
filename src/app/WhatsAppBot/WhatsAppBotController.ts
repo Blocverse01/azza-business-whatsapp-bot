@@ -1,4 +1,4 @@
-import { getUserAgentThread } from '@/app/aiAgent/agent.helpers';
+import { createOrUpdateUserAgentThread, getUserAgentThread } from '@/app/aiAgent/agent.helpers';
 import { handleUserPrompt } from '@/app/aiAgent/agent.prompter';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import UserService from '@/app/User/UserService';
@@ -276,13 +276,21 @@ class WhatsAppBotController {
 
             const responseMessage = MessageGenerators.generateTextMessage(
                 phoneParams.userPhoneNumber,
-                response
+                response.text
             );
 
-            await WhatsAppBotService.sendWhatsappMessage(
-                phoneParams.businessPhoneNumberId,
-                responseMessage
-            );
+            console.time('sendWhatsappMessage and storeUserAgentThread');
+            await Promise.all([
+                WhatsAppBotService.sendWhatsappMessage(
+                    phoneParams.businessPhoneNumberId,
+                    responseMessage
+                ),
+                createOrUpdateUserAgentThread({
+                    userId: user.id,
+                    newMessages: response.newMessages,
+                }),
+            ]);
+            console.timeEnd('sendWhatsappMessage and storeUserAgentThread');
 
             return ActionExecuted.SEND_ASSISTANT_REPLY;
         }

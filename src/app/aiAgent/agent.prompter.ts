@@ -44,12 +44,9 @@ export const handleUserPrompt = async (params: HandleUserPromptParams) => {
 
     const lastUserMessage = params.messages[params.messages.length - 1] as CoreUserMessage;
 
-    console.time('createOrUpdateUserAgentThread');
-    void createOrUpdateUserAgentThread({
-        userId: params.sessionId,
+    return {
+        text,
         newMessages: [lastUserMessage, ...response.messages],
-    });
-    console.timeEnd('createOrUpdateUserAgentThread');
-
-    return text;
+        sessionId: params.sessionId,
+    };
 };
