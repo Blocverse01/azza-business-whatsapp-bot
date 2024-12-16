@@ -65,8 +65,29 @@ class UserService {
         return !!record;
     }
 
+    private static async invalidateUserCache(phoneNumber: string) {
+        return redis.del(`user-${phoneNumber}`);
+    }
+
+    private static async setUserCache(user: UserRecord) {
+        return redis.set(`user-${user.phoneNumber}`, JSON.stringify(user));
+    }
+
     public static async getUserByPhoneNumber(phoneNumber: string) {
-        return await this.USER_TABLE.filter({ phoneNumber }).getFirst();
+        const cacheKey = `user-${phoneNumber}`;
+        const cachedUserRecord = await redis.get(cacheKey);
+
+        if (cachedUserRecord) {
+            return JSON.parse(cachedUserRecord) as UserRecord;
+        }
+
+        const userRecord = await this.USER_TABLE.filter({ phoneNumber }).getFirst();
+
+        if (userRecord) {
+            await this.setUserCache(userRecord);
+        }
+
+        return userRecord;
     }
 
     /**
@@ -131,7 +152,11 @@ class UserService {
         >
     ) {
         try {
-            await this.USER_TABLE.update(user.id, info);
+            const updatedRecord = await this.USER_TABLE.update(user.id, info);
+
+            if (updatedRecord) {
+                await this.setUserCache(updatedRecord);
+            }
         } catch (err) {
             throw new HttpException(INTERNAL_SERVER_ERROR, 'User info not updated!');
         }
@@ -184,19 +209,30 @@ class UserService {
         const hashedPin = await hashString(newPin);
         const encryptedSecuritySetup = this.maskUserSecurityQuestions(securityQuestionsSetup);
 
-        return await this.USER_TABLE.update(
-            user.id,
-            { transactionPinHash: hashedPin, securityQuestionsSetup: encryptedSecuritySetup },
-            ['transactionPinHash', 'securityQuestionsSetup']
-        );
+        const updatedRecord = await this.USER_TABLE.update(user.id, {
+            transactionPinHash: hashedPin,
+            securityQuestionsSetup: encryptedSecuritySetup,
+        });
+
+        if (updatedRecord) {
+            await this.setUserCache(updatedRecord);
+        }
+
+        return updatedRecord;
     }
 
     public static async updateTransactionPin(user: UserRecord, newPin: string) {
         const hashedPin = await hashString(newPin);
 
-        return await this.USER_TABLE.update(user.id, { transactionPinHash: hashedPin }, [
-            'transactionPinHash',
-        ]);
+        const updatedRecord = await this.USER_TABLE.update(user.id, {
+            transactionPinHash: hashedPin,
+        });
+
+        if (updatedRecord) {
+            await this.setUserCache(updatedRecord);
+        }
+
+        return updatedRecord;
     }
 
     public static async createUserWallets(phoneNumber: string) {
