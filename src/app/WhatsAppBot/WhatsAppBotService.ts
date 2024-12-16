@@ -46,7 +46,6 @@ import {
 import axios from 'axios';
 import { CountryCode } from 'libphonenumber-js';
 import { request } from 'undici';
-import * as zlib from 'node:zlib';
 import {
     ASSET_ACTION_REGEX_PATTERN,
     AssetInteractiveButtonIds,
@@ -85,15 +84,11 @@ class WhatsAppBotService {
 
         try {
             const requestOptions = this.getRequestConfig();
-            const compressedData = zlib.gzipSync(JSON.stringify(data));
 
             const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
                 method: 'POST',
-                headers: {
-                    ...requestOptions.headers,
-                    'Content-Encoding': 'gzip',
-                },
-                body: compressedData,
+                headers: requestOptions.headers,
+                body: JSON.stringify(data),
             });
 
             console.time('sendWhatsappMessage::response.json');
