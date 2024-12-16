@@ -28,7 +28,7 @@ import {
     SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN,
     TRADE_ASSET_REGEX,
 } from '@/constants/regex';
-import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
+import { INTERNAL_SERVER_ERROR, OK } from '@/constants/status-codes';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import logger, { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
@@ -45,6 +45,8 @@ import {
 } from '@/resources/utils/encryption';
 import axios from 'axios';
 import { CountryCode } from 'libphonenumber-js';
+import { request } from 'undici';
+import * as zlib from 'node:zlib';
 import {
     ASSET_ACTION_REGEX_PATTERN,
     AssetInteractiveButtonIds,
@@ -83,19 +85,24 @@ class WhatsAppBotService {
 
         try {
             const requestOptions = this.getRequestConfig();
-            const response = await fetch(`${env.CLOUD_API_URL}/${endpoint}`, {
+            const compressedData = zlib.gzipSync(JSON.stringify(data));
+
+            const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
                 method: 'POST',
-                headers: requestOptions.headers,
-                body: JSON.stringify(data),
+                headers: {
+                    ...requestOptions.headers,
+                    'Content-Encoding': 'gzip',
+                },
+                body: compressedData,
             });
 
             console.time('sendWhatsappMessage::response.json');
-            const responseData = await response.json();
+            const responseData = await response.body.json();
             console.timeEnd('sendWhatsappMessage::response.json');
 
-            if (!response.ok) {
+            if (response.statusCode !== OK) {
                 await logServiceError(
-                    new HttpException(response.status, 'Error sending message', responseData),
+                    new HttpException(response.statusCode, 'Error sending message', responseData),
                     'Error sending message'
                 );
 
