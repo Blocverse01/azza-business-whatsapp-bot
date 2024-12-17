@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { Buffer } from 'node:buffer';
 
 type SendMessageWithGoParams = {
     token: string;
@@ -18,6 +19,8 @@ export async function sendMessageUsingGo(
     params: SendMessageWithGoParams
 ): Promise<SendMessageWithGoResponse> {
     return new Promise<SendMessageWithGoResponse>((resolve, reject) => {
+        const encodedMessage = Buffer.from(params.message).toString('base64');
+
         const args = [
             '-token',
             params.token,
@@ -26,7 +29,7 @@ export async function sendMessageUsingGo(
             '-id',
             params.id,
             '-message',
-            `'${params.message}'`, // Wrap the raw JSON string in single quotes
+            encodedMessage,
         ];
 
         const process = spawn('src/app/WhatsAppBot/sendWhatsappMessage', args);
