@@ -308,9 +308,9 @@ class FiatRampsRpcService {
 
     public static async createBeneficiaryOfframpRequest(params: SendOfframpRequestPayload) {
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
-        const user = await UserService.getUserByPhoneNumber(params.userId);
+        const user = await UserService.getUserIdentityInfo(params.userId);
 
-        if (!user?.phoneNumber) throw new Error('User not found');
+        if (!user) throw new Error('User not found');
 
         const standardizedUserPhoneNumber = `+${user.phoneNumber}`;
 
@@ -334,6 +334,9 @@ class FiatRampsRpcService {
                 dob: user.kycDateOfBirth,
                 id_number: user.kycDocumentNumber,
                 id_type: user.kycIdType,
+                address: user.address,
+                additional_id_number: user.additionalKycIdNumber,
+                additional_id_type: user.additionalKycIdType,
             }),
         });
 
@@ -360,6 +363,8 @@ class FiatRampsRpcService {
                 dob: params.userDetails.kycDateOfBirth,
                 id_number: params.userDetails.kycDocumentNumber,
                 id_type: params.userDetails.kycIdType,
+                additional_id_number: params.userDetails.additionalKycIdNumber,
+                additional_id_type: params.userDetails.additionalKycIdType,
             }),
             token_symbol: params.tokenName,
             blockchain_network: params.chainName,

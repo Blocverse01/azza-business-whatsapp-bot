@@ -44,6 +44,8 @@ export const userIdentityInfoSchema = z.object({
     address: z.string().optional(),
     country: z.string(),
     kycStatus: kycStatus,
+    additionalKycIdType: z.string().optional(),
+    additionalKycIdNumber: z.string().optional(),
 });
 
 export type UserIdentityInfo = z.infer<typeof userIdentityInfoSchema>;

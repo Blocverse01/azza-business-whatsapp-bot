@@ -11,7 +11,6 @@ const tables = [
     name: "User",
     columns: [
       { name: "phoneNumber", type: "string" },
-      { name: "messageId", type: "string" },
       { name: "country", type: "string", notNull: true, defaultValue: "" },
       { name: "firstName", type: "string", notNull: true, defaultValue: "" },
       { name: "lastName", type: "string", notNull: true, defaultValue: "" },
@@ -38,6 +37,8 @@ const tables = [
         notNull: true,
         defaultValue: "PRODUCTION",
       },
+      { name: "additionalKycIdType", type: "text", defaultValue: "" },
+      { name: "additionalKycIdNumber", type: "text", defaultValue: "" },
     ],
     revLinks: [
       { column: "user", table: "OffRampTemporaryTransaction" },

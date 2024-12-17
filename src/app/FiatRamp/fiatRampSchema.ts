@@ -1,3 +1,4 @@
+import { userIdentityInfoSchema } from '@/app/User/userSchema';
 import { z } from 'zod';
 import { type CountryCode, isValidPhoneNumber } from 'libphonenumber-js';
 
@@ -107,16 +108,7 @@ export const onrampTransactionPayloadSchema = z.object({
     chainName: z.string(),
     tokenName: z.string(),
     userWalletAddress: z.string(),
-    userDetails: z.object({
-        phoneNumber: z.string(),
-        kycDocumentNumber: z.string(),
-        kycIdType: z.string(),
-        kycDateOfBirth: z.string(),
-        firstName: z.string(),
-        lastName: z.string(),
-        address: z.string().optional(),
-        country: z.string(),
-    }),
+    userDetails: userIdentityInfoSchema,
     customerId: z.string(),
     platformFeePercentage: z.number(),
     conversionRate: z.number(),
