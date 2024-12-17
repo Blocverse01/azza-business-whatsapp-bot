@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process';
+import { spawn } from 'node:child_process';
 
 type SendMessageWithGoParams = {
     token: string;
@@ -16,7 +16,7 @@ type SendMessageWithGoResponse = {
 
 export async function sendMessageUsingGo(params: SendMessageWithGoParams) {
     return new Promise<SendMessageWithGoResponse>((resolve, reject) => {
-        const args = [
+        const process = spawn('src/app/WhatsAppBot/sendWhatsappMessage', [
             '-token',
             params.token,
             '-url',
@@ -25,19 +25,29 @@ export async function sendMessageUsingGo(params: SendMessageWithGoParams) {
             params.id,
             '-message',
             params.message,
-        ];
+        ]);
 
-        execFile('src/app/WhatsAppBot/sendWhatsappMessage', args, (error, stdout, stderr) => {
-            if (error) {
-                reject(new Error(`Execution failed: ${stderr || error.message}`));
-                return;
-            }
+        let stdout = '';
+        let stderr = '';
 
-            try {
-                const response = JSON.parse(stdout) as SendMessageWithGoResponse;
-                resolve(response);
-            } catch (parseError) {
-                reject(new Error(`Failed to parse response: ${stdout}`));
+        process.stdout.on('data', (data) => {
+            stdout += data;
+        });
+
+        process.stderr.on('data', (data) => {
+            stderr += data;
+        });
+
+        process.on('close', (code) => {
+            if (code !== 0) {
+                reject(new Error(`Execution failed: ${stderr ?? stdout}`));
+            } else {
+                try {
+                    const response = JSON.parse(stdout) as SendMessageWithGoResponse;
+                    resolve(response);
+                } catch (parseError) {
+                    reject(new Error(`Failed to parse response: ${stdout}`));
+                }
             }
         });
     });
