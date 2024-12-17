@@ -84,6 +84,12 @@ class WhatsAppBotService {
     public static async sendMessageUsingGo(businessPhoneNumberId: string, message: object) {
         try {
             console.time('sendWhatsappMessage::Go');
+            console.log({
+                message: JSON.stringify(message),
+                token: env.CLOUD_API_ACCESS_TOKEN,
+                url: env.CLOUD_API_URL,
+                id: businessPhoneNumberId,
+            });
             const response = await sendMessageUsingGo({
                 message: JSON.stringify(message),
                 token: env.CLOUD_API_ACCESS_TOKEN,
@@ -154,6 +160,7 @@ class WhatsAppBotService {
 
     public static async sendWhatsappMessage(businessPhoneNumberId: string, data: object) {
         if (this.USE_SENDER_SCRIPT) {
+            console.log({ data });
             return await this.sendMessageUsingGo(businessPhoneNumberId, data);
         }
 
