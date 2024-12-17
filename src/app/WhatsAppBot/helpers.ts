@@ -29,7 +29,7 @@ export async function sendMessageUsingGo(
             `'${params.message}'`, // Wrap the raw JSON string in single quotes
         ];
 
-        const process = spawn('src/app/WhatsAppBot/sendWhatsappMessage', args, { shell: true });
+        const process = spawn('src/app/WhatsAppBot/sendWhatsappMessage', args);
 
         let stdout = '';
         let stderr = '';
