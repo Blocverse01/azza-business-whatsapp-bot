@@ -7,6 +7,7 @@ import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import SumSubService from '@/app/SumSub/SumSubService';
 import { UserAssetInfo, UserAssetItem } from '@/app/User/userSchema';
 import UserService from '@/app/User/UserService';
+import { sendMessageUsingGo } from '@/app/WhatsAppBot/helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { Message } from '@/app/WhatsAppBot/WhatsAppBotController';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
@@ -66,8 +67,9 @@ import {
 } from './WhatsAppBotType';
 
 class WhatsAppBotService {
-    private static WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
+    private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
     private static readonly SHOULD_REQUEST_KYC_FOR_OFFRAMP = true;
+    private static readonly USE_SENDER_SCRIPT = true;
 
     private static getRequestConfig() {
         return {
@@ -79,12 +81,45 @@ class WhatsAppBotService {
         };
     }
 
-    public static async sendWhatsappMessage(businessPhoneNumberId: string, data: object) {
+    public static async sendMessageUsingGo(businessPhoneNumberId: string, message: object) {
+        try {
+            console.time('sendWhatsappMessage::Go');
+            const response = await sendMessageUsingGo({
+                message: JSON.stringify(message),
+                token: env.CLOUD_API_ACCESS_TOKEN,
+                url: env.CLOUD_API_URL,
+                id: businessPhoneNumberId,
+            });
+            console.timeEnd('sendWhatsappMessage::Go');
+
+            if (response.statusCode !== OK) {
+                await logServiceError(
+                    new HttpException(
+                        response.statusCode,
+                        'Error sending message',
+                        response.responseBody
+                    ),
+                    'Error sending message'
+                );
+
+                return;
+            }
+
+            void logger.info('Message sent successfully', {
+                response,
+            });
+        } catch (error) {
+            await logServiceError(error, 'Error sending message');
+            throw error;
+        }
+    }
+
+    public static async sendMessageUsingApi(businessPhoneNumberId: string, message: object) {
         const endpoint = `${businessPhoneNumberId}/messages`;
 
         try {
             const requestOptions = this.getRequestConfig();
-            const compressedData = zlib.gzipSync(JSON.stringify(data));
+            const compressedData = zlib.gzipSync(JSON.stringify(message));
 
             console.time('sendWhatsappMessage');
             const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
@@ -115,6 +150,14 @@ class WhatsAppBotService {
             await logServiceError(error, 'Error sending message');
             throw error;
         }
+    }
+
+    public static async sendWhatsappMessage(businessPhoneNumberId: string, data: object) {
+        if (this.USE_SENDER_SCRIPT) {
+            return await this.sendMessageUsingGo(businessPhoneNumberId, data);
+        }
+
+        return await this.sendMessageUsingApi(businessPhoneNumberId, data);
     }
 
     /**

@@ -28,12 +28,6 @@ const envSchema = z.object({
     WALLET_KIT_MAINNET_DEVELOPER_SECRET: notEmptyStringSchema(
         'WALLET_KIT_MAINNET_DEVELOPER_SECRET'
     ),
-
-    FIAT_RAMPS_PROVIDER_API_URL: notEmptyStringSchema('FIAT_RAMPS_PROVIDER_API_URL').and(
-        z.string().url()
-    ),
-    FIAT_RAMPS_PROVIDER_API_KEY: notEmptyStringSchema('FIAT_RAMPS_PROVIDER_API_KEY'),
-    FIAT_RAMPS_PROVIDER_PROJECT_ID: notEmptyStringSchema('FIAT_RAMPS_PROVIDER_PROJECT_ID'),
     WEB3_ENVIRONMENT: z.enum(['testnet', 'mainnet']).default('testnet'),
     SUM_SUB_APP_TOKEN: notEmptyStringSchema('SUM_SUB_APP_TOKEN'),
     SUM_SUB_APP_TOKEN_SECRET: notEmptyStringSchema('SUM_SUB_APP_TOKEN_SECRET'),
