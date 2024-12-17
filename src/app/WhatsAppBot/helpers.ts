@@ -25,13 +25,13 @@ export async function sendMessageUsingGo(
 
         const args = [
             '-token',
-            `'${params.token}'`,
+            params.token,
             '-url',
-            `'${params.url}'`,
+            params.url,
             '-id',
-            `'${params.id}'`,
+            params.id,
             '-message',
-            `'${encodedMessage}'`,
+            encodedMessage,
         ];
 
         const process = spawn('src/app/WhatsAppBot/sendWhatsappMessage', args);
