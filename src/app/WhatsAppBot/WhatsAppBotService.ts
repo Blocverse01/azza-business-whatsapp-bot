@@ -154,7 +154,6 @@ class WhatsAppBotService {
 
     public static async sendWhatsappMessage(businessPhoneNumberId: string, data: object) {
         if (this.USE_SENDER_SCRIPT) {
-            console.log({ data });
             return await this.sendMessageUsingGo(businessPhoneNumberId, data);
         }
 

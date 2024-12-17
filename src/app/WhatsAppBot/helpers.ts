@@ -34,7 +34,7 @@ export async function sendMessageUsingGo(
             encodedMessage,
         ];
 
-        const process = spawn('src/app/WhatsAppBot/sendWhatsappMessage', args);
+        const process = spawn('go/bin/send_whatsapp_message', args);
 
         let stdout = '';
         let stderr = '';

@@ -1,0 +1,1 @@
+go build -o go/bin/send_whatsapp_message go/send_whatsapp_message.go
