@@ -1,3 +1,5 @@
+import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
+import { HttpException } from '@/resources/exceptions/HttpException';
 import { spawn } from 'node:child_process';
 import { Buffer } from 'node:buffer';
 
@@ -47,7 +49,12 @@ export async function sendMessageUsingGo(
 
         process.on('close', (code) => {
             if (code !== 0) {
-                reject(new Error(`Execution failed (code ${code}): ${stderr || stdout}`));
+                reject(
+                    new HttpException(INTERNAL_SERVER_ERROR, `Execution failed (code ${code})`, {
+                        stderr,
+                        stdout,
+                    })
+                );
                 return;
             }
 
