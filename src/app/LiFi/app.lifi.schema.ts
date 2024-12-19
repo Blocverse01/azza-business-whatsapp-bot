@@ -10,6 +10,7 @@ export const getQuoteRequestParamsSchema = z.object({
     toToken: z.string(),
     fromAmount: z.string(),
     fromAddress: z.string(),
+    toAddress: z.string(),
 });
 
 ///////////////////////////////
