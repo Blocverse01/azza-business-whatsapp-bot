@@ -1,5 +1,6 @@
 import redis from '@/app/cache/redis';
 import UserService from '@/app/User/UserService';
+import { FALLBACK_USE_AZZA_ADDRESS } from '@/constants/strings';
 import { z } from 'zod';
 import {
     BankBeneficiary,
@@ -288,7 +289,7 @@ class FiatRampsRpcService {
 
         const request = new AddBeneficiaryRequest({
             account_name: beneficiaryDetails.accountName.trim(),
-            account_number: beneficiaryDetails.accountNumber,
+            account_number: beneficiaryDetails.accountNumber.replace(/\s/g, ''),
             account_type: beneficiaryDetails.accountType,
             network_id: params.beneficiary.networkId,
             channel_id: params.beneficiary.channelId,
@@ -329,13 +330,13 @@ class FiatRampsRpcService {
             conversion_rate: validatedParams.conversionRate,
             sender: new YellowCardRetailCustomer({
                 name: `${user.firstName} ${user.lastName}`,
-                phone: standardizedUserPhoneNumber,
+                phone: standardizedUserPhoneNumber.replace(/\s/g, ''),
                 country: user.country,
                 dob: user.kycDateOfBirth,
-                id_number: user.kycDocumentNumber,
+                id_number: user.kycDocumentNumber.replace(/\s/g, ''),
                 id_type: user.kycIdType,
-                address: user.address,
-                additional_id_number: user.additionalKycIdNumber,
+                address: user.address ?? FALLBACK_USE_AZZA_ADDRESS,
+                additional_id_number: user.additionalKycIdNumber?.replace(/\s/g, ''),
                 additional_id_type: user.additionalKycIdType,
             }),
         });
@@ -352,23 +353,23 @@ class FiatRampsRpcService {
             owner_id: params.customerId,
             source: new CollectionSource({
                 account_type: params.accountType === 'phone' ? 'momo' : params.accountType,
-                account_number: params.accountNumber,
-                network_id: params.networkId,
+                account_number: params.accountNumber?.replace(/\s/g, ''),
+                network_id: params.networkId?.replace(/\s/g, ''),
             }),
             recipient: new YellowCardRetailCustomer({
                 name: `${params.userDetails.firstName} ${params.userDetails.lastName}`,
                 phone: `+${params.userDetails.phoneNumber}`,
                 country: params.userDetails.country,
-                address: params.userDetails.address,
+                address: params.userDetails.address ?? FALLBACK_USE_AZZA_ADDRESS,
                 dob: params.userDetails.kycDateOfBirth,
-                id_number: params.userDetails.kycDocumentNumber,
+                id_number: params.userDetails.kycDocumentNumber.replace(/\s/g, ''),
                 id_type: params.userDetails.kycIdType,
-                additional_id_number: params.userDetails.additionalKycIdNumber,
+                additional_id_number: params.userDetails.additionalKycIdNumber?.replace(/\s/g, ''),
                 additional_id_type: params.userDetails.additionalKycIdType,
             }),
             token_symbol: params.tokenName,
             blockchain_network: params.chainName,
-            destination_wallet_address: params.userWalletAddress,
+            destination_wallet_address: params.userWalletAddress.replace(/\s/g, ''),
             platform_fee_percentage: params.platformFeePercentage,
             conversion_rate: params.conversionRate,
             usd_amount: params.usdAmount,
