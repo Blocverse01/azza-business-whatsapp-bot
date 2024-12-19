@@ -21,7 +21,7 @@ import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAp
 import { ZERO } from '@/constants/numbers';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
-import { ENABLED_ASSETS, getAssetConfigByTokenAddress, searchAsset } from '@/config/whatsAppBot';
+import { ENABLED_ASSETS, searchAsset } from '@/config/whatsAppBot';
 import UserService from '@/app/User/UserService';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
@@ -39,7 +39,7 @@ import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
 import { TokenNames } from '@/resources/web3/tokens';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
-import { formatUnits, getAddress, isAddress, parseUnits } from 'viem';
+import { formatUnits, getAddress, parseUnits } from 'viem';
 
 export const executeTransferAsset = async (params: TransferCryptoAssetParams) => {
     const { cryptoCurrencySymbol, recipient, amount, blockchainNetwork, userId } = params;
@@ -586,10 +586,10 @@ export const executeSwapTokens = async (params: SwapTokensParams) => {
         unmaskedUserId,
         '⏺️ Getting a quote for your swap... Please wait.'
     );
-    const userWallet = await WalletKitService.getUserWalletByNetwork(
-        unmaskedUserId,
-        fromBlockchainNetwork
-    );
+    const [fromUserWallet, toUserWallet] = await Promise.all([
+        UserService.getUserAssetWalletOrThrow(unmaskedUserId, fromTokenConfig.listItemId),
+        UserService.getUserAssetWalletOrThrow(unmaskedUserId, toTokenConfig.listItemId),
+    ]);
 
     const formattedAmount =
         fromBlockchainNetwork === 'Solana'
@@ -636,10 +636,11 @@ export const executeSwapTokens = async (params: SwapTokensParams) => {
     const quote = await LiFiIntegrationLibrary.getQuote({
         fromToken: fromTokenConfig.tokenAddress,
         fromAmount: formattedAmount,
-        fromAddress: userWallet.address,
+        fromAddress: fromUserWallet.walletAddress,
         toToken: toTokenConfig.tokenAddress,
         fromChain: fromChainKey,
         toChain: toChainKey,
+        toAddress: toUserWallet.walletAddress,
     });
 
     const quote_fromToken = quote.action.fromToken;
