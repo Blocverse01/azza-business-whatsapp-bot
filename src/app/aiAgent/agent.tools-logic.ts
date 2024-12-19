@@ -580,6 +580,13 @@ export const executeSwapTokens = async (params: SwapTokensParams) => {
         })[ZERO],
     ];
 
+    console.log({
+        fromTokenConfig,
+        toTokenConfig,
+    });
+
+    throw new Error('Test Error');
+
     const unmaskedUserId = convertBase64ToAsciiString(userId);
 
     await WhatsAppBotService.sendArbitraryTextMessage(
