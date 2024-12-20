@@ -222,6 +222,8 @@ class WalletKitService {
 
         const tokenBalances = (await response.json()) as TokenBalancesResponse;
 
+        console.log({ tokenBalances });
+
         const tokenBalance = tokenBalances.find(
             (tokenBalance) =>
                 tokenBalance.contract_address.toLowerCase() === contractAddress.toLowerCase()
