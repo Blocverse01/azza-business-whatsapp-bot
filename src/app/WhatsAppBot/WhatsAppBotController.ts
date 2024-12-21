@@ -271,6 +271,7 @@ class WhatsAppBotController {
                     countryCode: getUserCountryCodeFromPhoneNumberOrThrow(
                         phoneParams.userPhoneNumber
                     ),
+                    featureAccessLevel: deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL),
                 },
             });
 

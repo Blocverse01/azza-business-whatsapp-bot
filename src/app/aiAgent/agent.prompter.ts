@@ -1,7 +1,7 @@
 import { MAX_STEPS, toolSet } from '@/app/aiAgent/agent.config';
+import { FeatureAccessLevel } from '@/config/whatsAppBot';
 import { openai } from '@ai-sdk/openai';
 import { CoreMessage, CoreUserMessage, generateText } from 'ai';
-import { createOrUpdateUserAgentThread } from '@/app/aiAgent/agent.helpers';
 
 type HandleUserPromptParams = {
     sessionId: string;
@@ -9,6 +9,7 @@ type HandleUserPromptParams = {
     userProfile: {
         displayName: string;
         countryCode: string;
+        featureAccessLevel: FeatureAccessLevel;
     };
 };
 export const handleUserPrompt = async (params: HandleUserPromptParams) => {
@@ -17,6 +18,10 @@ export const handleUserPrompt = async (params: HandleUserPromptParams) => {
         tools: toolSet,
         maxSteps: MAX_STEPS,
         messages: params.messages,
+        toolChoice:
+            params.userProfile.featureAccessLevel === FeatureAccessLevel.STAGING
+                ? 'required'
+                : 'auto',
         system: `
         [About You]:
         You're Azza built by Blocverse, an AI agent for a user's wallet, guide the user through steps to perform specific actions on their wallet using the predefined tools. 

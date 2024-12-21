@@ -69,7 +69,7 @@ import {
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
     private static readonly SHOULD_REQUEST_KYC_FOR_OFFRAMP = true;
-    private static readonly USE_SENDER_SCRIPT = true;
+    private static readonly USE_SENDER_SCRIPT = false;
 
     private static getRequestConfig() {
         return {

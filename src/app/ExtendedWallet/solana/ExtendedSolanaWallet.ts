@@ -70,7 +70,7 @@ class ExtendedSolanaWallet extends ExtendedWallet {
         amount: number,
         toAddress: string
     ): Promise<TransferTransactionResponse> {
-        const transactionHash = await ExtendedSolanaWalletLibrary.transferToken(
+        const transactionHash = await ExtendedSolanaWalletLibrary.transferTokenWithRetries(
             this.solanaNetworkClient,
             new PublicKey(tokenAddress),
             amount,
