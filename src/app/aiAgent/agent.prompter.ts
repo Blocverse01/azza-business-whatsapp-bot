@@ -1,5 +1,6 @@
 import { MAX_STEPS, toolSet } from '@/app/aiAgent/agent.config';
 import { FeatureAccessLevel } from '@/config/whatsAppBot';
+import logger from '@/resources/logger';
 import { openai } from '@ai-sdk/openai';
 import { CoreMessage, CoreUserMessage, generateText } from 'ai';
 
@@ -48,6 +49,10 @@ export const handleUserPrompt = async (params: HandleUserPromptParams) => {
     });
 
     const lastUserMessage = params.messages[params.messages.length - 1] as CoreUserMessage;
+
+    void logger.debug('AI response messages:', {
+        responseMessages: response.messages,
+    });
 
     return {
         text,

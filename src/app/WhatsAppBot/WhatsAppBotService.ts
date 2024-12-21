@@ -69,7 +69,7 @@ import {
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
     private static readonly SHOULD_REQUEST_KYC_FOR_OFFRAMP = true;
-    private static readonly USE_SENDER_SCRIPT = false;
+    private static readonly USE_SENDER_SCRIPT = true;
 
     private static getRequestConfig() {
         return {
@@ -121,7 +121,7 @@ class WhatsAppBotService {
             const requestOptions = this.getRequestConfig();
             const compressedData = zlib.gzipSync(JSON.stringify(message));
 
-            console.time('sendWhatsappMessage');
+            console.time('sendWhatsappMessage::API');
             const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
                 method: 'POST',
                 headers: {
@@ -130,7 +130,7 @@ class WhatsAppBotService {
                 },
                 body: compressedData,
             });
-            console.timeEnd('sendWhatsappMessage');
+            console.timeEnd('sendWhatsappMessage::API');
 
             const responseData = await response.body.json();
 
