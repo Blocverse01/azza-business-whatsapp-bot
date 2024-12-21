@@ -10,14 +10,19 @@ const rl = readline.createInterface({
 
 function runScript() {
     rl.question(
-        'Enter the cache keys to clear (separate multi keys with a comma: ',
+        'Enter the cache keys to clear (separate multi keys with a comma): ',
         async (keys) => {
             if (!keys) {
                 console.error('No keys provided');
                 process.exit(1);
             }
 
-            await clearCache(keys.split(','));
+            await clearCache(
+                keys
+                    .split(',')
+                    .map((key) => key.trim())
+                    .filter(Boolean)
+            );
             rl.close();
         }
     );
