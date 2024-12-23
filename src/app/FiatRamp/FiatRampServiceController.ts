@@ -128,8 +128,6 @@ class FiatRampServiceController {
                 yellowCardStatus.toLowerCase()
             );
 
-            await FiatRampService.updateOnrampTransactionStatus(sequenceId, newTransactionStatus);
-
             const transaction = await FiatRampService.getOnrampTransaction(sequenceId);
 
             const transactionDetailsString = `💲Buy ${transaction.usdAmount} ${transaction.tokenSymbol} on ${transaction.blockchainNetwork} with ${transaction.localCurrencySymbol} ${prettifyNumber(transaction.localAmount)}`;
@@ -169,6 +167,7 @@ class FiatRampServiceController {
                         >,
                         amount: transaction.usdAmount,
                         destinationWalletAddress: transaction.destinationWalletAddress,
+                        transactionStatus: newTransactionStatus,
                     });
                 }
             }

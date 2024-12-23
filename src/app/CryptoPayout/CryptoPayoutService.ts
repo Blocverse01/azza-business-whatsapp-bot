@@ -12,7 +12,7 @@ import {
 } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
 import env from '@/constants/env';
-import FiatRampService from '@/app/FiatRamp/FiatRampService';
+//import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { CryptoPayoutOrder } from '@/db/xata';
 
 class CryptoPayoutService {
@@ -60,12 +60,7 @@ class CryptoPayoutService {
     }
 
     public static async createOnrampCryptoPayoutOrder(params: CreateCryptoPayoutOrderParams) {
-        const onrampTransactionStatus = await FiatRampService.getTransactionStatus(
-            params.triggerTransactionId,
-            'onramp'
-        );
-
-        if (onrampTransactionStatus.toLowerCase() !== 'complete') {
+        if (params?.transactionStatus !== 'complete') {
             throw new Error('Onramp transaction is not completed');
         }
 

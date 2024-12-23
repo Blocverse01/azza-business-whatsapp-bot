@@ -1,3 +1,4 @@
+import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import { z } from 'zod';
 import { TokenNames } from '@/resources/web3/tokens';
 import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
@@ -30,6 +31,7 @@ export const createCryptoPayoutOrderSchema = z.object({
     network: supportedChainSchema,
     triggerTransactionId: z.string(),
     ownerId: z.string().optional(),
+    transactionStatus: transactionStatusSchema.optional(),
 });
 
 export type CreateCryptoPayoutOrderParams = z.infer<typeof createCryptoPayoutOrderSchema>;
