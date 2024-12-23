@@ -3,7 +3,7 @@ import { sendSwapTransaction } from '@/app/azza/lib/azza.lib.swap-tokens';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
-import { logSync } from '@/resources/logger';
+import logger from '@/resources/logger';
 
 /**
  * This script is used to send a token swap transaction to the blockchain.
@@ -16,7 +16,7 @@ async function executeScript() {
     try {
         await sendSwapTransaction(swapParams);
     } catch (error) {
-        logSync('error', 'Error executing transaction in background', { error });
+        await logger.error('Error executing transaction in background', { error });
 
         const message = MessageGenerators.generateTextMessage(
             swapParams.userId,

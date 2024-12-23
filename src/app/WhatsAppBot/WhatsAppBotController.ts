@@ -249,15 +249,6 @@ class WhatsAppBotController {
                 ? text.body.replace('/', '')
                 : text.body;
 
-            const userIdMessage = {
-                role: 'system',
-                content: `Here's the user's system-provided ID: '${convertAsciiStringToBase64(user.id)}'. Always use this value for the 'userId' parameter in tool calls, extract it without any confirmation from the user.`,
-            } as const;
-
-            if (!messages.find((message) => message.content === userIdMessage.content)) {
-                messages.push(userIdMessage);
-            }
-
             messages.push({
                 role: 'user',
                 content: normalizedPrompt,
@@ -271,6 +262,7 @@ class WhatsAppBotController {
                     countryCode: getUserCountryCodeFromPhoneNumberOrThrow(
                         phoneParams.userPhoneNumber
                     ),
+                    id: convertAsciiStringToBase64(user.id),
                 },
             });
 

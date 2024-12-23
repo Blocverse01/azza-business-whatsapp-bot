@@ -11,6 +11,7 @@ import { ExploreAssetActions, manageAssetActions } from '@/app/WhatsAppBot/Whats
 import { searchAsset } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ZERO } from '@/constants/numbers';
+import logger from '@/resources/logger';
 import { prettifyNumber } from '@/resources/utils/currency';
 import { delay } from '@/resources/utils/delay';
 import { compareHashedString } from '@/resources/utils/hashing';
@@ -98,6 +99,18 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
                       getAddress(userWallet.address)
                   );
               })();
+
+    void logger.debug('Swap parameters', {
+        fromToken,
+        toToken,
+        fromChain,
+        fromAmount,
+        userId,
+        approvalAddress,
+        transactionRequest,
+        toChain,
+        fromBalance,
+    });
 
     if (parseUnits(`${fromBalance}`, fromToken.decimals) < BigInt(fromAmount)) {
         await WhatsAppBotService.sendArbitraryTextMessage(
