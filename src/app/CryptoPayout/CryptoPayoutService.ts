@@ -6,7 +6,7 @@ import {
     CryptoPayoutOrderStatus,
     CryptoPayoutReasons,
 } from '@/app/CryptoPayout/cryptoPayoutSchema';
-import { decryptWithPrivateKey, encryptWithPublicKey } from '@/resources/utils/encryption';
+import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
 import env from '@/constants/env';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { CryptoPayoutOrder } from '@/db/xata';
@@ -21,17 +21,18 @@ class CryptoPayoutService {
             triggerTransactionId: onrampTransactionId,
         } satisfies CryptoPayoutAuthorizationPayload;
 
-        return encryptWithPublicKey(
+        return encryptWithAES(
             JSON.stringify(cryptoPayoutTrigger),
-            env.CRYPTO_PAYOUT_AUTHORIZER_PUBLIC_KEY
+            env.CRYPTO_PAYOUT_AUTHORIZER_KEY,
+            env.CRYPTO_PAYOUT_AUTHORIZER_IV
         );
     }
 
     public static validateCryptoPayoutAuthorizationPayload(encryptedPayload: string) {
-        const decryptedPayload = decryptWithPrivateKey(
+        const decryptedPayload = decryptWithAES(
             encryptedPayload,
-            env.CRYPTO_PAYOUT_AUTHORIZER_PRIVATE_KEY,
-            env.CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE
+            env.CRYPTO_PAYOUT_AUTHORIZER_KEY,
+            env.CRYPTO_PAYOUT_AUTHORIZER_IV
         );
 
         return cryptoPayoutAuthorizationPayloadSchema.parse(JSON.parse(decryptedPayload));
