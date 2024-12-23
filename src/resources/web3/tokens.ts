@@ -257,6 +257,7 @@ export const trxTronConfig = {
     network: 'Tron' as const,
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
     showOnAssetsMenu: true,
+    isNative: true,
 } satisfies AssetConfig;
 
 // Solana Assets
