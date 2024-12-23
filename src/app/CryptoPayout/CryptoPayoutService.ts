@@ -78,10 +78,14 @@ class CryptoPayoutService {
             throw new Error('Crypto payout order already exists');
         }
 
-        const { triggerTransactionId, ...cryptoPayoutOrderParams } = params;
+        const { triggerTransactionId, ownerId, transactionStatus, ...cryptoPayoutOrderParams } =
+            params;
 
         return await this.cryptoPayoutOrderRepository.create({
-            ...cryptoPayoutOrderParams,
+            amount: cryptoPayoutOrderParams.amount,
+            tokenSymbol: cryptoPayoutOrderParams.tokenSymbol,
+            network: cryptoPayoutOrderParams.network,
+            destinationWalletAddress: cryptoPayoutOrderParams.destinationWalletAddress,
             orderAuthorityToken: cryptoPayoutOrderAuthorityToken,
             status: CryptoPayoutOrderStatus.PENDING,
         });
