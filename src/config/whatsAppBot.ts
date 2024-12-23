@@ -16,6 +16,7 @@ import {
     polConfig,
     opOptimismConfig,
     ethOptimismConfig,
+    trxTronConfig,
 } from '@/resources/web3/tokens';
 
 export const ENABLED_ASSETS = [
@@ -35,6 +36,7 @@ export const ENABLED_ASSETS = [
     polConfig,
     opOptimismConfig,
     ethOptimismConfig,
+    trxTronConfig,
 ];
 
 // Get asset config by list item id

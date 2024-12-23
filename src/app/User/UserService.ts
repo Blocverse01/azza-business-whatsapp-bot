@@ -235,8 +235,8 @@ class UserService {
         return updatedRecord;
     }
 
-    public static async createUserWallets(phoneNumber: string) {
-        const promises = SUPPORTED_CHAINS.map((chain) =>
+    public static async createUserWallets(phoneNumber: string, chains = SUPPORTED_CHAINS) {
+        const promises = chains.map((chain) =>
             this.initializeUserWallet({
                 name: `${chain} Wallet`,
                 owner_id: phoneNumber,
@@ -293,7 +293,21 @@ class UserService {
         }
     }
 
-    public static async getUserAssetWalletOrThrow(phoneNumber: string, assetListItemId: string) {
+    public static async getOrCreateUserAssetWallet(phoneNumber: string, assetListItemId: string) {
+        try {
+            return await this.getUserAssetWallet(phoneNumber, assetListItemId);
+        } catch (error) {
+            if (error instanceof HttpException && error.status === BAD_REQUEST) {
+                await this.createUserWallets(phoneNumber);
+
+                return await this.getUserAssetWallet(phoneNumber, assetListItemId);
+            }
+
+            throw error;
+        }
+    }
+
+    public static async getUserAssetWallet(phoneNumber: string, assetListItemId: string) {
         const assetConfig = getAssetConfigOrThrow(assetListItemId);
 
         if (isExtendedNetwork(assetConfig.network)) {
@@ -321,6 +335,10 @@ class UserService {
             tokenAddress: assetConfig.tokenAddress,
             network: assetConfig.network,
         };
+    }
+
+    public static async getUserAssetWalletOrThrow(phoneNumber: string, assetListItemId: string) {
+        return this.getOrCreateUserAssetWallet(phoneNumber, assetListItemId);
     }
 
     public static async getUserAssetInfo(

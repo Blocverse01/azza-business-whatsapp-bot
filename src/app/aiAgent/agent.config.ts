@@ -30,6 +30,21 @@ import {
     executeWalletBalanceQuery,
 } from '@/app/aiAgent/agent.tools-logic';
 
+function getSupportedAssetAndNetworksText() {
+    const supportedTokenNames = ENABLED_ASSETS.map((asset) => asset.tokenName);
+
+    const uniqueSupportedTokenNames = Array.from(new Set(supportedTokenNames));
+
+    return uniqueSupportedTokenNames
+        .map((tokenName) => {
+            const supportedNetworks = ENABLED_ASSETS.filter(
+                (asset) => asset.tokenName === tokenName
+            ).map((asset) => asset.network);
+            return `- ${tokenName}: ${supportedNetworks.join(', ')}`;
+        })
+        .join('\n');
+}
+
 ////////////////////
 // Agent Toolset
 ////////////////////
@@ -42,8 +57,21 @@ export const toolSet = {
         },
     }),
     depositCrypto: tool({
-        description:
-            'Use this tool to handle the user request to deposit a cryptocurrency asset into their wallet. Ensure that the user has specified the asset and blockchain network for the deposit. If these are missing, prompt the user to provide them before proceeding. The sole purpose of this tool is to respond with the deposit address for the specified asset and network. The response should not include any additional information or instructions. Also use this tool when the user asks for their wallet',
+        description: `
+        Use this tool to handle the user request to deposit a cryptocurrency asset into their wallet. 
+        If the cryptocurrency or blockchain network parameters are missing:
+        - Respond with a follow-up question that highlights the available assets and networks strictly following the example below.
+        - Provide an example to guide the user on how to specify the asset and network.
+
+        Example:
+        "Tell me what asset you want to deposit and the chain it’s on.
+
+        Example: “USDT on Solana”
+
+        Supported Assets and Chains:\n
+        ${getSupportedAssetAndNetworksText()}
+        "
+    `,
         parameters: depositCryptoAssetParamsSchema,
         execute: async (params) => {
             return executeDepositCryptoAsset(params);

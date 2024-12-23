@@ -249,6 +249,15 @@ export const usdtTronConfig = {
     supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
+/// ============== TRX ==============
+export const trxTronConfig = {
+    tokenAddress: 'TRX',
+    tokenName: TokenNames.TRX,
+    listItemId: AssetInteractiveButtonIds.TRX,
+    network: 'Tron' as const,
+    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    showOnAssetsMenu: true,
+} satisfies AssetConfig;
 
 // Solana Assets
 /// ============== SOL ==============

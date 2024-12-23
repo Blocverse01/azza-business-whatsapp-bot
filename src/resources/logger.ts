@@ -6,7 +6,9 @@ let logger: Logtail | undefined;
 const getLogger = () => {
     if (!logger) {
         logger = new Logtail(env.LOG_TAIL_SOURCE_TOKEN, {
-            sendLogsToConsoleOutput: env.NODE_ENV === 'development' || env.NODE_ENV === 'test',
+            sendLogsToConsoleOutput:
+                (env.NODE_ENV === 'development' || env.NODE_ENV === 'test') &&
+                process.env.LOGS_TO_CONSOLE === 'true',
         });
     }
 
