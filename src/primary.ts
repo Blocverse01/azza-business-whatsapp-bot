@@ -1,3 +1,6 @@
+import CronHandler from '@/app/Cron';
+import { CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION } from '@/config/backgroundJobs';
+import env from '@/constants/env';
 import cluster from 'cluster';
 import os from 'os';
 
@@ -17,3 +20,7 @@ cluster.on('exit', (worker, code, signal) => {
     console.log('Starting another worker');
     cluster.fork();
 });
+
+if (env.SHOULD_EXECUTE_CRYPTO_PAYOUTS) {
+    CronHandler.scheduleCryptoPayoutExecution(CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION);
+}
