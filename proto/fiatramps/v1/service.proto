@@ -20,6 +20,7 @@ service FiatRampsService {
   rpc GetHotWalletAddress(GetHotWalletAddressRequest) returns (GetHotWalletAddressResponse) {}
   rpc CreatePlatformCollectionRequest(CreatePlatformCollectionRequestInput) returns(CreateCollectionResponse) {}
   rpc GetCollectionRequestTransaction(GetCollectionRequestTransactionRequest) returns (GetCollectionRequestResponse) {}
+  rpc UpdateCollectionTransactionStatus(UpdateCollectionTransactionStatusRequest) returns (UpdateCollectionTransactionStatusResponse) {}
 }
 
 message GetSupportedCountriesRequest {
@@ -209,6 +210,7 @@ message GetPaymentRequestTransactionResponse {
   string local_currency_symbol = 7;
   string token_symbol = 8;
   string blockchain_network = 9;
+  string transaction_hash = 10;
 }
 
 message GetHotWalletAddressRequest {
@@ -279,5 +281,14 @@ message GetCollectionRequestResponse {
   string network_id = 16;
   string status = 17;
   string local_currency_symbol = 18;
+}
 
+message UpdateCollectionTransactionStatusRequest {
+  string sequence_id = 1;
+  string status = 2;
+}
+message UpdateCollectionTransactionStatusResponse {
+  string sequence_id = 1;
+  string status = 2;
+  bool success = 3;
 }

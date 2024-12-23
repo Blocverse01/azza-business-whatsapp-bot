@@ -1,5 +1,7 @@
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
+import UserService from '@/app/User/UserService';
+import { searchAsset } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { Request, Response } from 'express';
 import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
@@ -9,7 +11,7 @@ import { prettifyNumber } from '@/resources/utils/currency';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import logger, { logSync } from '@/resources/logger';
 import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
-import { SUPPORTED_CHAINS } from '@/app/WalletKit/walletKitSchema';
+import { SUPPORTED_CHAINS, SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { TokenNames } from '@/resources/web3/tokens';
 
@@ -67,8 +69,41 @@ class FiatRampServiceController {
                 message = `⏳ Your transaction with the following details is being processed:\n\n${transactionDetailsString}\n\nPlease be patient`;
             }
 
-            if (message.trim())
+            if (message.trim()) {
                 await WhatsAppBotService.sendArbitraryTextMessage(transaction.ownerId, message);
+            }
+
+            const supportedChain = SUPPORTED_CHAINS.find(
+                (chain) => chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
+            );
+
+            if (supportedChain && newTransactionStatus === 'failed') {
+                if (ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS.includes(supportedChain)) {
+                    if (
+                        transaction.tokenSymbol === TokenNames.USDC ||
+                        transaction.tokenSymbol === TokenNames.USDT
+                    ) {
+                        const assetConfig = searchAsset({
+                            tokenName: transaction.tokenSymbol,
+                            network: supportedChain,
+                        });
+
+                        const userWalletInfo = await UserService.getUserAssetWalletOrThrow(
+                            transaction.ownerId,
+                            assetConfig[0].listItemId
+                        );
+
+                        await CryptoPayoutService.createOfframpCryptoRefundOrder({
+                            network: transaction.blockchainNetwork as SupportedChain,
+                            tokenSymbol: transaction.tokenSymbol,
+                            triggerTransactionId: transaction.transactionHash,
+                            ownerId: transaction.ownerId,
+                            amount: transaction.usdAmount,
+                            destinationWalletAddress: userWalletInfo.walletAddress,
+                        });
+                    }
+                }
+            }
         } catch (error) {
             handleRequestError(error, res, true);
         }
@@ -92,6 +127,8 @@ class FiatRampServiceController {
             const newTransactionStatus = transactionStatusSchema.parse(
                 yellowCardStatus.toLowerCase()
             );
+
+            await FiatRampService.updateOnrampTransactionStatus(sequenceId, newTransactionStatus);
 
             const transaction = await FiatRampService.getOnrampTransaction(sequenceId);
 

@@ -95,6 +95,11 @@ class AlchemyNotifyService {
                 newTokenBalance: receiverAssetBalanceData ?? '0',
             });
 
+            // Owner ID should be a valid phone number with digits
+            if (!toUserWalletData.owner_id.match(/^\d+$/)) {
+                return;
+            }
+
             const assetInteractiveMessage = MessageGenerators.generateInteractiveListMessage({
                 recipient: toUserWalletData.owner_id,
                 bodyText: message,

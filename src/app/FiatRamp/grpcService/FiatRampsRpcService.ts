@@ -35,6 +35,7 @@ import {
     getRates,
     getSupportedCountries,
     getTransactionFees,
+    updateCollectionTransactionStatus,
 } from './rpcMethods';
 import GetRatesRequest = fiatramps.v1.GetRatesRequest;
 import { CountryCode } from 'libphonenumber-js';
@@ -54,6 +55,7 @@ import GetHotWalletAddressRequest = fiatramps.v1.GetHotWalletAddressRequest;
 import CreatePlatformCollectionRequestInput = fiatramps.v1.CreatePlatformCollectionRequestInput;
 import CollectionSource = fiatramps.v1.CollectionSource;
 import GetCollectionRequestTransactionRequest = fiatramps.v1.GetCollectionRequestTransactionRequest;
+import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -416,6 +418,15 @@ class FiatRampsRpcService {
             .parse(transformKeysToCamelCase(responseObj));
     }
 
+    public static async forwardOnrampTransactionStatus(sequenceId: string, status: string) {
+        const request = new UpdateCollectionTransactionStatusRequest({
+            sequence_id: sequenceId,
+            status: status,
+        });
+
+        await updateCollectionTransactionStatus(request);
+    }
+
     public static async getOfframpTransaction(sequenceId: string) {
         const request = new GetPaymentRequestTransactionRequest({
             sequence_id: sequenceId,
@@ -434,6 +445,7 @@ class FiatRampsRpcService {
                 localCurrencySymbol: z.string(),
                 tokenSymbol: z.string(),
                 ownerId: z.string(),
+                transactionHash: z.string(),
             })
             .parse(transformKeysToCamelCase(responseObj));
     }

@@ -23,6 +23,7 @@ import {
     GET_WALLET_BY_ADDRESS,
     GET_WALLET_BY_OWNER_ID,
     SIGN_AND_SEND_TRANSACTION,
+    TRANSACTION_STATUS_BY_HASH,
     TRANSACTION_STATUS_BY_ID,
     TRANSFER_TOKEN,
     WALLETS,
@@ -174,6 +175,20 @@ class WalletKitService {
             id: transactionId,
         });
         const requestUrl = `${this.API_URL}${TRANSACTION_STATUS_BY_ID}?${requestQueryParams.toString()}`;
+
+        const response = await axios.get<TransactionResponse>(requestUrl, {
+            headers: this.requiredRequestHeaders,
+        });
+
+        return response.data;
+    }
+
+    public static async getTransactionByHash(transactionHash: string, network: SupportedChain) {
+        const requestQueryParams = new URLSearchParams({
+            transaction_hash: transactionHash,
+            network,
+        });
+        const requestUrl = `${this.API_URL}${TRANSACTION_STATUS_BY_HASH}?${requestQueryParams.toString()}`;
 
         const response = await axios.get<TransactionResponse>(requestUrl, {
             headers: this.requiredRequestHeaders,

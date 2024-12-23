@@ -110,3 +110,9 @@ export const getCollectionRequestTransaction = promisifyUnary<
     GetCollectionRequestTransactionRequest,
     GetCollectionRequestResponse
 >(client, 'GetCollectionRequestTransaction');
+
+export const updateCollectionTransactionStatus = promisifyUnary<
+    FiatRampsServiceClient,
+    fiatramps.v1.UpdateCollectionTransactionStatusRequest,
+    fiatramps.v1.UpdateCollectionTransactionStatusResponse
+>(client, 'UpdateCollectionTransactionStatus');

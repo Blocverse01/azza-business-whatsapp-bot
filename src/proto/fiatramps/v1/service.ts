@@ -3565,6 +3565,7 @@ export namespace fiatramps.v1 {
             local_currency_symbol?: string;
             token_symbol?: string;
             blockchain_network?: string;
+            transaction_hash?: string;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -3595,6 +3596,9 @@ export namespace fiatramps.v1 {
                 }
                 if ("blockchain_network" in data && data.blockchain_network != undefined) {
                     this.blockchain_network = data.blockchain_network;
+                }
+                if ("transaction_hash" in data && data.transaction_hash != undefined) {
+                    this.transaction_hash = data.transaction_hash;
                 }
             }
         }
@@ -3652,6 +3656,12 @@ export namespace fiatramps.v1 {
         set blockchain_network(value: string) {
             pb_1.Message.setField(this, 9, value);
         }
+        get transaction_hash() {
+            return pb_1.Message.getFieldWithDefault(this, 10, "") as string;
+        }
+        set transaction_hash(value: string) {
+            pb_1.Message.setField(this, 10, value);
+        }
         static fromObject(data: {
             sequence_id?: string;
             usd_amount?: number;
@@ -3662,6 +3672,7 @@ export namespace fiatramps.v1 {
             local_currency_symbol?: string;
             token_symbol?: string;
             blockchain_network?: string;
+            transaction_hash?: string;
         }): GetPaymentRequestTransactionResponse {
             const message = new GetPaymentRequestTransactionResponse({});
             if (data.sequence_id != null) {
@@ -3691,6 +3702,9 @@ export namespace fiatramps.v1 {
             if (data.blockchain_network != null) {
                 message.blockchain_network = data.blockchain_network;
             }
+            if (data.transaction_hash != null) {
+                message.transaction_hash = data.transaction_hash;
+            }
             return message;
         }
         toObject() {
@@ -3704,6 +3718,7 @@ export namespace fiatramps.v1 {
                 local_currency_symbol?: string;
                 token_symbol?: string;
                 blockchain_network?: string;
+                transaction_hash?: string;
             } = {};
             if (this.sequence_id != null) {
                 data.sequence_id = this.sequence_id;
@@ -3732,6 +3747,9 @@ export namespace fiatramps.v1 {
             if (this.blockchain_network != null) {
                 data.blockchain_network = this.blockchain_network;
             }
+            if (this.transaction_hash != null) {
+                data.transaction_hash = this.transaction_hash;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -3756,6 +3774,8 @@ export namespace fiatramps.v1 {
                 writer.writeString(8, this.token_symbol);
             if (this.blockchain_network.length)
                 writer.writeString(9, this.blockchain_network);
+            if (this.transaction_hash.length)
+                writer.writeString(10, this.transaction_hash);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -3791,6 +3811,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 9:
                         message.blockchain_network = reader.readString();
+                        break;
+                    case 10:
+                        message.transaction_hash = reader.readString();
                         break;
                     default: reader.skipField();
                 }
@@ -5321,6 +5344,209 @@ export namespace fiatramps.v1 {
             return GetCollectionRequestResponse.deserialize(bytes);
         }
     }
+    export class UpdateCollectionTransactionStatusRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            sequence_id?: string;
+            status?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("sequence_id" in data && data.sequence_id != undefined) {
+                    this.sequence_id = data.sequence_id;
+                }
+                if ("status" in data && data.status != undefined) {
+                    this.status = data.status;
+                }
+            }
+        }
+        get sequence_id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set sequence_id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get status() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set status(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            sequence_id?: string;
+            status?: string;
+        }): UpdateCollectionTransactionStatusRequest {
+            const message = new UpdateCollectionTransactionStatusRequest({});
+            if (data.sequence_id != null) {
+                message.sequence_id = data.sequence_id;
+            }
+            if (data.status != null) {
+                message.status = data.status;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                sequence_id?: string;
+                status?: string;
+            } = {};
+            if (this.sequence_id != null) {
+                data.sequence_id = this.sequence_id;
+            }
+            if (this.status != null) {
+                data.status = this.status;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.sequence_id.length)
+                writer.writeString(1, this.sequence_id);
+            if (this.status.length)
+                writer.writeString(2, this.status);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): UpdateCollectionTransactionStatusRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new UpdateCollectionTransactionStatusRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.sequence_id = reader.readString();
+                        break;
+                    case 2:
+                        message.status = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): UpdateCollectionTransactionStatusRequest {
+            return UpdateCollectionTransactionStatusRequest.deserialize(bytes);
+        }
+    }
+    export class UpdateCollectionTransactionStatusResponse extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            sequence_id?: string;
+            status?: string;
+            success?: boolean;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("sequence_id" in data && data.sequence_id != undefined) {
+                    this.sequence_id = data.sequence_id;
+                }
+                if ("status" in data && data.status != undefined) {
+                    this.status = data.status;
+                }
+                if ("success" in data && data.success != undefined) {
+                    this.success = data.success;
+                }
+            }
+        }
+        get sequence_id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set sequence_id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get status() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set status(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get success() {
+            return pb_1.Message.getFieldWithDefault(this, 3, false) as boolean;
+        }
+        set success(value: boolean) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        static fromObject(data: {
+            sequence_id?: string;
+            status?: string;
+            success?: boolean;
+        }): UpdateCollectionTransactionStatusResponse {
+            const message = new UpdateCollectionTransactionStatusResponse({});
+            if (data.sequence_id != null) {
+                message.sequence_id = data.sequence_id;
+            }
+            if (data.status != null) {
+                message.status = data.status;
+            }
+            if (data.success != null) {
+                message.success = data.success;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                sequence_id?: string;
+                status?: string;
+                success?: boolean;
+            } = {};
+            if (this.sequence_id != null) {
+                data.sequence_id = this.sequence_id;
+            }
+            if (this.status != null) {
+                data.status = this.status;
+            }
+            if (this.success != null) {
+                data.success = this.success;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.sequence_id.length)
+                writer.writeString(1, this.sequence_id);
+            if (this.status.length)
+                writer.writeString(2, this.status);
+            if (this.success != false)
+                writer.writeBool(3, this.success);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): UpdateCollectionTransactionStatusResponse {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new UpdateCollectionTransactionStatusResponse();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.sequence_id = reader.readString();
+                        break;
+                    case 2:
+                        message.status = reader.readString();
+                        break;
+                    case 3:
+                        message.success = reader.readBool();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): UpdateCollectionTransactionStatusResponse {
+            return UpdateCollectionTransactionStatusResponse.deserialize(bytes);
+        }
+    }
     interface GrpcUnaryServiceInterface<P, R> {
         (message: P, metadata: grpc_1.Metadata, options: grpc_1.CallOptions, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
         (message: P, metadata: grpc_1.Metadata, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
@@ -5481,6 +5707,15 @@ export namespace fiatramps.v1 {
                 requestDeserialize: (bytes: Buffer) => GetCollectionRequestTransactionRequest.deserialize(new Uint8Array(bytes)),
                 responseSerialize: (message: GetCollectionRequestResponse) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => GetCollectionRequestResponse.deserialize(new Uint8Array(bytes))
+            },
+            UpdateCollectionTransactionStatus: {
+                path: "/fiatramps.v1.FiatRampsService/UpdateCollectionTransactionStatus",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: UpdateCollectionTransactionStatusRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => UpdateCollectionTransactionStatusRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: UpdateCollectionTransactionStatusResponse) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => UpdateCollectionTransactionStatusResponse.deserialize(new Uint8Array(bytes))
             }
         };
         [method: string]: grpc_1.UntypedHandleCall;
@@ -5499,6 +5734,7 @@ export namespace fiatramps.v1 {
         abstract GetHotWalletAddress(call: grpc_1.ServerUnaryCall<GetHotWalletAddressRequest, GetHotWalletAddressResponse>, callback: grpc_1.sendUnaryData<GetHotWalletAddressResponse>): void;
         abstract CreatePlatformCollectionRequest(call: grpc_1.ServerUnaryCall<CreatePlatformCollectionRequestInput, CreateCollectionResponse>, callback: grpc_1.sendUnaryData<CreateCollectionResponse>): void;
         abstract GetCollectionRequestTransaction(call: grpc_1.ServerUnaryCall<GetCollectionRequestTransactionRequest, GetCollectionRequestResponse>, callback: grpc_1.sendUnaryData<GetCollectionRequestResponse>): void;
+        abstract UpdateCollectionTransactionStatus(call: grpc_1.ServerUnaryCall<UpdateCollectionTransactionStatusRequest, UpdateCollectionTransactionStatusResponse>, callback: grpc_1.sendUnaryData<UpdateCollectionTransactionStatusResponse>): void;
     }
     export class FiatRampsServiceClient extends grpc_1.makeGenericClientConstructor(UnimplementedFiatRampsServiceService.definition, "FiatRampsService", {}) {
         constructor(address: string, credentials: grpc_1.ChannelCredentials, options?: Partial<grpc_1.ChannelOptions>) {
@@ -5548,6 +5784,9 @@ export namespace fiatramps.v1 {
         };
         GetCollectionRequestTransaction: GrpcUnaryServiceInterface<GetCollectionRequestTransactionRequest, GetCollectionRequestResponse> = (message: GetCollectionRequestTransactionRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<GetCollectionRequestResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<GetCollectionRequestResponse>, callback?: grpc_1.requestCallback<GetCollectionRequestResponse>): grpc_1.ClientUnaryCall => {
             return super.GetCollectionRequestTransaction(message, metadata, options, callback);
+        };
+        UpdateCollectionTransactionStatus: GrpcUnaryServiceInterface<UpdateCollectionTransactionStatusRequest, UpdateCollectionTransactionStatusResponse> = (message: UpdateCollectionTransactionStatusRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<UpdateCollectionTransactionStatusResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<UpdateCollectionTransactionStatusResponse>, callback?: grpc_1.requestCallback<UpdateCollectionTransactionStatusResponse>): grpc_1.ClientUnaryCall => {
+            return super.UpdateCollectionTransactionStatus(message, metadata, options, callback);
         };
     }
 }

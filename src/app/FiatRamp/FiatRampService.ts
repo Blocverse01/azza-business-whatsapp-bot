@@ -157,6 +157,10 @@ class FiatRampService {
             return YellowCardOfframpEvents.includes(eventType as YellowCardOfframpEvent);
         }
     }
+
+    public static async updateOnrampTransactionStatus(sequenceId: string, status: string) {
+        return await FiatRampsRpcService.forwardOnrampTransactionStatus(sequenceId, status);
+    }
 }
 
 export default FiatRampService;

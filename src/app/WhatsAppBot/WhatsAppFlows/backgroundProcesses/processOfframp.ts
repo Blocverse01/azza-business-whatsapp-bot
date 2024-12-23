@@ -1,3 +1,5 @@
+import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
+import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { SendOfframpRequestPayload } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
@@ -10,6 +12,7 @@ import {
 } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import UserService from '@/app/User/UserService';
+import { TokenNames } from '@/resources/web3/tokens';
 
 export type ProcessOfframpInBackgroundParams = Omit<SendOfframpRequestPayload, 'txHash'> & {
     onChainTransactionId: string;
@@ -23,6 +26,8 @@ type TransactionDetails = TransactionResponse | ExtendedWalletTransaction;
 
 async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
     const { onChainTransactionId, userId } = txParams;
+
+    let resolvedTransactionHash: string | null = null;
 
     try {
         let transactionDetails: TransactionDetails;
@@ -50,6 +55,8 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
                 : transactionDetails.transactionHash;
 
         if (transactionDetails.status === 'success' && transactionHash) {
+            resolvedTransactionHash = transactionHash;
+
             try {
                 logSync('debug', 'Processing offramp', {
                     onChainTransactionId,
@@ -64,6 +71,25 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
 
                 await logger.info('Offramp transaction processed successfully', { sequenceId });
             } catch (error) {
+                if (
+                    resolvedTransactionHash &&
+                    ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS.includes(txParams.network as SupportedChain)
+                ) {
+                    if (
+                        txParams.tokenName === TokenNames.USDC ||
+                        txParams.tokenName === TokenNames.USDT
+                    ) {
+                        await CryptoPayoutService.createOfframpCryptoRefundOrder({
+                            network: txParams.network as SupportedChain,
+                            tokenSymbol: txParams.tokenName,
+                            triggerTransactionId: resolvedTransactionHash,
+                            ownerId: userId,
+                            amount: txParams.usdAmount,
+                            destinationWalletAddress: txParams.userWalletAddress,
+                        });
+                    }
+                }
+
                 await logServiceError(error, 'Sending offramp transaction failed');
             }
         }

@@ -8,6 +8,7 @@ export const EXPORT_WALLET = WALLETS + '/export';
 export const TRANSACTIONS = '/transactions';
 export const SIGN_AND_SEND_TRANSACTION = TRANSACTIONS + '/sign-and-send';
 export const TRANSACTION_STATUS_BY_ID = TRANSACTIONS + '/status-by-id';
+export const TRANSACTION_STATUS_BY_HASH = TRANSACTIONS + '/status-by-hash';
 
 // ======== TOKENS ========
 export const TOKENS = '/tokens';

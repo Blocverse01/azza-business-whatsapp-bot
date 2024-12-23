@@ -1,3 +1,7 @@
+import UserService from '@/app/User/UserService';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import WalletKitService from '@/app/WalletKit/WalletKitService';
+import { searchAsset } from '@/config/whatsAppBot';
 import { dbClient, sqlClient } from '@/db/dbClient';
 import {
     CreateCryptoPayoutOrderParams,
@@ -19,6 +23,19 @@ class CryptoPayoutService {
         const cryptoPayoutTrigger = {
             reason: CryptoPayoutReasons.ONRAMP,
             triggerTransactionId: onrampTransactionId,
+        } satisfies CryptoPayoutAuthorizationPayload;
+
+        return encryptWithAES(
+            JSON.stringify(cryptoPayoutTrigger),
+            env.CRYPTO_PAYOUT_AUTHORIZER_KEY,
+            env.CRYPTO_PAYOUT_AUTHORIZER_IV
+        );
+    }
+
+    private static generateOfframpCryptoRefundOrderReference(offrampOnchainTransactionId: string) {
+        const cryptoPayoutTrigger = {
+            reason: CryptoPayoutReasons.OFFRAMP_REFUND,
+            triggerTransactionId: offrampOnchainTransactionId,
         } satisfies CryptoPayoutAuthorizationPayload;
 
         return encryptWithAES(
@@ -67,6 +84,59 @@ class CryptoPayoutService {
         }
 
         const { triggerTransactionId, ...cryptoPayoutOrderParams } = params;
+
+        return await this.cryptoPayoutOrderRepository.create({
+            ...cryptoPayoutOrderParams,
+            orderAuthorityToken: cryptoPayoutOrderAuthorityToken,
+            status: CryptoPayoutOrderStatus.PENDING,
+        });
+    }
+
+    public static async createOfframpCryptoRefundOrder(params: CreateCryptoPayoutOrderParams) {
+        const assetConfig = searchAsset({
+            tokenName: params.tokenSymbol,
+            network: params.network,
+        })[0];
+
+        if (!assetConfig) {
+            throw new Error('Asset config not found');
+        }
+        if (!params.ownerId) {
+            throw new Error('Owner ID is required');
+        }
+
+        const userAssetWallet = await UserService.getUserAssetWalletOrThrow(
+            params.ownerId,
+            assetConfig.listItemId
+        );
+
+        const onchainTransaction =
+            'extendedWallet' in userAssetWallet && userAssetWallet.extendedWallet
+                ? await userAssetWallet.extendedWallet.getTransaction(params.triggerTransactionId)
+                : await WalletKitService.getTransactionByHash(
+                      params.triggerTransactionId,
+                      assetConfig.network as SupportedChain
+                  );
+
+        if (onchainTransaction.status !== 'success') {
+            throw new Error(`Transaction ${params.triggerTransactionId} is not successful`);
+        }
+
+        const cryptoPayoutOrderAuthorityToken = this.generateOfframpCryptoRefundOrderReference(
+            params.triggerTransactionId
+        );
+
+        const existingAuthorityToken = await this.cryptoPayoutOrderRepository
+            .filter({
+                orderAuthorityToken: cryptoPayoutOrderAuthorityToken,
+            })
+            .getFirst();
+
+        if (existingAuthorityToken) {
+            throw new Error('Crypto payout order already exists');
+        }
+
+        const { triggerTransactionId, ownerId, ...cryptoPayoutOrderParams } = params;
 
         return await this.cryptoPayoutOrderRepository.create({
             ...cryptoPayoutOrderParams,

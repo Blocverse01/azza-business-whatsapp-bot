@@ -11,6 +11,7 @@ export enum CryptoPayoutOrderStatus {
 
 export enum CryptoPayoutReasons {
     ONRAMP = 'ONRAMP',
+    OFFRAMP_REFUND = 'OFFRAMP_REFUND',
 }
 
 export const cryptoPayoutAuthorizationPayloadSchema = z.object({
@@ -28,6 +29,7 @@ export const createCryptoPayoutOrderSchema = z.object({
     destinationWalletAddress: z.string(),
     network: supportedChainSchema,
     triggerTransactionId: z.string(),
+    ownerId: z.string().optional(),
 });
 
 export type CreateCryptoPayoutOrderParams = z.infer<typeof createCryptoPayoutOrderSchema>;
