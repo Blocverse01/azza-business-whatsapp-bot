@@ -114,7 +114,7 @@ class FiatRampServiceController {
                 await WhatsAppBotService.sendArbitraryTextMessage(transaction.ownerId, message);
             }
 
-            if (newTransactionStatus === 'complete') {
+            if (newTransactionStatus.toLowerCase() === 'complete') {
                 const supportedChain = SUPPORTED_CHAINS.find(
                     (chain) => chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
                 );

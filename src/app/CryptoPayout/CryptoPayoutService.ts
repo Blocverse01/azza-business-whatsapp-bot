@@ -6,11 +6,7 @@ import {
     CryptoPayoutOrderStatus,
     CryptoPayoutReasons,
 } from '@/app/CryptoPayout/cryptoPayoutSchema';
-import {
-    convertBase64ToAsciiString,
-    decryptWithPrivateKey,
-    encryptWithPublicKey,
-} from '@/resources/utils/encryption';
+import { decryptWithPrivateKey, encryptWithPublicKey } from '@/resources/utils/encryption';
 import env from '@/constants/env';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { CryptoPayoutOrder } from '@/db/xata';
@@ -34,7 +30,7 @@ class CryptoPayoutService {
     public static validateCryptoPayoutAuthorizationPayload(encryptedPayload: string) {
         const decryptedPayload = decryptWithPrivateKey(
             encryptedPayload,
-            convertBase64ToAsciiString(env.CRYPTO_PAYOUT_AUTHORIZER_PRIVATE_KEY),
+            env.CRYPTO_PAYOUT_AUTHORIZER_PRIVATE_KEY,
             env.CRYPTO_PAYOUT_AUTHORIZER_PASSPHRASE
         );
 
@@ -51,7 +47,7 @@ class CryptoPayoutService {
             'onramp'
         );
 
-        if (onrampTransactionStatus !== 'complete') {
+        if (onrampTransactionStatus.toLowerCase() !== 'complete') {
             throw new Error('Onramp transaction is not completed');
         }
 
