@@ -20,6 +20,7 @@ import { SPENDING_APPROVAL_ABI } from '@/resources/web3/evm/abis/erc20';
 import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
 import { TokenNames } from '@/resources/web3/tokens';
+import { AddressZero } from '@lifi/sdk/src/_types/constants';
 import { PublicKey } from '@solana/web3.js';
 import { Address, encodeFunctionData, formatUnits, getAddress, Hex, parseUnits } from 'viem';
 
@@ -86,7 +87,10 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
                       networkConfig.rpcUrl
                   );
 
-                  if (!validateWalletAddress(fromToken.id, fromChain)) {
+                  if (
+                      fromToken.id === AddressZero ||
+                      !validateWalletAddress(fromToken.id, fromChain)
+                  ) {
                       return await Web3Library.getNativeBalance(
                           publicClient,
                           getAddress(userWallet.address)
