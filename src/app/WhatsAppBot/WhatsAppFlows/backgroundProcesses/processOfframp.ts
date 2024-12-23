@@ -2,6 +2,8 @@ import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { SendOfframpRequestPayload } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import env from '@/constants/env';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
 import logger, { logSync } from '@/resources/logger';
@@ -13,6 +15,7 @@ import {
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import UserService from '@/app/User/UserService';
 import { TokenNames } from '@/resources/web3/tokens';
+import MessageGenerators from '../../MessageGenerators';
 
 export type ProcessOfframpInBackgroundParams = Omit<SendOfframpRequestPayload, 'txHash'> & {
     onChainTransactionId: string;
@@ -88,6 +91,14 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
                             destinationWalletAddress: txParams.userWalletAddress,
                         });
                     }
+
+                    await WhatsAppBotService.sendWhatsappMessage(
+                        env.WA_PHONE_NUMBER_ID,
+                        MessageGenerators.generateTextMessage(
+                            userId,
+                            `An error occurred while sending your transaction.\nYour ${txParams.tokenName} will be refunded to your wallet.`
+                        )
+                    );
                 }
 
                 await logServiceError(error, 'Sending offramp transaction failed');
