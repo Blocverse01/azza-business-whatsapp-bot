@@ -169,7 +169,7 @@ class CryptoPayoutService {
         transactionHash: string
     ) {
         let query =
-            `Update "CryptoPayoutOrder" set "payoutTransactionHash" = ${transactionHash} where "id" in ` +
+            `Update "CryptoPayoutOrder" set "payoutTransactionHash" = '${transactionHash}' where "id" in ` +
             `(`;
 
         orderIds.forEach((x) => {
