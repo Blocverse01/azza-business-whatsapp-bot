@@ -15,6 +15,7 @@ import {
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import UserService from '@/app/User/UserService';
 import { TokenNames } from '@/resources/web3/tokens';
+import { wait } from 'viem/_types/utils/wait';
 import MessageGenerators from '../../MessageGenerators';
 
 export type ProcessOfframpInBackgroundParams = Omit<SendOfframpRequestPayload, 'txHash'> & {
@@ -47,9 +48,10 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
         });
 
         if (transactionDetails.status === 'submitted' || transactionDetails.status === 'pending') {
-            setTimeout(() => {
-                processInBackground(txParams);
-            }, 5000);
+            console.time('Waiting to retry tx confirmation');
+            await wait(3000);
+            console.timeEnd('Waiting to retry tx confirmation');
+            return processInBackground(txParams);
         }
 
         const transactionHash =
@@ -102,8 +104,15 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
                 }
 
                 await logServiceError(error, 'Sending offramp transaction failed');
+
+                return;
             }
         }
+
+        await logger.info(`Didn't send offramp transaction`, {
+            transactionDetails,
+            txParams,
+        });
     } catch (error) {
         await logServiceError(error, 'Background process failed:');
     }

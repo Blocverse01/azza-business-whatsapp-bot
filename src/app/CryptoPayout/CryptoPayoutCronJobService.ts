@@ -88,7 +88,7 @@ class CryptoPayoutCronJobService {
         // Spawn the background process
         const backgroundProcess = spawn(
             'tsx',
-            ['./getTransactionReceiptInBackground.ts', serializedParams],
+            ['src/app/CryptoPayout/getTransactionReceiptInBackground.ts', serializedParams],
             {
                 stdio: 'inherit', // Optional: Inherit stdio to see logs in the parent process console
             }
