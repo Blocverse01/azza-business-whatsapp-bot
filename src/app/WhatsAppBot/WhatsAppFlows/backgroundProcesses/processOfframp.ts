@@ -14,8 +14,8 @@ import {
 } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import UserService from '@/app/User/UserService';
+import { delay } from '@/resources/utils/delay';
 import { TokenNames } from '@/resources/web3/tokens';
-import { wait } from 'viem/_types/utils/wait';
 import MessageGenerators from '../../MessageGenerators';
 
 export type ProcessOfframpInBackgroundParams = Omit<SendOfframpRequestPayload, 'txHash'> & {
@@ -49,7 +49,7 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
 
         if (transactionDetails.status === 'submitted' || transactionDetails.status === 'pending') {
             console.time('Waiting to retry tx confirmation');
-            await wait(3000);
+            await delay(3000);
             console.timeEnd('Waiting to retry tx confirmation');
             return processInBackground(txParams);
         }
