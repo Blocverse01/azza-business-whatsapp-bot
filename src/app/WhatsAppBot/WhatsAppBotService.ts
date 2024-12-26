@@ -4,7 +4,10 @@ import {
     UsersBeneficiaries,
 } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import SumSubService from '@/app/SumSub/SumSubService';
+import SumSubService, {
+    DEFAULT_KYC_LEVEL_NAME,
+    NG_KYC_LEVEL_NAME,
+} from '@/app/SumSub/SumSubService';
 import { UserAssetInfo, UserAssetItem } from '@/app/User/userSchema';
 import UserService from '@/app/User/UserService';
 import { sendMessageUsingGo } from '@/app/WhatsAppBot/helpers';
@@ -58,6 +61,7 @@ import {
     InteractiveButtonReplyTypes,
     InteractiveListReplyTypes,
     manageAssetActions,
+    MORE_BENEFICIARIES_COMMAND_REGEX_PATTERN,
     MORE_CURRENCIES_COMMAND_REGEX_PATTERN,
     PhoneNumberParams,
     TriggerOfframpFromAddBeneficiaryActionParams,
@@ -237,7 +241,9 @@ class WhatsAppBotService {
         recipient: string,
         usersBeneficiaries: UsersBeneficiaries,
         assetId: string,
-        countryCode: CountryCode
+        countryCode: CountryCode,
+        _sliceFrom = 0,
+        _sliceTo = 9
     ) {
         if (usersBeneficiaries.length === 0) {
             await this.beginAddBeneficiaryFlowMessage({
@@ -250,6 +256,27 @@ class WhatsAppBotService {
 
             return;
         }
+
+        // determine sliceFrom considering _sliceFrom and the available indexes of the array
+        const sliceFrom = Math.min(_sliceFrom, usersBeneficiaries.length - 1);
+        // determine sliceTo considering _sliceTo and the available indexes of the array
+        const sliceTo = Math.min(_sliceTo, usersBeneficiaries.length);
+
+        // determine if there should be a nextSliceFrom
+        const nextSliceFrom = sliceTo < usersBeneficiaries.length ? sliceTo : null;
+        // determine if there should be a nextSliceTo
+        const nextSliceTo = nextSliceFrom ? nextSliceFrom + 9 : null;
+
+        const moreListItem =
+            nextSliceFrom && nextSliceTo
+                ? ({
+                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                      title: 'More',
+                  } as const)
+                : null;
+
+        const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
+
         const interactiveMessageList = {
             messaging_product: 'whatsapp',
             recipient_type: 'individual',
@@ -268,27 +295,32 @@ class WhatsAppBotService {
                     button: 'Beneficiaries',
                     sections: [
                         {
-                            rows: usersBeneficiaries.map((beneficiary) => {
-                                let title: string;
-                                let description: string;
+                            rows: [
+                                ...beneficiariesToDisplay.map((beneficiary) => {
+                                    let title: string;
+                                    let description: string;
 
-                                if ((beneficiary as MobileMoneyBeneficiary).firstName) {
-                                    const mobileMoneyBeneficiaryCast =
-                                        beneficiary as MobileMoneyBeneficiary;
-                                    title = `${mobileMoneyBeneficiaryCast.firstName} ${mobileMoneyBeneficiaryCast.lastName}`;
-                                    description = `Provider: ${mobileMoneyBeneficiaryCast.mobileProvider}\nMobile Number: ${mobileMoneyBeneficiaryCast.mobileNumber}`;
-                                } else {
-                                    const bankBeneficiaryCast = beneficiary as BankBeneficiary;
-                                    title = `${bankBeneficiaryCast.accountName}`;
-                                    description = `Bank Name: ${bankBeneficiaryCast.bankName}\nAccount Number: ${bankBeneficiaryCast.accountNumber}`;
-                                }
-                                return {
-                                    id: `sell:${assetId}|beneficiaryId:${beneficiary.id}`,
-                                    // if title is more than 24 characters, truncate with ...
-                                    title: title.length > 24 ? `${title.slice(0, 21)}...` : title,
-                                    description: description,
-                                };
-                            }),
+                                    if ((beneficiary as MobileMoneyBeneficiary).firstName) {
+                                        const mobileMoneyBeneficiaryCast =
+                                            beneficiary as MobileMoneyBeneficiary;
+                                        title = `${mobileMoneyBeneficiaryCast.firstName} ${mobileMoneyBeneficiaryCast.lastName}`;
+                                        description = `Provider: ${mobileMoneyBeneficiaryCast.mobileProvider}\nMobile Number: ${mobileMoneyBeneficiaryCast.mobileNumber}`;
+                                    } else {
+                                        const bankBeneficiaryCast = beneficiary as BankBeneficiary;
+                                        title = `${bankBeneficiaryCast.accountName}`;
+                                        description = `Bank Name: ${bankBeneficiaryCast.bankName}\nAccount Number: ${bankBeneficiaryCast.accountNumber}`;
+                                    }
+                                    return {
+                                        id: `sell:${assetId}|beneficiaryId:${beneficiary.id}`,
+                                        // if title is more than 24 characters, truncate with ...
+                                        title:
+                                            title.length > 24 ? `${title.slice(0, 21)}...` : title,
+                                        description: description,
+                                    };
+                                }),
+                                // Add moreListItem only if it's not null
+                                ...(moreListItem ? [moreListItem] : []),
+                            ],
                         },
                     ],
                 },
@@ -543,6 +575,10 @@ class WhatsAppBotService {
             return 'return-more-currencies';
         }
 
+        if (interactiveListReplyId.match(MORE_BENEFICIARIES_COMMAND_REGEX_PATTERN)) {
+            return 'return-more-beneficiaries';
+        }
+
         if (interactiveListReplyId.match(SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN)) {
             return 'trigger-offramp-flow';
         }
@@ -592,7 +628,12 @@ class WhatsAppBotService {
 
     private static async sendKycVerificationUrlMessage(phoneParams: PhoneNumberParams) {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
-        const kycUrl = await SumSubService.generateKycUrl(userPhoneNumber);
+        const kycLevelName =
+            getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber) === 'NG'
+                ? NG_KYC_LEVEL_NAME
+                : DEFAULT_KYC_LEVEL_NAME;
+
+        const kycUrl = await SumSubService.generateKycUrl(userPhoneNumber, kycLevelName);
 
         const message = MessageGenerators.generateInteractiveCtaUrlButtonMessage({
             recipient: userPhoneNumber,

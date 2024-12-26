@@ -186,7 +186,8 @@ export type InteractiveListReplyTypes =
     | 'trade-asset-with-currency'
     | 'explore-asset'
     | 'trigger-offramp-flow'
-    | 'return-more-currencies';
+    | 'return-more-currencies'
+    | 'return-more-beneficiaries';
 export type InteractiveNfmReplyActions = 'trigger-offramp-flow';
 
 export type AssetActionRegexMatch = [string, ExploreAssetActions, AssetInteractiveButtonIds];
@@ -201,6 +202,9 @@ export type MoreCurrenciesCommandMatch = [
     string,
     string,
 ];
+
+export const MORE_BENEFICIARIES_COMMAND_REGEX_PATTERN =
+    /^moreBeneficiaries\|(?<assetId>[^|]+)\|(?<countryCode>\w+)\|(?<nextSliceFrom>\d+)\|(?<nextSliceTo>\d+)$/;
 
 export type DecryptedFlowDataExchange = {
     decryptedBody: Record<string, unknown> & {

@@ -11,6 +11,7 @@ import {
     type AssetActionRegexMatch,
     BaseInteractiveButtonIds,
     ExploreAssetActions,
+    MORE_BENEFICIARIES_COMMAND_REGEX_PATTERN,
     MORE_CURRENCIES_COMMAND_REGEX_PATTERN,
     type MoreCurrenciesCommandMatch,
     RATES_COMMAND,
@@ -19,6 +20,7 @@ import {
 import { deriveUserFeatureAccessLevel } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import {
+    extractGroups,
     extractSellAssetDestinationChoiceGroups,
     extractSellAssetToBeneficiaryGroups,
     extractTradeAssetGroups,
@@ -405,6 +407,29 @@ class WhatsAppBotController {
                         );
 
                         return ActionExecuted.SEND_MORE_CURRENCIES_MESSAGE;
+
+                    case 'return-more-beneficiaries':
+                        const params = extractGroups<{
+                            assetId: string;
+                            countryCode: string;
+                            nextSliceFrom: string;
+                            nextSliceTo: string;
+                        }>(interactiveListId, new RegExp(MORE_BENEFICIARIES_COMMAND_REGEX_PATTERN));
+
+                        const usersBeneficiaries = await FiatRampService.getBeneficiaries(
+                            from,
+                            params.countryCode as CountryCode
+                        );
+                        await WhatsAppBotService.listBeneficiaryMessage(
+                            businessPhoneNumberId,
+                            from,
+                            usersBeneficiaries,
+                            params.assetId,
+                            params.countryCode as CountryCode,
+                            parseInt(params.nextSliceFrom),
+                            parseInt(params.nextSliceTo)
+                        );
+                        return ActionExecuted.SEND_SELL_ASSET_DESTINATION_CHOICE_MESSAGE;
 
                     case 'explore-asset':
                         const userAssetInfo = await UserService.getUserAssetInfo(

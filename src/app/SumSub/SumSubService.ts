@@ -79,6 +79,9 @@ interface ApplicantData {
     };
 }
 
+export const DEFAULT_KYC_LEVEL_NAME = 'Azza-verification' as const;
+export const NG_KYC_LEVEL_NAME = 'Azza-verification-Nigeria' as const;
+
 class SumSubService {
     private static readonly APP_TOKEN = env.SUM_SUB_APP_TOKEN;
 
@@ -122,41 +125,15 @@ class SumSubService {
         };
     }
 
-    public static async generateSDKAccessToken(userId: string) {
-        const requestUri = `/resources/accessTokens?userId=${userId}&levelName=${this.KYC_LEVEL_NAME}&ttlInSecs=${this.API_TTL_IN_SECS}`;
-
-        const requestMethod: UsedSumSubRequestMethods = 'POST';
-
-        const endpoint = `${this.BASE_API_URL}${requestUri}`;
-
-        const requestHeaders = this.generateRequiredApiRequestHeaders({
-            requestUri,
-            requestMethod,
-        });
-
-        const response = await fetch(endpoint, {
-            method: requestMethod,
-            headers: requestHeaders,
-        });
-
-        if (!response.ok) throw new HttpException(response.status, 'Getting access token failed');
-
-        const data = (await response.json()) as {
-            token: string;
-        };
-
-        return data.token;
-    }
-
-    public static async generateKycUrl(userPhoneNumber: string) {
+    public static async generateKycUrl(userPhoneNumber: string, levelName: string) {
         const requestQueryParams = new URLSearchParams({
-            levelName: this.KYC_LEVEL_NAME,
+            levelName: levelName,
             externalUserId: userPhoneNumber,
             ttlInSecs: `${this.API_TTL_IN_SECS}`,
             lang: 'en',
         });
 
-        const requestUri = `/resources/sdkIntegrations/levels/${this.KYC_LEVEL_NAME}/websdkLink?${requestQueryParams.toString()}`;
+        const requestUri = `/resources/sdkIntegrations/levels/${levelName}/websdkLink?${requestQueryParams.toString()}`;
         const requestMethod: UsedSumSubRequestMethods = 'POST';
         const endpoint = `${this.BASE_API_URL}${requestUri}`;
         const body = {
