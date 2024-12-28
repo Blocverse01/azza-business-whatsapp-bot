@@ -1,9 +1,8 @@
 import { createOrUpdateUserAgentThread, getUserAgentThread } from '@/app/aiAgent/agent.helpers';
-import { handleUserPrompt } from '@/app/aiAgent/agent.prompter';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import UserService from '@/app/User/UserService';
 import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
-import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import { getSessionId, textPromptHandler } from '@/app/WhatsAppBot/text/textPromptHandler';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     ActionExecuted,
@@ -28,8 +27,6 @@ import {
 import { OK } from '@/constants/status-codes';
 import { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
-import { getUserCountryCodeFromPhoneNumberOrThrow } from '@/resources/utils/currency';
-import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import type { Request, Response } from 'express';
 import { type CountryCode } from 'libphonenumber-js';
 
@@ -190,7 +187,7 @@ class WhatsAppBotController {
 
         const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
 
-        const [user, messages] = await Promise.all([
+        const [user, messageThread] = await Promise.all([
             UserService.getUserByPhoneNumber(from),
             getUserAgentThread(from),
         ]);
@@ -251,40 +248,40 @@ class WhatsAppBotController {
                 ? text.body.replace('/', '')
                 : text.body;
 
-            messages.push({
-                role: 'user',
-                content: normalizedPrompt,
+            const result = await textPromptHandler({
+                storedMessages: messageThread.messages,
+                lastSessionId: messageThread.lastSessionId,
+                prompt: normalizedPrompt,
+                botParams: phoneParams,
+                userFeatureAccessLevel: deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL),
             });
 
-            const response = await handleUserPrompt({
-                sessionId: user.id,
-                messages,
-                userProfile: {
-                    displayName,
-                    countryCode: getUserCountryCodeFromPhoneNumberOrThrow(
-                        phoneParams.userPhoneNumber
-                    ),
-                    id: convertAsciiStringToBase64(user.id),
-                },
-            });
+            if (result.handledTextPrompt) {
+                const aiResponse = result.promptHandlerResponse.response;
 
-            const responseMessage = MessageGenerators.generateTextMessage(
-                phoneParams.userPhoneNumber,
-                response.text
-            );
+                const lastSessionId = result.promptHandlerResponse.resetSession
+                    ? ''
+                    : getSessionId(phoneParams.userPhoneNumber, result.classifiedAction.class);
 
-            await Promise.all([
-                WhatsAppBotService.sendWhatsappMessage(
-                    phoneParams.businessPhoneNumberId,
-                    responseMessage
-                ),
-                createOrUpdateUserAgentThread({
+                await createOrUpdateUserAgentThread({
                     userId: user.id,
-                    newMessages: response.newMessages,
-                }),
-            ]);
+                    newMessages: [
+                        {
+                            role: 'user',
+                            content: result.prompt,
+                            sessionId: lastSessionId,
+                        },
+                        {
+                            role: 'assistant',
+                            content: aiResponse,
+                            sessionId: lastSessionId,
+                        },
+                    ],
+                    lastSessionId,
+                });
+            }
 
-            return ActionExecuted.SEND_ASSISTANT_REPLY;
+            return result.classifiedAction.class;
         }
         // ============== END OF HANDLING TEXT MESSAGES ============== //
 

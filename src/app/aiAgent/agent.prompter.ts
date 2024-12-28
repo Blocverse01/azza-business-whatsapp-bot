@@ -1,23 +1,21 @@
-import { MAX_STEPS, toolSet } from '@/app/aiAgent/agent.config';
-import logger from '@/resources/logger';
+import { toolSet } from '@/app/aiAgent/agent.config';
 import { openai } from '@ai-sdk/openai';
 import { CoreMessage, CoreUserMessage, generateText } from 'ai';
 
 type HandleUserPromptParams = {
-    sessionId: string;
     messages: Array<CoreMessage>;
     userProfile: {
-        displayName: string;
-        countryCode: string;
         id: string;
     };
 };
+
 export const handleUserPrompt = async (params: HandleUserPromptParams) => {
-    const { text, response } = await generateText({
-        model: openai('gpt-4o-mini-2024-07-18'),
+    const { text } = await generateText({
+        model: openai('gpt-4o'),
         tools: toolSet(params.userProfile.id),
-        maxSteps: MAX_STEPS,
+        maxSteps: 5,
         messages: params.messages,
+        toolChoice: 'auto',
         system: `
         [About You]:
         You're Azza built by Blocverse, an AI agent for a user's wallet, guide the user through steps to perform specific actions on their wallet using the predefined tools. 
@@ -40,18 +38,21 @@ export const handleUserPrompt = async (params: HandleUserPromptParams) => {
             
          [Unrelated Queries]:
             - If the user asks for information not related to blockchain technology or the wallet, inform the user that the action is not supported.
+         
+         [Language]:
+            - Use simple and clear language.
+            - Avoid using jargon or technical terms.
+            - Respond to the user in the same language they asks questions with.
         `,
     });
 
     const lastUserMessage = params.messages[params.messages.length - 1] as CoreUserMessage;
 
-    void logger.debug('AI response messages:', {
-        responseMessages: response.messages,
-    });
-
     return {
-        text,
-        newMessages: [lastUserMessage, ...response.messages],
-        sessionId: params.sessionId,
+        userMessage: lastUserMessage,
+        assistantMessage: {
+            role: 'assistant',
+            content: text,
+        },
     };
 };

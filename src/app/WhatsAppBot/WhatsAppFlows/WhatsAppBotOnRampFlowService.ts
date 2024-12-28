@@ -778,7 +778,7 @@ class WhatsAppBotOnRampFlowService {
         const { asset, localCurrency, recipient, paymentMethods, countryCode } = params;
 
         const assetLabel = `${asset.tokenName} (${asset.network})`;
-        const buyMessage = `Buy ${assetLabel} with ${getCountryFlagEmoji(countryCode)} ${localCurrency}`;
+        const buyMessage = `To buy ${assetLabel} with ${getCountryFlagEmoji(countryCode)} ${localCurrency}, tap "Proceed" to enter payment method and amount`;
 
         const flowMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
@@ -794,7 +794,7 @@ class WhatsAppBotOnRampFlowService {
                         flow_token: generateRandomHexString(SIXTEEN),
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
-                        flow_cta: 'Buy Asset',
+                        flow_cta: 'Proceed',
                         flow_action: 'navigate',
                         flow_action_payload: {
                             screen: this.INITIAL_SCREEN,

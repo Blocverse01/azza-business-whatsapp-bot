@@ -81,6 +81,7 @@ const tables = [
     columns: [
       { name: "user", type: "link", link: { table: "User" }, unique: true },
       { name: "messages", type: "json", notNull: true, defaultValue: "[]" },
+      { name: "lastSessionId", type: "text", notNull: true, defaultValue: "" },
     ],
   },
   {

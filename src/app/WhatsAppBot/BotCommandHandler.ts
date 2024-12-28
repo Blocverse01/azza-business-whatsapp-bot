@@ -1,16 +1,23 @@
-import { assetInteractiveButtonsIds, PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+import UserService from '@/app/User/UserService';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import { getSupportedAssetAndNetworksText } from '@/app/WhatsAppBot/utils';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import {
+    assetInteractiveButtonsIds,
+    ExploreAssetActions,
+    PhoneNumberParams,
+} from '@/app/WhatsAppBot/WhatsAppBotType';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
 import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
-import { FeatureAccessLevel } from '@/config/whatsAppBot';
+import { FeatureAccessLevel, searchAsset } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import {
     BOT_COMMANDS_REGEX,
     extractGroups,
     TradeAssetBotCommandMatchGroups,
 } from '@/constants/regex';
-import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import UserService from '@/app/User/UserService';
 
 type BotCommand = keyof typeof BOT_COMMANDS_REGEX;
 
@@ -91,19 +98,58 @@ class BotCommandHandler {
         params: TradeAssetBotCommandMatchGroups,
         userFeatureAccessLevel: FeatureAccessLevel
     ) {
-        const assetId = [params.asset, params.network].join('-').toLowerCase();
+        const [searchAssetForward, searchAssetBackward] = [
+            searchAsset({
+                network: params.network as SupportedChain,
+                tokenName: params.asset,
+            })[0],
+            searchAsset({
+                network: params.asset as SupportedChain,
+                tokenName: params.network,
+            })[0],
+        ];
 
-        const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
-        );
+        if (!searchAssetForward && !searchAssetBackward) {
+            const responseMessage = !searchAssetForward
+                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                      {
+                          action: ExploreAssetActions.BUY_ASSET,
+                      }
+                  )}`
+                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                      {
+                          action: ExploreAssetActions.BUY_ASSET,
+                      }
+                  )}`;
 
-        if (!supportedAsset) {
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+            );
+
+            return;
+        }
+
+        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+
+        if (!supportedAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
+            const responseMessage = `Selling ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                {
+                    action: ExploreAssetActions.BUY_ASSET,
+                }
+            )}`;
+
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+            );
+
             return;
         }
 
         return await WhatsAppBotService.handleSellAssetAction(
             phoneParams,
-            supportedAsset,
+            supportedAsset.listItemId,
             userFeatureAccessLevel
         );
     }
@@ -113,19 +159,58 @@ class BotCommandHandler {
         params: TradeAssetBotCommandMatchGroups,
         userFeatureAccessLevel: FeatureAccessLevel
     ) {
-        const assetId = [params.asset, params.network].join('-').toLowerCase();
+        const [searchAssetForward, searchAssetBackward] = [
+            searchAsset({
+                network: params.network as SupportedChain,
+                tokenName: params.asset,
+            })[0],
+            searchAsset({
+                network: params.asset as SupportedChain,
+                tokenName: params.network,
+            })[0],
+        ];
 
-        const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
-        );
+        if (!searchAssetForward && !searchAssetBackward) {
+            const responseMessage = !searchAssetForward
+                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                      {
+                          action: ExploreAssetActions.BUY_ASSET,
+                      }
+                  )}`
+                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                      {
+                          action: ExploreAssetActions.BUY_ASSET,
+                      }
+                  )}`;
 
-        if (!supportedAsset) {
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+            );
+
+            return;
+        }
+
+        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+
+        if (!supportedAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
+            const responseMessage = `Buying ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                {
+                    action: ExploreAssetActions.BUY_ASSET,
+                }
+            )}`;
+
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+            );
+
             return;
         }
 
         return await WhatsAppBotService.handleBuyAssetAction(
             phoneParams,
-            supportedAsset,
+            supportedAsset.listItemId,
             userFeatureAccessLevel
         );
     }
@@ -161,41 +246,72 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
-        const assetId = [params.asset, params.network].join('-').toLowerCase();
+        const [searchAssetForward, searchAssetBackward] = [
+            searchAsset({
+                network: params.network as SupportedChain,
+                tokenName: params.asset,
+            })[0],
+            searchAsset({
+                network: params.asset as SupportedChain,
+                tokenName: params.network,
+            })[0],
+        ];
 
-        const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
-        );
+        if (!searchAssetForward && !searchAssetBackward) {
+            const responseMessage = !searchAssetForward
+                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText()}`
+                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText()}`;
 
-        if (!supportedAsset) {
-            await WhatsAppBotService.sendArbitraryTextMessage(
-                phoneParams.userPhoneNumber,
-                `${params.asset} on ${params.network} is not supported yet.`
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
             );
+
             return;
         }
 
-        return await WhatsAppBotService.handleWithdrawAssetAction(phoneParams, supportedAsset);
+        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+
+        return await WhatsAppBotService.handleWithdrawAssetAction(
+            phoneParams,
+            supportedAsset.listItemId
+        );
     }
 
     private static async depositAsset(
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
-        const assetId = [params.asset, params.network].join('-').toLowerCase();
+        const [searchAssetForward, searchAssetBackward] = [
+            searchAsset({
+                network: params.network as SupportedChain,
+                tokenName: params.asset,
+            })[0],
+            searchAsset({
+                network: params.asset as SupportedChain,
+                tokenName: params.network,
+            })[0],
+        ];
 
-        const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
-        );
+        if (!searchAssetForward && !searchAssetBackward) {
+            const responseMessage = !searchAssetForward
+                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText()}`
+                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText()}`;
 
-        if (!supportedAsset) {
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+            );
+
             return;
         }
+
+        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
 
         return await WhatsAppBotService.depositAssetCommandHandler(
             phoneParams.userPhoneNumber,
             phoneParams.businessPhoneNumberId,
-            supportedAsset
+            supportedAsset.listItemId
         );
     }
 

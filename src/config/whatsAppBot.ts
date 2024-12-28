@@ -60,7 +60,7 @@ export const searchAsset = (searchParams: Partial<Pick<AssetConfig, 'network' | 
     return ENABLED_ASSETS.filter((asset) => {
         return Object.entries(searchParams).every(([key, value]) => {
             const typedKey = key as keyof Partial<Pick<AssetConfig, 'network' | 'tokenName'>>;
-            return asset[typedKey] === value;
+            return asset[typedKey].toLowerCase() === value.toLowerCase();
         });
     });
 };

@@ -73,7 +73,7 @@ import {
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
     private static readonly SHOULD_REQUEST_KYC_FOR_OFFRAMP = true;
-    private static readonly USE_SENDER_SCRIPT = true;
+    private static readonly USE_SENDER_SCRIPT = false;
 
     private static getRequestConfig() {
         return {
@@ -695,19 +695,24 @@ class WhatsAppBotService {
 
         const shouldShowCurrentPageNumber = supportedCurrencies.length > 9;
 
+        const bodyText =
+            assetActionId === ExploreAssetActions.BUY_ASSET
+                ? 'Click the button below to select your payment currency'
+                : 'Click the button below to select your payout currency';
+
         const interactiveMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
             interactive: {
                 type: 'list',
                 body: {
-                    text: "Click on 'Currencies' to select your local currency.",
+                    text: bodyText,
                 },
                 header: {
                     type: 'text',
                     text: `Select Your Local Currency${shouldShowCurrentPageNumber ? ` - Page ${page}` : ''}`,
                 },
                 action: {
-                    button: 'Currencies',
+                    button: 'Select Currency 💳',
                     sections: [
                         {
                             rows: [

@@ -125,7 +125,10 @@ export const polConfig = {
     listItemId: AssetInteractiveButtonIds.POL_POLYGON,
     tokenAddress: 'POL',
     network: 'Polygon' as const,
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
 
@@ -148,7 +151,10 @@ export const ethBaseConfig = {
     listItemId: AssetInteractiveButtonIds.ETH_BASE,
     tokenAddress: 'ETH',
     network: 'Base' as const,
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 
@@ -183,7 +189,10 @@ export const ethEthereumConfig = {
     listItemId: AssetInteractiveButtonIds.ETH_ETHEREUM,
     tokenAddress: 'ETH',
     network: 'Ethereum' as const,
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
 
@@ -220,7 +229,10 @@ export const ethOptimismConfig = {
     listItemId: AssetInteractiveButtonIds.ETH_OPTIMISM,
     tokenAddress: 'ETH',
     network: 'Optimism',
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
 /// ============== OP ==============
@@ -232,7 +244,10 @@ export const opOptimismConfig = {
             ? TokenAddresses.OP_OPTIMISM_SEPOLIA_TESTNET
             : TokenAddresses.OP_OPTIMISM_MAINNET,
     network: 'Optimism',
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
 
@@ -246,7 +261,10 @@ export const usdtTronConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_TRON,
     network: 'Tron' as const,
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== TRX ==============
@@ -255,7 +273,10 @@ export const trxTronConfig = {
     tokenName: TokenNames.TRX,
     listItemId: AssetInteractiveButtonIds.TRX,
     network: 'Tron' as const,
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
     isNative: true,
 } satisfies AssetConfig;
@@ -267,7 +288,10 @@ export const solConfig = {
     listItemId: AssetInteractiveButtonIds.SOL,
     tokenAddress: 'SOL',
     network: 'Solana' as const,
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
     isNative: true,
 } satisfies AssetConfig;
@@ -280,7 +304,10 @@ export const usdcSolanaConfig = {
     tokenName: TokenNames.USDC,
     listItemId: AssetInteractiveButtonIds.USDC_SOLANA,
     network: 'Solana' as const,
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== USDT ==============
@@ -292,7 +319,10 @@ export const usdtSolanaConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_SOLANA,
     network: 'Solana' as const,
-    supportedAssetActions: [ExploreAssetActions.WITHDRAW_ASSET, ExploreAssetActions.DEPOSIT],
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 

@@ -510,7 +510,7 @@ class WhatsAppBotOffRampFlowService {
         const beneficiaryProvider =
             'bankName' in beneficiary ? beneficiary.bankName : beneficiary.mobileProvider;
 
-        const sellMessage = `Sell ${assetLabel} for ${getCountryFlagEmoji(beneficiary.country.code)} ${beneficiary.country.currencySymbol}`;
+        const sellMessage = `To sell ${assetLabel} for ${getCountryFlagEmoji(beneficiary.country.code)} ${beneficiary.country.currencySymbol}, tap "Proceed" to enter the amount you want to sell`;
 
         const userBalance = asset.tokenBalance;
         const userBalanceFormatted = prettifyNumber(userBalance) + ' ' + asset.assetName;
