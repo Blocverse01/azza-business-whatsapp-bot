@@ -33,6 +33,8 @@ export const actionArgumentsSchema = {
     DEPOSIT_CRYPTO_TO_WALLET: assetAndNetworkSchema,
     BUY_CRYPTO_WITH_FIAT: assetAndNetworkSchema,
     SELL_CRYPTO_FOR_FIAT: assetAndNetworkSchema,
+    GET_CRYPTO_WITH_FIAT: assetAndNetworkSchema,
+    GET_FIAT_WITH_CRYPTO: assetAndNetworkSchema,
     SWAP_CRYPTO: z.object({
         fromBlockchainNetwork: z
             .string()

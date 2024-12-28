@@ -142,6 +142,7 @@ export const textPromptHandler = async (
             break;
 
         case 'BUY_CRYPTO_WITH_FIAT':
+        case 'GET_CRYPTO_WITH_FIAT':
             responseMessage = await handleBuyCryptoWithFiatPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
@@ -150,6 +151,7 @@ export const textPromptHandler = async (
             break;
 
         case 'SELL_CRYPTO_FOR_FIAT':
+        case 'GET_FIAT_WITH_CRYPTO':
             responseMessage = await handleSellCryptoForFiatPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
