@@ -28,6 +28,16 @@ export const actionArgumentsSchema = {
             hasConfirmedTransfer: z.boolean().nullable(),
         })
         .merge(assetAndNetworkSchema),
+    WITHDRAW_CRYPTO: z
+        .object({
+            amount: z.number().nullable(),
+            recipientAddressOrPhoneNumber: z
+                .string()
+                .nullable()
+                .describe('The recipient wallet address or phone number to send to.'),
+            hasConfirmedTransfer: z.boolean().nullable(),
+        })
+        .merge(assetAndNetworkSchema),
     CHANGE_TRANSACTION_PIN: z.object({}),
     RESET_TRANSACTION_PIN: z.object({}),
     DEPOSIT_CRYPTO_TO_WALLET: assetAndNetworkSchema,

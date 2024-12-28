@@ -110,6 +110,7 @@ export const textPromptHandler = async (
             break;
 
         case 'TRANSFER_CRYPTO':
+        case 'WITHDRAW_CRYPTO':
             responseMessage = await handleWithdrawRelatedPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
