@@ -10,6 +10,7 @@ import {
     handleBuyCryptoWithFiatPrompt,
     handleChangeTransactionPinPrompt,
     handleDepositRelatedPrompt,
+    handleRatesPrompt,
     handleResetTransactionPinPrompt,
     handleSellCryptoForFiatPrompt,
     handleSwapCryptoPrompt,
@@ -162,6 +163,13 @@ export const textPromptHandler = async (
 
         case 'SWAP_CRYPTO':
             responseMessage = await handleSwapCryptoPrompt({
+                extractedArguments: extractedArguments,
+                botParams: params.botParams,
+                userFeatureAccessLevel,
+            });
+            break;
+        case 'SHOW_FIAT_CONVERSION_RATES':
+            responseMessage = await handleRatesPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
                 userFeatureAccessLevel,

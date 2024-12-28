@@ -1,3 +1,4 @@
+import SumSubService from '@/app/SumSub/SumSubService';
 import UserService from '@/app/User/UserService';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -74,6 +75,9 @@ class BotCommandHandler {
                 break;
             case 'CHANGE_PIN':
                 await BotCommandHandler.changeTransactionPin(phoneParams);
+                break;
+            case 'PERFORM_KYC':
+                await BotCommandHandler.handleKycVerificationRequest(phoneParams);
                 break;
             default:
                 return {
@@ -401,6 +405,42 @@ class BotCommandHandler {
         });
 
         await WhatsAppBotService.sendWhatsappMessage(params.businessPhoneNumberId, message);
+    }
+
+    private static async handleKycVerificationRequest(params: PhoneNumberParams) {
+        const userKycStatus = await UserService.getUserKycStatus(params.userPhoneNumber);
+
+        if (userKycStatus === 'verified') {
+            const responseMessage = `Your KYC is already verified.`;
+            await WhatsAppBotService.sendWhatsappMessage(
+                params.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(params.userPhoneNumber, responseMessage)
+            );
+
+            return;
+        }
+
+        if (SumSubService.SERVICE_IS_ACTIVE) {
+            if (
+                userKycStatus === 'unverified' ||
+                userKycStatus === 'rejected' ||
+                userKycStatus === 'pending'
+            ) {
+                await WhatsAppBotService.sendKycVerificationUrlMessage(params);
+                return;
+            }
+
+            if (userKycStatus === 'in_review') {
+                await WhatsAppBotService.sendKycInReviewMessage(params);
+                return;
+            }
+        }
+
+        const responseMessage = `KYC verification is not available at the moment.`;
+        await WhatsAppBotService.sendWhatsappMessage(
+            params.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(params.userPhoneNumber, responseMessage)
+        );
     }
 
     public static isCommand(command: string) {

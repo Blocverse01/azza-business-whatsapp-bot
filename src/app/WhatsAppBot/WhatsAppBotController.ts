@@ -238,7 +238,7 @@ class WhatsAppBotController {
             }
 
             // Handle `rates` text message
-            if (text.body.toLowerCase() === RATES_COMMAND) {
+            if (text.body.toLowerCase() === RATES_COMMAND || text.body.toLowerCase() === 'rate') {
                 await WhatsAppBotService.ratesCommandHandler(from, businessPhoneNumberId);
                 return ActionExecuted.HANDLE_RATES_MESSAGE;
             }

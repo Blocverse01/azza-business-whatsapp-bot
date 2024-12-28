@@ -626,7 +626,7 @@ class WhatsAppBotService {
         );
     }
 
-    private static async sendKycVerificationUrlMessage(phoneParams: PhoneNumberParams) {
+    public static async sendKycVerificationUrlMessage(phoneParams: PhoneNumberParams) {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
         const kycLevelName =
             getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber) === 'NG'
@@ -738,7 +738,7 @@ class WhatsAppBotService {
         await this.sendWhatsappMessage(businessPhoneNumberId, interactiveMessage);
     }
 
-    private static async sendKycInReviewMessage(phoneParams: PhoneNumberParams) {
+    public static async sendKycInReviewMessage(phoneParams: PhoneNumberParams) {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
         const messagePayload: WhatsAppTextMessage = {

@@ -1250,6 +1250,25 @@ export const handleSwapCryptoPrompt = async (
 };
 
 /////////////////////////////////////////////////////////
+//       Rates Related Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleRatesPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const { botParams } = params;
+
+    await WhatsAppBotService.ratesCommandHandler(
+        botParams.businessPhoneNumberId,
+        botParams.userPhoneNumber
+    );
+
+    return {
+        response: 'Handled rates command',
+        resetSession: true,
+    };
+};
+
+/////////////////////////////////////////////////////////
 //                   Helper Functions
 /////////////////////////////////////////////////////////
 function parseExtractedArguments<T extends ZodSchema>(
