@@ -20,7 +20,7 @@ export const BOT_COMMANDS_REGEX = {
     BUY_ASSET: /^\/buy\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /buy usdt polygon
     ASSETS_MENU: /^\/my_assets$/,
     HELP: /^\/help$/,
-    TRANSFER: /^\/transfer\s+(?<asset>\w+)\s+(?<network>\w+)$/,
+    TRANSFER: /^\/withdraw\s+(?<asset>\w+)\s+(?<network>\w+)$/,
     DEPOSIT: /^\/deposit\s+(?<asset>\w+)\s+(?<network>\w+)$/,
     BALANCES: /^\/balance$/, // matches /balance,
     ASSET_BALANCE: /^\/balance\s+(?<asset>\w+)\s+(?<network>\w+)$/, // /balance <asset> <network>
