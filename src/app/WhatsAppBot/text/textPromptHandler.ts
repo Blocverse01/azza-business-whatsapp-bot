@@ -80,7 +80,7 @@ export const textPromptHandler = async (
         );
 
         return {
-            handledTextPrompt: false,
+            handledTextPrompt: true,
             classifiedAction: classifiedAction,
             prompt: params.prompt,
             promptHandlerResponse: {
