@@ -196,6 +196,7 @@ class UserService {
 
             await redis.set(cacheKey, newStatus ?? '');
             await this.USER_TABLE.update(user.id, { kycStatus: newStatus }, ['kycStatus']);
+            await this.invalidateUserCache(user.phoneNumber!);
         } catch (err) {
             throw new HttpException(INTERNAL_SERVER_ERROR, 'KYC status not updated!');
         }

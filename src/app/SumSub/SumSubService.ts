@@ -89,6 +89,7 @@ export const DEFAULT_KYC_LEVEL_NAME = 'Azza-verification' as const;
 export const NG_KYC_LEVEL_NAME = 'Azza-verification-Nigeria' as const;
 
 const BVN_METADATA_KEY = 'BVN Number' as const;
+const NIN_METADATA_KEY = 'NIN' as const;
 
 class SumSubService {
     private static APP_TOKEN = env.SUM_SUB_APP_TOKEN;
@@ -234,6 +235,9 @@ class SumSubService {
         const bvnMetadata = metadata.find(
             (meta) => meta.key.toLowerCase() === BVN_METADATA_KEY.toLowerCase()
         );
+        const ninMetadata = metadata.find(
+            (meta) => meta.key.toLowerCase() === NIN_METADATA_KEY.toLowerCase()
+        );
 
         // ID info
         if (identityDocSet) {
@@ -246,6 +250,11 @@ class SumSubService {
                 userInfo['kycDocumentNumber'] = identityDoc.number;
                 userInfo['country'] = identityDoc.country;
             }
+        }
+
+        if (ninMetadata && userInfo['kycIdType'] !== 'ID_CARD') {
+            userInfo['kycIdType'] = 'NIN';
+            userInfo['kycDocumentNumber'] = ninMetadata.value;
         }
 
         if (bvnMetadata) {
