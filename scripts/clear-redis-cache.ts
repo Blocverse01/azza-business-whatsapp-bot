@@ -30,6 +30,8 @@ function runScript() {
 
 async function clearCache(keys: string[]) {
     const redis = new Redis(env.REDIS_URL);
+    const existingData = await redis.mget(keys);
+    console.table(existingData);
     await redis.del(keys);
     redis.disconnect();
 
