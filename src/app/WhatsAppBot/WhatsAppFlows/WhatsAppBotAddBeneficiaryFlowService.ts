@@ -19,6 +19,7 @@ import env from '@/constants/env';
 enum AddBeneficiaryFlowScreens {
     ACCOUNT_TYPE = 'ACCOUNT_TYPE',
     BANK_ACCOUNT_FORM = 'BANK_ACCOUNT_FORM',
+    BANK_ACCOUNT_SUMMARY = 'BANK_ACCOUNT_SUMMARY',
     MOBILE_MONEY_FORM = 'MOBILE_MONEY_FORM',
     SUCCESS_FEEDBACK = 'SUCCESS_FEEDBACK',
     ERROR_FEEDBACK = 'ERROR_FEEDBACK',
@@ -37,6 +38,27 @@ type ScreenDataPayload = {
         asset_id: string;
         user_id: string;
         supported_banks: Array<DropdownOption>;
+        can_edit_account_name: boolean;
+        init_values?: {
+            bank?: string;
+            account_name?: string;
+            account_number?: string;
+        };
+        resolved_account_name?: string;
+        button_label: string;
+        error_messages?: {
+            account_number?: string;
+        };
+    };
+    BANK_ACCOUNT_SUMMARY: {
+        account_name: string;
+        account_number: string;
+        bank_name: string;
+        channel_id: string;
+        network_id: string;
+        country_code: string;
+        user_id: string;
+        asset_id: string;
     };
     MOBILE_MONEY_FORM_SCREEN: {
         supported_mobile_providers: Array<Required<DropdownOption>>;
@@ -74,6 +96,19 @@ type DataExchangePayload = {
         asset_id: string;
         user_id: string;
         supported_banks: Array<DropdownOption>;
+        can_edit_account_name: boolean;
+        resolved_account_name?: string;
+    };
+    BANK_ACCOUNT_SUMMARY: {
+        country_code: string;
+        channel_id: string;
+        network_id: string;
+        bank_name: string;
+        account_name: string;
+        account_number: string;
+        asset_id: string;
+        user_id: string;
+        confirm_correct_details: boolean;
     };
     MOBILE_MONEY_FORM_SCREEN: {
         supported_mobile_providers: Array<Required<DropdownOption>>;
@@ -105,7 +140,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
     ): Promise<DataExchangeResponse> {
         const { screen, data, action } = requestBody;
 
-        logger.info(`Received data exchange for screen: ${screen}`, {
+        void logger.info(`Received data exchange for screen: ${screen}`, {
             data,
         });
 
@@ -129,8 +164,14 @@ class WhatsAppBotAddBeneficiaryFlowService {
                     break;
 
                 case AddBeneficiaryFlowScreens.BANK_ACCOUNT_FORM:
-                    nextScreenData = await this.getFeedbackScreenDataForAddingBankBeneficiary(
+                    nextScreenData = await this.handleDataExchangeFromBankAccountFormScreen(
                         data as DataExchangePayload['BANK_ACCOUNT_FORM_SCREEN']
+                    );
+
+                    break;
+                case AddBeneficiaryFlowScreens.BANK_ACCOUNT_SUMMARY:
+                    nextScreenData = await this.getFeedbackScreenDataForAddingBankBeneficiary(
+                        data as DataExchangePayload['BANK_ACCOUNT_SUMMARY']
                     );
 
                     break;
@@ -146,7 +187,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logger.info('Next screen data', nextScreenData);
+            void logger.info('Next screen data', nextScreenData);
 
             return {
                 ...nextScreenData,
@@ -264,6 +305,11 @@ class WhatsAppBotAddBeneficiaryFlowService {
             selectedAccountType.channelId
         );
 
+        const canEditAccountName =
+            !FiatRampService.supportedCountriesForResolvingBankAccount.includes(
+                country_code.toUpperCase()
+            );
+
         return {
             screen: AddBeneficiaryFlowScreens.BANK_ACCOUNT_FORM,
             data: {
@@ -275,6 +321,8 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 channel_id: selectedAccountType.channelId,
                 asset_id,
                 user_id,
+                can_edit_account_name: canEditAccountName,
+                button_label: 'Verify Account Details',
             } satisfies ScreenDataPayload['BANK_ACCOUNT_FORM_SCREEN'],
         };
     }
@@ -307,7 +355,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
         };
     }
 
-    private static async getFeedbackScreenDataForAddingBankBeneficiary(
+    private static async handleDataExchangeFromBankAccountFormScreen(
         input: DataExchangePayload['BANK_ACCOUNT_FORM_SCREEN']
     ) {
         const {
@@ -319,9 +367,76 @@ class WhatsAppBotAddBeneficiaryFlowService {
             asset_id,
             user_id,
             supported_banks,
+            can_edit_account_name,
         } = input;
 
         const selectedBank = this.determineSelectedBank(bank, supported_banks);
+        let resolvedBankAccount: Awaited<ReturnType<typeof FiatRampService.resolveBankAccount>> =
+            null;
+
+        if (
+            !can_edit_account_name &&
+            FiatRampService.supportedCountriesForResolvingBankAccount.includes(
+                country_code.toUpperCase()
+            )
+        ) {
+            resolvedBankAccount = await FiatRampService.resolveBankAccount(
+                selectedBank.networkId,
+                account_number
+            );
+        }
+
+        if (!resolvedBankAccount && !account_name) {
+            return {
+                screen: AddBeneficiaryFlowScreens.BANK_ACCOUNT_FORM,
+                data: {
+                    country_code,
+                    channel_id,
+                    asset_id,
+                    user_id,
+                    supported_banks,
+                    can_edit_account_name: false,
+                    error_messages: {
+                        account_number: `Invalid account number for ${selectedBank.bankName}`,
+                    },
+                    button_label: 'Verify Account Details',
+                    init_values: {
+                        bank,
+                        account_name,
+                        account_number,
+                    },
+                } satisfies ScreenDataPayload['BANK_ACCOUNT_FORM_SCREEN'],
+            };
+        }
+
+        return {
+            screen: AddBeneficiaryFlowScreens.BANK_ACCOUNT_SUMMARY,
+            data: {
+                account_name,
+                account_number,
+                bank_name: selectedBank.bankName,
+                channel_id,
+                network_id: selectedBank.networkId,
+                country_code,
+                user_id,
+                asset_id,
+            } satisfies ScreenDataPayload['BANK_ACCOUNT_SUMMARY'],
+        };
+    }
+
+    private static async getFeedbackScreenDataForAddingBankBeneficiary(
+        input: DataExchangePayload['BANK_ACCOUNT_SUMMARY']
+    ) {
+        const {
+            country_code,
+            channel_id,
+            network_id,
+            account_name,
+            account_number,
+            bank_name,
+            asset_id,
+            user_id,
+        } = input;
 
         try {
             const supportedCountries = await FiatRampService.getSupportedCurrencies();
@@ -339,8 +454,8 @@ class WhatsAppBotAddBeneficiaryFlowService {
                     beneficiary: {
                         accountName: account_name,
                         accountNumber: account_number,
-                        bankName: selectedBank.bankName,
-                        networkId: selectedBank.networkId,
+                        bankName: bank_name,
+                        networkId: network_id,
                         channelId: channel_id,
                         countryId: country.id,
                     },

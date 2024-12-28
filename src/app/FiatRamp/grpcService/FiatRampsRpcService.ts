@@ -1,6 +1,7 @@
 import redis from '@/app/cache/redis';
 import UserService from '@/app/User/UserService';
 import { FALLBACK_USE_AZZA_ADDRESS } from '@/constants/strings';
+import logger from '@/resources/logger';
 import { z } from 'zod';
 import {
     BankBeneficiary,
@@ -466,20 +467,25 @@ class FiatRampsRpcService {
     }
 
     public static async resolveBankAccount(params: { networkId: string; accountNumber: string }) {
-        const request = new ResolveBankAccountRequest({
-            network_id: params.networkId,
-            account_number: params.accountNumber,
-        });
+        try {
+            const request = new ResolveBankAccountRequest({
+                network_id: params.networkId,
+                account_number: params.accountNumber,
+            });
 
-        const response = await resolveBankAccount(request);
+            const response = await resolveBankAccount(request);
 
-        return z
-            .object({
-                accountName: z.string(),
-                accountBank: z.string(),
-                accountNumber: z.string(),
-            })
-            .parse(transformKeysToCamelCase(response.toObject()));
+            return z
+                .object({
+                    accountName: z.string(),
+                    accountBank: z.string(),
+                    accountNumber: z.string(),
+                })
+                .parse(transformKeysToCamelCase(response.toObject()));
+        } catch (error) {
+            void logger.error('Error resolving bank account', { error });
+            return null;
+        }
     }
 }
 

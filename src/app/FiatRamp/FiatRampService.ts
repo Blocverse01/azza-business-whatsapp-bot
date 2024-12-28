@@ -161,6 +161,17 @@ class FiatRampService {
     public static async updateOnrampTransactionStatus(sequenceId: string, status: string) {
         return await FiatRampsRpcService.forwardOnrampTransactionStatus(sequenceId, status);
     }
+
+    public static get supportedCountriesForResolvingBankAccount() {
+        return ['NG'];
+    }
+
+    public static async resolveBankAccount(networkId: string, accountNumber: string) {
+        return await FiatRampsRpcService.resolveBankAccount({
+            networkId,
+            accountNumber,
+        });
+    }
 }
 
 export default FiatRampService;
