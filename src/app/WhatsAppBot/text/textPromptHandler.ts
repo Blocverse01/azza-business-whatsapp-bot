@@ -91,6 +91,8 @@ export const textPromptHandler = async (
         };
     }
 
+    console.log(classifiedAction);
+
     // Step 2: Extract the action arguments - LLM Usage 3
     const extractedArguments = await extractActionArgumentsFromMessages(
         classifiedAction.class,
