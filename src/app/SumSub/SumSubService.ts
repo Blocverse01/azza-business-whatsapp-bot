@@ -252,9 +252,22 @@ class SumSubService {
             }
         }
 
-        if (ninMetadata && userInfo['kycIdType'] !== 'ID_CARD') {
-            userInfo['kycIdType'] = 'NIN';
-            userInfo['kycDocumentNumber'] = ninMetadata.value;
+        if (ninMetadata) {
+            // Use the  NIN for Non-NIN ID Cards
+
+            if (userInfo['kycIdType'] !== 'ID_CARD') {
+                userInfo['kycIdType'] = 'NIN';
+                userInfo['kycDocumentNumber'] = ninMetadata.value;
+            }
+
+            // If the user used an ID_CARD, and it contains alphanumeric characters, we can assume it's a Voter's Card
+            if (
+                userInfo['kycIdType'] === 'ID_CARD' &&
+                userInfo['kycDocumentNumber'].match(/[a-z]/i)
+            ) {
+                userInfo['kycIdType'] = 'NIN';
+                userInfo['kycDocumentNumber'] = ninMetadata.value;
+            }
         }
 
         if (bvnMetadata) {

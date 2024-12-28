@@ -35,6 +35,7 @@ import {
     getRates,
     getSupportedCountries,
     getTransactionFees,
+    resolveBankAccount,
     updateCollectionTransactionStatus,
 } from './rpcMethods';
 import GetRatesRequest = fiatramps.v1.GetRatesRequest;
@@ -56,6 +57,7 @@ import CreatePlatformCollectionRequestInput = fiatramps.v1.CreatePlatformCollect
 import CollectionSource = fiatramps.v1.CollectionSource;
 import GetCollectionRequestTransactionRequest = fiatramps.v1.GetCollectionRequestTransactionRequest;
 import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
+import ResolveBankAccountRequest = fiatramps.v1.ResolveBankAccountRequest;
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -461,6 +463,23 @@ class FiatRampsRpcService {
         if (!address) throw new Error('Hot wallet address not found');
 
         return address;
+    }
+
+    public static async resolveBankAccount(params: { networkId: string; accountNumber: string }) {
+        const request = new ResolveBankAccountRequest({
+            network_id: params.networkId,
+            account_number: params.accountNumber,
+        });
+
+        const response = await resolveBankAccount(request);
+
+        return z
+            .object({
+                accountName: z.string(),
+                accountBank: z.string(),
+                accountNumber: z.string(),
+            })
+            .parse(transformKeysToCamelCase(response.toObject()));
     }
 }
 

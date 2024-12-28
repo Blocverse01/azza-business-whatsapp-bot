@@ -5547,6 +5547,209 @@ export namespace fiatramps.v1 {
             return UpdateCollectionTransactionStatusResponse.deserialize(bytes);
         }
     }
+    export class ResolveBankAccountRequest extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            account_number?: string;
+            network_id?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("account_number" in data && data.account_number != undefined) {
+                    this.account_number = data.account_number;
+                }
+                if ("network_id" in data && data.network_id != undefined) {
+                    this.network_id = data.network_id;
+                }
+            }
+        }
+        get account_number() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set account_number(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get network_id() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set network_id(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        static fromObject(data: {
+            account_number?: string;
+            network_id?: string;
+        }): ResolveBankAccountRequest {
+            const message = new ResolveBankAccountRequest({});
+            if (data.account_number != null) {
+                message.account_number = data.account_number;
+            }
+            if (data.network_id != null) {
+                message.network_id = data.network_id;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                account_number?: string;
+                network_id?: string;
+            } = {};
+            if (this.account_number != null) {
+                data.account_number = this.account_number;
+            }
+            if (this.network_id != null) {
+                data.network_id = this.network_id;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.account_number.length)
+                writer.writeString(1, this.account_number);
+            if (this.network_id.length)
+                writer.writeString(2, this.network_id);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): ResolveBankAccountRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new ResolveBankAccountRequest();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.account_number = reader.readString();
+                        break;
+                    case 2:
+                        message.network_id = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): ResolveBankAccountRequest {
+            return ResolveBankAccountRequest.deserialize(bytes);
+        }
+    }
+    export class ResolveBankAccountResponse extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            account_name?: string;
+            account_number?: string;
+            account_bank?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("account_name" in data && data.account_name != undefined) {
+                    this.account_name = data.account_name;
+                }
+                if ("account_number" in data && data.account_number != undefined) {
+                    this.account_number = data.account_number;
+                }
+                if ("account_bank" in data && data.account_bank != undefined) {
+                    this.account_bank = data.account_bank;
+                }
+            }
+        }
+        get account_name() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set account_name(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get account_number() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set account_number(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get account_bank() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set account_bank(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        static fromObject(data: {
+            account_name?: string;
+            account_number?: string;
+            account_bank?: string;
+        }): ResolveBankAccountResponse {
+            const message = new ResolveBankAccountResponse({});
+            if (data.account_name != null) {
+                message.account_name = data.account_name;
+            }
+            if (data.account_number != null) {
+                message.account_number = data.account_number;
+            }
+            if (data.account_bank != null) {
+                message.account_bank = data.account_bank;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                account_name?: string;
+                account_number?: string;
+                account_bank?: string;
+            } = {};
+            if (this.account_name != null) {
+                data.account_name = this.account_name;
+            }
+            if (this.account_number != null) {
+                data.account_number = this.account_number;
+            }
+            if (this.account_bank != null) {
+                data.account_bank = this.account_bank;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.account_name.length)
+                writer.writeString(1, this.account_name);
+            if (this.account_number.length)
+                writer.writeString(2, this.account_number);
+            if (this.account_bank.length)
+                writer.writeString(3, this.account_bank);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): ResolveBankAccountResponse {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new ResolveBankAccountResponse();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.account_name = reader.readString();
+                        break;
+                    case 2:
+                        message.account_number = reader.readString();
+                        break;
+                    case 3:
+                        message.account_bank = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): ResolveBankAccountResponse {
+            return ResolveBankAccountResponse.deserialize(bytes);
+        }
+    }
     interface GrpcUnaryServiceInterface<P, R> {
         (message: P, metadata: grpc_1.Metadata, options: grpc_1.CallOptions, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
         (message: P, metadata: grpc_1.Metadata, callback: grpc_1.requestCallback<R>): grpc_1.ClientUnaryCall;
@@ -5716,6 +5919,15 @@ export namespace fiatramps.v1 {
                 requestDeserialize: (bytes: Buffer) => UpdateCollectionTransactionStatusRequest.deserialize(new Uint8Array(bytes)),
                 responseSerialize: (message: UpdateCollectionTransactionStatusResponse) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => UpdateCollectionTransactionStatusResponse.deserialize(new Uint8Array(bytes))
+            },
+            ResolveBankAccount: {
+                path: "/fiatramps.v1.FiatRampsService/ResolveBankAccount",
+                requestStream: false,
+                responseStream: false,
+                requestSerialize: (message: ResolveBankAccountRequest) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => ResolveBankAccountRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: ResolveBankAccountResponse) => Buffer.from(message.serialize()),
+                responseDeserialize: (bytes: Buffer) => ResolveBankAccountResponse.deserialize(new Uint8Array(bytes))
             }
         };
         [method: string]: grpc_1.UntypedHandleCall;
@@ -5735,6 +5947,7 @@ export namespace fiatramps.v1 {
         abstract CreatePlatformCollectionRequest(call: grpc_1.ServerUnaryCall<CreatePlatformCollectionRequestInput, CreateCollectionResponse>, callback: grpc_1.sendUnaryData<CreateCollectionResponse>): void;
         abstract GetCollectionRequestTransaction(call: grpc_1.ServerUnaryCall<GetCollectionRequestTransactionRequest, GetCollectionRequestResponse>, callback: grpc_1.sendUnaryData<GetCollectionRequestResponse>): void;
         abstract UpdateCollectionTransactionStatus(call: grpc_1.ServerUnaryCall<UpdateCollectionTransactionStatusRequest, UpdateCollectionTransactionStatusResponse>, callback: grpc_1.sendUnaryData<UpdateCollectionTransactionStatusResponse>): void;
+        abstract ResolveBankAccount(call: grpc_1.ServerUnaryCall<ResolveBankAccountRequest, ResolveBankAccountResponse>, callback: grpc_1.sendUnaryData<ResolveBankAccountResponse>): void;
     }
     export class FiatRampsServiceClient extends grpc_1.makeGenericClientConstructor(UnimplementedFiatRampsServiceService.definition, "FiatRampsService", {}) {
         constructor(address: string, credentials: grpc_1.ChannelCredentials, options?: Partial<grpc_1.ChannelOptions>) {
@@ -5787,6 +6000,9 @@ export namespace fiatramps.v1 {
         };
         UpdateCollectionTransactionStatus: GrpcUnaryServiceInterface<UpdateCollectionTransactionStatusRequest, UpdateCollectionTransactionStatusResponse> = (message: UpdateCollectionTransactionStatusRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<UpdateCollectionTransactionStatusResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<UpdateCollectionTransactionStatusResponse>, callback?: grpc_1.requestCallback<UpdateCollectionTransactionStatusResponse>): grpc_1.ClientUnaryCall => {
             return super.UpdateCollectionTransactionStatus(message, metadata, options, callback);
+        };
+        ResolveBankAccount: GrpcUnaryServiceInterface<ResolveBankAccountRequest, ResolveBankAccountResponse> = (message: ResolveBankAccountRequest, metadata: grpc_1.Metadata | grpc_1.CallOptions | grpc_1.requestCallback<ResolveBankAccountResponse>, options?: grpc_1.CallOptions | grpc_1.requestCallback<ResolveBankAccountResponse>, callback?: grpc_1.requestCallback<ResolveBankAccountResponse>): grpc_1.ClientUnaryCall => {
+            return super.ResolveBankAccount(message, metadata, options, callback);
         };
     }
 }

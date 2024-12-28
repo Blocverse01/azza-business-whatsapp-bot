@@ -21,6 +21,7 @@ service FiatRampsService {
   rpc CreatePlatformCollectionRequest(CreatePlatformCollectionRequestInput) returns(CreateCollectionResponse) {}
   rpc GetCollectionRequestTransaction(GetCollectionRequestTransactionRequest) returns (GetCollectionRequestResponse) {}
   rpc UpdateCollectionTransactionStatus(UpdateCollectionTransactionStatusRequest) returns (UpdateCollectionTransactionStatusResponse) {}
+  rpc ResolveBankAccount(ResolveBankAccountRequest) returns (ResolveBankAccountResponse) {}
 }
 
 message GetSupportedCountriesRequest {
@@ -291,4 +292,14 @@ message UpdateCollectionTransactionStatusResponse {
   string sequence_id = 1;
   string status = 2;
   bool success = 3;
+}
+
+message ResolveBankAccountRequest {
+  string account_number = 1;
+  string network_id = 2;
+}
+message ResolveBankAccountResponse {
+  string account_name = 1;
+  string account_number = 2;
+  string account_bank = 3;
 }

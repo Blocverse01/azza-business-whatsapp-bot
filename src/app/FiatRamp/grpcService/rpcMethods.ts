@@ -116,3 +116,9 @@ export const updateCollectionTransactionStatus = promisifyUnary<
     fiatramps.v1.UpdateCollectionTransactionStatusRequest,
     fiatramps.v1.UpdateCollectionTransactionStatusResponse
 >(client, 'UpdateCollectionTransactionStatus');
+
+export const resolveBankAccount = promisifyUnary<
+    FiatRampsServiceClient,
+    fiatramps.v1.ResolveBankAccountRequest,
+    fiatramps.v1.ResolveBankAccountResponse
+>(client, 'ResolveBankAccount');
