@@ -259,9 +259,12 @@ class WhatsAppBotController {
             if (result.handledTextPrompt) {
                 const aiResponse = result.promptHandlerResponse.response;
 
-                const lastSessionId = result.promptHandlerResponse.resetSession
-                    ? ''
-                    : getSessionId(phoneParams.userPhoneNumber, result.classifiedAction.class);
+                const sessionId = getSessionId(
+                    phoneParams.userPhoneNumber,
+                    result.classifiedAction.class
+                );
+
+                const lastSessionId = result.promptHandlerResponse.resetSession ? '' : sessionId;
 
                 await createOrUpdateUserAgentThread({
                     userId: user.id,
@@ -269,12 +272,12 @@ class WhatsAppBotController {
                         {
                             role: 'user',
                             content: result.prompt,
-                            sessionId: lastSessionId,
+                            sessionId: sessionId,
                         },
                         {
                             role: 'assistant',
                             content: aiResponse,
-                            sessionId: lastSessionId,
+                            sessionId: sessionId,
                         },
                     ],
                     lastSessionId,
