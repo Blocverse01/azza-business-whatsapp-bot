@@ -535,7 +535,7 @@ class WhatsAppBotOffRampFlowService {
                         flow_token: generateRandomHexString(SIXTEEN),
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
-                        flow_cta: 'Sell Asset',
+                        flow_cta: 'Proceed',
                         flow_action: 'navigate',
                         flow_action_payload: {
                             screen: this.INITIAL_SCREEN,
