@@ -1272,7 +1272,7 @@ export const handleRatesPrompt = async (
 //                   Helper Functions
 /////////////////////////////////////////////////////////
 function parseExtractedArguments<T extends ZodSchema>(
-    extractedArguments: z.infer<T> | null | Record<string, unknown>,
+    extractedArguments: z.infer<T> | null | Record<string, unknown> | undefined,
     schema: T
 ): z.infer<T> {
     return schema.parse(extractedArguments);

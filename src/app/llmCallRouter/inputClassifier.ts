@@ -39,7 +39,7 @@ export const classifyAction = async (messages: Array<CoreMessage>): Promise<Acti
         system: `Some choices are given below. It is provided in a numbered list, where each item in the list corresponds to a followup task to be performed.\n----------------\n${choiceString}\n----------------\nUsing only the choices above and not prior knowledge, return the top choice that is most relevant to the given input. If none of the choices are relevant, return 'NO_PREDEFINED_ACTION'.`,
         messages: messages,
         schema: z.object({
-            action: actionSchema.optional(),
+            action: actionSchema.optional().nullable(),
         }),
     });
 
@@ -56,7 +56,7 @@ export const extractActionArgumentsFromMessages = async <T extends ZodSchema>(
         system: `Given the action class ${actionClass}, extract the arguments required to perform the action from the given messages. If an argument doesn't exist, return null. Never assume any argument that is not explicitly mentioned in the messages.`,
         messages: messages,
         schema: z.object({
-            args: schema.optional(),
+            args: schema.optional().nullable(),
         }),
     });
 
