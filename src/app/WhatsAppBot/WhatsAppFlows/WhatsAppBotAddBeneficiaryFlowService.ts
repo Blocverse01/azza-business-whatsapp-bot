@@ -412,7 +412,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
         return {
             screen: AddBeneficiaryFlowScreens.BANK_ACCOUNT_SUMMARY,
             data: {
-                account_name,
+                account_name: resolvedBankAccount?.accountName ?? account_name,
                 account_number,
                 bank_name: selectedBank.bankName,
                 channel_id,
