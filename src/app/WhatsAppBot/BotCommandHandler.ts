@@ -111,12 +111,12 @@ class BotCommandHandler {
 
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
-                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
                       {
                           action: ExploreAssetActions.BUY_ASSET,
                       }
                   )}`
-                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
                       {
                           action: ExploreAssetActions.BUY_ASSET,
                       }
@@ -133,9 +133,9 @@ class BotCommandHandler {
         const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
 
         if (!supportedAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
-            const responseMessage = `Selling ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+            const responseMessage = `Selling ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
                 {
-                    action: ExploreAssetActions.BUY_ASSET,
+                    action: ExploreAssetActions.SELL_ASSET,
                 }
             )}`;
 
@@ -172,12 +172,12 @@ class BotCommandHandler {
 
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
-                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
                       {
                           action: ExploreAssetActions.BUY_ASSET,
                       }
                   )}`
-                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
                       {
                           action: ExploreAssetActions.BUY_ASSET,
                       }
@@ -194,7 +194,7 @@ class BotCommandHandler {
         const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
 
         if (!supportedAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
-            const responseMessage = `Buying ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText(
+            const responseMessage = `Buying ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
                 {
                     action: ExploreAssetActions.BUY_ASSET,
                 }
@@ -259,8 +259,8 @@ class BotCommandHandler {
 
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
-                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText()}`
-                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText()}`;
+                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText()}`
+                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText()}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -295,8 +295,8 @@ class BotCommandHandler {
 
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
-                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText()}`
-                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains: ${getSupportedAssetAndNetworksText()}`;
+                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText()}`
+                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText()}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -326,17 +326,36 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
-        const assetId = [params.asset, params.network].join('-').toLowerCase();
+        const [searchAssetForward, searchAssetBackward] = [
+            searchAsset({
+                network: params.network as SupportedChain,
+                tokenName: params.asset,
+            })[0],
+            searchAsset({
+                network: params.asset as SupportedChain,
+                tokenName: params.network,
+            })[0],
+        ];
 
-        const supportedAsset = assetInteractiveButtonsIds.find(
-            (assetInteractiveButtonId) => assetInteractiveButtonId === assetId
-        );
+        if (!searchAssetForward && !searchAssetBackward) {
+            const responseMessage = !searchAssetForward
+                ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText()}`
+                : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText()}`;
 
-        if (!supportedAsset) {
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+            );
+
             return;
         }
 
-        return await WhatsAppBotService.handleUserAssetBalanceQuery(phoneParams, supportedAsset);
+        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+
+        return await WhatsAppBotService.handleUserAssetBalanceQuery(
+            phoneParams,
+            supportedAsset.listItemId
+        );
     }
 
     private static async resetTransactionPin(params: PhoneNumberParams) {
