@@ -156,6 +156,9 @@ class UserService {
 
             if (updatedRecord) {
                 await this.setUserCache(updatedRecord);
+
+                const cacheKey = `kyc-status-${user.phoneNumber}`;
+                await redis.set(cacheKey, info.kycStatus ?? '');
             }
         } catch (err) {
             throw new HttpException(INTERNAL_SERVER_ERROR, 'User info not updated!');
