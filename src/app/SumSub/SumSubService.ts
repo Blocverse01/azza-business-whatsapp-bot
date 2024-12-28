@@ -50,6 +50,8 @@ interface ApiRequestHeadersConfig {
     requestUri: string;
     bodyString?: string;
     requestMethod: UsedSumSubRequestMethods;
+    appSecret: string;
+    appToken: string;
 }
 
 interface ApplicantData {
@@ -77,28 +79,44 @@ interface ApplicantData {
             types: Array<string>;
         }>;
     };
+    metadata: Array<{
+        key: string;
+        value: string;
+    }>;
 }
 
 export const DEFAULT_KYC_LEVEL_NAME = 'Azza-verification' as const;
 export const NG_KYC_LEVEL_NAME = 'Azza-verification-Nigeria' as const;
 
+const BVN_METADATA_KEY = 'BVN Number' as const;
+
 class SumSubService {
-    private static readonly APP_TOKEN = env.SUM_SUB_APP_TOKEN;
+    private static APP_TOKEN = env.SUM_SUB_APP_TOKEN;
 
-    private static readonly APP_TOKEN_SECRET = env.SUM_SUB_APP_TOKEN_SECRET;
+    private static APP_TOKEN_SECRET = env.SUM_SUB_APP_TOKEN_SECRET;
 
-    private static readonly WEBHOOK_PRIVATE_KEY = env.SUM_SUB_WEBHOOK_PRIVATE_KEY;
+    private static WEBHOOK_PRIVATE_KEY = env.SUM_SUB_WEBHOOK_PRIVATE_KEY;
 
-    private static readonly BASE_API_URL = 'https://api.sumsub.com';
-
-    private static readonly KYC_LEVEL_NAME = 'Azza-verification' as const;
+    private static BASE_API_URL = 'https://api.sumsub.com';
 
     private static readonly API_TTL_IN_SECS = 600;
 
     public static readonly SERVICE_IS_ACTIVE = true;
 
-    private static generateAccessSignature(input: AccessSignatureInput) {
-        const sha256Hash = crypto.createHmac('sha256', this.APP_TOKEN_SECRET);
+    public static withConfig(params: {
+        appToken: string;
+        appTokenSecret: string;
+        baseUrl: string;
+    }) {
+        this.APP_TOKEN = params.appToken;
+        this.APP_TOKEN_SECRET = params.appTokenSecret;
+        this.BASE_API_URL = params.baseUrl;
+
+        return this;
+    }
+
+    private static generateAccessSignature(input: AccessSignatureInput, secret: string) {
+        const sha256Hash = crypto.createHmac('sha256', secret);
 
         sha256Hash.update(input);
 
@@ -114,7 +132,10 @@ class SumSubService {
             bodyString ?? ''
         }`;
 
-        const appAccessSignature = this.generateAccessSignature(accessSignatureInput);
+        const appAccessSignature = this.generateAccessSignature(
+            accessSignatureInput,
+            this.APP_TOKEN_SECRET
+        );
 
         return {
             'X-App-Access-Ts': `${requestTime}`,
@@ -144,6 +165,8 @@ class SumSubService {
             requestUri,
             requestMethod,
             bodyString: JSON.stringify(body),
+            appSecret: this.APP_TOKEN_SECRET,
+            appToken: this.APP_TOKEN,
         });
 
         const response = await axios.post<{ url: string }>(endpoint, body, {
@@ -181,7 +204,7 @@ class SumSubService {
     }
 
     private static extractUserInformation(applicantData: ApplicantData) {
-        const { info, requiredIdDocs, phone } = applicantData;
+        const { info, requiredIdDocs, phone, metadata } = applicantData;
 
         const { firstName, lastName, idDocs, dob } = info;
 
@@ -193,6 +216,8 @@ class SumSubService {
             kycDocumentNumber: string;
             kycIdType: string;
             phoneNumber?: string;
+            additionalKycIdType?: string;
+            additionalKycIdNumber?: string;
         } = {
             kycIdType: '',
             kycDateOfBirth: '',
@@ -206,6 +231,10 @@ class SumSubService {
             (docSet) => docSet.idDocSetType === 'IDENTITY'
         );
 
+        const bvnMetadata = metadata.find(
+            (meta) => meta.key.toLowerCase() === BVN_METADATA_KEY.toLowerCase()
+        );
+
         // ID info
         if (identityDocSet) {
             const docTypes = identityDocSet.types;
@@ -217,6 +246,11 @@ class SumSubService {
                 userInfo['kycDocumentNumber'] = identityDoc.number;
                 userInfo['country'] = identityDoc.country;
             }
+        }
+
+        if (bvnMetadata) {
+            userInfo['additionalKycIdType'] = 'BVN';
+            userInfo['additionalKycIdNumber'] = bvnMetadata.value;
         }
 
         userInfo['firstName'] = firstName;
@@ -268,7 +302,7 @@ class SumSubService {
         return eventHandlers[event];
     }
 
-    private static async getApplicantData(applicantId: string) {
+    public static async getApplicantData(applicantId: string) {
         const requestMethod: UsedSumSubRequestMethods = 'GET';
 
         const requestUri = `/resources/applicants/${applicantId}/one`;
@@ -278,6 +312,8 @@ class SumSubService {
         const requestHeaders = this.generateRequiredApiRequestHeaders({
             requestUri,
             requestMethod,
+            appSecret: this.APP_TOKEN_SECRET,
+            appToken: this.APP_TOKEN,
         });
 
         const response = await fetch(endpoint, {
