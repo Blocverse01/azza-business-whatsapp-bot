@@ -1,6 +1,8 @@
 import { SwapTokensTransactionDetails } from '@/app/azza/azza.schema';
 import { getDefaultSolanaNode, getSolanaNetworkClient } from '@/app/ExtendedWallet/solana/config';
 import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
+import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
+import { ChainsSupportedByLifi } from '@/app/LiFi/LiFiIntegrationLibrary';
 import UserService from '@/app/User/UserService';
 import Web3Library from '@/app/WalletAssetManagement/Web3Library';
 import { TransactionResponse } from '@/app/WalletKit/walletKitSchema';
@@ -20,8 +22,7 @@ import { validateWalletAddress } from '@/resources/utils/validators';
 import { SPENDING_APPROVAL_ABI } from '@/resources/web3/evm/abis/erc20';
 import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
-import { TokenNames } from '@/resources/web3/tokens';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { Address, encodeFunctionData, formatUnits, getAddress, Hex, parseUnits } from 'viem';
 
 export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) => {
@@ -124,7 +125,13 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
         return;
     }
 
-    let finalApprovalResponse: TransactionResponse | null = null;
+    let finalApprovalResponse:
+        | TransactionResponse
+        | {
+              status: TransactionResponse['status'];
+              explorerUrl: string | null;
+          }
+        | null = null;
 
     if (
         approvalAddress &&
@@ -149,7 +156,9 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
         });
 
         finalApprovalResponse = await waitForFinalTransactionReceipt(
-            approvalResponse.transaction_id
+            approvalResponse.transaction_id,
+            userId,
+            fromChain
         );
     }
 
@@ -161,25 +170,58 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
         return;
     }
 
-    const response = await WalletKitService.signAndSendTransaction({
-        signer_wallet_address: userWallet.address as Address,
-        network: fromChain,
-        unsigned_transaction: {
-            to: transactionRequest.to as Hex,
-            input: transactionRequest.data as Hex,
-            value: transactionRequest.value as Hex,
-        },
-        developer_secret: WalletKitService.DEVELOPER_SECRET,
-    });
+    let transactionId: string | null = null;
+
+    if (isExtendedNetwork(fromChain)) {
+        const extendedWallet = await UserService.getExtendedWallet(userId, fromChain);
+
+        if (fromChain === 'Solana' && transactionRequest?.data) {
+            const keypair = ExtendedSolanaWalletLibrary.getKeyPairFromPrivateKeyString(
+                extendedWallet.privateKey
+            );
+
+            const decodedTx = new Uint8Array(Buffer.from(transactionRequest.data, 'base64'));
+            const deserializedTx = VersionedTransaction.deserialize(decodedTx);
+
+            deserializedTx.sign([keypair]);
+
+            transactionId = await ExtendedSolanaWalletLibrary.sendTransactionWithRetries(
+                getSolanaNetworkClient(getDefaultSolanaNode()),
+                deserializedTx,
+                keypair
+            );
+        }
+    } else {
+        transactionId = (
+            await WalletKitService.signAndSendTransaction({
+                signer_wallet_address: userWallet.address as Address,
+                network: fromChain,
+                unsigned_transaction: {
+                    to: transactionRequest.to as Hex,
+                    input: transactionRequest.data as Hex,
+                    value: transactionRequest.value as Hex,
+                },
+                developer_secret: WalletKitService.DEVELOPER_SECRET,
+            })
+        ).transaction_id;
+    }
+
+    if (!transactionId) {
+        throw new Error('Error sending transaction');
+    }
 
     await WhatsAppBotService.sendArbitraryTextMessage(
         userId,
-        `⏺️ *Your swap transaction is being processed*\n\nSummary: ${transactionSummaryForWhatsApp}\n\nRequest ID: ${response.transaction_id}\n\n_Usually takes a few minutes to complete._`
+        `⏺️ *Your swap transaction is being processed*\n\nSummary: ${transactionSummaryForWhatsApp}\n\nRequest ID: ${transactionId}\n\n_Usually takes a few minutes to complete._`
     );
 
-    const finalResponse = await waitForFinalTransactionReceipt(response.transaction_id);
+    const swapTxFinalResponse = await waitForFinalTransactionReceipt(
+        transactionId,
+        userId,
+        fromChain
+    );
 
-    if (finalResponse.status === 'success') {
+    if (swapTxFinalResponse.status === 'success') {
         const assetConfig = searchAsset({
             network: toChain,
             tokenName: toToken.symbol,
@@ -217,10 +259,15 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
             interactiveListMessage
         );
     } else {
+        const explorerUrl =
+            'explorer_url' in swapTxFinalResponse
+                ? swapTxFinalResponse.explorer_url!
+                : swapTxFinalResponse.explorerUrl;
+
         const message = MessageGenerators.generateInteractiveCtaUrlButtonMessage({
             bodyText: `❌ *Your swap transaction failed*\n\nSummary: ${transactionSummaryForWhatsApp}\n\n_Please try again later or contact support for assistance._`,
             ctaText: 'View In Explorer',
-            ctaUrl: finalResponse.explorer_url!,
+            ctaUrl: explorerUrl!,
             recipient: userId,
             headerText: 'Transaction Failed',
             footerText: 'Thank you for using Azza!',
@@ -230,13 +277,25 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
     }
 };
 
-async function waitForFinalTransactionReceipt(transactionId: string) {
-    const transactionDetails = await WalletKitService.getTransactionById(transactionId);
+async function waitForFinalTransactionReceipt(
+    transactionId: string,
+    userId: string,
+    network: ChainsSupportedByLifi
+) {
+    const transactionDetails = await (async () => {
+        if (isExtendedNetwork(network)) {
+            const extendedWallet = await UserService.getExtendedWallet(userId, network);
+
+            return await extendedWallet.getTransaction(transactionId);
+        } else {
+            return await WalletKitService.getTransactionById(transactionId);
+        }
+    })();
 
     if (transactionDetails.status === 'submitted' || transactionDetails.status === 'pending') {
         await delay(3000);
 
-        return waitForFinalTransactionReceipt(transactionId);
+        return waitForFinalTransactionReceipt(transactionId, userId, network);
     }
 
     return transactionDetails;

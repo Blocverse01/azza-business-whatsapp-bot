@@ -16,7 +16,7 @@ import {
 } from '@solana/web3.js';
 import { mnemonicToSeedSync } from '@scure/bip39';
 import { derivePath } from 'ed25519-hd-key';
-import { uint8ArrayToHex } from '@/resources/utils/encoding';
+import { hexToUint8Array, uint8ArrayToHex } from '@/resources/utils/encoding';
 import {
     CONFIRMED_COMMITMENT,
     TOKEN_PROGRAM_ID,
@@ -49,6 +49,10 @@ class ExtendedSolanaWalletLibrary {
             privateKey: privateKey,
             address: address,
         });
+    }
+
+    public static getKeyPairFromPrivateKeyString(privateKey: string): Keypair {
+        return Keypair.fromSecretKey(hexToUint8Array(privateKey));
     }
 
     public static async getWalletNativeBalance(
@@ -140,10 +144,11 @@ class ExtendedSolanaWalletLibrary {
         versionedTransaction.sign([fromKeypair]);
 
         // Send the transaction
-        return await solanaNetworkClient.sendTransaction(versionedTransaction, {
-            skipPreflight: false,
-            preflightCommitment: CONFIRMED_COMMITMENT,
-        });
+        return await this.sendTransactionWithRetries(
+            solanaNetworkClient,
+            versionedTransaction,
+            fromKeypair
+        );
     }
 
     public static async transferToken(
@@ -167,6 +172,71 @@ class ExtendedSolanaWalletLibrary {
             skipPreflight: false,
             preflightCommitment: CONFIRMED_COMMITMENT,
         });
+    }
+
+    public static async sendTransactionWithRetries(
+        solanaNetworkClient: Connection,
+        transaction: VersionedTransaction,
+        fromKeypair: Keypair,
+        maxRetries: number = 5,
+        retryDelay: number = 1000 // 1 second
+    ): Promise<string> {
+        let retries = 0;
+        let transactionHash: string | null = null;
+
+        while (retries < maxRetries) {
+            try {
+                // Update blockhash before each retry
+                const { blockhash, lastValidBlockHeight } =
+                    await solanaNetworkClient.getLatestBlockhash();
+                transaction.message.recentBlockhash = blockhash;
+
+                // Resign the transaction with the updated blockhash
+                transaction.sign([fromKeypair]);
+
+                // Extract the transaction hash
+                transactionHash = transaction.signatures[0]
+                    ? bs58.encode(Buffer.from(transaction.signatures[0]))
+                    : null;
+
+                if (!transactionHash) {
+                    throw new Error('Failed to generate transaction hash');
+                }
+
+                // Resubmit the same transaction with the updated blockhash
+                await solanaNetworkClient.sendRawTransaction(transaction.serialize(), {
+                    skipPreflight: false,
+                    preflightCommitment: CONFIRMED_COMMITMENT,
+                });
+
+                // Wait for confirmation
+                const confirmation = await solanaNetworkClient.confirmTransaction(
+                    {
+                        signature: transactionHash,
+                        blockhash: blockhash,
+                        lastValidBlockHeight: lastValidBlockHeight,
+                    },
+                    CONFIRMED_COMMITMENT
+                );
+
+                if (confirmation.value.err) {
+                    console.warn(`Transaction ${transactionHash} failed. Retrying...`);
+                } else {
+                    console.log(`Transaction ${transactionHash} confirmed!`);
+                    return transactionHash; // Exit if confirmed
+                }
+            } catch (error) {
+                console.error(`Attempt ${retries + 1} failed: ${(error as Error).message}`);
+            }
+
+            retries += 1;
+            console.log(`Retrying transaction... (${retries}/${maxRetries})`);
+            await new Promise((resolve) => setTimeout(resolve, retryDelay)); // Wait before retrying
+        }
+
+        throw new Error(
+            `Failed to confirm transaction after ${maxRetries} retries. Last transaction hash: ${transactionHash}`
+        );
     }
 
     public static async transferTokenWithRetries(

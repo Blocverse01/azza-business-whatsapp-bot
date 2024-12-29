@@ -1,5 +1,6 @@
 import { SecurityQuestion } from '@/app/azza/azza.schema';
 import redis from '@/app/cache/redis';
+import ExtendedSolanaWallet from '@/app/ExtendedWallet/solana/ExtendedSolanaWallet';
 import env from '@/constants/env';
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import { dbClient } from '@/db/dbClient';
@@ -285,13 +286,16 @@ class UserService {
         userPhoneNumber: string,
         network: ExtendedWalletSupportedNetworks
     ): Promise<ExtendedWallet> {
-        const mnemonic = await this.getMnemonicForExtendedWallet(userPhoneNumber);
+        const mnemonic =
+            network === 'Solana'
+                ? await this.getMnemonicForExtendedWallet(userPhoneNumber, 'Solana')
+                : await this.getMnemonicForExtendedWallet(userPhoneNumber);
 
         switch (network) {
             case 'Tron':
                 return new ExtendedTronWallet(mnemonic);
-            // case 'Solana':
-            //     return new ExtendedSolanaWallet(mnemonic);
+            case 'Solana':
+                return new ExtendedSolanaWallet(mnemonic);
             default:
                 throw new Error(`Extended wallet implementation for: ${network} not added yet`);
         }
@@ -466,13 +470,20 @@ class UserService {
         const fulfilledSettlements = settledPromises.filter(
             (settlement) => settlement.status === 'fulfilled'
         ) as Array<PromiseFulfilledResult<CreateWalletKitWalletResponse | ExtendedWallet>>;
-        const availableWallets = fulfilledSettlements.map((settlement) => settlement.value);
+        let availableWallets = fulfilledSettlements.map((settlement) => settlement.value);
 
-        const mnemonic = await this.getMnemonicForExtendedWallet(userPhoneNumber);
+        const [ethMnemonic, solanaMnemonic] = await Promise.all([
+            this.getMnemonicForExtendedWallet(userPhoneNumber),
+            this.getMnemonicForExtendedWallet(userPhoneNumber, 'Solana'),
+        ]);
 
         // Add Tron Extended Wallet
-        availableWallets.push(new ExtendedTronWallet(mnemonic));
-        // availableWallets.push(new ExtendedSolanaWallet(mnemonic));
+        availableWallets.push(new ExtendedTronWallet(ethMnemonic));
+
+        // Remove WalletKit's solana wallet and add ExtendedSolanaWallet
+        availableWallets = availableWallets.filter((wallet) => wallet.network !== 'Solana');
+
+        availableWallets.push(new ExtendedSolanaWallet(solanaMnemonic));
         // TODO: add other extended wallets
 
         return availableWallets;
@@ -586,9 +597,10 @@ class UserService {
         return wallet;
     }
 
-    private static async getMnemonicForExtendedWallet(phoneNumber: string) {
-        const network: SupportedChain = 'Ethereum'; // This should never change once set, else a different mnemonic will be generated
-
+    private static async getMnemonicForExtendedWallet(
+        phoneNumber: string,
+        network: SupportedChain = 'Ethereum'
+    ) {
         const wallet = await WalletKitService.getUserWalletByNetwork(phoneNumber, network);
 
         const walletIdentity = await WalletKitService.exportWallet({

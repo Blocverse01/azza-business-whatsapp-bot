@@ -2,13 +2,7 @@ import { z } from 'zod';
 import { isAddress, isHex } from 'viem';
 
 // Todo: Migrate Solana to WalletKit provider.
-export const SUPPORTED_CHAINS = [
-    'Polygon',
-    'Base',
-    'Optimism',
-    'Ethereum',
-    'Solana',
-] as const;
+export const SUPPORTED_CHAINS = ['Polygon', 'Base', 'Optimism', 'Ethereum', 'Solana'] as const;
 export const supportedChainSchema = z.enum(SUPPORTED_CHAINS);
 export type SupportedChain = z.infer<typeof supportedChainSchema>;
 
@@ -63,7 +57,7 @@ export type SignAndSendTransactionParams = z.infer<typeof signAndSendTransaction
 export const transactionResponse = z.object({
     transaction_id: z.string(),
     network: supportedChainSchema,
-    status: z.enum(['success', 'submitted', 'failed', 'pending']),
+    status: z.enum(['success', 'submitted', 'failed', 'pending', 'reverted']),
     contract_address: z.string().nullable(),
     explorer_url: z.string().url().nullable(),
     transaction_hash: z.string().nullable(),

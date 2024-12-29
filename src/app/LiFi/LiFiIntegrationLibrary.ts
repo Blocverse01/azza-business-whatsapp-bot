@@ -4,7 +4,7 @@ import { createConfig, getActiveRoute, getQuote, QuoteRequest } from '@lifi/sdk'
 
 export type ChainsSupportedByLifi = Exclude<SupportedChain, 'Lisk'>;
 
-const chainsSupportedByLifi: ChainsSupportedByLifi[] = [
+export const chainsSupportedByLifi: ChainsSupportedByLifi[] = [
     'Solana',
     'Optimism',
     'Ethereum',
