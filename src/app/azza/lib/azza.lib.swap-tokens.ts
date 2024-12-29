@@ -45,9 +45,14 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
         throw new Error('Transaction pin is required');
     }
 
+    const fromAssetConfig = searchAsset({
+        network: fromChain,
+        tokenName: fromToken.symbol,
+    })[0];
+
     const [user, userWallet] = await Promise.all([
         UserService.getUserByPhoneNumber(userId),
-        WalletKitService.getUserWalletByNetwork(userId, 'Base'),
+        UserService.getOrCreateUserAssetWallet(userId, fromAssetConfig.listItemId),
     ]);
 
     if (!user?.transactionPinHash) {
@@ -72,13 +77,13 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
                   if (!validateWalletAddress(fromToken.id, fromChain)) {
                       return await ExtendedSolanaWalletLibrary.getWalletNativeBalance(
                           connection,
-                          new PublicKey(userWallet.address)
+                          new PublicKey(userWallet.walletAddress)
                       );
                   }
                   return await ExtendedSolanaWalletLibrary.getWalletTokenBalance(
                       connection,
                       new PublicKey(fromToken.id),
-                      new PublicKey(userWallet.address)
+                      new PublicKey(userWallet.walletAddress)
                   );
               })()
             : await (async () => {
@@ -94,14 +99,14 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
                   ) {
                       return await Web3Library.getNativeBalance(
                           publicClient,
-                          getAddress(userWallet.address)
+                          getAddress(userWallet.walletAddress)
                       );
                   }
 
                   return await Web3Library.getHumanReadableTokenBalance(
                       publicClient,
                       getAddress(fromToken.id),
-                      getAddress(userWallet.address)
+                      getAddress(userWallet.walletAddress)
                   );
               })();
 
@@ -146,7 +151,7 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
         });
 
         const approvalResponse = await WalletKitService.signAndSendTransaction({
-            signer_wallet_address: userWallet.address as Address,
+            signer_wallet_address: userWallet.walletAddress as Address,
             network: fromChain,
             unsigned_transaction: {
                 to: fromToken.id as Hex,
@@ -194,7 +199,7 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
     } else {
         transactionId = (
             await WalletKitService.signAndSendTransaction({
-                signer_wallet_address: userWallet.address as Address,
+                signer_wallet_address: userWallet.walletAddress as Address,
                 network: fromChain,
                 unsigned_transaction: {
                     to: transactionRequest.to as Hex,

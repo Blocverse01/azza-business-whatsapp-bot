@@ -762,7 +762,7 @@ class WhatsAppBotService {
     ) {
         if (
             !FiatRampService.SERVICE_ENABLED ||
-            !canAccessFeature(userFeatureAccessLevel, FeatureAccessLevel.STAGING)
+            !canAccessFeature(userFeatureAccessLevel, FeatureAccessLevel.PRODUCTION)
         ) {
             return await this.sendArbitraryTextMessage(
                 phoneParams.userPhoneNumber,
@@ -804,7 +804,7 @@ class WhatsAppBotService {
     ) {
         if (
             !FiatRampService.SERVICE_ENABLED ||
-            !canAccessFeature(userFeatureAccessLevel, FeatureAccessLevel.STAGING)
+            !canAccessFeature(userFeatureAccessLevel, FeatureAccessLevel.PRODUCTION)
         ) {
             return await this.sendArbitraryTextMessage(
                 phoneParams.userPhoneNumber,

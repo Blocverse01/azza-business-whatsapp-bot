@@ -105,5 +105,12 @@ export const sendTransferAssetTransaction = async (params: TransferAssetTransact
     }
 
     if (transferProcessingConfig.processingMode === 'claimable') {
+        await WhatsAppBotService.sendWhatsappMessage(
+            env.WA_PHONE_NUMBER_ID,
+            MessageGenerators.generateTextMessage(
+                userId,
+                `You can only transfer to Phone Numbers on Azza at the moment.`
+            )
+        );
     }
 };
