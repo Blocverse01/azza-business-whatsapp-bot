@@ -123,7 +123,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
                 screen: TransactionConfirmationFlowScreens.ENTER_TRANSACTION_PIN,
                 data: {
                     error_messages: {
-                        transaction_pin: 'Invalid transaction pin',
+                        transaction_pin: 'Incorrect transaction pin',
                     },
                     transaction_summary,
                     transaction_details,

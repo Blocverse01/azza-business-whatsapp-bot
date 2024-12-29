@@ -3,6 +3,7 @@ import {
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { compareHashedString } from '@/resources/utils/hashing';
 import { TokenNames } from '@/resources/web3/tokens';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import {
@@ -69,9 +70,19 @@ type DataExchangedFromTransactionSummaryScreen = {
     token_amount: string;
     user_id: string;
     fiat_to_receive: string;
-    beneficiary_id: string;
     transaction_fee: string;
+    conversion_rate: string;
+    platform_fee_percentage: string;
     fiat_currency: string;
+    transaction_pin: string;
+    beneficiary: {
+        id: string;
+        account_name: string;
+        account_number: string;
+        provider_name: string;
+        currency_symbol: string;
+        country_code: string;
+    };
 };
 
 type AmountInputScreenData = {
@@ -161,7 +172,10 @@ class WhatsAppBotOffRampFlowService {
 
     private static generateTokenAmountPattern(
         amount: number,
-        asset: UserAssetInfo,
+        asset: {
+            assetName: TokenNames;
+            assetNetwork: SupportedChain | ExtendedWalletSupportedNetworks;
+        },
         transactionFee: number
     ) {
         const tokenAmount: TokenAmountPattern = `${amount} ${asset.assetName} (${asset.assetNetwork})${SECTION_SEPARATOR}Fee = ${transactionFee} ${asset.assetName}`;
@@ -172,10 +186,10 @@ class WhatsAppBotOffRampFlowService {
     private static generateFiatToReceivePattern(
         rate: number,
         currency: string,
-        asset: UserAssetInfo,
+        assetName: TokenNames,
         fiatAmount: number
     ) {
-        return `${formatNumberAsCurrency(fiatAmount, currency)}${SECTION_SEPARATOR}1 ${asset.assetName} = ${formatNumberAsCurrency(rate, currency)}` satisfies FiatToReceivePattern;
+        return `${formatNumberAsCurrency(fiatAmount, currency)}${SECTION_SEPARATOR}1 ${assetName} = ${formatNumberAsCurrency(rate, currency)}` satisfies FiatToReceivePattern;
     }
 
     private static generateDestinationString(
@@ -297,6 +311,7 @@ class WhatsAppBotOffRampFlowService {
         }
 
         const transactionFee = fixNumber(usdAmount * fee, THREE);
+        const feePercentage = math.multiply(fee, HUNDRED);
 
         const token_amount: TokenAmountPattern = this.generateTokenAmountPattern(
             fixNumber(usdAmount, THREE),
@@ -314,7 +329,7 @@ class WhatsAppBotOffRampFlowService {
         const fiat_to_receive: FiatToReceivePattern = this.generateFiatToReceivePattern(
             conversionRate,
             beneficiary.currency_symbol,
-            assetWallet,
+            assetWallet.assetName,
             fiatEquivalent
         );
 
@@ -333,10 +348,11 @@ class WhatsAppBotOffRampFlowService {
                     token_amount: decimalToString(fixNumber(usdAmount, THREE)),
                     transaction_fee: transactionFee.toString(),
                     fiat_to_receive: fiatEquivalent.toString(),
-                    beneficiary_id: beneficiary.id,
+                    beneficiary: beneficiary,
                     token_amount_to_debit: amountToDebit.toString(),
                     conversion_rate,
                     usd_amount: token_amount_to_debit,
+                    platform_fee_percentage: feePercentage.toString(),
                 },
                 fiat_currency: beneficiary.currency_symbol,
             },
@@ -349,24 +365,98 @@ class WhatsAppBotOffRampFlowService {
             token_amount,
             token_amount_to_debit,
             fiat_to_receive,
-            beneficiary_id,
+            beneficiary,
             user_id,
             fiat_currency,
+            platform_fee_percentage,
+            conversion_rate,
+            transaction_pin,
         } = input;
+
+        const user = await UserService.getUserByPhoneNumber(user_id);
+        const assetConfig = getAssetConfigOrThrow(asset_id);
+
+        if (!user?.transactionPinHash) {
+            return {
+                screen: OffRampFlowScreens.ERROR_FEEDBACK,
+                data: {
+                    status: 'Failed',
+                    message: 'Transaction pin not set',
+                    icon_src: ERROR_FEEDBACK_ICON,
+                },
+            };
+        }
+
+        const pinIsValid = await compareHashedString(transaction_pin, user.transactionPinHash);
+
+        if (!pinIsValid) {
+            const usdAmount = parseFloat(token_amount);
+            const usdAmountToDebit = parseFloat(token_amount_to_debit);
+            const transactionFee = parseFloat(input.transaction_fee);
+            const fiatEquivalent = parseFloat(fiat_to_receive);
+
+            const token_amount_to_debit_display: TokenAmountToDebitPattern = `${usdAmountToDebit} ${assetConfig.tokenName as TokenNames}`;
+            const fiat_to_receive_display: FiatToReceivePattern = this.generateFiatToReceivePattern(
+                parseFloat(conversion_rate),
+                beneficiary.currency_symbol,
+                assetConfig.tokenName as TokenNames,
+                fiatEquivalent
+            );
+            const token_amount_display: TokenAmountPattern = this.generateTokenAmountPattern(
+                fixNumber(usdAmount, THREE),
+                {
+                    assetName: assetConfig.tokenName as TokenNames,
+                    assetNetwork: assetConfig.network,
+                },
+                transactionFee
+            );
+
+            return {
+                screen: OffRampFlowScreens.TRANSACTION_SUMMARY,
+                data: {
+                    asset_id,
+                    user_id,
+                    display_data: {
+                        token_amount: token_amount_display,
+                        token_amount_to_debit: token_amount_to_debit_display,
+                        destination_account: this.generateDestinationString(beneficiary),
+                        fiat_to_receive: fiat_to_receive_display,
+                    },
+                    transaction_details: {
+                        token_amount: decimalToString(fixNumber(usdAmount, THREE)),
+                        transaction_fee: transactionFee.toString(),
+                        fiat_to_receive: fiatEquivalent.toString(),
+                        beneficiary: beneficiary,
+                        token_amount_to_debit: usdAmountToDebit.toString(),
+                        conversion_rate,
+                        usd_amount: token_amount_to_debit,
+                        platform_fee_percentage: platform_fee_percentage,
+                    },
+                    fiat_currency: beneficiary.currency_symbol,
+                    init_values: {
+                        transaction_pin,
+                    },
+                    error_messages: {
+                        transaction_pin: 'Incorrect transaction pin',
+                    },
+                },
+            };
+        }
+
         const response = await this.processOffRampTransaction({
             assetId: asset_id,
             fiatAmount: parseFloat(fiat_to_receive),
             tokenAmount: parseFloat(token_amount),
             tokenAmountToDebit: parseFloat(token_amount_to_debit),
-            beneficiaryId: beneficiary_id,
+            beneficiaryId: beneficiary.id,
             userId: user_id,
+            platformFeePercentage: parseFloat(platform_fee_percentage),
+            conversionRate: parseFloat(conversion_rate),
         });
 
         if (response.status === 'processing') {
-            const assetConfig = getAssetConfigOrThrow(asset_id);
-
             const message = generateOfframpProcessingMessage({
-                tokenAmount: token_amount,
+                tokenAmount: token_amount_to_debit,
                 assetName: assetConfig.tokenName,
                 assetNetwork: assetConfig.network,
                 localCurrency: fiat_currency,
@@ -397,9 +487,18 @@ class WhatsAppBotOffRampFlowService {
         tokenAmount: number;
         tokenAmountToDebit: number;
         beneficiaryId: string;
+        platformFeePercentage: number;
+        conversionRate: number;
     }): Promise<ProcessOffRampTransactionResponse> {
-        const { fiatAmount, userId, assetId, tokenAmountToDebit, beneficiaryId, tokenAmount } =
-            params;
+        const {
+            fiatAmount,
+            userId,
+            assetId,
+            tokenAmountToDebit,
+            beneficiaryId,
+            platformFeePercentage,
+            conversionRate,
+        } = params;
 
         const assetConfig = getAssetConfigOrThrow(assetId);
         const walletInfo = await UserService.getUserAssetInfo(userId, assetId);
@@ -418,14 +517,6 @@ class WhatsAppBotOffRampFlowService {
             const { transactionId, hotWalletAddress } = await UserService.sendUserAssetForOfframp(
                 walletInfo,
                 tokenAmountToDebit.toString()
-            );
-
-            // Todo: Pass exact value for conversionRate, platformPercentage from flow, to prevent rounding errors.
-            const conversionRate = math.divide(fiatAmount, tokenAmount);
-            const transactionFee = math.subtract(tokenAmountToDebit, tokenAmount);
-            const platformFeePercentage = math.multiply(
-                math.divide(transactionFee, tokenAmount),
-                HUNDRED
             );
 
             // Process in background and return early processing response

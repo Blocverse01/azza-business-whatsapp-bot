@@ -338,7 +338,7 @@ class WhatsAppBotTransferToWalletFlowService {
                     transaction_fee: data.transaction_fee,
                     transaction_pin: data.transaction_pin,
                     error_messages: {
-                        transaction_pin: 'Invalid transaction pin',
+                        transaction_pin: 'Incorrect transaction pin',
                     },
                     init_values: {
                         transaction_pin: data.transaction_pin,

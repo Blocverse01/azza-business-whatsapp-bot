@@ -382,7 +382,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
         ) {
             resolvedBankAccount = await FiatRampService.resolveBankAccount(
                 selectedBank.networkId,
-                account_number
+                account_number.trim()
             );
         }
 
@@ -452,8 +452,8 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 'bank',
                 {
                     beneficiary: {
-                        accountName: account_name,
-                        accountNumber: account_number,
+                        accountName: account_name.trim(),
+                        accountNumber: account_number.trim(),
                         bankName: bank_name,
                         networkId: network_id,
                         channelId: channel_id,
