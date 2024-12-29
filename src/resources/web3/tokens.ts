@@ -130,6 +130,7 @@ export const polConfig = {
         ExploreAssetActions.DEPOSIT,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
+    isNative: true,
 } satisfies AssetConfig;
 
 // Base Assets
@@ -156,6 +157,7 @@ export const ethBaseConfig = {
         ExploreAssetActions.DEPOSIT,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
+    isNative: true,
 } satisfies AssetConfig;
 
 // Ethereum Assets
@@ -194,6 +196,7 @@ export const ethEthereumConfig = {
         ExploreAssetActions.DEPOSIT,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
+    isNative: true,
 } satisfies AssetConfig;
 
 /////////////////////
@@ -234,6 +237,7 @@ export const ethOptimismConfig = {
         ExploreAssetActions.DEPOSIT,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
+    isNative: true,
 } satisfies AssetConfig;
 /// ============== OP ==============
 export const opOptimismConfig = {

@@ -1,7 +1,7 @@
 import { ChainsWithNotifySupport } from '@/app/AlchemyNotify/config';
 import { type AlchemyAddressActivityWebhookEvent } from '@/app/AlchemyNotify/webhookUtils';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import { getAssetConfigByTokenAddress } from '@/config/whatsAppBot';
+import { getAssetConfigByTokenAddress, searchAsset } from '@/config/whatsAppBot';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
 import { generateReceivedTokenMessage } from '@/resources/utils/bot-message-utils';
 import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
@@ -36,8 +36,6 @@ class AlchemyNotifyService {
             return;
         }
 
-        console.dir(payload, { depth: null });
-
         const targetActivity = payload.event.activity.find((activity) => {
             const rawContract = activity.rawContract;
             const activityCategory = activity.category;
@@ -65,7 +63,12 @@ class AlchemyNotifyService {
 
         const { fromAddress, toAddress, value, rawContract } = targetActivity;
 
-        const assetConfig = getAssetConfigByTokenAddress(rawContract.address);
+        const assetConfig = rawContract.address
+            ? getAssetConfigByTokenAddress(rawContract.address)
+            : searchAsset({
+                  tokenName: targetActivity.asset,
+                  network,
+              })[0];
 
         if (!assetConfig) {
             return;

@@ -96,7 +96,7 @@ export interface Log {
 
 export interface RawContract {
     rawValue: string;
-    address: string;
+    address?: string;
     decimals: number;
 }
 
