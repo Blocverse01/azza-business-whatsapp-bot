@@ -20,6 +20,7 @@ import {
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { FeatureAccessLevel } from '@/config/whatsAppBot';
+import logger from '@/resources/logger';
 
 type TextPromptHandlerParams = {
     storedMessages: Array<{
@@ -62,8 +63,43 @@ export const textPromptHandler = async (
         content: params.prompt.trim(),
     });
 
-    // Step 1: Classify the action - LLM Usage 1
-    const classifiedAction = await classifyAction(runtimeMessages);
+    let classifiedAction: Action | null = null;
+
+    try {
+        // Step 1: Classify the action - LLM Usage 1
+        classifiedAction = await classifyAction(runtimeMessages);
+    } catch (error) {
+        const response = await handleUserPrompt({
+            messages: runtimeMessages,
+            userProfile: {
+                id: params.botParams.userPhoneNumber,
+            },
+        });
+
+        const promptResponse = response.assistantMessage.content;
+        await WhatsAppBotService.sendWhatsappMessage(
+            params.botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, promptResponse)
+        );
+
+        await logger.error('Error in classifying action', {
+            error,
+            messages: runtimeMessages,
+        });
+
+        return {
+            handledTextPrompt: true,
+            classifiedAction: {
+                class: 'NO_PREDEFINED_ACTION',
+                confidence: 1,
+            },
+            prompt: params.prompt,
+            promptHandlerResponse: {
+                response: promptResponse,
+                resetSession: false,
+            },
+        };
+    }
 
     if (classifiedAction.class === 'NO_PREDEFINED_ACTION') {
         // Branch 1 [No identified action]: LLM Usage 2
