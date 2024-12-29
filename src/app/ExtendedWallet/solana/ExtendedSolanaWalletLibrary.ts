@@ -178,7 +178,7 @@ class ExtendedSolanaWalletLibrary {
         solanaNetworkClient: Connection,
         transaction: VersionedTransaction,
         fromKeypair: Keypair,
-        maxRetries: number = 5,
+        maxRetries: number = 10,
         retryDelay: number = 1000 // 1 second
     ): Promise<string> {
         let retries = 0;
@@ -245,7 +245,7 @@ class ExtendedSolanaWalletLibrary {
         amount: number,
         toPublicKey: PublicKey,
         fromKeypair: Keypair,
-        maxRetries: number = 5,
+        maxRetries: number = 10,
         retryDelay: number = 1000 // 1 second
     ): Promise<string> {
         let retries = 0;
