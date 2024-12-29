@@ -204,7 +204,7 @@ export const textPromptHandler = async (
                 userFeatureAccessLevel,
             });
             break;
-        case 'SHOW_FIAT_CONVERSION_RATES':
+        case 'SHOW_FIAT_RATES':
             responseMessage = await handleRatesPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
