@@ -19,6 +19,7 @@ import { OK } from '@/constants/status-codes';
 
 enum AlchemyActivityCategory {
     TOKEN = 'token',
+    INTERNAL = 'internal',
 }
 
 const transferLogTopicHash = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
@@ -42,11 +43,20 @@ class AlchemyNotifyService {
             const activityCategory = activity.category;
             const activityLog = activity.log;
 
-            return (
-                activityCategory === AlchemyActivityCategory.TOKEN &&
-                activityLog.topics.includes(transferLogTopicHash) &&
-                rawContract
-            );
+            if (activityCategory === AlchemyActivityCategory.TOKEN) {
+                return (
+                    activityCategory === AlchemyActivityCategory.TOKEN &&
+                    activityLog.topics.includes(transferLogTopicHash) &&
+                    rawContract
+                );
+            }
+
+            if (activityCategory === AlchemyActivityCategory.INTERNAL) {
+                const typeTraceAddress = activity.typeTraceAddress;
+                return activity.value > 0 && !typeTraceAddress?.startsWith('DELEGATECALL');
+            }
+
+            return false;
         });
 
         if (!targetActivity) {

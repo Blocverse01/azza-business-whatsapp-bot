@@ -79,6 +79,7 @@ export interface AddressActivity {
     category: string;
     rawContract: RawContract;
     log: Log;
+    typeTraceAddress?: string;
 }
 
 export interface Log {
