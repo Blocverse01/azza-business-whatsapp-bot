@@ -35,6 +35,8 @@ class AlchemyNotifyService {
             return;
         }
 
+        console.dir(payload, { depth: null });
+
         const targetActivity = payload.event.activity.find((activity) => {
             const rawContract = activity.rawContract;
             const activityCategory = activity.category;

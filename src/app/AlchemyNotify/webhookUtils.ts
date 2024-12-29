@@ -101,7 +101,7 @@ export interface RawContract {
 
 export interface AlchemyAddressActivityWebhookEvent extends AlchemyWebhookEvent {
     event: {
-        network: 'OPT_MAINNET';
+        network: string;
         activity: Array<AddressActivity>;
     };
 }
