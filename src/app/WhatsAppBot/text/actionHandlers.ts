@@ -1258,8 +1258,8 @@ export const handleRatesPrompt = async (
     const { botParams } = params;
 
     await WhatsAppBotService.ratesCommandHandler(
-        botParams.businessPhoneNumberId,
-        botParams.userPhoneNumber
+        botParams.userPhoneNumber,
+        botParams.businessPhoneNumberId
     );
 
     return {

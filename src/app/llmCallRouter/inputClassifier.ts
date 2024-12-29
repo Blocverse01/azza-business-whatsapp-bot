@@ -15,7 +15,7 @@ const actions = [
     'SWAP_CRYPTO',
     'GET_FIAT_WITH_CRYPTO',
     'GET_CRYPTO_WITH_FIAT',
-    'SHOW_FIAT_CONVERSION_RATES',
+    'SHOW_FIAT_RATES',
 ] as const;
 const actionClassSchema = z.enum(actions);
 

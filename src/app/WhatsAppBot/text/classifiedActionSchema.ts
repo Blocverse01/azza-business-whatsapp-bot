@@ -67,5 +67,5 @@ export const actionArgumentsSchema = {
         fromAmount: z.number().nullable().describe('The amount of cryptocurrency to swap.'),
         hasConfirmedSwap: z.boolean().nullable(),
     }),
-    SHOW_FIAT_CONVERSION_RATES: z.object({}),
+    SHOW_FIAT_RATES: z.object({}),
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;
