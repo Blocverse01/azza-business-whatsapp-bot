@@ -62,7 +62,7 @@ export const handleDepositRelatedPrompt = async (
         missingArgsPromptResponse
     );
 
-    if (extractedArguments === null) {
+    if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
             missingArgsWhatsAppMessage
@@ -147,7 +147,7 @@ export const handleWithdrawRelatedPrompt = async (
 ): Promise<PromptHandlerResponse> => {
     const { extractedArguments, botParams } = params;
 
-    if (extractedArguments === null) {
+    if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         const missingArgsPromptResponse = getWithdrawalArgumentsGuideMessage({
             amount: true,
             recipientAddressOrPhoneNumber: true,
@@ -376,7 +376,10 @@ export const handleBalanceQueryPrompt = async (
     const { extractedArguments, botParams } = params;
 
     const balanceQueryArguments = parseExtractedArguments(
-        extractedArguments,
+        extractedArguments ?? {
+            blockchainNetwork: null,
+            cryptoCurrencySymbol: null,
+        },
         actionArgumentsSchema.QUERY_WALLET_BALANCE
     );
 
@@ -712,7 +715,7 @@ export const handleBuyCryptoWithFiatPrompt = async (
         missingArgsPromptResponse
     );
 
-    if (extractedArguments === null) {
+    if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
             missingArgsWhatsAppMessage
@@ -803,7 +806,7 @@ export const handleSellCryptoForFiatPrompt = async (
 ): Promise<PromptHandlerResponse> => {
     const { botParams, extractedArguments } = params;
 
-    if (extractedArguments === null) {
+    if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         const missingArgsPromptResponse = getSellCryptoArgumentsGuideMessage({
             blockchainNetwork: true,
             cryptoCurrencySymbol: true,
@@ -910,7 +913,7 @@ export const handleSwapCryptoPrompt = async (
 ): Promise<PromptHandlerResponse> => {
     const { extractedArguments, botParams } = params;
 
-    if (extractedArguments === null) {
+    if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         const missingArgsPromptResponse = getSwapArgumentsGuideMessage({
             fromCryptoCurrencySymbol: true,
             toCryptoCurrencySymbol: true,
