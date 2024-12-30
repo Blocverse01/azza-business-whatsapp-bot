@@ -9,6 +9,7 @@ const getLogger = () => {
             sendLogsToConsoleOutput:
                 (env.NODE_ENV === 'development' || env.NODE_ENV === 'test') &&
                 process.env.LOGS_TO_CONSOLE === 'true',
+            ignoreExceptions: true,
         });
     }
 

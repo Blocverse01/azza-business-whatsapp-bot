@@ -9,7 +9,8 @@ const isDefaultError = (error: unknown): error is Error => {
 };
 
 const logServiceError = async (error: unknown, message: string) => {
-    const parsedError = parseUnknownError(error);
+    const errorWithoutFunctions = removeFunctions(error);
+    const parsedError = parseUnknownError(errorWithoutFunctions);
 
     await logger.error(message, {
         error: JSON.stringify(parsedError),
@@ -17,7 +18,8 @@ const logServiceError = async (error: unknown, message: string) => {
 };
 
 const handleRequestError = (error: unknown, response: Response, logOnly?: true) => {
-    const parsedError = parseUnknownError(error);
+    const errorWithoutFunctions = removeFunctions(error);
+    const parsedError = parseUnknownError(errorWithoutFunctions);
 
     const requestUrl = response.req.originalUrl;
 
@@ -41,6 +43,24 @@ interface ParsedError {
     stack?: string;
     cause?: unknown;
     name: string;
+}
+
+function removeFunctions(obj: any): any {
+    if (typeof obj !== 'object' || obj === null) {
+        return obj;
+    }
+
+    if (Array.isArray(obj)) {
+        return obj.map(removeFunctions);
+    }
+
+    const newObj: any = {};
+    for (const key in obj) {
+        if (typeof obj[key] !== 'function') {
+            newObj[key] = removeFunctions(obj[key]);
+        }
+    }
+    return newObj;
 }
 
 const parseUnknownError = (error: unknown): ParsedError => {

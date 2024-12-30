@@ -13,6 +13,7 @@ export enum CryptoPayoutOrderStatus {
 export enum CryptoPayoutReasons {
     ONRAMP = 'ONRAMP',
     OFFRAMP_REFUND = 'OFFRAMP_REFUND',
+    FUNDING_YELLOW_CARD = 'FUNDING_YELLOW_CARD',
 }
 
 export const cryptoPayoutAuthorizationPayloadSchema = z.object({

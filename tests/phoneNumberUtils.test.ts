@@ -5,7 +5,7 @@ import {
 } from '../src/resources/utils/phone-numbers';
 
 describe('Phone number utils', () => {
-    it('Should standardise phone number', () => {
+    it('Should clean phone number', () => {
         const phoneNumber = '08143100808';
         const standardizedPhoneNumber = '8143100808';
 
