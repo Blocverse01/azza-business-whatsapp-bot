@@ -1,7 +1,5 @@
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import {
-    standardizePhoneNumberOrReturnError,
-} from '@/resources/utils/phone-numbers';
+import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
 import { AssetConfig } from '@/resources/web3/tokens';
 import {
     DataExchangeResponse,
@@ -529,7 +527,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
 
             const [standardPhoneNumber, error] = standardizePhoneNumberOrReturnError(
                 mobile_number,
-                country_code as CountryCode
+                country.code.toUpperCase() as CountryCode
             );
 
             if (error !== null) {

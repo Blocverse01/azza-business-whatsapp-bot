@@ -1,14 +1,14 @@
-import { CountryCode, isValidPhoneNumber } from 'libphonenumber-js';
-import parsePhoneNumber, { getCountryCallingCode } from 'libphonenumber-js/core';
+import { CountryCode } from 'libphonenumber-js';
+import parsePhoneNumber, {
+    getCountryCallingCode,
+    isValidPhoneNumber,
+} from 'libphonenumber-js/core';
 import metadata from 'libphonenumber-js/metadata.min.json';
 
 const PLUS_SIGN = '+';
 
-export const validatePhoneNumber = (
-    phoneNumber: string,
-    countryCode: CountryCode | undefined = undefined
-) => {
-    return isValidPhoneNumber(`${PLUS_SIGN}${cleanPhoneNumberInput(phoneNumber)}`, countryCode);
+export const validatePhoneNumber = (phoneNumber: string) => {
+    return isValidPhoneNumber(`${PLUS_SIGN}${cleanPhoneNumberInput(phoneNumber)}`, metadata);
 };
 
 export const getPhoneNumberObject = (phoneNumber: string) => {
@@ -27,32 +27,28 @@ export const standardizePhoneNumber = (phoneNumber: string, countryCode: Country
     const cleanedPhoneNumber = cleanPhoneNumberInput(phoneNumber);
     const countryCallingCode = getCountryCallingCodeDigits(countryCode);
 
-    if (isValidPhoneNumber(cleanedPhoneNumber, countryCode)) {
-        if (cleanedPhoneNumber.startsWith(countryCallingCode)) {
-            const partsAfterCountryCode = cleanedPhoneNumber.slice(countryCallingCode.length);
+    if (cleanedPhoneNumber.startsWith(countryCallingCode)) {
+        const partsAfterCountryCode = cleanedPhoneNumber.slice(countryCallingCode.length);
 
-            if (partsAfterCountryCode.startsWith('0')) {
-                return validatePhoneOutput(
-                    `${PLUS_SIGN}${countryCallingCode}${partsAfterCountryCode.slice(1)}`,
-                    countryCode
-                );
-            }
-
-            return validatePhoneOutput(`${PLUS_SIGN}${cleanedPhoneNumber}`, countryCode);
-        }
-        if (cleanedPhoneNumber.startsWith('0')) {
+        if (partsAfterCountryCode.startsWith('0')) {
             return validatePhoneOutput(
-                `${PLUS_SIGN}${countryCallingCode}${cleanedPhoneNumber.slice(1)}`,
+                `${PLUS_SIGN}${countryCallingCode}${partsAfterCountryCode.slice(1)}`,
                 countryCode
             );
         }
+
+        return validatePhoneOutput(`${PLUS_SIGN}${cleanedPhoneNumber}`, countryCode);
+    }
+    if (cleanedPhoneNumber.startsWith('0')) {
         return validatePhoneOutput(
-            `${PLUS_SIGN}${countryCallingCode}${cleanedPhoneNumber}`,
+            `${PLUS_SIGN}${countryCallingCode}${cleanedPhoneNumber.slice(1)}`,
             countryCode
         );
     }
-
-    return validatePhoneOutput(phoneNumber, countryCode);
+    return validatePhoneOutput(
+        `${PLUS_SIGN}${countryCallingCode}${cleanedPhoneNumber}`,
+        countryCode
+    );
 };
 
 class PhoneNumberError extends Error {
@@ -63,7 +59,7 @@ class PhoneNumberError extends Error {
 }
 
 function validatePhoneOutput(phoneNumber: string, countryCode: CountryCode) {
-    if (!isValidPhoneNumber(phoneNumber, countryCode)) {
+    if (!isValidPhoneNumber(phoneNumber, metadata)) {
         throw new PhoneNumberError(
             `Invalid phone number: ${phoneNumber} for country code: ${countryCode}`
         );
