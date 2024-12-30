@@ -1,6 +1,7 @@
 import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
+import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
 import { AssetConfig, TokenNames } from '@/resources/web3/tokens';
 import {
     DataExchangeResponse,
@@ -103,6 +104,15 @@ type ScreenPayload = {
         user_id: string;
         buying_to_external_wallet: boolean;
         country_code: string;
+        error_messages?: {
+            mobile_number?: string;
+        };
+        init_values?: {
+            mobile_provider?: string;
+            first_name?: string;
+            last_name?: string;
+            mobile_number?: string;
+        };
     };
     FEEDBACK_SCREEN: {
         message: string;
@@ -310,8 +320,6 @@ class WhatsAppBotOnRampFlowService {
             };
         }
 
-        console.log('Starting to fetch quotes and payment methods', new Date().toISOString());
-
         const [
             { rate: conversionRate, fee, rawFeePercentage },
             { countryFiatLimits: countryLimits },
@@ -319,8 +327,6 @@ class WhatsAppBotOnRampFlowService {
             FiatRampService.getQuotes(local_currency, country_code as CountryCode, 'onramp'),
             FiatRampService.getPaymentMethods(country_code as CountryCode, 'onramp'),
         ]);
-
-        console.log('Fetched quotes and payment methods', new Date().toISOString());
 
         const amountAsNumber = parseFloat(amount.trim());
         const transactionFee = defaultAmountFixer(amountAsNumber * fee);
@@ -650,6 +656,7 @@ class WhatsAppBotOnRampFlowService {
             transaction_details,
             buying_to_external_wallet,
             local_currency,
+            mobile_providers,
         } = input;
 
         if (buying_to_external_wallet) {
@@ -704,9 +711,43 @@ class WhatsAppBotOnRampFlowService {
                 };
             }
 
+            const [standardPhoneNumber, error] = standardizePhoneNumberOrReturnError(
+                mobile_number,
+                country_code as CountryCode
+            );
+
+            if (error !== null) {
+                return {
+                    screen: OnRampFlowScreens.MOMO_PAYMENT,
+                    data: {
+                        asset_id,
+                        amount: formatNumberAsCurrency(
+                            parseFloat(transaction_details.token_amount),
+                            local_currency
+                        ),
+                        local_currency,
+                        mobile_money_providers: mobile_providers,
+                        channel_id: transaction_details.channel_id,
+                        user_id,
+                        transaction_details: transaction_details,
+                        buying_to_external_wallet,
+                        country_code,
+                        error_messages: {
+                            mobile_number: error.message,
+                        },
+                        init_values: {
+                            mobile_provider: mobile_provider,
+                            first_name: verifiedUserDetails.firstName,
+                            last_name: verifiedUserDetails.lastName,
+                            mobile_number: mobile_number,
+                        },
+                    } satisfies ScreenPayload['MOMO_PAYMENT'],
+                };
+            }
+
             await FiatRampService.postOnRampTransaction({
                 channelId: channel_id,
-                accountNumber: mobile_number,
+                accountNumber: standardPhoneNumber,
                 accountType: 'phone',
                 country: country_code,
                 networkId: mobile_provider,
@@ -723,6 +764,10 @@ class WhatsAppBotOnRampFlowService {
                 usdAmount: parseFloat(transaction_details.token_amount),
             });
 
+            const accountName =
+                verifiedUserDetails.firstName +
+                (verifiedUserDetails.lastName ? ' ' + verifiedUserDetails.lastName : '');
+
             const message = generateOnrampTransactionInitiatedWithMomoPaymentMessage({
                 tokenAmount: transaction_details.token_amount,
                 assetName: assetWallet.name,
@@ -730,8 +775,8 @@ class WhatsAppBotOnRampFlowService {
                 fiatToPay: transaction_details.fiat_to_pay,
                 localCurrency: local_currency,
                 momoDetails: {
-                    accountName: verifiedUserDetails.firstName + ' ' + verifiedUserDetails.lastName,
-                    accountNumber: mobile_number,
+                    accountName: accountName,
+                    accountNumber: standardPhoneNumber,
                     name: mobile_provider,
                 },
             });

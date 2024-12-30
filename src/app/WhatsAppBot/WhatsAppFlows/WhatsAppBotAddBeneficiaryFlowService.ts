@@ -1,5 +1,7 @@
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { getCountryCallingCodeDigits, getPhoneNumberObject } from '@/resources/utils/phone-numbers';
+import {
+    standardizePhoneNumberOrReturnError,
+} from '@/resources/utils/phone-numbers';
 import { AssetConfig } from '@/resources/web3/tokens';
 import {
     DataExchangeResponse,
@@ -66,6 +68,15 @@ type ScreenDataPayload = {
         channel_id: string;
         asset_id: string;
         user_id: string;
+        error_messages?: {
+            mobile_number?: string;
+        };
+        init_values?: {
+            mobile_provider?: string;
+            first_name?: string;
+            last_name?: string;
+            mobile_number?: string;
+        };
     };
     SUCCESS_FEEDBACK_SCREEN: {
         message: string;
@@ -516,10 +527,32 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 throw new Error('Invalid country code');
             }
 
-            const countryCallingCode = getCountryCallingCodeDigits(country_code as CountryCode);
-            const phoneNumberObject = getPhoneNumberObject(`${countryCallingCode}${mobile_number}`);
+            const [standardPhoneNumber, error] = standardizePhoneNumberOrReturnError(
+                mobile_number,
+                country_code as CountryCode
+            );
 
-            const phoneNumber = phoneNumberObject?.formatInternational();
+            if (error !== null) {
+                return {
+                    screen: AddBeneficiaryFlowScreens.MOBILE_MONEY_FORM,
+                    data: {
+                        supported_mobile_providers: supported_mobile_providers,
+                        country_code,
+                        channel_id: channel_id,
+                        asset_id,
+                        user_id,
+                        error_messages: {
+                            mobile_number: error.message,
+                        },
+                        init_values: {
+                            mobile_provider,
+                            first_name,
+                            last_name,
+                            mobile_number,
+                        },
+                    } satisfies ScreenDataPayload['MOBILE_MONEY_FORM_SCREEN'],
+                };
+            }
 
             const beneficiaryId = await FiatRampService.createBeneficiary(
                 user_id,
@@ -529,7 +562,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
                     beneficiary: {
                         firstName: first_name,
                         lastName: last_name,
-                        mobileNumber: phoneNumber!,
+                        mobileNumber: standardPhoneNumber,
                         mobileProvider: selectedMobileProvider.providerName,
                         networkId: selectedMobileProvider.networkId,
                         channelId: channel_id,

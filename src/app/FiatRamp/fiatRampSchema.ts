@@ -265,6 +265,7 @@ export const transactionStatusSchema = z.enum([
     'failed',
     'processing',
     'created',
+    'process',
 ]);
 
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
