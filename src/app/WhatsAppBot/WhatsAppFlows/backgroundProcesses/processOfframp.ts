@@ -28,10 +28,11 @@ const offrampParams: ProcessOfframpInBackgroundParams = JSON.parse(process.argv[
 
 type TransactionDetails = TransactionResponse | ExtendedWalletTransaction;
 
-async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
+async function processInBackground(
+    txParams: ProcessOfframpInBackgroundParams,
+    resolvedTransactionHash?: string | null
+) {
     const { onChainTransactionId, userId } = txParams;
-
-    let resolvedTransactionHash: string | null = null;
 
     try {
         let transactionDetails: TransactionDetails;
@@ -40,28 +41,32 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
             const extendedWallet = await UserService.getExtendedWallet(userId, txParams.network);
             transactionDetails = await extendedWallet.getTransaction(onChainTransactionId);
         } else {
-            transactionDetails = await WalletKitService.getTransactionById(onChainTransactionId);
+            transactionDetails = resolvedTransactionHash
+                ? await WalletKitService.getTransactionByHash(
+                      resolvedTransactionHash,
+                      txParams.network
+                  )
+                : await WalletKitService.getTransactionById(onChainTransactionId);
         }
 
         logSync('debug', 'Running process in background', {
             transactionDetails,
         });
 
-        if (transactionDetails.status === 'submitted' || transactionDetails.status === 'pending') {
-            console.time('Waiting to retry tx confirmation');
-            await delay(3000);
-            console.timeEnd('Waiting to retry tx confirmation');
-            return processInBackground(txParams);
-        }
-
         const transactionHash =
             'transaction_hash' in transactionDetails
                 ? transactionDetails.transaction_hash
                 : transactionDetails.transactionHash;
 
-        if (transactionDetails.status === 'success' && transactionHash) {
-            resolvedTransactionHash = transactionHash;
+        const finalStateStatuses = ['success', 'failed'];
+        if (!finalStateStatuses.includes(transactionDetails.status)) {
+            console.time('Waiting to retry tx confirmation');
+            await delay(1500);
+            console.timeEnd('Waiting to retry tx confirmation');
+            return processInBackground(txParams, transactionHash);
+        }
 
+        if (transactionDetails.status === 'success' && transactionHash) {
             try {
                 logSync('debug', 'Processing offramp', {
                     onChainTransactionId,
@@ -75,9 +80,11 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
                 });
 
                 await logger.info('Offramp transaction processed successfully', { sequenceId });
+
+                return;
             } catch (error) {
                 if (
-                    resolvedTransactionHash &&
+                    transactionHash &&
                     ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS.includes(txParams.network as SupportedChain)
                 ) {
                     if (
@@ -87,7 +94,7 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
                         await CryptoPayoutService.createOfframpCryptoRefundOrder({
                             network: txParams.network as SupportedChain,
                             tokenSymbol: txParams.tokenName,
-                            triggerTransactionId: resolvedTransactionHash,
+                            triggerTransactionId: transactionHash,
                             ownerId: userId,
                             amount: txParams.usdAmount,
                             destinationWalletAddress: txParams.userWalletAddress,
@@ -113,6 +120,14 @@ async function processInBackground(txParams: ProcessOfframpInBackgroundParams) {
             transactionDetails,
             txParams,
         });
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            env.WA_PHONE_NUMBER_ID,
+            MessageGenerators.generateTextMessage(
+                userId,
+                `An error occurred while sending your transaction.\nPlease reach out to support if your ${txParams.tokenName} was debited.`
+            )
+        );
     } catch (error) {
         await logServiceError(error, 'Background process failed:');
     }
