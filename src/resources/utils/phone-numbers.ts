@@ -84,6 +84,7 @@ export const standardizePhoneNumberOrReturnError = (
         if (error instanceof PhoneNumberError) {
             return [null, { message: error.message }];
         }
+        console.log(error);
         return [null, { message: 'An error occurred while standardizing phone number' }];
     }
 };
