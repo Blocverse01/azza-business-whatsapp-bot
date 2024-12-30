@@ -204,7 +204,7 @@ class SumSubService {
         }
     }
 
-    private static extractUserInformation(applicantData: ApplicantData) {
+    public static extractUserInformation(applicantData: ApplicantData) {
         const { info, requiredIdDocs, phone, metadata } = applicantData;
 
         const { firstName, lastName, idDocs, dob } = info;
@@ -232,12 +232,12 @@ class SumSubService {
             (docSet) => docSet.idDocSetType === 'IDENTITY'
         );
 
-        const bvnMetadata = metadata.find(
-            (meta) => meta.key.toLowerCase() === BVN_METADATA_KEY.toLowerCase()
-        );
-        const ninMetadata = metadata.find(
-            (meta) => meta.key.toLowerCase() === NIN_METADATA_KEY.toLowerCase()
-        );
+        const bvnMetadata = metadata
+            ? metadata.find((meta) => meta.key.toLowerCase() === BVN_METADATA_KEY.toLowerCase())
+            : undefined;
+        const ninMetadata = metadata
+            ? metadata.find((meta) => meta.key.toLowerCase() === NIN_METADATA_KEY.toLowerCase())
+            : undefined;
 
         // ID info
         if (identityDocSet) {
@@ -275,8 +275,8 @@ class SumSubService {
             userInfo['additionalKycIdNumber'] = bvnMetadata.value;
         }
 
-        userInfo['firstName'] = firstName;
-        userInfo['lastName'] = lastName;
+        userInfo['firstName'] = firstName ?? '';
+        userInfo['lastName'] = lastName ?? '';
         userInfo['kycDateOfBirth'] = dob;
         userInfo['phoneNumber'] = phone;
 
