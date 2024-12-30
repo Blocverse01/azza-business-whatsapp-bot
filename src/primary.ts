@@ -5,7 +5,7 @@ import CronHandler from '@/app/Cron';
 import { CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION } from '@/config/backgroundJobs';
 import env from '@/constants/env';
 
-if (cluster.isMaster) {
+if (cluster.isPrimary) {
     const numCPUs = os.cpus().length;
 
     console.log(`Master ${process.pid} is running`);
