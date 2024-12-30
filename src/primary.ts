@@ -26,6 +26,6 @@ if (cluster.isMaster) {
     }
 } else {
     // Your worker code here
-    import('./app'); // Assuming your app entry point is in src/app/index.ts
+    import('./');
     console.log(`Worker ${process.pid} started`);
 }
