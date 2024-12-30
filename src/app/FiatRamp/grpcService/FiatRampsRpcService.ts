@@ -320,6 +320,14 @@ class FiatRampsRpcService {
 
         const standardizedUserPhoneNumber = `+${user.phoneNumber}`;
 
+        let senderName = '';
+        if (user.firstName) {
+            senderName += user.firstName;
+        }
+        if (user.lastName) {
+            senderName += ` ${user.lastName}`;
+        }
+
         const request = new CreateBeneficiaryPaymentRequestInput({
             beneficiary_id: validatedParams.beneficiaryId,
             local_amount: validatedParams.localAmount,
@@ -334,7 +342,7 @@ class FiatRampsRpcService {
             hot_wallet_address: validatedParams.hotWalletAddress,
             conversion_rate: validatedParams.conversionRate,
             sender: new YellowCardRetailCustomer({
-                name: `${user.firstName} ${user.lastName}`,
+                name: senderName,
                 phone: standardizedUserPhoneNumber.replace(/\s/g, ''),
                 country: user.country,
                 dob: user.kycDateOfBirth,
@@ -354,6 +362,14 @@ class FiatRampsRpcService {
     }
 
     public static async createPlatformOnrampRequest(params: OnrampTransactionPayload) {
+        let recipientName = '';
+        if (params.userDetails.firstName) {
+            recipientName += params.userDetails.firstName;
+        }
+        if (params.userDetails.lastName) {
+            recipientName += ` ${params.userDetails.lastName}`;
+        }
+
         const request = new CreatePlatformCollectionRequestInput({
             owner_id: params.customerId,
             source: new CollectionSource({
@@ -362,7 +378,7 @@ class FiatRampsRpcService {
                 network_id: params.networkId?.replace(/\s/g, ''),
             }),
             recipient: new YellowCardRetailCustomer({
-                name: `${params.userDetails.firstName} ${params.userDetails.lastName}`,
+                name: recipientName,
                 phone: `+${params.userDetails.phoneNumber}`,
                 country: params.userDetails.country,
                 address: params.userDetails.address ?? FALLBACK_USE_AZZA_ADDRESS,
