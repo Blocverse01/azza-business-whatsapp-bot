@@ -22,6 +22,7 @@ import { validateWalletAddress } from '@/resources/utils/validators';
 import { SPENDING_APPROVAL_ABI } from '@/resources/web3/evm/abis/erc20';
 import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
+import { TokenNames } from '@/resources/web3/tokens';
 import { PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { Address, encodeFunctionData, formatUnits, getAddress, Hex, parseUnits } from 'viem';
 
@@ -141,7 +142,8 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
     if (
         approvalAddress &&
         validateWalletAddress(approvalAddress, fromChain) &&
-        validateWalletAddress(fromToken.id, fromChain)
+        validateWalletAddress(fromToken.id, fromChain) &&
+        fromToken.id !== ADDRESS_ZERO
     ) {
         //Todo: Get current allowance and check if it is enough before sending approval transaction
         const approvalTransactionData = encodeFunctionData({
@@ -204,7 +206,10 @@ export const sendSwapTransaction = async (params: SwapTokensTransactionDetails) 
                 unsigned_transaction: {
                     to: transactionRequest.to as Hex,
                     input: transactionRequest.data as Hex,
-                    value: transactionRequest.value as Hex,
+                    value:
+                        fromToken.symbol === TokenNames.ETH
+                            ? (transactionRequest.value as Hex)
+                            : undefined,
                 },
                 developer_secret: WalletKitService.DEVELOPER_SECRET,
             })
