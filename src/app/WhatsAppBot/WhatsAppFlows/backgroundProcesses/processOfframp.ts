@@ -51,6 +51,7 @@ async function processInBackground(
 
         logSync('debug', 'Running process in background', {
             transactionDetails,
+            resolvedTransactionHash,
         });
 
         const transactionHash =
@@ -59,12 +60,19 @@ async function processInBackground(
                 : transactionDetails.transactionHash;
 
         const finalStateStatuses = ['success', 'failed'];
-        if (!finalStateStatuses.includes(transactionDetails.status)) {
-            console.time('Waiting to retry tx confirmation');
-            await delay(1500);
-            console.timeEnd('Waiting to retry tx confirmation');
+        if (
+            !finalStateStatuses.includes(transactionDetails.status) ||
+            transactionDetails.status === 'dropped'
+        ) {
+            await delay(5000);
             return processInBackground(txParams, transactionHash);
         }
+
+        await logger.info('Transaction details', {
+            transactionDetails,
+            txParams,
+            transactionHash,
+        });
 
         if (transactionDetails.status === 'success' && transactionHash) {
             try {
