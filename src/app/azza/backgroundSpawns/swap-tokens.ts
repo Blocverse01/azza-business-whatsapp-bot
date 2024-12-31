@@ -16,7 +16,7 @@ async function executeScript() {
     try {
         await sendSwapTransaction(swapParams);
     } catch (error) {
-        await logger.error('Error executing transaction in background', { error });
+        console.log('Error executing transaction in background', error);
 
         const message = MessageGenerators.generateTextMessage(
             swapParams.userId,
