@@ -65,7 +65,7 @@ async function processInBackground(
             return processInBackground(txParams, transactionHash);
         }
 
-        await logger.info('Transaction details', {
+        void logger.info('Transaction details', {
             transactionDetails,
             txParams,
             transactionHash,
