@@ -134,7 +134,7 @@ async function processInBackground(
             )
         );
     } catch (error) {
-        await logServiceError(error, 'Background process failed:');
+        await logServiceError(error, 'Offramp background process failed:');
         await WhatsAppBotService.sendWhatsappMessage(
             env.WA_PHONE_NUMBER_ID,
             MessageGenerators.generateTextMessage(
