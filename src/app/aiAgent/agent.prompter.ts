@@ -11,7 +11,7 @@ type HandleUserPromptParams = {
 
 export const handleUserPrompt = async (params: HandleUserPromptParams) => {
     const { text } = await generateText({
-        model: openai('gpt-4o'),
+        model: openai('gpt-4o-mini'),
         tools: toolSet(params.userProfile.id),
         maxSteps: 5,
         messages: params.messages,
