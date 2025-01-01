@@ -122,3 +122,7 @@ export const getAppDefaultEvmConfig = (
 
     return config[environment];
 };
+
+export const isEvmNetwork = (network: SupportedChain): network is EvmNetwork => {
+    return network !== 'Solana';
+};

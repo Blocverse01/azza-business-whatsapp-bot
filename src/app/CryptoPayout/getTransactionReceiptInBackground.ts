@@ -1,6 +1,7 @@
 import WalletKitService from '@/app/WalletKit/WalletKitService';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
+import { delay } from '@/resources/utils/delay';
 
 export type GetTransactionReceiptInBackgroundParams = {
     orderIds: string[];
@@ -16,9 +17,8 @@ async function getTransactionReceiptInBackground(params: GetTransactionReceiptIn
         const transaction = await WalletKitService.getTransactionById(transactionId);
 
         if (transaction.status === 'submitted' || transaction.status === 'pending') {
-            setTimeout(() => {
-                getTransactionReceiptInBackground(params);
-            }, 5000);
+            await delay(5000);
+            return getTransactionReceiptInBackground(params);
         }
 
         if (transaction.status === 'success' && transaction.transaction_hash) {
@@ -46,4 +46,4 @@ async function getTransactionReceiptInBackground(params: GetTransactionReceiptIn
     }
 }
 
-getTransactionReceiptInBackground(args);
+void getTransactionReceiptInBackground(args);

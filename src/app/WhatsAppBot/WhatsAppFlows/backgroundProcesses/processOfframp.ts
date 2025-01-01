@@ -15,7 +15,11 @@ import {
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
 import UserService from '@/app/User/UserService';
 import { delay } from '@/resources/utils/delay';
+import { getAppDefaultEvmConfig, isEvmNetwork } from '@/resources/web3/evm/evm.config';
+import { getPublicClient } from '@/resources/web3/evm/viem/clients';
+import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
 import { TokenNames } from '@/resources/web3/tokens';
+import { Hex } from 'viem';
 import MessageGenerators from '../../MessageGenerators';
 
 export type ProcessOfframpInBackgroundParams = Omit<SendOfframpRequestPayload, 'txHash'> & {
@@ -27,6 +31,8 @@ export type ProcessOfframpInBackgroundParams = Omit<SendOfframpRequestPayload, '
 const offrampParams: ProcessOfframpInBackgroundParams = JSON.parse(process.argv[2]);
 
 type TransactionDetails = TransactionResponse | ExtendedWalletTransaction;
+
+const finalStateStatuses: TransactionResponse['status'][] = ['success', 'failed'];
 
 async function processInBackground(
     txParams: ProcessOfframpInBackgroundParams,
@@ -42,24 +48,15 @@ async function processInBackground(
             transactionDetails = await extendedWallet.getTransaction(onChainTransactionId);
         } else {
             transactionDetails = resolvedTransactionHash
-                ? await WalletKitService.getTransactionByHash(
-                      resolvedTransactionHash,
-                      txParams.network
-                  )
+                ? await getReceiptWithTransactionHash(resolvedTransactionHash, txParams.network)
                 : await WalletKitService.getTransactionById(onChainTransactionId);
         }
-
-        logSync('debug', 'Running process in background', {
-            transactionDetails,
-            resolvedTransactionHash,
-        });
 
         const transactionHash =
             'transaction_hash' in transactionDetails
                 ? transactionDetails.transaction_hash
                 : transactionDetails.transactionHash;
 
-        const finalStateStatuses = ['success', 'failed'];
         if (
             !finalStateStatuses.includes(transactionDetails.status) ||
             transactionDetails.status === 'dropped'
@@ -138,6 +135,38 @@ async function processInBackground(
         );
     } catch (error) {
         await logServiceError(error, 'Background process failed:');
+        await WhatsAppBotService.sendWhatsappMessage(
+            env.WA_PHONE_NUMBER_ID,
+            MessageGenerators.generateTextMessage(
+                userId,
+                `An error occurred while sending your transaction.\nPlease reach out to support if your ${txParams.tokenName} was debited.`
+            )
+        );
+    }
+}
+
+async function getReceiptWithTransactionHash(
+    transactionHash: string,
+    network: SupportedChain | ExtendedWalletSupportedNetworks
+) {
+    if (!isExtendedNetwork(network) && isEvmNetwork(network)) {
+        const networkConfig = getAppDefaultEvmConfig(network, env.WEB3_ENVIRONMENT);
+        const publicClient = getPublicClient(networkConfig.viemChain, networkConfig.rpcUrl);
+
+        const transactionReceipt = await publicClient.waitForTransactionReceipt({
+            hash: transactionHash as Hex,
+        });
+
+        return {
+            transactionHash: transactionReceipt.transactionHash,
+            status: transactionReceipt.status,
+            explorerUrl: getTransactionExplorerUrl(transactionHash as string, network),
+        };
+    } else {
+        return await WalletKitService.getTransactionByHash(
+            transactionHash,
+            network as SupportedChain
+        );
     }
 }
 
