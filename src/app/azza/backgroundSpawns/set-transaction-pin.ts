@@ -34,10 +34,8 @@ async function executeScript(params: SetTransactionPinParams) {
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
 
-            process.exit(0);
+            return;
         }
-
-        process.exit(1);
     } catch (error) {
         logSync('error', 'Error setting transaction PIN', { error });
 
@@ -46,8 +44,6 @@ async function executeScript(params: SetTransactionPinParams) {
             `An error occurred while setting transaction pin. Please try again.`
         );
         await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
-
-        process.exit(2);
     }
 }
 

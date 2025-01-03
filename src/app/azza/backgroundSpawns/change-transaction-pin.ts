@@ -37,10 +37,10 @@ export const executeScript = async (params: ChangeTransactionPinParams) => {
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
 
-            process.exit(0);
+            return;
         }
 
-        process.exit(1);
+        return;
     } catch (error) {
         logSync('error', 'Error changing transaction PIN', { error });
 
@@ -49,8 +49,6 @@ export const executeScript = async (params: ChangeTransactionPinParams) => {
             `An error occurred while changing transaction pin. Please try again.`
         );
         await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
-
-        process.exit(2);
     }
 };
 

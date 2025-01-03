@@ -24,8 +24,6 @@ async function executeScript() {
             `An error occurred while sending your transaction. Please try again.`
         );
         await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
-
-        process.exit(2);
     }
 }
 
