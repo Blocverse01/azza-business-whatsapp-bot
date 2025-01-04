@@ -1,20 +1,20 @@
-import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
-import { AssetConfig } from '@/resources/web3/tokens';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { DropdownOption, FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import env from '@/constants/env';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
+import { SIXTEEN } from '@/constants/numbers';
 import logger from '@/resources/logger';
-import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { type CountryCode } from 'libphonenumber-js';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import { generateRandomHexString } from '@/resources/utils/encryption';
-import { SIXTEEN } from '@/constants/numbers';
-import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
-import env from '@/constants/env';
+import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
+import { AssetConfig } from '@/resources/web3/tokens';
+import { type CountryCode } from 'libphonenumber-js';
 
 enum AddBeneficiaryFlowScreens {
     ACCOUNT_TYPE = 'ACCOUNT_TYPE',
@@ -149,10 +149,6 @@ class WhatsAppBotAddBeneficiaryFlowService {
     ): Promise<DataExchangeResponse> {
         const { screen, data, action } = requestBody;
 
-        void logger.info(`Received data exchange for screen: ${screen}`, {
-            data,
-        });
-
         if (action === 'data_exchange') {
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
@@ -196,7 +192,11 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            void logger.info('Next screen data', nextScreenData);
+            void logger.debug('Next screen data', {
+                screen: nextScreenData.screen,
+                errors: nextScreenData.data?.error_messages,
+                user_id: nextScreenData.data?.user_id,
+            });
 
             return {
                 ...nextScreenData,

@@ -24,7 +24,8 @@ import {
     extractSellAssetToBeneficiaryGroups,
     extractTradeAssetGroups,
 } from '@/constants/regex';
-import { OK } from '@/constants/status-codes';
+import { BAD_REQUEST, OK } from '@/constants/status-codes';
+import { HttpException } from '@/resources/exceptions/HttpException';
 import { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import type { Request, Response } from 'express';
@@ -85,9 +86,6 @@ class WhatsAppBotController {
             const messageReceivedAt = new Date();
 
             res.sendStatus(OK);
-            logSync('debug', 'Original Body Received', {
-                webhookBody: req.body,
-            });
 
             const messageParts = WhatsAppBotController.extractStringMessageParts(req.body);
 
@@ -96,10 +94,6 @@ class WhatsAppBotController {
             if (message?.id) {
                 void WhatsAppBotService.markMassageAsRead(businessPhoneNumberId, message.id);
             }
-
-            logSync('debug', 'Extracted message parts', {
-                messageParts,
-            });
 
             if (message && message.id && businessPhoneNumberId && displayName) {
                 const actionExecuted = await WhatsAppBotController.messageTypeCheck(
@@ -117,7 +111,7 @@ class WhatsAppBotController {
                     actionExecuted,
                 });
             } else {
-                logSync('debug', 'Message object not found');
+                return;
             }
         } catch (error) {
             handleRequestError(error, res, true);
@@ -132,8 +126,6 @@ class WhatsAppBotController {
         const firstChangeValue = firstChange?.value;
 
         if (!firstChangeValue) {
-            logSync('info', 'Un-extracted request body', requestBody);
-
             return {};
         }
 
@@ -148,10 +140,6 @@ class WhatsAppBotController {
         const businessPhoneNumberId = firstChangeValue.metadata.phone_number_id;
 
         if (!firstChangeValue.messages) {
-            logSync('info', 'No messages found in request body', {
-                firstChangeValue,
-            });
-
             return {};
         }
 
@@ -290,8 +278,6 @@ class WhatsAppBotController {
 
         // ============== HANDLE INTERACTIVE MESSAGES ============== //
         if (type === WhatsAppMessageType.INTERACTIVE && interactive) {
-            logSync('debug', `message-interactive : ${JSON.stringify(interactive)}`);
-
             // =========== HANDLE INTERACTIVE BUTTON REPLIES =========== //
             if (interactive.type === 'button_reply' && interactive.button_reply) {
                 const { button_reply } = interactive;
@@ -466,9 +452,12 @@ class WhatsAppBotController {
                                 currencySymbol: currency,
                                 countryCode: countryCode as CountryCode,
                             });
+                            return ActionExecuted.SEND_ONRAMP_FLOW_MESSAGE;
                         }
 
-                        throw new Error('Invalid trade action');
+                        throw new HttpException(BAD_REQUEST, 'Invalid trade action', {
+                            tradeAction,
+                        });
                     case 'explore-asset-action':
                         const [_interactiveListId, assetAction, assetId] = interactiveListId.match(
                             ASSET_ACTION_REGEX_PATTERN

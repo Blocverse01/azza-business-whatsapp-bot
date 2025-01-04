@@ -99,7 +99,7 @@ class WhatsAppBotResetTransactionPinFlowService {
     public static async receiveDataExchange(
         requestBody: DecryptedFlowDataExchange['decryptedBody']
     ): Promise<DataExchangeResponse> {
-        const { action, screen, data, flow_token } = requestBody;
+        const { action, screen, data } = requestBody;
 
         if (action === 'INIT') {
             // Using Preview data
@@ -115,8 +115,7 @@ class WhatsAppBotResetTransactionPinFlowService {
                     break;
                 case ResetTransactionPinFlowScreens.NEW_PIN:
                     nextScreenData = await this.completeResetTransactionPinFlow(
-                        data as DataExchangePayload['NEW_PIN'],
-                        flow_token
+                        data as DataExchangePayload['NEW_PIN']
                     );
             }
 
@@ -124,7 +123,11 @@ class WhatsAppBotResetTransactionPinFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logSync('debug', 'Next screen data', nextScreenData);
+            logSync('debug', 'Next screen data', {
+                screen: nextScreenData.screen,
+                errors: nextScreenData.data?.error_messages,
+                user_id: nextScreenData.data?.user_id,
+            });
 
             return {
                 ...nextScreenData,
@@ -236,7 +239,7 @@ class WhatsAppBotResetTransactionPinFlowService {
         }
 
         const normalizedSecurityQuestionAnswers = Object.keys(all_questions_list)
-            .map((questionInputName, index) => {
+            .map((questionInputName) => {
                 const question = all_questions_list[questionInputName as QuestionKey];
 
                 return {
@@ -290,16 +293,10 @@ class WhatsAppBotResetTransactionPinFlowService {
         };
     }
 
-    private static async completeResetTransactionPinFlow(
-        data: DataExchangePayload['NEW_PIN'],
-        flowToken: string
-    ) {
+    private static async completeResetTransactionPinFlow(data: DataExchangePayload['NEW_PIN']) {
         const { new_pin, confirm_new_pin, user_id } = data;
 
-        const unmaskedUserId = convertBase64ToAsciiString(user_id);
-        const user = await UserService.getUserByPhoneNumber(unmaskedUserId);
-
-        // Check 3: If transaction pin matches the allowed schema
+        // Check 1: If transaction pin matches the allowed schema
         if (!transactionPinSchema.safeParse(new_pin).success) {
             return {
                 screen: ResetTransactionPinFlowScreens.NEW_PIN,
@@ -316,7 +313,7 @@ class WhatsAppBotResetTransactionPinFlowService {
             };
         }
 
-        // Check 3: If new pin and confirm new pin do not match
+        // Check 2: If new pin and confirm new pin do not match
         if (new_pin !== confirm_new_pin) {
             return {
                 screen: ResetTransactionPinFlowScreens.NEW_PIN,

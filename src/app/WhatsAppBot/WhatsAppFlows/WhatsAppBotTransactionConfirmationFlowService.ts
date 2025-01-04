@@ -1,26 +1,26 @@
-import UserService from '@/app/User/UserService';
-import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
-import {
-    DataExchangeResponse,
-    DecryptedFlowDataExchange,
-    WhatsAppInteractiveMessage,
-} from '@/app/WhatsAppBot/WhatsAppBotType';
-import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
-import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { logSync } from '@/resources/logger';
-import { convertBase64ToAsciiString, generateRandomHexString } from '@/resources/utils/encryption';
-import { SIXTEEN } from '@/constants/numbers';
 import {
     SwapTokensOnBaseTransactionDetails,
     SwapTokensTransactionDetails,
     TransferAssetTransactionDetails,
 } from '@/app/azza/azza.schema';
-import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
 import {
     SWAP_TOKENS_ON_BASE_SCRIPT_PATH,
     SWAP_TOKENS_SCRIPT_PATH,
     TRANSFER_TRANSACTION_SCRIPT_PATH,
 } from '@/app/azza/backgroundSpawns/script-paths';
+import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
+import UserService from '@/app/User/UserService';
+import {
+    DataExchangeResponse,
+    DecryptedFlowDataExchange,
+    WhatsAppInteractiveMessage,
+} from '@/app/WhatsAppBot/WhatsAppBotType';
+import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
+import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
+import { SIXTEEN } from '@/constants/numbers';
+import { logSync } from '@/resources/logger';
+import { convertBase64ToAsciiString, generateRandomHexString } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
 
 enum TransactionConfirmationFlowScreens {
@@ -84,7 +84,11 @@ class WhatsAppBotTransactionConfirmationFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logSync('debug', 'Next screen data', nextScreenData);
+            logSync('debug', 'Next screen data', {
+                screen: nextScreenData.screen,
+                errors: nextScreenData.data?.error_messages,
+                user_id: nextScreenData.data?.user_id,
+            });
 
             return {
                 ...nextScreenData,

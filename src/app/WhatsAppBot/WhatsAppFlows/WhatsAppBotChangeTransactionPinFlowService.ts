@@ -65,7 +65,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
     public static async receiveDataExchange(
         requestBody: DecryptedFlowDataExchange['decryptedBody']
     ): Promise<DataExchangeResponse> {
-        const { action, screen, data, flow_token } = requestBody;
+        const { action, screen, data } = requestBody;
 
         if (action === 'INIT') {
             // Using Preview data
@@ -76,8 +76,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
             switch (screen) {
                 case ChangeTransactionPinFlowScreens.ENTER_OLD_PIN_NEW_PIN:
                     nextScreenData = await this.completeChangeTransactionPinFlow(
-                        data as DataExchangePayload['ENTER_OLD_PIN_NEW_PIN'],
-                        flow_token
+                        data as DataExchangePayload['ENTER_OLD_PIN_NEW_PIN']
                     );
                     break;
             }
@@ -86,7 +85,11 @@ class WhatsAppBotChangeTransactionPinFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logSync('debug', 'Next screen data', nextScreenData);
+            logSync('debug', 'Next screen data', {
+                screen: nextScreenData.screen,
+                errors: nextScreenData.data?.error_messages,
+                user_id: nextScreenData.data?.user_id,
+            });
 
             return {
                 ...nextScreenData,
@@ -139,8 +142,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
     }
 
     private static async completeChangeTransactionPinFlow(
-        data: DataExchangePayload['ENTER_OLD_PIN_NEW_PIN'],
-        flowToken: string
+        data: DataExchangePayload['ENTER_OLD_PIN_NEW_PIN']
     ) {
         const { new_pin, old_pin, confirm_new_pin, user_id } = data;
 

@@ -103,7 +103,7 @@ class WhatsAppBotSetupTransactionPinFlowService {
     public static async receiveDataExchange(
         requestBody: DecryptedFlowDataExchange['decryptedBody']
     ): Promise<DataExchangeResponse> {
-        const { action, screen, data, flow_token } = requestBody;
+        const { action, screen, data } = requestBody;
 
         if (action === 'INIT') {
             // Using Preview data
@@ -120,8 +120,7 @@ class WhatsAppBotSetupTransactionPinFlowService {
                     break;
                 case SetupTransactionPinFlowScreens.RECOVERY_QUESTIONS:
                     nextScreenData = await this.completeFlow(
-                        data as DataExchangePayload['RECOVERY_QUESTIONS'],
-                        flow_token
+                        data as DataExchangePayload['RECOVERY_QUESTIONS']
                     );
                     break;
             }
@@ -130,7 +129,11 @@ class WhatsAppBotSetupTransactionPinFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logSync('debug', 'Next screen data', nextScreenData);
+            logSync('debug', 'Next screen data', {
+                screen: nextScreenData.screen,
+                errors: nextScreenData.data?.error_messages,
+                user_id: nextScreenData.data?.user_id,
+            });
 
             return {
                 ...nextScreenData,
@@ -238,10 +241,7 @@ class WhatsAppBotSetupTransactionPinFlowService {
         };
     }
 
-    private static async completeFlow(
-        data: DataExchangePayload['RECOVERY_QUESTIONS'],
-        flowToken: string
-    ) {
+    private static async completeFlow(data: DataExchangePayload['RECOVERY_QUESTIONS']) {
         const {
             transaction_pin,
             question_1,

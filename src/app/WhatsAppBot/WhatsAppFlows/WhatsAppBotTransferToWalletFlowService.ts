@@ -1,29 +1,29 @@
+import { WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
+import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
+import { WaitForTransactionReceiptInBackgroundParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
+import { AzzaUserRecord, UserAssetInfo } from '@/app/User/userSchema';
+import UserService from '@/app/User/UserService';
+import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
+import { FeedbackScreenPayload, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
+import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { logSync } from '@/resources/logger';
-import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import { SIXTEEN, TWO, ZERO } from '@/constants/numbers';
+import { logSync } from '@/resources/logger';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { decimalToString, fixNumber } from '@/resources/utils/currency';
 import { generateRandomHexString } from '@/resources/utils/encryption';
-import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
-import UserService from '@/app/User/UserService';
-import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import { AzzaUserRecord, UserAssetInfo } from '@/app/User/userSchema';
-import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import env from '@/constants/env';
-import { FeedbackScreenPayload, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { compareHashedString } from '@/resources/utils/hashing';
-import { validateWalletAddress } from '@/resources/utils/validators';
-import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
-import { WaitForTransactionReceiptInBackgroundParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
-import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
-import { WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
+import { validateWalletAddress } from '@/resources/utils/validators';
 
 enum TransferToWalletFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',
@@ -133,7 +133,11 @@ class WhatsAppBotTransferToWalletFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logSync('debug', 'Next screen data', nextScreenData);
+            logSync('debug', 'Next screen data', {
+                screen: nextScreenData.screen,
+                errors: nextScreenData.data?.error_messages,
+                user_id: nextScreenData.data?.user_id,
+            });
 
             return {
                 ...nextScreenData,

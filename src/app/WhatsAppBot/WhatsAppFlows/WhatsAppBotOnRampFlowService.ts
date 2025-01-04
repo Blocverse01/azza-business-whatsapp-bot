@@ -1,37 +1,37 @@
-import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
-import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
-import { AssetConfig, TokenNames } from '@/resources/web3/tokens';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import UserService from '@/app/User/UserService';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { generateRandomHexString } from '@/resources/utils/encryption';
+import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
+import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
+import env from '@/constants/env';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN, TWO } from '@/constants/numbers';
 import logger from '@/resources/logger';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
+import {
+    generateOnrampTransactionInitiatedMessage,
+    generateOnrampTransactionInitiatedWithMomoPaymentMessage,
+} from '@/resources/utils/bot-message-utils';
 import {
     defaultAmountFixer,
     formatNumberAsCurrency,
     getCountryFlagEmoji,
     prettifyNumber,
 } from '@/resources/utils/currency';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
-import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { CountryCode } from 'libphonenumber-js';
-import UserService from '@/app/User/UserService';
-import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import {
-    generateOnrampTransactionInitiatedMessage,
-    generateOnrampTransactionInitiatedWithMomoPaymentMessage,
-} from '@/resources/utils/bot-message-utils';
+import { generateRandomHexString } from '@/resources/utils/encryption';
+import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
-import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
-import env from '@/constants/env';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { AssetConfig, TokenNames } from '@/resources/web3/tokens';
+import { CountryCode } from 'libphonenumber-js';
 
 enum OnRampFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',
@@ -222,7 +222,11 @@ class WhatsAppBotOnRampFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logger.info('Next screen data', nextScreenData);
+            void logger.debug('Next screen data', {
+                screen: nextScreenData.screen,
+                errors: nextScreenData.data?.error_messages,
+                user_id: nextScreenData.data?.user_id,
+            });
 
             return {
                 ...nextScreenData,

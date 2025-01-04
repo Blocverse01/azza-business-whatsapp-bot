@@ -1,16 +1,29 @@
-import {
-    DataExchangeResponse,
-    DecryptedFlowDataExchange,
-    WhatsAppInteractiveMessage,
-} from '@/app/WhatsAppBot/WhatsAppBotType';
-import { compareHashedString } from '@/resources/utils/hashing';
-import { TokenNames } from '@/resources/web3/tokens';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import {
     BankBeneficiary,
     MobileMoneyBeneficiary,
     SendOfframpRequestPayload,
 } from '@/app/FiatRamp/fiatRampSchema';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { UserAssetInfo } from '@/app/User/userSchema';
+import UserService from '@/app/User/UserService';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import {
+    DataExchangeResponse,
+    DecryptedFlowDataExchange,
+    WhatsAppInteractiveMessage,
+} from '@/app/WhatsAppBot/WhatsAppBotType';
+import { ProcessOfframpInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlows/backgroundProcesses/processOfframp';
+import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
+import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
+import env from '@/constants/env';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
+import { HUNDRED, SIXTEEN, THREE, TWO, ZERO } from '@/constants/numbers';
+import { logSync } from '@/resources/logger';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
+import { generateOfframpProcessingMessage } from '@/resources/utils/bot-message-utils';
 import {
     decimalToString,
     defaultAmountFixer,
@@ -19,26 +32,13 @@ import {
     getCountryFlagEmoji,
     prettifyNumber,
 } from '@/resources/utils/currency';
-import UserService from '@/app/User/UserService';
-import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import { logSync } from '@/resources/logger';
-import { ProcessOfframpInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlows/backgroundProcesses/processOfframp';
-import { spawn } from 'child_process';
-import path from 'path';
 import { generateRandomHexString } from '@/resources/utils/encryption';
-import { HUNDRED, SIXTEEN, THREE, TWO, ZERO } from '@/constants/numbers';
-import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
-import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
-import { UserAssetInfo } from '@/app/User/userSchema';
-import { generateOfframpProcessingMessage } from '@/resources/utils/bot-message-utils';
-import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
-import env from '@/constants/env';
-import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { compareHashedString } from '@/resources/utils/hashing';
+import { TokenNames } from '@/resources/web3/tokens';
+import { spawn } from 'child_process';
 import { CountryCode } from 'libphonenumber-js';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import * as math from 'mathjs';
-import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
+import path from 'path';
 
 enum OffRampFlowScreens {
     AMOUNT_INPUT = 'AMOUNT_INPUT',
@@ -159,7 +159,11 @@ class WhatsAppBotOffRampFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logSync('debug', 'Next screen data', nextScreenData);
+            logSync('debug', 'Next screen data', {
+                screen: nextScreenData.screen,
+                errors: nextScreenData.data?.error_messages,
+                user_id: nextScreenData.data?.user_id,
+            });
 
             return {
                 ...nextScreenData,
