@@ -1,7 +1,7 @@
-import cron, { ScheduledTask } from 'node-cron';
-import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
-import logger from '@/resources/logger';
 import CryptoPayoutCronJobService from '@/app/CryptoPayout/CryptoPayoutCronJobService';
+import logger from '@/resources/logger';
+import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
+import cron, { ScheduledTask } from 'node-cron';
 
 type JobKeys = 'crypto-payout';
 
@@ -15,7 +15,7 @@ class CronHandler {
     ) => {
         const job = cron.schedule(cronExpression, callBackFunc);
 
-        logger.debug(`Function scheduled with cron expression: ${cronExpression}`);
+        void logger.debug(`Job [${key}] scheduled with cron expression: ${cronExpression}`);
 
         CronHandler.jobs.set(key, job);
 
@@ -31,7 +31,6 @@ class CronHandler {
 
         if (job) {
             job.stop();
-            logger.debug(`Cron task ${key} paused`);
         }
     }
 
@@ -40,7 +39,6 @@ class CronHandler {
 
         if (job) {
             job.start();
-            logger.debug(`Cron task ${key} resumed`);
         }
     }
 
@@ -53,11 +51,13 @@ class CronHandler {
                 this.pauseCronTask(key);
 
                 try {
+                    console.time('CryptoPayoutCronJobService');
                     await CryptoPayoutCronJobService.execute();
+                    console.timeEnd('CryptoPayoutCronJobService');
                 } catch (error) {
                     const parsedError = parseUnknownError(error);
 
-                    logger.error('Error processing crypto payouts', {
+                    void logger.error('Error processing crypto payouts', {
                         error: parsedError,
                     });
                 } finally {

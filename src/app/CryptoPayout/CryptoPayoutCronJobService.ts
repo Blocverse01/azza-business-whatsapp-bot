@@ -1,17 +1,17 @@
+import { getPayoutSpenderWalletAddress } from '@/app/CryptoPayout/config';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
-import { SupportedChain, TransactionResponse } from '@/app/WalletKit/walletKitSchema';
-import { CryptoPayoutOrder } from '@/db/xata';
-import { ENABLED_ASSETS } from '@/config/whatsAppBot';
-import { decimalToString } from '@/resources/utils/currency';
-import { getPayoutSpenderWalletAddress } from '@/app/CryptoPayout/config';
-import env from '@/constants/env';
-import WalletKitService from '@/app/WalletKit/WalletKitService';
-import logger, { logSync } from '@/resources/logger';
-import { spawn } from 'child_process';
-import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
+import { SupportedChain, TransactionResponse } from '@/app/WalletKit/walletKitSchema';
+import WalletKitService from '@/app/WalletKit/WalletKitService';
+import { ENABLED_ASSETS } from '@/config/whatsAppBot';
+import env from '@/constants/env';
+import { CryptoPayoutOrder } from '@/db/xata';
+import logger, { logSync } from '@/resources/logger';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
+import { decimalToString } from '@/resources/utils/currency';
+import { spawn } from 'child_process';
 
 type CryptoOrderInput = {
     recipient: string;
@@ -233,13 +233,11 @@ class CryptoPayoutCronJobService {
         group: CryptoPendingOrderGroup,
         walletBalance: number
     ) {
-        logger
-            .info(`Failed to process ${orders.length} payout orders`, {
-                group,
-                orders,
-                walletBalance,
-            })
-            .then(() => console.log('Logged'));
+        void logger.info(`Failed to process ${orders.length} payout orders`, {
+            group,
+            orders,
+            walletBalance,
+        });
     }
 
     public static groupCryptoOrdersByTokenAndNetwork(pendingOrders: Array<CryptoPayoutOrder>) {
