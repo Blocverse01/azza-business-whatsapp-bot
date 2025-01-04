@@ -136,4 +136,4 @@ dist
 build/
 
 .devfiles
-/dump.rdb
+*dump.rdb
