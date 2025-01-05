@@ -1,10 +1,5 @@
-import {
-    SecurityQuestion,
-    SetTransactionPinParams,
-    transactionPinSchema,
-} from '@/app/azza/azza.schema';
-import { SET_TRANSACTION_PIN_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
-import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
+import { SecurityQuestion, transactionPinSchema } from '@/app/azza/azza.schema';
+import UserService from '@/app/User/UserService';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
@@ -12,15 +7,13 @@ import {
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { queues } from '@/background-processing/queues';
 import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
 import { RECOVERY_QUESTIONS } from '@/resources/data/recovery-questions';
 import { logSync } from '@/resources/logger';
-import {
-    convertAsciiStringToBase64,
-    convertBase64ToAsciiString,
-    generateRandomHexString,
-} from '@/resources/utils/encryption';
+import { convertAsciiStringToBase64, generateRandomHexString } from '@/resources/utils/encryption';
+import { hashString } from '@/resources/utils/hashing';
 
 enum SetupTransactionPinFlowScreens {
     SET_TRANSACTION_PIN = 'SET_TRANSACTION_PIN',
@@ -281,15 +274,15 @@ class WhatsAppBotSetupTransactionPinFlowService {
             };
         }
 
-        // Save the transaction pin and security questions
-        spawnInBackground<SetTransactionPinParams>(
-            {
-                pin: transaction_pin,
-                securityQuestions: questionsToSave,
-                userId: convertBase64ToAsciiString(user_id),
-            },
-            SET_TRANSACTION_PIN_SCRIPT_PATH
-        );
+        const hashedPin = await hashString(transaction_pin);
+        const encryptedSecuritySetup = UserService.maskUserSecurityQuestions(questionsToSave);
+
+        // Add to background processing
+        await queues.userTxPinSecurity.add('set-tx-pin', {
+            newPinHash: hashedPin,
+            encryptedSecurityQuestions: encryptedSecuritySetup,
+            userId: user_id,
+        });
 
         return {
             screen: 'FEEDBACK',

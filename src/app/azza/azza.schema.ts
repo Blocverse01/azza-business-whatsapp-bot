@@ -1,4 +1,3 @@
-import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 import { z } from 'zod';
 
@@ -46,13 +45,13 @@ export const securityQuestionSchema = z.object({
 
 export const setTransactionPinParamsSchema = z.object({
     userId: z.string().describe('The ID of the user setting the transaction pin.'),
-    pin: transactionPinSchema,
-    securityQuestions: z.array(securityQuestionSchema),
+    newPinHash: z.string(),
+    encryptedSecurityQuestions: z.string(),
 });
 
 export const changeTransactionPinParamsSchema = z.object({
     userId: z.string(),
-    newPin: transactionPinSchema,
+    newPinHash: z.string(),
 });
 
 export const baseNameSchema = z

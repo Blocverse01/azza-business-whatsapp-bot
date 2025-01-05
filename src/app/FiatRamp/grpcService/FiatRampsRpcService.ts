@@ -1,8 +1,3 @@
-import redis from '@/app/cache/redis';
-import UserService from '@/app/User/UserService';
-import { FALLBACK_USE_AZZA_ADDRESS } from '@/constants/strings';
-import logger from '@/resources/logger';
-import { z } from 'zod';
 import {
     BankBeneficiary,
     CreateBeneficiaryParams,
@@ -18,9 +13,16 @@ import {
     supportedPaymentNetworkSchema,
     transactionStatusSchema,
 } from '@/app/FiatRamp/fiatRampSchema';
-import { transformKeysToCamelCase } from '@/resources/utils/transformers';
+import UserService from '@/app/User/UserService';
+import redis from '@/cache/redis';
+import { HUNDRED } from '@/constants/numbers';
+import { FALLBACK_USE_AZZA_ADDRESS } from '@/constants/strings';
 import { fiatramps } from '@/proto/fiatramps/v1/service';
-import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
+import logger from '@/resources/logger';
+import { defaultAmountFixer } from '@/resources/utils/currency';
+import { transformKeysToCamelCase } from '@/resources/utils/transformers';
+import { CountryCode } from 'libphonenumber-js';
+import { z } from 'zod';
 import {
     addBeneficiary,
     createBeneficiaryPaymentRequest,
@@ -39,26 +41,24 @@ import {
     resolveBankAccount,
     updateCollectionTransactionStatus,
 } from './rpcMethods';
-import GetRatesRequest = fiatramps.v1.GetRatesRequest;
-import { CountryCode } from 'libphonenumber-js';
-import GetQuotesRequest = fiatramps.v1.GetQuotesRequest;
-import { defaultAmountFixer } from '@/resources/utils/currency';
-import { HUNDRED } from '@/constants/numbers';
+import AddBeneficiaryRequest = fiatramps.v1.AddBeneficiaryRequest;
+import CollectionSource = fiatramps.v1.CollectionSource;
+import CreateBeneficiaryPaymentRequestInput = fiatramps.v1.CreateBeneficiaryPaymentRequestInput;
+import CreatePlatformCollectionRequestInput = fiatramps.v1.CreatePlatformCollectionRequestInput;
 import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
 import GetBeneficiaryRequest = fiatramps.v1.GetBeneficiaryRequest;
-import GetPaymentMethodsRequest = fiatramps.v1.GetPaymentMethodsRequest;
-import GetTransactionFeeRequest = fiatramps.v1.GetTransactionFeeRequest;
-import GetPaymentNetworksRequest = fiatramps.v1.GetPaymentNetworksRequest;
-import AddBeneficiaryRequest = fiatramps.v1.AddBeneficiaryRequest;
-import CreateBeneficiaryPaymentRequestInput = fiatramps.v1.CreateBeneficiaryPaymentRequestInput;
-import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
-import GetPaymentRequestTransactionRequest = fiatramps.v1.GetPaymentRequestTransactionRequest;
-import GetHotWalletAddressRequest = fiatramps.v1.GetHotWalletAddressRequest;
-import CreatePlatformCollectionRequestInput = fiatramps.v1.CreatePlatformCollectionRequestInput;
-import CollectionSource = fiatramps.v1.CollectionSource;
 import GetCollectionRequestTransactionRequest = fiatramps.v1.GetCollectionRequestTransactionRequest;
-import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
+import GetHotWalletAddressRequest = fiatramps.v1.GetHotWalletAddressRequest;
+import GetPaymentMethodsRequest = fiatramps.v1.GetPaymentMethodsRequest;
+import GetPaymentNetworksRequest = fiatramps.v1.GetPaymentNetworksRequest;
+import GetPaymentRequestTransactionRequest = fiatramps.v1.GetPaymentRequestTransactionRequest;
+import GetQuotesRequest = fiatramps.v1.GetQuotesRequest;
+import GetRatesRequest = fiatramps.v1.GetRatesRequest;
+import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
+import GetTransactionFeeRequest = fiatramps.v1.GetTransactionFeeRequest;
 import ResolveBankAccountRequest = fiatramps.v1.ResolveBankAccountRequest;
+import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
+import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {

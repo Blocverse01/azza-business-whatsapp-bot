@@ -23,7 +23,7 @@ function runScript() {
                     .map((key) => key.trim())
                     .filter(Boolean)
             );
-            rl.close();
+            runScript();
         }
     );
 }

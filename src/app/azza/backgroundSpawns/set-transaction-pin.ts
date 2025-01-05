@@ -4,14 +4,17 @@ import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { logSync } from '@/resources/logger';
+import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
 
 const setTransactionParams: SetTransactionPinParams = JSON.parse(process.argv[2]);
 
 async function executeScript(params: SetTransactionPinParams) {
+    const userId = convertBase64ToAsciiString(params.userId);
+
     try {
         await WhatsAppBotService.sendWhatsappMessage(
             env.WA_PHONE_NUMBER_ID,
-            MessageGenerators.generateTextMessage(params.userId, '🚀 Securing your account 🔐...')
+            MessageGenerators.generateTextMessage(userId, '🚀 Securing your account 🔐...')
         );
 
         const response = await setTransactionPin(params);
@@ -28,7 +31,7 @@ async function executeScript(params: SetTransactionPinParams) {
                 .join('\n');
 
             const message = MessageGenerators.generateTextMessage(
-                params.userId,
+                userId,
                 `✅ *Transaction PIN successfully updated!*\n\n🔒 _Keep it safe—your PIN is personal and should not be shared._\n\nHere's what you can do next on Azza:\n\n${actionsList}\n\n💬 Type *help* to ask the bot for guidance or try slash commands like */transfer*, */balance*, or */deposit* to get started!`
             );
 
@@ -40,7 +43,7 @@ async function executeScript(params: SetTransactionPinParams) {
         logSync('error', 'Error setting transaction PIN', { error });
 
         const message = MessageGenerators.generateTextMessage(
-            params.userId,
+            userId,
             `An error occurred while setting transaction pin. Please try again.`
         );
         await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);

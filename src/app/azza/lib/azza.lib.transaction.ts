@@ -1,18 +1,32 @@
 import { TransferAssetTransactionDetails, TransferProcessingMode } from '@/app/azza/azza.schema';
-import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import UserService from '@/app/User/UserService';
+import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
+import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
-import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
-import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import env from '@/constants/env';
-import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
-import { WaitForTransactionReceiptInBackgroundParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
-import { WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
+import { AssetConfig } from '@/resources/web3/tokens';
 
-export const sendTransferAssetTransaction = async (params: TransferAssetTransactionDetails) => {
+export type SendTransferTransactionError = {
+    message: string;
+    data?: unknown;
+};
+export type SendTransferTransactionResponse = {
+    transactionId: string;
+    userId: string;
+    destination: string;
+    transactionAmount: number;
+    transactionFee: number;
+    totalAmount: number;
+    asset: AssetConfig;
+};
+export type SendTransferTransactionResult =
+    | [SendTransferTransactionResponse, null]
+    | [null, SendTransferTransactionError];
+
+export const sendTransferAssetTransaction = async (
+    params: TransferAssetTransactionDetails
+): Promise<SendTransferTransactionResult> => {
     const { recipient, recipientType, assetId, transactionFee, amount, userId, transactionPin } =
         params;
 
@@ -58,59 +72,55 @@ export const sendTransferAssetTransaction = async (params: TransferAssetTransact
         }
     }
 
-    if (transferProcessingConfig.processingMode === 'direct') {
-        if (
-            !validateWalletAddress(transferProcessingConfig.resolvedRecipient, assetConfig.network)
-        ) {
-            const responseMessage = MessageGenerators.generateTextMessage(
-                userId,
-                `${transferProcessingConfig.resolvedRecipient} is not a valid wallet address for ${assetConfig.network}`
-            );
-
-            await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, responseMessage);
-
-            return;
-        }
-
-        const totalAmount = amount + transactionFee;
-
-        const transactionResponse = await WalletAssetManagementService.transferUserAssetToWallet(
-            userWalletInfo,
-            transferProcessingConfig.resolvedRecipient,
-            totalAmount.toString()
-        );
-        let responseMessage = '';
-        if (transactionResponse.status === 'failed') {
-            responseMessage = 'Submitting transaction failed';
-        } else {
-            responseMessage = `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${amount} ${assetConfig.tokenName} on ${assetConfig.network} to ${transferProcessingConfig.resolvedRecipient}\n\n🆔 Request ID: ${transactionResponse.transactionId}`;
-        }
-
-        const message = MessageGenerators.generateTextMessage(userId, responseMessage);
-        await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
-
-        spawnInBackground<WaitForTransactionReceiptInBackgroundParams>(
-            {
-                transactionId: transactionResponse.transactionId,
-                userId,
-                destination: transferProcessingConfig.resolvedRecipient,
-                amount: totalAmount.toString(),
-                assetLabel: `${assetConfig.tokenName} on ${assetConfig.network}`,
-                network: assetConfig.network,
-            },
-            WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH
-        );
-
-        return;
-    }
-
     if (transferProcessingConfig.processingMode === 'claimable') {
-        await WhatsAppBotService.sendWhatsappMessage(
-            env.WA_PHONE_NUMBER_ID,
-            MessageGenerators.generateTextMessage(
-                userId,
-                `You can only transfer to Phone Numbers on Azza at the moment.`
-            )
-        );
+        const errorMessage = `You can only transfer to Phone Numbers on Azza at the moment.`;
+
+        return [
+            null,
+            {
+                message: errorMessage,
+            },
+        ];
     }
+
+    if (!validateWalletAddress(transferProcessingConfig.resolvedRecipient, assetConfig.network)) {
+        const errorMessage = `${transferProcessingConfig.resolvedRecipient} is not a valid wallet address for ${assetConfig.network}`;
+
+        return [
+            null,
+            {
+                message: errorMessage,
+            },
+        ];
+    }
+
+    const totalAmount = amount + transactionFee;
+
+    const transactionResponse = await WalletAssetManagementService.transferUserAssetToWallet(
+        userWalletInfo,
+        transferProcessingConfig.resolvedRecipient,
+        totalAmount.toString()
+    );
+
+    if (transactionResponse.status === 'failed') {
+        return [
+            null,
+            {
+                message: 'Submitting transaction failed',
+            },
+        ];
+    }
+
+    return [
+        {
+            transactionId: transactionResponse.transactionId,
+            userId,
+            destination: transferProcessingConfig.resolvedRecipient,
+            transactionAmount: amount,
+            asset: assetConfig,
+            transactionFee,
+            totalAmount,
+        },
+        null,
+    ];
 };

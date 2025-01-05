@@ -18,10 +18,10 @@ export const setTransactionPin = async (params: SetTransactionPinParams) => {
         throw new Error('Transaction pin already set');
     }
 
-    const updateRecord = await UserService.storeNewTransactionPin(
+    const updateRecord = await UserService.background_storeNewTransactionPin(
         user,
-        params.pin,
-        params.securityQuestions
+        params.newPinHash,
+        params.encryptedSecurityQuestions
     );
 
     if (!updateRecord) {
@@ -34,7 +34,7 @@ export const setTransactionPin = async (params: SetTransactionPinParams) => {
 };
 
 export const changeTransactionPin = async (params: ChangeTransactionPinParams) => {
-    const { newPin } = params;
+    const { newPinHash } = params;
 
     const validParams = changeTransactionPinParamsSchema.parse(params);
 
@@ -48,7 +48,7 @@ export const changeTransactionPin = async (params: ChangeTransactionPinParams) =
     }
 
     // Update user's transaction pin
-    const updatedRecord = await UserService.updateTransactionPin(user, newPin);
+    const updatedRecord = await UserService.updateTransactionPin(user, newPinHash);
 
     if (!updatedRecord) {
         throw new Error('Transaction pin not set');

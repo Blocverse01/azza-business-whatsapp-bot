@@ -1,10 +1,17 @@
-import express, { type Request } from 'express';
-import compression from 'compression';
-import { NOT_FOUND, OK } from '@/constants/status-codes';
-import env from '@/constants/env';
-import apiRoutes from './routes';
-import logger from '@/resources/logger';
 import { addAlchemyContextToRequest } from '@/app/AlchemyNotify/webhookUtils';
+import { queues } from '@/background-processing/queues';
+import env from '@/constants/env';
+import { NOT_FOUND, OK } from '@/constants/status-codes';
+import logger from '@/resources/logger';
+import { authenticateAdmin } from '@/resources/middlewares/authenticateBullDashboardAdmin';
+import { createBullBoard } from '@bull-board/api';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { ExpressAdapter } from '@bull-board/express';
+import compression from 'compression';
+import CookieParser from 'cookie-parser';
+import express, { type Request } from 'express';
+import apiRoutes from './routes';
+import './background-processing/workers';
 
 const app = express();
 
@@ -20,15 +27,31 @@ app.use(
     })
 );
 
+//middleware for cookies
+app.use(CookieParser());
+
 app.get('/', async (_, res) => {
     res.status(OK).send('API welcomes you :)');
 });
 
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath('/admin/queues');
+
+createBullBoard({
+    queues: [
+        new BullMQAdapter(queues.fiatPayout),
+        new BullMQAdapter(queues.cryptoDebit),
+        new BullMQAdapter(queues.cryptoDebitConfirmation),
+        new BullMQAdapter(queues.userTxPinSecurity),
+    ],
+    serverAdapter: serverAdapter,
+});
+
+app.use('/admin/queues', authenticateAdmin, serverAdapter.getRouter());
+
 app.use('/api', apiRoutes, async () => {
     // flush logs: ensure all logs are sent
-    const startFlush = Date.now();
     await logger.flush();
-    console.log(`Flushing logs took ${Date.now() - startFlush}ms`);
 });
 
 app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found' }));

@@ -1,10 +1,18 @@
+import AlchemyNotifyService from '@/app/AlchemyNotify/AlchemyNotifyService';
+import { getWebhookId, isChainWithNotifySupport } from '@/app/AlchemyNotify/config';
 import { SecurityQuestion } from '@/app/azza/azza.schema';
-import redis from '@/app/cache/redis';
+import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import ExtendedSolanaWallet from '@/app/ExtendedWallet/solana/ExtendedSolanaWallet';
-import env from '@/constants/env';
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
-import { dbClient } from '@/db/dbClient';
-import { HttpException } from '@/resources/exceptions/HttpException';
+import ExtendedTronWallet from '@/app/ExtendedWallet/tron/ExtendedTronWallet';
+import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import {
+    KycStatus,
+    UserAssetInfo,
+    UserAssetItem,
+    userIdentityInfoSchema,
+} from '@/app/User/userSchema';
 import {
     CreateWalletKitWalletParams,
     CreateWalletKitWalletResponse,
@@ -12,30 +20,22 @@ import {
     SupportedChain,
 } from '@/app/WalletKit/walletKitSchema';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
-import {
-    KycStatus,
-    UserAssetInfo,
-    UserAssetItem,
-    userIdentityInfoSchema,
-} from '@/app/User/userSchema';
-import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
-import { hashString } from '@/resources/utils/hashing';
-import { getDummyUsdValue, TokenNames } from '@/resources/web3/tokens';
-import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { UserRecord } from '@/db/xata';
-import { fixNumber, formatNumberAsCurrency, prettifyNumber } from '@/resources/utils/currency';
-import { ONE, SIX } from '@/constants/numbers';
+import redis from '@/cache/redis';
 import { ENABLED_ASSETS, getAssetConfigOrThrow } from '@/config/whatsAppBot';
-import AlchemyNotifyService from '@/app/AlchemyNotify/AlchemyNotifyService';
+import env from '@/constants/env';
+import { ONE, SIX } from '@/constants/numbers';
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
+import { dbClient } from '@/db/dbClient';
+import { UserRecord } from '@/db/xata';
+import { HttpException } from '@/resources/exceptions/HttpException';
 import { logSync } from '@/resources/logger';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
-import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
-import ExtendedTronWallet from '@/app/ExtendedWallet/tron/ExtendedTronWallet';
-import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { fixNumber, formatNumberAsCurrency, prettifyNumber } from '@/resources/utils/currency';
+import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
+import { hashString } from '@/resources/utils/hashing';
+import { cleanPhoneNumberInput, getPhoneNumberObject } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
-import { getPhoneNumberObject, cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
-import { getWebhookId, isChainWithNotifySupport } from '@/app/AlchemyNotify/config';
+import { getDummyUsdValue, TokenNames } from '@/resources/web3/tokens';
 
 class UserService {
     private static USER_TABLE = dbClient.User;
@@ -226,11 +226,26 @@ class UserService {
         return updatedRecord;
     }
 
-    public static async updateTransactionPin(user: UserRecord, newPin: string) {
-        const hashedPin = await hashString(newPin);
-
+    public static async background_storeNewTransactionPin(
+        user: UserRecord,
+        newPinHash: string,
+        encryptedSecurityQuestions: string
+    ) {
         const updatedRecord = await this.USER_TABLE.update(user.id, {
-            transactionPinHash: hashedPin,
+            transactionPinHash: newPinHash,
+            securityQuestionsSetup: encryptedSecurityQuestions,
+        });
+
+        if (updatedRecord) {
+            await this.setUserCache(updatedRecord);
+        }
+
+        return updatedRecord;
+    }
+
+    public static async updateTransactionPin(user: UserRecord, newPinHash: string) {
+        const updatedRecord = await this.USER_TABLE.update(user.id, {
+            transactionPinHash: newPinHash,
         });
 
         if (updatedRecord) {
@@ -489,7 +504,7 @@ class UserService {
         return availableWallets;
     }
 
-    private static maskUserSecurityQuestions(securityQuestionsSetup: Array<SecurityQuestion>) {
+    public static maskUserSecurityQuestions(securityQuestionsSetup: Array<SecurityQuestion>) {
         return encryptWithAES(
             JSON.stringify(securityQuestionsSetup),
             env.SECURITY_QUESTIONS_MASK_KEY,
@@ -512,7 +527,7 @@ class UserService {
 
         const scoreSheet: Record<string, boolean> = {};
 
-        userSecurityQuestions.forEach((question, index) => {
+        userSecurityQuestions.forEach((question) => {
             const targetAnswer = answers.find(
                 (answer) => answer.questionId === question.immutableId
             );

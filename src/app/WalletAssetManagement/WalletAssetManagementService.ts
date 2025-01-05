@@ -1,13 +1,12 @@
-import { UserAssetInfo } from '@/app/User/userSchema';
-import WalletKitService from '@/app/WalletKit/WalletKitService';
-import env from '@/constants/env';
-import { decimalToString, fixNumber } from '@/resources/utils/currency';
-import { TWO, ZERO } from '@/constants/numbers';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import { calculateStableTokenTransferTransactionFee } from '@/app/WalletAssetManagement/config';
-import { validateWalletAddress } from '@/resources/utils/validators';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
+import { UserAssetInfo } from '@/app/User/userSchema';
+import { calculateStableTokenTransferTransactionFee } from '@/app/WalletAssetManagement/config';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import WalletKitService from '@/app/WalletKit/WalletKitService';
+import { TWO, ZERO } from '@/constants/numbers';
+import { fixNumber } from '@/resources/utils/currency';
+import { validateWalletAddress } from '@/resources/utils/validators';
 import { getAddress, parseEther, toHex } from 'viem';
 
 class WalletAssetManagementService {
@@ -22,35 +21,6 @@ class WalletAssetManagementService {
             asset.tokenAddress,
             asset.assetNetwork
         );
-
-        if (this.SHOULD_CHARGE_TRANSACTION_FEE && !isNativeTokenTransfer) {
-            // Todo: Implement transaction fee for native token transfers
-            const transactionFee = this.calculateStableTokenTransferTransactionFee(
-                amount,
-                asset.assetNetwork
-            );
-
-            if (isExtendedNetwork(asset.assetNetwork)) {
-                if (transactionFee > ZERO && asset.extendedWallet) {
-                    // Note: This should only be used for EVM chains, which means non-EVM chains are expected to have a ZERO transaction fee charged by the bot.
-                    // Because transaction fees for non-EVm chains are paid by the user and determined by the network
-                    await asset.extendedWallet.transferToken(
-                        asset.tokenAddress,
-                        transactionFee,
-                        env.TRANSACTION_FEE_RECIPIENT
-                    );
-                }
-            } else {
-                await WalletKitService.transferToken({
-                    amount: decimalToString(transactionFee),
-                    network: asset.assetNetwork,
-                    developer_secret: WalletKitService.DEVELOPER_SECRET,
-                    token: asset.tokenAddress,
-                    from: asset.walletAddress,
-                    recipient: env.TRANSACTION_FEE_RECIPIENT, // An EVM address to receive the transaction fee. EVM for now because we are only supporting EVM chains ATM
-                });
-            }
-        }
 
         const transactionResponse = isExtendedNetwork(asset.assetNetwork)
             ? isNativeTokenTransfer

@@ -1,10 +1,4 @@
-import {
-    ChangeTransactionPinParams,
-    SecurityQuestion,
-    transactionPinSchema,
-} from '@/app/azza/azza.schema';
-import { CHANGE_TRANSACTION_PIN_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
-import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
+import { SecurityQuestion, transactionPinSchema } from '@/app/azza/azza.schema';
 import UserService from '@/app/User/UserService';
 import {
     DataExchangeResponse,
@@ -13,6 +7,7 @@ import {
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { queues } from '@/background-processing/queues';
 import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
 import { logSync } from '@/resources/logger';
@@ -21,6 +16,7 @@ import {
     convertBase64ToAsciiString,
     generateRandomHexString,
 } from '@/resources/utils/encryption';
+import { hashString } from '@/resources/utils/hashing';
 
 enum ResetTransactionPinFlowScreens {
     ANSWER_SECURITY_QUESTIONS = 'ANSWER_SECURITY_QUESTIONS',
@@ -330,15 +326,22 @@ class WhatsAppBotResetTransactionPinFlowService {
             };
         }
 
+        const hashedPin = await hashString(new_pin);
+
+        // Update the transaction pin in the background
+        await queues.userTxPinSecurity.add('change-tx-pin', {
+            newPinHash: hashedPin,
+            userId: user_id,
+        });
+
         // Update user's transaction pin in background
-        // Save the transaction pin and security questions
-        spawnInBackground<ChangeTransactionPinParams>(
-            {
-                newPin: new_pin,
-                userId: convertBase64ToAsciiString(user_id),
-            },
-            CHANGE_TRANSACTION_PIN_SCRIPT_PATH
-        );
+        // spawnInBackground<ChangeTransactionPinParams>(
+        //     {
+        //         newPinHash: hashedPin,
+        //         userId: user_id,
+        //     },
+        //     CHANGE_TRANSACTION_PIN_SCRIPT_PATH
+        // );
 
         return {
             screen: ResetTransactionPinFlowScreens.FEEDBACK,

@@ -1,3 +1,7 @@
+import {
+    AssetTransferRecipientType,
+    TransferAssetTransactionDetails,
+} from '@/app/azza/azza.schema';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import {
     BankBeneficiary,
@@ -17,6 +21,9 @@ import {
 import { ProcessOfframpInBackgroundParams } from '@/app/WhatsAppBot/WhatsAppFlows/backgroundProcesses/processOfframp';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { offrampFlowProducer } from '@/background-processing/flow-producers';
+import { OfframpQueueFlowParams } from '@/background-processing/schema';
+import { QueueNames } from '@/background-processing/types';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
@@ -32,7 +39,11 @@ import {
     getCountryFlagEmoji,
     prettifyNumber,
 } from '@/resources/utils/currency';
-import { generateRandomHexString } from '@/resources/utils/encryption';
+import {
+    convertAsciiStringToBase64,
+    encryptWithAES,
+    generateRandomHexString,
+} from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { TokenNames } from '@/resources/web3/tokens';
 import { spawn } from 'child_process';
@@ -456,6 +467,7 @@ class WhatsAppBotOffRampFlowService {
             userId: user_id,
             platformFeePercentage: parseFloat(platform_fee_percentage),
             conversionRate: parseFloat(conversion_rate),
+            transactionPin: transaction_pin,
         });
 
         if (response.status === 'processing') {
@@ -493,6 +505,7 @@ class WhatsAppBotOffRampFlowService {
         beneficiaryId: string;
         platformFeePercentage: number;
         conversionRate: number;
+        transactionPin: string;
     }): Promise<ProcessOffRampTransactionResponse> {
         const {
             fiatAmount,
@@ -502,6 +515,7 @@ class WhatsAppBotOffRampFlowService {
             beneficiaryId,
             platformFeePercentage,
             conversionRate,
+            transactionPin,
         } = params;
 
         const assetConfig = getAssetConfigOrThrow(assetId);
@@ -518,15 +532,13 @@ class WhatsAppBotOffRampFlowService {
         }
 
         try {
-            const { transactionId, hotWalletAddress } = await UserService.sendUserAssetForOfframp(
-                walletInfo,
-                tokenAmountToDebit.toString()
-            );
+            const hotWalletAddress = await FiatRampService.getHotWalletForNetwork('evm');
 
             // Process in background and return early processing response
-            this.processOfframpInBackground(
-                transactionId,
-                {
+            await offrampFlowProducer.add({
+                name: 'process-fiat-payout',
+                queueName: QueueNames.fiatPayout,
+                data: {
                     beneficiaryId,
                     usdAmount: tokenAmountToDebit,
                     localAmount: fiatAmount,
@@ -535,13 +547,37 @@ class WhatsAppBotOffRampFlowService {
                     tokenName: assetConfig.tokenName,
                     userWalletAddress: walletInfo.walletAddress,
                     hotWalletAddress,
-                    userId,
+                    userId: convertAsciiStringToBase64(userId),
                     platformFeePercentage,
                     conversionRate,
-                },
-                assetConfig.network,
-                userId
-            );
+                } satisfies OfframpQueueFlowParams,
+                children: [
+                    {
+                        name: 'offramp-debit-confirmation',
+                        queueName: QueueNames.cryptoDebitConfirmation,
+                        children: [
+                            {
+                                name: 'offramp-debit',
+                                queueName: QueueNames.cryptoDebit,
+                                data: {
+                                    userId: convertAsciiStringToBase64(userId),
+                                    amount: tokenAmountToDebit,
+                                    transactionFee: 0,
+                                    assetId,
+                                    recipient: hotWalletAddress,
+                                    recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
+                                    transactionType: 'SEND',
+                                    transactionPin: encryptWithAES(
+                                        transactionPin,
+                                        env.SECURITY_QUESTIONS_MASK_KEY,
+                                        env.SECURITY_QUESTIONS_MASK_IV
+                                    ),
+                                } satisfies TransferAssetTransactionDetails,
+                            },
+                        ],
+                    },
+                ],
+            });
 
             return {
                 status: 'processing',
