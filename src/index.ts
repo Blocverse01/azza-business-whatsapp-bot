@@ -35,7 +35,7 @@ app.get('/', async (_, res) => {
 });
 
 const serverAdapter = new ExpressAdapter();
-serverAdapter.setBasePath('/admin/queues');
+serverAdapter.setBasePath('/bjs/ui');
 
 createBullBoard({
     queues: [
