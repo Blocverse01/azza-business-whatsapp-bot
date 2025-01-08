@@ -5754,23 +5754,12 @@ export namespace fiatramps.v1 {
     export class UpdatePaymentTransactionStatusRequest extends pb_1.Message {
         #one_of_decls: number[][] = [];
 
-        constructor(
-            data?:
-                | any[]
-                | {
-                      sequence_id?: string;
-                      status?: string;
-                  }
-        ) {
+        constructor(data?: any[] | {
+            sequence_id?: string;
+            status?: string;
+        }) {
             super();
-            pb_1.Message.initialize(
-                this,
-                A'object'rray(data) ? data : [],
-'sequence_id'   0,
-                -1,
-                [],
-                this.#one_of_decls
-            );
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
             if (!Array.isArray(data) && typeof data == 'object') {
                 if ('sequence_id' in data && data.sequence_id != undefined) {
                     this.sequence_id = data.sequence_id;
@@ -5822,19 +5811,20 @@ export namespace fiatramps.v1 {
         serialize(w: pb_1.BinaryWriter): void;
         serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
             const writer = w || new pb_1.BinaryWriter();
-            if (this.sequence_id.length) writer.writeString(1, this.sequence_id);
-            if (this.status.length) writer.writeString(2, this.status);
-            if (!w) return writer.getResultBuffer();
+            if (this.sequence_id.length)
+                writer.writeString(1, this.sequence_id);
+            if (this.status.length)
+                writer.writeString(2, this.status);
+            if (!w)
+                return writer.getResultBuffer();
         }
 
-        static deserialize(
-            bytes: Uint8Array | pb_1.BinaryReader,
-        ): UpdatePaymentTransactionStatusRequest {
-            const reader =
-                    bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): UpdatePaymentTransactionStatusRequest {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
                 message = new UpdatePaymentTransactionStatusRequest();
             while (reader.nextField()) {
-                if (reader.isEndGroup()) break;
+                if (reader.isEndGroup())
+                    break;
                 switch (reader.getFieldNumber()) {
                     case 1:
                         message.sequence_id = reader.readString();
@@ -5857,7 +5847,6 @@ export namespace fiatramps.v1 {
     }
     export class UpdatePaymentTransactionStatusResponse extends pb_1.Message {
         #one_of_decls: number[][] = [];
-
         constructor(data?: any[] | {
             sequence_id?: string;
             status?: string;
@@ -5942,7 +5931,6 @@ export namespace fiatramps.v1 {
             if (!w)
                 return writer.getResultBuffer();
         }
-
         static deserialize(bytes: Uint8Array | pb_1.BinaryReader): UpdatePaymentTransactionStatusResponse {
             const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
                 message = new UpdatePaymentTransactionStatusResponse();
