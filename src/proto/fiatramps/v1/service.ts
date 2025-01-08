@@ -5751,7 +5751,6 @@ export namespace fiatramps.v1 {
             return ResolveBankAccountResponse.deserialize(bytes);
         }
     }
-
     export class UpdatePaymentTransactionStatusRequest extends pb_1.Message {
         #one_of_decls: number[][] = [];
 
@@ -5766,8 +5765,8 @@ export namespace fiatramps.v1 {
             super();
             pb_1.Message.initialize(
                 this,
-                Array.isArray(data) ? data : [],
-                0,
+                A'object'rray(data) ? data : [],
+'sequence_id'   0,
                 -1,
                 [],
                 this.#one_of_decls
@@ -5781,23 +5780,18 @@ export namespace fiatramps.v1 {
                 }
             }
         }
-
         get sequence_id() {
             return pb_1.Message.getFieldWithDefault(this, 1, '') as string;
         }
-
         set sequence_id(value: string) {
             pb_1.Message.setField(this, 1, value);
         }
-
         get status() {
             return pb_1.Message.getFieldWithDefault(this, 2, '') as string;
         }
-
         set status(value: string) {
             pb_1.Message.setField(this, 2, value);
         }
-
         static fromObject(data: {
             sequence_id?: string;
             status?: string;
@@ -5811,7 +5805,6 @@ export namespace fiatramps.v1 {
             }
             return message;
         }
-
         toObject() {
             const data: {
                 sequence_id?: string;
@@ -5825,7 +5818,6 @@ export namespace fiatramps.v1 {
             }
             return data;
         }
-
         serialize(): Uint8Array;
         serialize(w: pb_1.BinaryWriter): void;
         serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
@@ -5836,7 +5828,7 @@ export namespace fiatramps.v1 {
         }
 
         static deserialize(
-            bytes: Uint8Array | pb_1.BinaryReader
+            bytes: Uint8Array | pb_1.BinaryReader,
         ): UpdatePaymentTransactionStatusRequest {
             const reader =
                     bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
@@ -5856,37 +5848,23 @@ export namespace fiatramps.v1 {
             }
             return message;
         }
-
         serializeBinary(): Uint8Array {
             return this.serialize();
         }
-
         static deserializeBinary(bytes: Uint8Array): UpdatePaymentTransactionStatusRequest {
             return UpdatePaymentTransactionStatusRequest.deserialize(bytes);
         }
     }
-
     export class UpdatePaymentTransactionStatusResponse extends pb_1.Message {
         #one_of_decls: number[][] = [];
 
-        constructor(
-            data?:
-                | any[]
-                | {
-                      sequence_id?: string;
-                      status?: string;
-                      success?: boolean;
-                  }
-        ) {
+        constructor(data?: any[] | {
+            sequence_id?: string;
+            status?: string;
+            success?: boolean;
+        }) {
             super();
-            pb_1.Message.initialize(
-                this,
-                Array.isArray(data) ? data : [],
-                0,
-                -1,
-                [],
-                this.#one_of_decls
-            );
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
             if (!Array.isArray(data) && typeof data == 'object') {
                 if ('sequence_id' in data && data.sequence_id != undefined) {
                     this.sequence_id = data.sequence_id;
@@ -5899,31 +5877,24 @@ export namespace fiatramps.v1 {
                 }
             }
         }
-
         get sequence_id() {
             return pb_1.Message.getFieldWithDefault(this, 1, '') as string;
         }
-
         set sequence_id(value: string) {
             pb_1.Message.setField(this, 1, value);
         }
-
         get status() {
             return pb_1.Message.getFieldWithDefault(this, 2, '') as string;
         }
-
         set status(value: string) {
             pb_1.Message.setField(this, 2, value);
         }
-
         get success() {
             return pb_1.Message.getFieldWithDefault(this, 3, false) as boolean;
         }
-
         set success(value: boolean) {
             pb_1.Message.setField(this, 3, value);
         }
-
         static fromObject(data: {
             sequence_id?: string;
             status?: string;
@@ -5941,7 +5912,6 @@ export namespace fiatramps.v1 {
             }
             return message;
         }
-
         toObject() {
             const data: {
                 sequence_id?: string;
@@ -5959,25 +5929,26 @@ export namespace fiatramps.v1 {
             }
             return data;
         }
-
         serialize(): Uint8Array;
         serialize(w: pb_1.BinaryWriter): void;
         serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
             const writer = w || new pb_1.BinaryWriter();
-            if (this.sequence_id.length) writer.writeString(1, this.sequence_id);
-            if (this.status.length) writer.writeString(2, this.status);
-            if (this.success != false) writer.writeBool(3, this.success);
-            if (!w) return writer.getResultBuffer();
+            if (this.sequence_id.length)
+                writer.writeString(1, this.sequence_id);
+            if (this.status.length)
+                writer.writeString(2, this.status);
+            if (this.success != false)
+                writer.writeBool(3, this.success);
+            if (!w)
+                return writer.getResultBuffer();
         }
 
-        static deserialize(
-            bytes: Uint8Array | pb_1.BinaryReader
-        ): UpdatePaymentTransactionStatusResponse {
-            const reader =
-                    bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): UpdatePaymentTransactionStatusResponse {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
                 message = new UpdatePaymentTransactionStatusResponse();
             while (reader.nextField()) {
-                if (reader.isEndGroup()) break;
+                if (reader.isEndGroup())
+                    break;
                 switch (reader.getFieldNumber()) {
                     case 1:
                         message.sequence_id = reader.readString();
@@ -5994,11 +5965,9 @@ export namespace fiatramps.v1 {
             }
             return message;
         }
-
         serializeBinary(): Uint8Array {
             return this.serialize();
         }
-
         static deserializeBinary(bytes: Uint8Array): UpdatePaymentTransactionStatusResponse {
             return UpdatePaymentTransactionStatusResponse.deserialize(bytes);
         }
@@ -6178,7 +6147,8 @@ export namespace fiatramps.v1 {
                 requestStream: false,
                 responseStream: false,
                 requestSerialize: (message: ResolveBankAccountRequest) => Buffer.from(message.serialize()),
-                requestDeserialize: (bytes: Buffer) => ResolveBankAccountRequest.deserialize(n'/fiatramps.v1.FiatRampsService/UpdatePaymentTransactionStatus'age: ResolveBankAccountResponse) => Buffer.from(message.serialize()),
+                requestDeserialize: (bytes: Buffer) => ResolveBankAccountRequest.deserialize(new Uint8Array(bytes)),
+                responseSerialize: (message: ResolveBankAccountResponse) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => ResolveBankAccountResponse.deserialize(new Uint8Array(bytes))
             },
             UpdatePaymentTransactionStatus: {
@@ -6186,7 +6156,7 @@ export namespace fiatramps.v1 {
                 requestStream: false,
                 responseStream: false,
                 requestSerialize: (message: UpdatePaymentTransactionStatusRequest) => Buffer.from(message.serialize()),
-                requestDeserialize: (bytes: Bu,ffer) => UpdatePaymentTransactionStatusRequest.deserialize(new Uint8Array(bytes)),
+                requestDeserialize: (bytes: Buffer) => UpdatePaymentTransactionStatusRequest.deserialize(new Uint8Array(bytes)),
                 responseSerialize: (message: UpdatePaymentTransactionStatusResponse) => Buffer.from(message.serialize()),
                 responseDeserialize: (bytes: Buffer) => UpdatePaymentTransactionStatusResponse.deserialize(new Uint8Array(bytes))
             }
@@ -6209,7 +6179,6 @@ export namespace fiatramps.v1 {
         abstract GetCollectionRequestTransaction(call: grpc_1.ServerUnaryCall<GetCollectionRequestTransactionRequest, GetCollectionRequestResponse>, callback: grpc_1.sendUnaryData<GetCollectionRequestResponse>): void;
         abstract UpdateCollectionTransactionStatus(call: grpc_1.ServerUnaryCall<UpdateCollectionTransactionStatusRequest, UpdateCollectionTransactionStatusResponse>, callback: grpc_1.sendUnaryData<UpdateCollectionTransactionStatusResponse>): void;
         abstract ResolveBankAccount(call: grpc_1.ServerUnaryCall<ResolveBankAccountRequest, ResolveBankAccountResponse>, callback: grpc_1.sendUnaryData<ResolveBankAccountResponse>): void;
-
         abstract UpdatePaymentTransactionStatus(call: grpc_1.ServerUnaryCall<UpdatePaymentTransactionStatusRequest, UpdatePaymentTransactionStatusResponse>, callback: grpc_1.sendUnaryData<UpdatePaymentTransactionStatusResponse>): void;
     }
     export class FiatRampsServiceClient extends grpc_1.makeGenericClientConstructor(UnimplementedFiatRampsServiceService.definition, "FiatRampsService", {}) {
