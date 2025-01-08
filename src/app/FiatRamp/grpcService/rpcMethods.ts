@@ -1,30 +1,30 @@
+import { client } from '@/app/FiatRamp/grpcService/config';
 import { promisifyUnary } from '@/app/FiatRamp/grpcService/utils';
 import { fiatramps } from '@/proto/fiatramps/v1/service';
-import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
-import { client } from '@/app/FiatRamp/grpcService/config';
-import GetRatesRequest = fiatramps.v1.GetRatesRequest;
-import GetQuotesRequest = fiatramps.v1.GetQuotesRequest;
-import FiatRampsServiceClient = fiatramps.v1.FiatRampsServiceClient;
-import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
-import GetBeneficiaryRequest = fiatramps.v1.GetBeneficiaryRequest;
-import GetPaymentMethodsRequest = fiatramps.v1.GetPaymentMethodsRequest;
-import GetPaymentMethodsResponse = fiatramps.v1.GetPaymentMethodsResponse;
-import GetTransactionFeeRequest = fiatramps.v1.GetTransactionFeeRequest;
-import GetTransactionFeeResponse = fiatramps.v1.GetTransactionFeeResponse;
-import GetPaymentNetworksRequest = fiatramps.v1.GetPaymentNetworksRequest;
-import GetPaymentNetworksResponse = fiatramps.v1.GetPaymentNetworksResponse;
 import AddBeneficiaryRequest = fiatramps.v1.AddBeneficiaryRequest;
 import AddBeneficiaryResponse = fiatramps.v1.AddBeneficiaryResponse;
 import CreateBeneficiaryPaymentRequestInput = fiatramps.v1.CreateBeneficiaryPaymentRequestInput;
+import CreateCollectionResponse = fiatramps.v1.CreateCollectionResponse;
 import CreatePaymentRequestResponse = fiatramps.v1.CreatePaymentRequestResponse;
-import GetPaymentRequestTransactionRequest = fiatramps.v1.GetPaymentRequestTransactionRequest;
-import GetPaymentRequestTransactionResponse = fiatramps.v1.GetPaymentRequestTransactionResponse;
+import CreatePlatformCollectionRequestInput = fiatramps.v1.CreatePlatformCollectionRequestInput;
+import FiatRampsServiceClient = fiatramps.v1.FiatRampsServiceClient;
+import GetBeneficiariesRequest = fiatramps.v1.GetBeneficiariesRequest;
+import GetBeneficiaryRequest = fiatramps.v1.GetBeneficiaryRequest;
+import GetCollectionRequestResponse = fiatramps.v1.GetCollectionRequestResponse;
+import GetCollectionRequestTransactionRequest = fiatramps.v1.GetCollectionRequestTransactionRequest;
 import GetHotWalletAddressRequest = fiatramps.v1.GetHotWalletAddressRequest;
 import GetHotWalletAddressResponse = fiatramps.v1.GetHotWalletAddressResponse;
-import CreatePlatformCollectionRequestInput = fiatramps.v1.CreatePlatformCollectionRequestInput;
-import CreateCollectionResponse = fiatramps.v1.CreateCollectionResponse;
-import GetCollectionRequestTransactionRequest = fiatramps.v1.GetCollectionRequestTransactionRequest;
-import GetCollectionRequestResponse = fiatramps.v1.GetCollectionRequestResponse;
+import GetPaymentMethodsRequest = fiatramps.v1.GetPaymentMethodsRequest;
+import GetPaymentMethodsResponse = fiatramps.v1.GetPaymentMethodsResponse;
+import GetPaymentNetworksRequest = fiatramps.v1.GetPaymentNetworksRequest;
+import GetPaymentNetworksResponse = fiatramps.v1.GetPaymentNetworksResponse;
+import GetPaymentRequestTransactionRequest = fiatramps.v1.GetPaymentRequestTransactionRequest;
+import GetPaymentRequestTransactionResponse = fiatramps.v1.GetPaymentRequestTransactionResponse;
+import GetQuotesRequest = fiatramps.v1.GetQuotesRequest;
+import GetRatesRequest = fiatramps.v1.GetRatesRequest;
+import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
+import GetTransactionFeeRequest = fiatramps.v1.GetTransactionFeeRequest;
+import GetTransactionFeeResponse = fiatramps.v1.GetTransactionFeeResponse;
 
 // Wrap the gRPC methods as promises
 export const getSupportedCountries = promisifyUnary<
@@ -122,3 +122,9 @@ export const resolveBankAccount = promisifyUnary<
     fiatramps.v1.ResolveBankAccountRequest,
     fiatramps.v1.ResolveBankAccountResponse
 >(client, 'ResolveBankAccount');
+
+export const updatePaymentTransactionStatus = promisifyUnary<
+    FiatRampsServiceClient,
+    fiatramps.v1.UpdatePaymentTransactionStatusRequest,
+    fiatramps.v1.UpdatePaymentTransactionStatusResponse
+>(client, 'UpdatePaymentTransactionStatus');

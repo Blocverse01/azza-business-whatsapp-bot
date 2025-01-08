@@ -1,19 +1,19 @@
+import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
+import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
+import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
 import UserService from '@/app/User/UserService';
+import { SUPPORTED_CHAINS, SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { searchAsset } from '@/config/whatsAppBot';
 import env from '@/constants/env';
-import { Request, Response } from 'express';
-import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import { OK } from '@/constants/status-codes';
+import logger, { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import { prettifyNumber } from '@/resources/utils/currency';
-import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import logger, { logSync } from '@/resources/logger';
-import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
-import { SUPPORTED_CHAINS, SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { TokenNames } from '@/resources/web3/tokens';
+import { Request, Response } from 'express';
 
 class FiatRampServiceController {
     public static receiveWebHookData(req: Request) {
@@ -52,7 +52,10 @@ class FiatRampServiceController {
                 yellowCardStatus.toLowerCase()
             );
 
-            const transaction = await FiatRampService.getOfframpTransaction(sequenceId);
+            const [transaction] = await Promise.all([
+                FiatRampService.getOfframpTransaction(sequenceId),
+                FiatRampService.updateOfframpTransactionStatus(sequenceId, newTransactionStatus),
+            ]);
 
             const transactionDetailsString = `💲Sell ${transaction.usdAmount} ${transaction.tokenSymbol} on ${transaction.blockchainNetwork} for ${transaction.localCurrencySymbol} ${prettifyNumber(transaction.localAmount)}`;
 
@@ -128,7 +131,10 @@ class FiatRampServiceController {
                 yellowCardStatus.toLowerCase()
             );
 
-            const transaction = await FiatRampService.getOnrampTransaction(sequenceId);
+            const [transaction] = await Promise.all([
+                FiatRampService.getOnrampTransaction(sequenceId),
+                FiatRampService.updateOnrampTransactionStatus(sequenceId, newTransactionStatus),
+            ]);
 
             const transactionDetailsString = `💲Buy ${transaction.usdAmount} ${transaction.tokenSymbol} on ${transaction.blockchainNetwork} with ${transaction.localCurrencySymbol} ${prettifyNumber(transaction.localAmount)}`;
 

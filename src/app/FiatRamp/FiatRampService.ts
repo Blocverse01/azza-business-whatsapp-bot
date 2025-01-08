@@ -4,9 +4,10 @@ import {
     SendOfframpRequestPayload,
     SendOnrampTransactionResponse,
 } from '@/app/FiatRamp/fiatRampSchema';
-import { BAD_REQUEST } from '@/constants/status-codes';
-import { CountryCode } from 'libphonenumber-js';
 import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService';
+import { BAD_REQUEST } from '@/constants/status-codes';
+import { HttpException } from '@/resources/exceptions/HttpException';
+import { CountryCode } from 'libphonenumber-js';
 import crypto from 'node:crypto';
 import {
     YellowCardOfframpEvent,
@@ -15,7 +16,6 @@ import {
     YellowCardOnRampEvents,
     YellowCardWebhookPayload,
 } from './types';
-import { HttpException } from '@/resources/exceptions/HttpException';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
@@ -160,6 +160,10 @@ class FiatRampService {
 
     public static async updateOnrampTransactionStatus(sequenceId: string, status: string) {
         return await FiatRampsRpcService.forwardOnrampTransactionStatus(sequenceId, status);
+    }
+
+    public static async updateOfframpTransactionStatus(sequenceId: string, status: string) {
+        return await FiatRampsRpcService.forwardOfframpTransactionStatus(sequenceId, status);
     }
 
     public static get supportedCountriesForResolvingBankAccount() {

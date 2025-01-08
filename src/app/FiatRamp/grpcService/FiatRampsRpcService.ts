@@ -40,6 +40,7 @@ import {
     getTransactionFees,
     resolveBankAccount,
     updateCollectionTransactionStatus,
+    updatePaymentTransactionStatus,
 } from './rpcMethods';
 import AddBeneficiaryRequest = fiatramps.v1.AddBeneficiaryRequest;
 import CollectionSource = fiatramps.v1.CollectionSource;
@@ -58,6 +59,7 @@ import GetSupportedCountriesRequest = fiatramps.v1.GetSupportedCountriesRequest;
 import GetTransactionFeeRequest = fiatramps.v1.GetTransactionFeeRequest;
 import ResolveBankAccountRequest = fiatramps.v1.ResolveBankAccountRequest;
 import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
+import UpdatePaymentTransactionStatusRequest = fiatramps.v1.UpdatePaymentTransactionStatusRequest;
 import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
 
 class FiatRampsRpcService {
@@ -444,6 +446,15 @@ class FiatRampsRpcService {
         });
 
         await updateCollectionTransactionStatus(request);
+    }
+
+    public static async forwardOfframpTransactionStatus(sequenceId: string, status: string) {
+        const request = new UpdatePaymentTransactionStatusRequest({
+            sequence_id: sequenceId,
+            status: status,
+        });
+
+        await updatePaymentTransactionStatus(request);
     }
 
     public static async getOfframpTransaction(sequenceId: string) {
