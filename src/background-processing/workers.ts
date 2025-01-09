@@ -85,12 +85,13 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
                     job.data.tokenName === TokenNames.USDC ||
                     job.data.tokenName === TokenNames.USDT
                 ) {
+                    const totalAmount = job.data.usdAmount + job.data.transactionFeeUsd;
                     await CryptoPayoutService.createOfframpCryptoRefundOrder({
                         network: job.data.chainName as SupportedChain,
                         tokenSymbol: job.data.tokenName,
                         triggerTransactionId: txHash,
                         ownerId: userId,
-                        amount: job.data.usdAmount,
+                        amount: totalAmount,
                         destinationWalletAddress: job.data.userWalletAddress,
                     });
 

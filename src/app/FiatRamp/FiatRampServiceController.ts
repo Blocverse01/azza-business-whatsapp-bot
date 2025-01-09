@@ -101,12 +101,13 @@ class FiatRampServiceController {
                             assetConfig[0].listItemId
                         );
 
+                        const totalAmount = transaction.usdAmount + transaction.transactionFeeUsd;
                         await CryptoPayoutService.createOfframpCryptoRefundOrder({
                             network: transaction.blockchainNetwork as SupportedChain,
                             tokenSymbol: transaction.tokenSymbol,
                             triggerTransactionId: transaction.transactionHash,
                             ownerId: transaction.ownerId,
-                            amount: transaction.usdAmount,
+                            amount: totalAmount,
                             destinationWalletAddress: userWalletInfo.walletAddress,
                         });
                     }
