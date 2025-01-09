@@ -12,6 +12,7 @@ export const OfframpQueueFlowSchema = z.object({
     userId: z.string(),
     platformFeePercentage: z.number(),
     conversionRate: z.number(),
+    transactionFeeUsd: z.number(),
 });
 
 export type OfframpQueueFlowParams = z.infer<typeof OfframpQueueFlowSchema>;

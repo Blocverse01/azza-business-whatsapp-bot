@@ -182,7 +182,8 @@ message CreateBeneficiaryPaymentRequestInput {
   string transaction_hash = 10;
   double platform_fee_percentage = 11;
   double conversion_rate = 12;
-  double usd_amount = 13; // Total USD amount including transaction fees.
+  double usd_amount = 13; // amount to sell in USD.
+  double transaction_fee_usd = 14;
 }
 message CreatePaymentRequestResponse {
   string id = 1;
@@ -213,6 +214,7 @@ message GetPaymentRequestTransactionResponse {
   string token_symbol = 8;
   string blockchain_network = 9;
   string transaction_hash = 10;
+  double transaction_fee_usd = 11;
 }
 
 message GetHotWalletAddressRequest {
@@ -239,6 +241,7 @@ message CreatePlatformCollectionRequestInput {
   double usd_amount = 9; // Total USD amount including transaction fees.
   double local_amount = 10;
   string channel_id = 11;
+  double transaction_fee_usd = 12;
 }
 message BankInfo {
   string name = 1;
@@ -283,6 +286,7 @@ message GetCollectionRequestResponse {
   string network_id = 16;
   string status = 17;
   string local_currency_symbol = 18;
+  double transaction_fee_usd = 19;
 }
 
 message UpdateCollectionTransactionStatusRequest {

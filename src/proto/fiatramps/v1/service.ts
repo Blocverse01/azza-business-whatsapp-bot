@@ -2831,6 +2831,7 @@ export namespace fiatramps.v1 {
             platform_fee_percentage?: number;
             conversion_rate?: number;
             usd_amount?: number;
+            transaction_fee_usd?: number;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -2873,6 +2874,9 @@ export namespace fiatramps.v1 {
                 }
                 if ("usd_amount" in data && data.usd_amount != undefined) {
                     this.usd_amount = data.usd_amount;
+                }
+                if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
+                    this.transaction_fee_usd = data.transaction_fee_usd;
                 }
             }
         }
@@ -2957,6 +2961,14 @@ export namespace fiatramps.v1 {
         set usd_amount(value: number) {
             pb_1.Message.setField(this, 13, value);
         }
+
+        get transaction_fee_usd() {
+            return pb_1.Message.getFieldWithDefault(this, 14, 0) as number;
+        }
+
+        set transaction_fee_usd(value: number) {
+            pb_1.Message.setField(this, 14, value);
+        }
         static fromObject(data: {
             beneficiary_id?: string;
             local_amount?: number;
@@ -2971,6 +2983,7 @@ export namespace fiatramps.v1 {
             platform_fee_percentage?: number;
             conversion_rate?: number;
             usd_amount?: number;
+            transaction_fee_usd?: number;
         }): CreateBeneficiaryPaymentRequestInput {
             const message = new CreateBeneficiaryPaymentRequestInput({});
             if (data.beneficiary_id != null) {
@@ -3012,6 +3025,9 @@ export namespace fiatramps.v1 {
             if (data.usd_amount != null) {
                 message.usd_amount = data.usd_amount;
             }
+            if (data.transaction_fee_usd != null) {
+                message.transaction_fee_usd = data.transaction_fee_usd;
+            }
             return message;
         }
         toObject() {
@@ -3029,6 +3045,7 @@ export namespace fiatramps.v1 {
                 platform_fee_percentage?: number;
                 conversion_rate?: number;
                 usd_amount?: number;
+                transaction_fee_usd?: number;
             } = {};
             if (this.beneficiary_id != null) {
                 data.beneficiary_id = this.beneficiary_id;
@@ -3069,6 +3086,9 @@ export namespace fiatramps.v1 {
             if (this.usd_amount != null) {
                 data.usd_amount = this.usd_amount;
             }
+            if (this.transaction_fee_usd != null) {
+                data.transaction_fee_usd = this.transaction_fee_usd;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -3101,6 +3121,8 @@ export namespace fiatramps.v1 {
                 writer.writeDouble(12, this.conversion_rate);
             if (this.usd_amount != 0)
                 writer.writeDouble(13, this.usd_amount);
+            if (this.transaction_fee_usd != 0)
+                writer.writeDouble(14, this.transaction_fee_usd);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -3148,6 +3170,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 13:
                         message.usd_amount = reader.readDouble();
+                        break;
+                    case 14:
+                        message.transaction_fee_usd = reader.readDouble();
                         break;
                     default: reader.skipField();
                 }
@@ -3567,6 +3592,7 @@ export namespace fiatramps.v1 {
             token_symbol?: string;
             blockchain_network?: string;
             transaction_hash?: string;
+            transaction_fee_usd?: number;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -3600,6 +3626,9 @@ export namespace fiatramps.v1 {
                 }
                 if ("transaction_hash" in data && data.transaction_hash != undefined) {
                     this.transaction_hash = data.transaction_hash;
+                }
+                if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
+                    this.transaction_fee_usd = data.transaction_fee_usd;
                 }
             }
         }
@@ -3663,6 +3692,14 @@ export namespace fiatramps.v1 {
         set transaction_hash(value: string) {
             pb_1.Message.setField(this, 10, value);
         }
+
+        get transaction_fee_usd() {
+            return pb_1.Message.getFieldWithDefault(this, 11, 0) as number;
+        }
+
+        set transaction_fee_usd(value: number) {
+            pb_1.Message.setField(this, 11, value);
+        }
         static fromObject(data: {
             sequence_id?: string;
             usd_amount?: number;
@@ -3674,6 +3711,7 @@ export namespace fiatramps.v1 {
             token_symbol?: string;
             blockchain_network?: string;
             transaction_hash?: string;
+            transaction_fee_usd?: number;
         }): GetPaymentRequestTransactionResponse {
             const message = new GetPaymentRequestTransactionResponse({});
             if (data.sequence_id != null) {
@@ -3706,6 +3744,9 @@ export namespace fiatramps.v1 {
             if (data.transaction_hash != null) {
                 message.transaction_hash = data.transaction_hash;
             }
+            if (data.transaction_fee_usd != null) {
+                message.transaction_fee_usd = data.transaction_fee_usd;
+            }
             return message;
         }
         toObject() {
@@ -3720,6 +3761,7 @@ export namespace fiatramps.v1 {
                 token_symbol?: string;
                 blockchain_network?: string;
                 transaction_hash?: string;
+                transaction_fee_usd?: number;
             } = {};
             if (this.sequence_id != null) {
                 data.sequence_id = this.sequence_id;
@@ -3751,6 +3793,9 @@ export namespace fiatramps.v1 {
             if (this.transaction_hash != null) {
                 data.transaction_hash = this.transaction_hash;
             }
+            if (this.transaction_fee_usd != null) {
+                data.transaction_fee_usd = this.transaction_fee_usd;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -3777,6 +3822,8 @@ export namespace fiatramps.v1 {
                 writer.writeString(9, this.blockchain_network);
             if (this.transaction_hash.length)
                 writer.writeString(10, this.transaction_hash);
+            if (this.transaction_fee_usd != 0)
+                writer.writeDouble(11, this.transaction_fee_usd);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -3815,6 +3862,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 10:
                         message.transaction_hash = reader.readString();
+                        break;
+                    case 11:
+                        message.transaction_fee_usd = reader.readDouble();
                         break;
                     default: reader.skipField();
                 }
@@ -4089,6 +4139,7 @@ export namespace fiatramps.v1 {
             usd_amount?: number;
             local_amount?: number;
             channel_id?: string;
+            transaction_fee_usd?: number;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -4125,6 +4176,9 @@ export namespace fiatramps.v1 {
                 }
                 if ("channel_id" in data && data.channel_id != undefined) {
                     this.channel_id = data.channel_id;
+                }
+                if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
+                    this.transaction_fee_usd = data.transaction_fee_usd;
                 }
             }
         }
@@ -4200,6 +4254,14 @@ export namespace fiatramps.v1 {
         set channel_id(value: string) {
             pb_1.Message.setField(this, 11, value);
         }
+
+        get transaction_fee_usd() {
+            return pb_1.Message.getFieldWithDefault(this, 12, 0) as number;
+        }
+
+        set transaction_fee_usd(value: number) {
+            pb_1.Message.setField(this, 12, value);
+        }
         static fromObject(data: {
             owner_id?: string;
             source?: ReturnType<typeof CollectionSource.prototype.toObject>;
@@ -4212,6 +4274,7 @@ export namespace fiatramps.v1 {
             usd_amount?: number;
             local_amount?: number;
             channel_id?: string;
+            transaction_fee_usd?: number;
         }): CreatePlatformCollectionRequestInput {
             const message = new CreatePlatformCollectionRequestInput({});
             if (data.owner_id != null) {
@@ -4247,6 +4310,9 @@ export namespace fiatramps.v1 {
             if (data.channel_id != null) {
                 message.channel_id = data.channel_id;
             }
+            if (data.transaction_fee_usd != null) {
+                message.transaction_fee_usd = data.transaction_fee_usd;
+            }
             return message;
         }
         toObject() {
@@ -4262,6 +4328,7 @@ export namespace fiatramps.v1 {
                 usd_amount?: number;
                 local_amount?: number;
                 channel_id?: string;
+                transaction_fee_usd?: number;
             } = {};
             if (this.owner_id != null) {
                 data.owner_id = this.owner_id;
@@ -4296,6 +4363,9 @@ export namespace fiatramps.v1 {
             if (this.channel_id != null) {
                 data.channel_id = this.channel_id;
             }
+            if (this.transaction_fee_usd != null) {
+                data.transaction_fee_usd = this.transaction_fee_usd;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -4324,6 +4394,8 @@ export namespace fiatramps.v1 {
                 writer.writeDouble(10, this.local_amount);
             if (this.channel_id.length)
                 writer.writeString(11, this.channel_id);
+            if (this.transaction_fee_usd != 0)
+                writer.writeDouble(12, this.transaction_fee_usd);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -4365,6 +4437,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 11:
                         message.channel_id = reader.readString();
+                        break;
+                    case 12:
+                        message.transaction_fee_usd = reader.readDouble();
                         break;
                     default: reader.skipField();
                 }
@@ -4908,6 +4983,7 @@ export namespace fiatramps.v1 {
             network_id?: string;
             status?: string;
             local_currency_symbol?: string;
+            transaction_fee_usd?: number;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -4965,6 +5041,9 @@ export namespace fiatramps.v1 {
                 }
                 if ("local_currency_symbol" in data && data.local_currency_symbol != undefined) {
                     this.local_currency_symbol = data.local_currency_symbol;
+                }
+                if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
+                    this.transaction_fee_usd = data.transaction_fee_usd;
                 }
             }
         }
@@ -5076,6 +5155,14 @@ export namespace fiatramps.v1 {
         set local_currency_symbol(value: string) {
             pb_1.Message.setField(this, 18, value);
         }
+
+        get transaction_fee_usd() {
+            return pb_1.Message.getFieldWithDefault(this, 19, 0) as number;
+        }
+
+        set transaction_fee_usd(value: number) {
+            pb_1.Message.setField(this, 19, value);
+        }
         static fromObject(data: {
             owner_id?: string;
             collection_country?: string;
@@ -5095,6 +5182,7 @@ export namespace fiatramps.v1 {
             network_id?: string;
             status?: string;
             local_currency_symbol?: string;
+            transaction_fee_usd?: number;
         }): GetCollectionRequestResponse {
             const message = new GetCollectionRequestResponse({});
             if (data.owner_id != null) {
@@ -5151,6 +5239,9 @@ export namespace fiatramps.v1 {
             if (data.local_currency_symbol != null) {
                 message.local_currency_symbol = data.local_currency_symbol;
             }
+            if (data.transaction_fee_usd != null) {
+                message.transaction_fee_usd = data.transaction_fee_usd;
+            }
             return message;
         }
         toObject() {
@@ -5173,6 +5264,7 @@ export namespace fiatramps.v1 {
                 network_id?: string;
                 status?: string;
                 local_currency_symbol?: string;
+                transaction_fee_usd?: number;
             } = {};
             if (this.owner_id != null) {
                 data.owner_id = this.owner_id;
@@ -5228,6 +5320,9 @@ export namespace fiatramps.v1 {
             if (this.local_currency_symbol != null) {
                 data.local_currency_symbol = this.local_currency_symbol;
             }
+            if (this.transaction_fee_usd != null) {
+                data.transaction_fee_usd = this.transaction_fee_usd;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -5270,6 +5365,8 @@ export namespace fiatramps.v1 {
                 writer.writeString(17, this.status);
             if (this.local_currency_symbol.length)
                 writer.writeString(18, this.local_currency_symbol);
+            if (this.transaction_fee_usd != 0)
+                writer.writeDouble(19, this.transaction_fee_usd);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -5332,6 +5429,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 18:
                         message.local_currency_symbol = reader.readString();
+                        break;
+                    case 19:
+                        message.transaction_fee_usd = reader.readDouble();
                         break;
                     default: reader.skipField();
                 }
@@ -5753,7 +5853,6 @@ export namespace fiatramps.v1 {
     }
     export class UpdatePaymentTransactionStatusRequest extends pb_1.Message {
         #one_of_decls: number[][] = [];
-
         constructor(data?: any[] | {
             sequence_id?: string;
             status?: string;
@@ -5818,7 +5917,6 @@ export namespace fiatramps.v1 {
             if (!w)
                 return writer.getResultBuffer();
         }
-
         static deserialize(bytes: Uint8Array | pb_1.BinaryReader): UpdatePaymentTransactionStatusRequest {
             const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
                 message = new UpdatePaymentTransactionStatusRequest();

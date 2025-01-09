@@ -22,7 +22,7 @@ import {
     generateOnrampTransactionInitiatedWithMomoPaymentMessage,
 } from '@/resources/utils/bot-message-utils';
 import {
-    defaultAmountFixer,
+    fixNumber,
     formatNumberAsCurrency,
     getCountryFlagEmoji,
     prettifyNumber,
@@ -32,6 +32,7 @@ import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-num
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { AssetConfig, TokenNames } from '@/resources/web3/tokens';
 import { CountryCode } from 'libphonenumber-js';
+import * as math from 'mathjs';
 
 enum OnRampFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',
@@ -333,9 +334,9 @@ class WhatsAppBotOnRampFlowService {
         ]);
 
         const amountAsNumber = parseFloat(amount.trim());
-        const transactionFee = defaultAmountFixer(amountAsNumber * fee);
-        const totalAmount = defaultAmountFixer(amountAsNumber + transactionFee);
-        const fiatEquivalent = defaultAmountFixer(totalAmount * conversionRate);
+        const transactionFee = fixNumber(math.multiply(amountAsNumber, fee), 3);
+        const totalAmount = fixNumber(math.add(amountAsNumber, transactionFee), 3);
+        const fiatEquivalent = fixNumber(math.multiply(totalAmount, conversionRate), 2);
 
         if (amountAsNumber <= 0) {
             errorMessages.amount = 'Amount must be greater than 0';
@@ -533,6 +534,7 @@ class WhatsAppBotOnRampFlowService {
                     platformFeePercentage: parseFloat(transaction_details.platform_fee_percentage),
                     conversionRate: parseFloat(transaction_details.conversion_rate),
                     usdAmount: parseFloat(transaction_details.token_amount),
+                    transactionFeeUsd: parseFloat(transaction_details.transaction_fee),
                 });
 
                 if (onrampResponse.bankInfo === undefined) {
@@ -766,6 +768,7 @@ class WhatsAppBotOnRampFlowService {
                 platformFeePercentage: parseFloat(transaction_details.platform_fee_percentage),
                 conversionRate: parseFloat(transaction_details.conversion_rate),
                 usdAmount: parseFloat(transaction_details.token_amount),
+                transactionFeeUsd: parseFloat(transaction_details.transaction_fee),
             });
 
             const accountName =

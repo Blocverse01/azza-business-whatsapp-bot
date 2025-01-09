@@ -1,6 +1,6 @@
 import { userIdentityInfoSchema } from '@/app/User/userSchema';
-import { z } from 'zod';
 import { type CountryCode, isValidPhoneNumber } from 'libphonenumber-js';
+import { z } from 'zod';
 
 export const supportedCountry = z.object({
     code: z.string(),
@@ -113,6 +113,7 @@ export const onrampTransactionPayloadSchema = z.object({
     platformFeePercentage: z.number(),
     conversionRate: z.number(),
     usdAmount: z.number(),
+    transactionFeeUsd: z.number(),
 });
 
 export type OnrampTransactionPayload = z.infer<typeof onrampTransactionPayloadSchema>;
@@ -239,6 +240,7 @@ export const sendOfframpRequestPayloadSchema = z.object({
     userId: z.string(),
     platformFeePercentage: z.number(),
     conversionRate: z.number(),
+    transactionFeeUsd: z.number(),
 });
 
 export type SendOfframpRequestPayload = z.infer<typeof sendOfframpRequestPayloadSchema>;

@@ -354,6 +354,7 @@ class FiatRampsRpcService {
                 additional_id_number: user.additionalKycIdNumber?.replace(/\s/g, ''),
                 additional_id_type: user.additionalKycIdType,
             }),
+            transaction_fee_usd: validatedParams.transactionFeeUsd,
         });
 
         const response = await createBeneficiaryPaymentRequest(request);
@@ -398,6 +399,7 @@ class FiatRampsRpcService {
             usd_amount: params.usdAmount,
             local_amount: params.localAmount,
             channel_id: params.channelId,
+            transaction_fee_usd: params.transactionFeeUsd,
         });
 
         const response = await createPlatformCollection(request);
@@ -476,6 +478,7 @@ class FiatRampsRpcService {
                 tokenSymbol: z.string(),
                 ownerId: z.string(),
                 transactionHash: z.string(),
+                transactionFeeUsd: z.number(),
             })
             .parse(transformKeysToCamelCase(responseObj));
     }

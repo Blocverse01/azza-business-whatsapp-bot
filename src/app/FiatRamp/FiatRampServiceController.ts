@@ -57,7 +57,12 @@ class FiatRampServiceController {
                 FiatRampService.updateOfframpTransactionStatus(sequenceId, newTransactionStatus),
             ]);
 
-            const transactionDetailsString = `💲Sell ${transaction.usdAmount} ${transaction.tokenSymbol} on ${transaction.blockchainNetwork} for ${transaction.localCurrencySymbol} ${prettifyNumber(transaction.localAmount)}`;
+            const totalAmount = prettifyNumber(
+                transaction.usdAmount + transaction.transactionFeeUsd,
+                3
+            );
+
+            const transactionDetailsString = `💲Sell ${totalAmount} ${transaction.tokenSymbol} on ${transaction.blockchainNetwork} for ${transaction.localCurrencySymbol} ${prettifyNumber(transaction.localAmount)}`;
 
             let message = '';
 
