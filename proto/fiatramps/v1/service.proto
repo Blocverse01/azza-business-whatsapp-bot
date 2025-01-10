@@ -64,9 +64,17 @@ message Rate {
   string locale = 4;
 }
 
+message ConditionalFeePercentConfig {
+  string rule = 1;
+  float fee_percentage = 2;
+  double trigger_amount = 3;
+  string ramp_type = 4;
+}
 message GetTransactionFeeResponse {
-  float onramp_fee_percentage = 2;
-  float offramp_fee_percentage = 3;
+  float onramp_fee_percentage = 1;
+  float offramp_fee_percentage = 2;
+  float offramp_min_fee_usd = 3;
+  repeated ConditionalFeePercentConfig conditional_fee_percent_configs = 4;
 }
 
 message GetQuotesResponse {

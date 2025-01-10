@@ -11,31 +11,21 @@ export const supportedCountry = z.object({
     id: z.string(),
 });
 
-export const getCurrenciesResponseSchema = z.object({
-    data: z.array(
+const transactionFeesSchema = z.object({
+    onrampFeePercentage: z.number(),
+    offrampFeePercentage: z.number(),
+    offrampMinFeeUsd: z.number(),
+    conditionalFeePercentConfigs: z.array(
         z.object({
-            code: z.string(),
-            name: z.string(),
-            currencyName: z.string(),
-            currencySymbol: z.string(),
-            flag: z.string().url(),
-            id: z.string(),
+            rule: z.enum(['$gt', '$lt', '$gte'] as const),
+            feePercentage: z.number(),
+            triggerAmount: z.number(),
+            rampType: z.enum(['onramp', 'offramp'] as const),
         })
     ),
 });
 
-export type GetCurrenciesResponse = z.infer<typeof getCurrenciesResponseSchema>;
-
-const transactionFeesSchema = z.object({
-    onrampFeePercentage: z.number(),
-    offrampFeePercentage: z.number(),
-});
-
-export const getTransactionFeeResponseSchema = z.object({
-    data: transactionFeesSchema,
-});
-
-export type GetTransactionFeeResponse = z.infer<typeof getTransactionFeeResponseSchema>;
+export type TransactionFees = z.infer<typeof transactionFeesSchema>;
 
 export const ratesSchema = z.object({
     buy: z.number(),
@@ -44,28 +34,10 @@ export const ratesSchema = z.object({
     code: z.string(),
 });
 
-export const getRateResponseSchema = z.object({
-    data: ratesSchema,
-});
-
-export type GetRateResponse = z.infer<typeof getRateResponseSchema>;
-
-export const getAllRatesResponseSchema = z.object({
-    data: z.array(ratesSchema),
-});
-
-export type GetAllRatesResponse = z.infer<typeof getAllRatesResponseSchema>;
-
 export const quoteSchema = z.object({
     rate: ratesSchema,
     fees: transactionFeesSchema,
 });
-
-export const getQuoteResponseSchema = z.object({
-    data: quoteSchema,
-});
-
-export type GetQuoteResponse = z.infer<typeof getQuoteResponseSchema>;
 
 export const paymentMethodsResponseDataSchema = z.object({
     channels: z.array(
@@ -79,24 +51,6 @@ export const paymentMethodsResponseDataSchema = z.object({
         max: z.number(),
     }),
 });
-
-export const getPaymentMethodsResponseSchema = z.object({
-    data: paymentMethodsResponseDataSchema,
-});
-
-export type GetPaymentMethodsResponse = z.infer<typeof getPaymentMethodsResponseSchema>;
-
-export const getMobileProvidersResponseSchema = z.object({
-    data: z.array(
-        z.object({
-            channelId: z.string(),
-            networkId: z.string(),
-            name: z.string(),
-        })
-    ),
-});
-
-export type GetMobileProvidersResponse = z.infer<typeof getMobileProvidersResponseSchema>;
 
 export const onrampTransactionPayloadSchema = z.object({
     country: z.string(),
@@ -139,8 +93,6 @@ export const supportedPaymentNetworkSchema = z.object({
     channelId: z.string().min(3),
     name: z.string().min(3),
 });
-
-export type SupportedPaymentNetwork = z.infer<typeof supportedPaymentNetworkSchema>;
 
 const beneficiaryCountrySchema = z.object({
     country: z.string(),
@@ -198,35 +150,6 @@ export const createBeneficiaryResponseSchema = z.object({
     beneficiaryId: z.string(),
 });
 
-export type CreateBeneficiaryResponse = z.infer<typeof createBeneficiaryResponseSchema>;
-
-export const getBeneficiariesResponseSchema = (
-    countryCode: CountryCode,
-    beneficiaryType: 'phone' | 'bank'
-) =>
-    z.object({
-        data: z.array(
-            beneficiaryType === 'phone'
-                ? mobileMoneyBeneficiarySchema(countryCode)
-                : bankBeneficiarySchema
-        ),
-    });
-
-export type GetBeneficiariesResponse = z.infer<ReturnType<typeof getBeneficiariesResponseSchema>>;
-
-export const getBeneficiaryResponseSchema = (
-    countryCode: CountryCode,
-    beneficiaryType: 'phone' | 'bank'
-) =>
-    z.object({
-        data:
-            beneficiaryType === 'phone'
-                ? mobileMoneyBeneficiarySchema(countryCode)
-                : bankBeneficiarySchema,
-    });
-
-export type GetBeneficiaryResponse = z.infer<ReturnType<typeof getBeneficiaryResponseSchema>>;
-
 export const sendOfframpRequestPayloadSchema = z.object({
     beneficiaryId: z.string(),
     localAmount: z.number(),
@@ -245,22 +168,6 @@ export const sendOfframpRequestPayloadSchema = z.object({
 
 export type SendOfframpRequestPayload = z.infer<typeof sendOfframpRequestPayloadSchema>;
 
-export const sendOfframpRequestResponseSchema = z.object({
-    data: z.object({
-        offrampRequestId: z.string(),
-    }),
-});
-
-export type SendOfframpRequestResponse = z.infer<typeof sendOfframpRequestResponseSchema>;
-
-export const postOfframpTransactionResponse = z.object({
-    data: z.object({
-        sequenceId: z.string(),
-    }),
-});
-
-export type PostOfframpTransactionResponse = z.infer<typeof postOfframpTransactionResponse>;
-
 export const transactionStatusSchema = z.enum([
     'pending',
     'complete',
@@ -271,14 +178,6 @@ export const transactionStatusSchema = z.enum([
 ]);
 
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
-
-const getTransactionStatusResponseSchema = z.object({
-    data: z.object({
-        transactionStatus: transactionStatusSchema,
-    }),
-});
-
-export type GetTransactionStatusResponse = z.infer<typeof getTransactionStatusResponseSchema>;
 
 export const transactionWebhookPayloadSchema = z.object({
     sequenceId: z.string(),

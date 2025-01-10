@@ -27,7 +27,7 @@ import { QueueNames } from '@/background-processing/types';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { HUNDRED, SIXTEEN, THREE, TWO, ZERO } from '@/constants/numbers';
+import { SIXTEEN, THREE, TWO, ZERO } from '@/constants/numbers';
 import { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { generateOfframpProcessingMessage } from '@/resources/utils/bot-message-utils';
@@ -225,16 +225,20 @@ class WhatsAppBotOffRampFlowService {
             user_id,
             amount_denomination,
             conversion_rate,
-            fee: feeString,
+            fee: feeString, // Todo: Consider removing fee from screen data exchange payload
         } = input;
-        const [{ countryFiatLimits: countryLimits }, assetWallet] = await Promise.all([
+        const [{ countryFiatLimits: countryLimits }, assetWallet, quotes] = await Promise.all([
             FiatRampService.getPaymentMethods(beneficiary.country_code as CountryCode, 'offramp'),
             UserService.getUserAssetInfo(user_id, asset_id),
+            FiatRampService.getQuotes(
+                beneficiary.currency_symbol,
+                beneficiary.country_code as CountryCode,
+                'offramp'
+            ),
         ]);
 
-        const [conversionRate, fee, amountAsNumber] = [
+        const [conversionRate, amountAsNumber] = [
             parseFloat(conversion_rate),
-            parseFloat(feeString),
             parseFloat(amount.trim()),
         ];
 
@@ -325,8 +329,16 @@ class WhatsAppBotOffRampFlowService {
             };
         }
 
-        const transactionFee = fixNumber(math.multiply(usdAmount, fee), THREE);
-        const feePercentage = math.multiply(fee, HUNDRED);
+        const feeConfig = FiatRampService.calculateTransactionFeeUsd({
+            usdAmount,
+            conditionalFeePercentageConfigs: quotes.conditionalFeePercentConfigs,
+            minFeeUsd: quotes.minFeeUsd,
+            defaultFeePercentage: quotes.rawFeePercentage,
+            rampType: 'offramp',
+        });
+
+        const transactionFee = fixNumber(feeConfig.feeUsd, THREE);
+        const feePercentage = feeConfig.feePercentage;
 
         const token_amount: TokenAmountPattern = this.generateTokenAmountPattern(
             prettifyNumber(usdAmount, THREE),
@@ -632,7 +644,7 @@ class WhatsAppBotOffRampFlowService {
         beneficiary: BankBeneficiary | MobileMoneyBeneficiary;
         recipient: string;
         fiatConversionRate: number;
-        transactionFee: number;
+        transactionFee: number; // Todo: Evaluate the necessity of this parameter
     }) {
         const { asset, beneficiary, recipient } = params;
 

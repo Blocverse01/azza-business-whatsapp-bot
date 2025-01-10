@@ -723,14 +723,170 @@ export namespace fiatramps.v1 {
             return Rate.deserialize(bytes);
         }
     }
+
+    export class ConditionalFeePercentConfig extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+
+        constructor(data?: any[] | {
+            rule?: string;
+            fee_percentage?: number;
+            trigger_amount?: number;
+            ramp_type?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == 'object') {
+                if ('rule' in data && data.rule != undefined) {
+                    this.rule = data.rule;
+                }
+                if ('fee_percentage' in data && data.fee_percentage != undefined) {
+                    this.fee_percentage = data.fee_percentage;
+                }
+                if ('trigger_amount' in data && data.trigger_amount != undefined) {
+                    this.trigger_amount = data.trigger_amount;
+                }
+                if ('ramp_type' in data && data.ramp_type != undefined) {
+                    this.ramp_type = data.ramp_type;
+                }
+            }
+        }
+
+        get rule() {
+            return pb_1.Message.getFieldWithDefault(this, 1, '') as string;
+        }
+
+        set rule(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+
+        get fee_percentage() {
+            return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+        }
+
+        set fee_percentage(value: number) {
+            pb_1.Message.setField(this, 2, value);
+        }
+
+        get trigger_amount() {
+            return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
+        }
+
+        set trigger_amount(value: number) {
+            pb_1.Message.setField(this, 3, value);
+        }
+
+        get ramp_type() {
+            return pb_1.Message.getFieldWithDefault(this, 4, '') as string;
+        }
+
+        set ramp_type(value: string) {
+            pb_1.Message.setField(this, 4, value);
+        }
+
+        static fromObject(data: {
+            rule?: string;
+            fee_percentage?: number;
+            trigger_amount?: number;
+            ramp_type?: string;
+        }): ConditionalFeePercentConfig {
+            const message = new ConditionalFeePercentConfig({});
+            if (data.rule != null) {
+                message.rule = data.rule;
+            }
+            if (data.fee_percentage != null) {
+                message.fee_percentage = data.fee_percentage;
+            }
+            if (data.trigger_amount != null) {
+                message.trigger_amount = data.trigger_amount;
+            }
+            if (data.ramp_type != null) {
+                message.ramp_type = data.ramp_type;
+            }
+            return message;
+        }
+
+        toObject() {
+            const data: {
+                rule?: string;
+                fee_percentage?: number;
+                trigger_amount?: number;
+                ramp_type?: string;
+            } = {};
+            if (this.rule != null) {
+                data.rule = this.rule;
+            }
+            if (this.fee_percentage != null) {
+                data.fee_percentage = this.fee_percentage;
+            }
+            if (this.trigger_amount != null) {
+                data.trigger_amount = this.trigger_amount;
+            }
+            if (this.ramp_type != null) {
+                data.ramp_type = this.ramp_type;
+            }
+            return data;
+        }
+
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.rule.length)
+                writer.writeString(1, this.rule);
+            if (this.fee_percentage != 0)
+                writer.writeFloat(2, this.fee_percentage);
+            if (this.trigger_amount != 0)
+                writer.writeDouble(3, this.trigger_amount);
+            if (this.ramp_type.length)
+                writer.writeString(4, this.ramp_type);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): ConditionalFeePercentConfig {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
+                message = new ConditionalFeePercentConfig();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.rule = reader.readString();
+                        break;
+                    case 2:
+                        message.fee_percentage = reader.readFloat();
+                        break;
+                    case 3:
+                        message.trigger_amount = reader.readDouble();
+                        break;
+                    case 4:
+                        message.ramp_type = reader.readString();
+                        break;
+                    default:
+                        reader.skipField();
+                }
+            }
+            return message;
+        }
+
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+
+        static deserializeBinary(bytes: Uint8Array): ConditionalFeePercentConfig {
+            return ConditionalFeePercentConfig.deserialize(bytes);
+        }
+    }
     export class GetTransactionFeeResponse extends pb_1.Message {
         #one_of_decls: number[][] = [];
         constructor(data?: any[] | {
             onramp_fee_percentage?: number;
             offramp_fee_percentage?: number;
+            offramp_min_fee_usd?: number;
+            conditional_fee_percent_configs?: ConditionalFeePercentConfig[];
         }) {
             super();
-            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [4], this.#one_of_decls);
             if (!Array.isArray(data) && typeof data == "object") {
                 if ("onramp_fee_percentage" in data && data.onramp_fee_percentage != undefined) {
                     this.onramp_fee_percentage = data.onramp_fee_percentage;
@@ -738,23 +894,48 @@ export namespace fiatramps.v1 {
                 if ("offramp_fee_percentage" in data && data.offramp_fee_percentage != undefined) {
                     this.offramp_fee_percentage = data.offramp_fee_percentage;
                 }
+                if ('offramp_min_fee_usd' in data && data.offramp_min_fee_usd != undefined) {
+                    this.offramp_min_fee_usd = data.offramp_min_fee_usd;
+                }
+                if ('conditional_fee_percent_configs' in data && data.conditional_fee_percent_configs != undefined) {
+                    this.conditional_fee_percent_configs = data.conditional_fee_percent_configs;
+                }
             }
         }
         get onramp_fee_percentage() {
-            return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+            return pb_1.Message.getFieldWithDefault(this, 1, 0) as number;
         }
         set onramp_fee_percentage(value: number) {
-            pb_1.Message.setField(this, 2, value);
+            pb_1.Message.setField(this, 1, value);
         }
         get offramp_fee_percentage() {
+            return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+        }
+
+        set offramp_fee_percentage(value: number) {
+            pb_1.Message.setField(this, 2, value);
+        }
+
+        get offramp_min_fee_usd() {
             return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
         }
-        set offramp_fee_percentage(value: number) {
+
+        set offramp_min_fee_usd(value: number) {
             pb_1.Message.setField(this, 3, value);
+        }
+
+        get conditional_fee_percent_configs() {
+            return pb_1.Message.getRepeatedWrapperField(this, ConditionalFeePercentConfig, 4) as ConditionalFeePercentConfig[];
+        }
+
+        set conditional_fee_percent_configs(value: ConditionalFeePercentConfig[]) {
+            pb_1.Message.setRepeatedWrapperField(this, 4, value);
         }
         static fromObject(data: {
             onramp_fee_percentage?: number;
             offramp_fee_percentage?: number;
+            offramp_min_fee_usd?: number;
+            conditional_fee_percent_configs?: ReturnType<typeof ConditionalFeePercentConfig.prototype.toObject>[];
         }): GetTransactionFeeResponse {
             const message = new GetTransactionFeeResponse({});
             if (data.onramp_fee_percentage != null) {
@@ -763,18 +944,32 @@ export namespace fiatramps.v1 {
             if (data.offramp_fee_percentage != null) {
                 message.offramp_fee_percentage = data.offramp_fee_percentage;
             }
+            if (data.offramp_min_fee_usd != null) {
+                message.offramp_min_fee_usd = data.offramp_min_fee_usd;
+            }
+            if (data.conditional_fee_percent_configs != null) {
+                message.conditional_fee_percent_configs = data.conditional_fee_percent_configs.map(item => ConditionalFeePercentConfig.fromObject(item));
+            }
             return message;
         }
         toObject() {
             const data: {
                 onramp_fee_percentage?: number;
                 offramp_fee_percentage?: number;
+                offramp_min_fee_usd?: number;
+                conditional_fee_percent_configs?: ReturnType<typeof ConditionalFeePercentConfig.prototype.toObject>[];
             } = {};
             if (this.onramp_fee_percentage != null) {
                 data.onramp_fee_percentage = this.onramp_fee_percentage;
             }
             if (this.offramp_fee_percentage != null) {
                 data.offramp_fee_percentage = this.offramp_fee_percentage;
+            }
+            if (this.offramp_min_fee_usd != null) {
+                data.offramp_min_fee_usd = this.offramp_min_fee_usd;
+            }
+            if (this.conditional_fee_percent_configs != null) {
+                data.conditional_fee_percent_configs = this.conditional_fee_percent_configs.map((item: ConditionalFeePercentConfig) => item.toObject());
             }
             return data;
         }
@@ -783,9 +978,13 @@ export namespace fiatramps.v1 {
         serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
             const writer = w || new pb_1.BinaryWriter();
             if (this.onramp_fee_percentage != 0)
-                writer.writeFloat(2, this.onramp_fee_percentage);
+                writer.writeFloat(1, this.onramp_fee_percentage);
             if (this.offramp_fee_percentage != 0)
-                writer.writeFloat(3, this.offramp_fee_percentage);
+                writer.writeFloat(2, this.offramp_fee_percentage);
+            if (this.offramp_min_fee_usd != 0)
+                writer.writeFloat(3, this.offramp_min_fee_usd);
+            if (this.conditional_fee_percent_configs.length)
+                writer.writeRepeatedMessage(4, this.conditional_fee_percent_configs, (item: ConditionalFeePercentConfig) => item.serialize(writer));
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -795,11 +994,17 @@ export namespace fiatramps.v1 {
                 if (reader.isEndGroup())
                     break;
                 switch (reader.getFieldNumber()) {
-                    case 2:
+                    case 1:
                         message.onramp_fee_percentage = reader.readFloat();
                         break;
-                    case 3:
+                    case 2:
                         message.offramp_fee_percentage = reader.readFloat();
+                        break;
+                    case 3:
+                        message.offramp_min_fee_usd = reader.readFloat();
+                        break;
+                    case 4:
+                        reader.readMessage(message.conditional_fee_percent_configs, () => pb_1.Message.addToRepeatedWrapperField(message, 4, ConditionalFeePercentConfig.deserialize(reader), ConditionalFeePercentConfig));
                         break;
                     default: reader.skipField();
                 }
@@ -2961,11 +3166,9 @@ export namespace fiatramps.v1 {
         set usd_amount(value: number) {
             pb_1.Message.setField(this, 13, value);
         }
-
         get transaction_fee_usd() {
             return pb_1.Message.getFieldWithDefault(this, 14, 0) as number;
         }
-
         set transaction_fee_usd(value: number) {
             pb_1.Message.setField(this, 14, value);
         }
@@ -3692,11 +3895,9 @@ export namespace fiatramps.v1 {
         set transaction_hash(value: string) {
             pb_1.Message.setField(this, 10, value);
         }
-
         get transaction_fee_usd() {
             return pb_1.Message.getFieldWithDefault(this, 11, 0) as number;
         }
-
         set transaction_fee_usd(value: number) {
             pb_1.Message.setField(this, 11, value);
         }
@@ -4254,11 +4455,9 @@ export namespace fiatramps.v1 {
         set channel_id(value: string) {
             pb_1.Message.setField(this, 11, value);
         }
-
         get transaction_fee_usd() {
             return pb_1.Message.getFieldWithDefault(this, 12, 0) as number;
         }
-
         set transaction_fee_usd(value: number) {
             pb_1.Message.setField(this, 12, value);
         }
@@ -5155,11 +5354,9 @@ export namespace fiatramps.v1 {
         set local_currency_symbol(value: string) {
             pb_1.Message.setField(this, 18, value);
         }
-
         get transaction_fee_usd() {
             return pb_1.Message.getFieldWithDefault(this, 19, 0) as number;
         }
-
         set transaction_fee_usd(value: number) {
             pb_1.Message.setField(this, 19, value);
         }

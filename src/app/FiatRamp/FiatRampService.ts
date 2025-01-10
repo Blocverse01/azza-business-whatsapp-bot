@@ -3,11 +3,14 @@ import {
     OnrampTransactionPayload,
     SendOfframpRequestPayload,
     SendOnrampTransactionResponse,
+    TransactionFees,
 } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService';
+import { HUNDRED } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { CountryCode } from 'libphonenumber-js';
+import * as math from 'mathjs';
 import crypto from 'node:crypto';
 import {
     YellowCardOfframpEvent,
@@ -175,6 +178,47 @@ class FiatRampService {
             networkId,
             accountNumber,
         });
+    }
+
+    public static calculateTransactionFeeUsd(params: {
+        usdAmount: number;
+        defaultFeePercentage: number;
+        conditionalFeePercentageConfigs: TransactionFees['conditionalFeePercentConfigs'];
+        minFeeUsd: number;
+        rampType: 'onramp' | 'offramp';
+    }) {
+        const { usdAmount, defaultFeePercentage, conditionalFeePercentageConfigs, minFeeUsd } =
+            params;
+
+        const possibleConditionalFeeConfigs = conditionalFeePercentageConfigs.filter((config) => {
+            if (config.rampType !== params.rampType) return false;
+
+            switch (config.rule) {
+                case '$gt':
+                    return usdAmount > config.triggerAmount;
+                case '$lt':
+                    return usdAmount < config.triggerAmount;
+                case '$gte':
+                    return usdAmount >= config.triggerAmount;
+            }
+        });
+
+        const conditionalFee = possibleConditionalFeeConfigs.find((config) => {
+            return (
+                Math.max(...possibleConditionalFeeConfigs.map((config) => config.triggerAmount)) ===
+                config.triggerAmount
+            );
+        });
+
+        const feePercentage = conditionalFee ? conditionalFee.feePercentage : defaultFeePercentage;
+
+        const percentToDecimal = math.divide(feePercentage, HUNDRED);
+        const calculatedFeeUsd = math.multiply(usdAmount, percentToDecimal);
+
+        return {
+            feeUsd: Math.max(minFeeUsd, calculatedFeeUsd),
+            feePercentage,
+        };
     }
 }
 

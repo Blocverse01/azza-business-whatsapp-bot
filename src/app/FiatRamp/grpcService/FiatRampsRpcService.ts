@@ -130,10 +130,14 @@ class FiatRampsRpcService {
         const feePercentage =
             route === 'onramp' ? quotes.fees.onrampFeePercentage : quotes.fees.offrampFeePercentage;
 
+        const minFeeUsd = route === 'onramp' ? 0 : quotes.fees.offrampMinFeeUsd;
+
         return {
             rate: txRate,
             fee: defaultAmountFixer(feePercentage / HUNDRED),
             rawFeePercentage: feePercentage,
+            minFeeUsd: minFeeUsd,
+            conditionalFeePercentConfigs: quotes.fees.conditionalFeePercentConfigs,
         };
     }
 
@@ -249,7 +253,12 @@ class FiatRampsRpcService {
 
         const response = await getTransactionFees(request);
 
-        const { offramp_fee_percentage, onramp_fee_percentage } = response.toObject();
+        const {
+            offramp_fee_percentage,
+            onramp_fee_percentage,
+            offramp_min_fee_usd,
+            conditional_fee_percent_configs,
+        } = response.toObject();
 
         if (offramp_fee_percentage === undefined || onramp_fee_percentage === undefined) {
             throw new Error('Invalid response');
