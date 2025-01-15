@@ -66,23 +66,31 @@ export async function getReceiptWithTransactionHash(
     transactionHash: string,
     network: SupportedChain | ExtendedWalletSupportedNetworks
 ) {
-    if (!isExtendedNetwork(network) && isEvmNetwork(network)) {
-        const networkConfig = getAppDefaultEvmConfig(network, env.WEB3_ENVIRONMENT);
-        const publicClient = getPublicClient(networkConfig.viemChain, networkConfig.rpcUrl);
+    try {
+        if (!isExtendedNetwork(network) && isEvmNetwork(network)) {
+            const networkConfig = getAppDefaultEvmConfig(network, env.WEB3_ENVIRONMENT);
+            const publicClient = getPublicClient(networkConfig.viemChain, networkConfig.rpcUrl);
 
-        const transactionReceipt = await publicClient.waitForTransactionReceipt({
-            hash: transactionHash as Hex,
-        });
+            const transactionReceipt = await publicClient.waitForTransactionReceipt({
+                hash: transactionHash as Hex,
+            });
 
+            return {
+                transactionHash: transactionReceipt.transactionHash,
+                status: transactionReceipt.status,
+                explorerUrl: getTransactionExplorerUrl(transactionHash as string, network),
+            };
+        } else {
+            return await WalletKitService.getTransactionByHash(
+                transactionHash,
+                network as SupportedChain
+            );
+        }
+    } catch (error) {
         return {
-            transactionHash: transactionReceipt.transactionHash,
-            status: transactionReceipt.status,
-            explorerUrl: getTransactionExplorerUrl(transactionHash as string, network),
-        };
-    } else {
-        return await WalletKitService.getTransactionByHash(
-            transactionHash,
-            network as SupportedChain
-        );
+            transactionHash: transactionHash,
+            status: 'pending',
+            explorerUrl: null,
+        } as const;
     }
 }
