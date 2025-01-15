@@ -1,8 +1,9 @@
-import { Response } from 'express';
-import { isHttpError } from '../exceptions/HttpException';
+import { BlockradarWalletProviderError } from '@/app/AzzaWalletManager/providers/blockradar/resources/errors';
 import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import logger from '@/resources/logger';
 import { isAxiosError } from 'axios';
+import { Response } from 'express';
+import { isHttpError } from '../exceptions/HttpException';
 
 const isDefaultError = (error: unknown): error is Error => {
     return error instanceof Error;
@@ -49,6 +50,16 @@ const parseUnknownError = (error: unknown): ParsedError => {
         name: '',
         statusCode: INTERNAL_SERVER_ERROR,
     };
+
+    if (error instanceof BlockradarWalletProviderError) {
+        parsedError['message'] = error.message;
+        parsedError['stack'] = error.stack;
+        parsedError['data'] = error.data;
+        parsedError['cause'] = error.cause;
+        parsedError['name'] = error.name;
+
+        return parsedError;
+    }
 
     if (isAxiosError(error)) {
         parsedError['data'] = {

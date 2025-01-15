@@ -1,6 +1,5 @@
-import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
-import { z } from 'zod';
 import { PHONE_NUMBER_IDS } from '@/config/whatsAppPhoneNumbers';
+import { z } from 'zod';
 
 const notEmptyStringSchema = (variableName: string) =>
     z.string().refine((val) => val.trim() !== '', {
@@ -88,6 +87,17 @@ const envSchema = z.object({
     YC_WEBHOOK_SECRET_KEY: notEmptyStringSchema('YC_WEBHOOK_SECRET_KEY'),
 
     REDIS_URL: z.string().optional().default('redis://localhost:6379'),
+
+    ///////////////////////
+    /// Blockradar
+    ///////////////////////
+    BASE_MASTER_WALLET_API_KEY: notEmptyStringSchema('BASE_MASTER_WALLET_API_KEY'),
+    POLYGON_MASTER_WALLET_API_KEY: notEmptyStringSchema('POLYGON_MASTER_WALLET_API_KEY'),
+    ETHEREUM_MASTER_WALLET_API_KEY: notEmptyStringSchema('ETHEREUM_MASTER_WALLET_API_KEY'),
+    TRON_MASTER_WALLET_API_KEY: notEmptyStringSchema('TRON_MASTER_WALLET_API_KEY'),
+    OPTIMISM_MASTER_WALLET_API_KEY: notEmptyStringSchema('OPTIMISM_MASTER_WALLET_API_KEY'),
+    BSC_MASTER_WALLET_API_KEY: notEmptyStringSchema('BSC_MASTER_WALLET_API_KEY'),
+    SOLANA_MASTER_WALLET_API_KEY: notEmptyStringSchema('SOLANA_MASTER_WALLET_API_KEY'),
 });
 
 const env = envSchema.parse(process.env);

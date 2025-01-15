@@ -1,8 +1,8 @@
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { AssetInteractiveButtonIds, ExploreAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
 import env from '@/constants/env';
 import { DUMMY_ETH_PRICE, DUMMY_MATIC_PRICE, DUMMY_USD_PRICE } from '@/constants/numbers';
-import { AssetInteractiveButtonIds, ExploreAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 
 // For testnet tokens, it's best to deploy a mock token on the intended network to ensure available supply.
 // Especially when there's no official faucet for such token.
@@ -84,7 +84,7 @@ export enum TokenNames {
 export type AssetConfig = {
     tokenAddress: string;
     tokenName: TokenNames | string;
-    listItemId: string;
+    listItemId: AssetInteractiveButtonIds;
     network: SupportedChain | ExtendedWalletSupportedNetworks;
     supportedAssetActions: ExploreAssetActions[];
     showOnAssetsMenu?: boolean;

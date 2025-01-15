@@ -1,17 +1,17 @@
+import userServiceV2 from '@/app/runtime/user';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
-import crypto from 'node:crypto';
-import { HttpException } from '@/resources/exceptions/HttpException';
-import {
-    WebhookPayloadDigestAlgorithms,
-    webhookPayloadDigestSchema,
-    WebhookPayloadDigestConfig,
-} from './sumSubSchema';
 import { BAD_REQUEST, NOT_FOUND, UNAUTHORIZED } from '@/constants/status-codes';
-import { UserRecord } from '@/db/xata';
-import UserService from '@/app/User/UserService';
+import { UserV2Record } from '@/db/xata';
+import { HttpException } from '@/resources/exceptions/HttpException';
 import logger from '@/resources/logger';
 import axios from 'axios';
-import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import crypto from 'node:crypto';
+import {
+    WebhookPayloadDigestAlgorithms,
+    WebhookPayloadDigestConfig,
+    webhookPayloadDigestSchema,
+} from './sumSubSchema';
 
 type UsedSumSubRequestMethods = 'GET' | 'POST';
 
@@ -26,7 +26,7 @@ type ConcernedWebhookEvents =
 type WebhookEventHandlers = {
     [key in WebhookPayload['type']]: (
         payload: WebhookPayload,
-        user: UserRecord,
+        user: UserV2Record,
         applicantData?: ApplicantData
     ) => Promise<void>;
 };
@@ -147,10 +147,15 @@ class SumSubService {
         };
     }
 
-    public static async generateKycUrl(userPhoneNumber: string, levelName: string) {
+    public static async generateKycUrl(params: {
+        userId: string;
+        levelName: string;
+        userPhoneNumber: string;
+    }) {
+        const { levelName, userId, userPhoneNumber } = params;
         const requestQueryParams = new URLSearchParams({
             levelName: levelName,
-            externalUserId: userPhoneNumber,
+            externalUserId: userId,
             ttlInSecs: `${this.API_TTL_IN_SECS}`,
             lang: 'en',
         });
@@ -295,29 +300,39 @@ class SumSubService {
                 if (isVerified) {
                     const userInfo = SumSubService.extractUserInformation(applicantData!);
 
-                    await WhatsAppBotService.sendKycVerifiedMessage(user.phoneNumber!);
+                    await WhatsAppBotService.sendKycVerifiedMessage(
+                        user.primaryWhatsappPhoneNumber
+                    );
 
-                    return await UserService.updateUserInfoFromKyc(user, {
+                    await userServiceV2.updateUserInfo(user, {
                         ...userInfo,
                         kycStatus: 'VERIFIED',
                     });
                 }
 
-                await WhatsAppBotService.sendKycRejectedMessage(user.phoneNumber!);
+                await WhatsAppBotService.sendKycRejectedMessage(user.primaryWhatsappPhoneNumber);
 
-                await UserService.updateUserKycStatus(user, 'REJECTED');
+                await userServiceV2.updateUserInfo(user, {
+                    kycStatus: 'REJECTED',
+                });
             },
 
             async applicantPending(_, user) {
-                await UserService.updateUserKycStatus(user, 'IN_REVIEW');
+                await userServiceV2.updateUserInfo(user, {
+                    kycStatus: 'IN_REVIEW',
+                });
             },
 
             async applicantReset(_, user) {
-                await UserService.updateUserKycStatus(user, null);
+                await userServiceV2.updateUserInfo(user, {
+                    kycStatus: null,
+                });
             },
 
             async applicantDeleted(_, user) {
-                await UserService.updateUserKycStatus(user, null);
+                await userServiceV2.updateUserInfo(user, {
+                    kycStatus: null,
+                });
             },
         };
 
@@ -345,9 +360,7 @@ class SumSubService {
 
         if (!response.ok) throw new HttpException(response.status, 'Getting applicant data failed');
 
-        const data = (await response.json()) as ApplicantData;
-
-        return data;
+        return (await response.json()) as ApplicantData;
     }
 
     public static async handleWebhookEvent(payload: WebhookPayload) {
@@ -372,7 +385,7 @@ class SumSubService {
             throw new HttpException(NOT_FOUND, 'No External ID found in applicant data');
         }
 
-        const user = await UserService.getUserByPhoneNumber(externalUserId);
+        const user = await userServiceV2.getUserById(externalUserId);
 
         if (!user) {
             throw new HttpException(NOT_FOUND, 'User not found');

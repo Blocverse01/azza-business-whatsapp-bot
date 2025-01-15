@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-export const extendedWalletSupportedNetworks = z.enum(['Tron', 'Bep20', 'Solana']);
+export const extendedWalletSupportedNetworks = z.enum(['Tron', 'Bep20', 'Solana'] as const);
 
-export const activeExtendedWalletSupportedNetworks = z.enum(['Tron', 'Bep20', 'Solana']);
+export const activeExtendedWalletSupportedNetworks = z.enum(['Tron', 'Bep20', 'Solana'] as const);
 
 export type ExtendedWalletSupportedNetworks = z.infer<typeof extendedWalletSupportedNetworks>;
 

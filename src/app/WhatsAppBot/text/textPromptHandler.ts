@@ -19,7 +19,7 @@ import {
 } from '@/app/WhatsAppBot/text/actionHandlers';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import { FeatureAccessLevel } from '@/config/whatsAppBot';
+import { UserV2Record } from '@/db/xata';
 import logger from '@/resources/logger';
 
 type TextPromptHandlerParams = {
@@ -34,7 +34,7 @@ type TextPromptHandlerParams = {
         userPhoneNumber: string;
         businessPhoneNumberId: string;
     };
-    userFeatureAccessLevel: FeatureAccessLevel;
+    user: UserV2Record;
 };
 
 type TextPromptHandlerResponse = {
@@ -47,7 +47,7 @@ type TextPromptHandlerResponse = {
 export const textPromptHandler = async (
     params: TextPromptHandlerParams
 ): Promise<TextPromptHandlerResponse> => {
-    const { storedMessages, lastSessionId, userFeatureAccessLevel } = params;
+    const { storedMessages, lastSessionId, user } = params;
 
     const runtimeMessages = (
         lastSessionId !== ''
@@ -71,9 +71,8 @@ export const textPromptHandler = async (
     } catch (error) {
         const response = await handleUserPrompt({
             messages: runtimeMessages,
-            userProfile: {
-                id: params.botParams.userPhoneNumber,
-            },
+            user: user,
+            phoneParams: params.botParams,
         });
 
         const promptResponse = response.assistantMessage.content;
@@ -105,9 +104,8 @@ export const textPromptHandler = async (
         // Branch 1 [No identified action]: LLM Usage 2
         const response = await handleUserPrompt({
             messages: runtimeMessages,
-            userProfile: {
-                id: params.botParams.userPhoneNumber,
-            },
+            user: user,
+            phoneParams: params.botParams,
         });
 
         const promptResponse = response.assistantMessage.content;
@@ -142,7 +140,7 @@ export const textPromptHandler = async (
             responseMessage = await handleDepositRelatedPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
-                userFeatureAccessLevel,
+                user,
             });
             break;
 
@@ -151,7 +149,7 @@ export const textPromptHandler = async (
             responseMessage = await handleWithdrawRelatedPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
-                userFeatureAccessLevel,
+                user,
             });
             break;
 
@@ -159,7 +157,7 @@ export const textPromptHandler = async (
             responseMessage = await handleBalanceQueryPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
-                userFeatureAccessLevel,
+                user,
             });
             break;
 
@@ -167,7 +165,7 @@ export const textPromptHandler = async (
             responseMessage = await handleResetTransactionPinPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
-                userFeatureAccessLevel,
+                user,
             });
             break;
 
@@ -175,7 +173,7 @@ export const textPromptHandler = async (
             responseMessage = await handleChangeTransactionPinPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
-                userFeatureAccessLevel,
+                user,
             });
             break;
 
@@ -184,7 +182,7 @@ export const textPromptHandler = async (
             responseMessage = await handleBuyCryptoWithFiatPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
-                userFeatureAccessLevel,
+                user,
             });
             break;
 
@@ -193,7 +191,7 @@ export const textPromptHandler = async (
             responseMessage = await handleSellCryptoForFiatPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
-                userFeatureAccessLevel,
+                user,
             });
             break;
 
@@ -201,14 +199,14 @@ export const textPromptHandler = async (
             responseMessage = await handleSwapCryptoPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
-                userFeatureAccessLevel,
+                user,
             });
             break;
         case 'SHOW_FIAT_RATES':
             responseMessage = await handleRatesPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
-                userFeatureAccessLevel,
+                user,
             });
             break;
     }

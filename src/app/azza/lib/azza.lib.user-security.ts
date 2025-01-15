@@ -4,12 +4,12 @@ import {
     type SetTransactionPinParams,
     setTransactionPinParamsSchema,
 } from '@/app/azza/azza.schema';
-import UserService from '@/app/User/UserService';
+import userServiceV2 from '@/app/runtime/user';
 
 export const setTransactionPin = async (params: SetTransactionPinParams) => {
     const validParams = setTransactionPinParamsSchema.parse(params);
 
-    const user = await UserService.getUserByPhoneNumber(validParams.userId);
+    const user = await userServiceV2.getUserById(validParams.userId);
     if (!user) {
         throw new Error('User not found');
     }
@@ -18,7 +18,7 @@ export const setTransactionPin = async (params: SetTransactionPinParams) => {
         throw new Error('Transaction pin already set');
     }
 
-    const updateRecord = await UserService.background_storeNewTransactionPin(
+    const updateRecord = await userServiceV2.storeUserTransactionPin(
         user,
         params.newPinHash,
         params.encryptedSecurityQuestions
@@ -38,7 +38,7 @@ export const changeTransactionPin = async (params: ChangeTransactionPinParams) =
 
     const validParams = changeTransactionPinParamsSchema.parse(params);
 
-    const user = await UserService.getUserByPhoneNumber(validParams.userId);
+    const user = await userServiceV2.getUserById(validParams.userId);
     if (!user) {
         throw new Error('User not found');
     }
@@ -48,7 +48,7 @@ export const changeTransactionPin = async (params: ChangeTransactionPinParams) =
     }
 
     // Update user's transaction pin
-    const updatedRecord = await UserService.updateTransactionPin(user, newPinHash);
+    const updatedRecord = await userServiceV2.updateUserTransactionPin(user, newPinHash);
 
     if (!updatedRecord) {
         throw new Error('Transaction pin not set');

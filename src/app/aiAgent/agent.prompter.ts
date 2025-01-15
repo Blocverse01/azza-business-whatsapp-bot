@@ -1,18 +1,19 @@
 import { toolSet } from '@/app/aiAgent/agent.config';
+import { PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { UserV2Record } from '@/db/xata';
 import { openai } from '@ai-sdk/openai';
 import { CoreMessage, CoreUserMessage, generateText } from 'ai';
 
 type HandleUserPromptParams = {
     messages: Array<CoreMessage>;
-    userProfile: {
-        id: string;
-    };
+    user: UserV2Record;
+    phoneParams: PhoneNumberParams;
 };
 
 export const handleUserPrompt = async (params: HandleUserPromptParams) => {
     const { text } = await generateText({
         model: openai('gpt-4o-mini'),
-        tools: toolSet(params.userProfile.id),
+        tools: toolSet(params.user, params.phoneParams),
         maxSteps: 5,
         messages: params.messages,
         toolChoice: 'auto',

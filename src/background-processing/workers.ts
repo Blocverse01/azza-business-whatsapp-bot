@@ -1,4 +1,7 @@
-import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
+import {
+    AssetTransferRecipientType,
+    TransferAssetTransactionDetails,
+} from '@/app/azza/azza.schema';
 import {
     sendTransferAssetTransaction,
     SendTransferTransactionResponse,
@@ -9,9 +12,14 @@ import { waitForTransactionReceipt } from '@/app/azza/lib/azza.lib.wait-for-tran
 import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import userServiceV2 from '@/app/runtime/user';
+import azzaWalletManager from '@/app/runtime/wallet';
+import UserService from '@/app/User/UserService';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import { CryptoDebitWorkerError } from '@/background-processing/errors';
+import { queues } from '@/background-processing/queues';
 import { connectionConfig } from '@/background-processing/redis-connection-config';
 import { OfframpQueueFlowParams } from '@/background-processing/schema';
 import {
@@ -20,10 +28,18 @@ import {
     QueueNames,
     UserTxPinSecurityQueueInput,
     UserTxPinSecurityQueueResult,
+    UserWalletMigrationQueueInput,
+    UserWalletMigrationQueueResult,
 } from '@/background-processing/types';
+import { ENABLED_ASSETS } from '@/config/whatsAppBot';
 import env from '@/constants/env';
+import { UserRecord } from '@/db/xata';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
-import { convertBase64ToAsciiString, decryptWithAES } from '@/resources/utils/encryption';
+import {
+    convertAsciiStringToBase64,
+    convertBase64ToAsciiString,
+    decryptWithAES,
+} from '@/resources/utils/encryption';
 import { TokenNames } from '@/resources/web3/tokens';
 import { Worker } from 'bullmq';
 
@@ -34,6 +50,8 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
     QueueNames.fiatPayout,
     async (job) => {
         const userId = convertBase64ToAsciiString(job.data.userId);
+        const userPhoneNumber = convertBase64ToAsciiString(job.data.whatsappParams.userPhoneNumber);
+        const businessPhoneNumberId = job.data.whatsappParams.businessPhoneNumberId;
 
         const childrenValues = await job.getChildrenValues<
             SendTransferTransactionResult | CryptoDebitConfirmationQueueResult
@@ -54,8 +72,8 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
         if (cryptoDebitConfirmation.status !== 'success' || txHash === null) {
             const userMessage = `Debiting ${job.data.usdAmount} ${job.data.tokenName} from your wallet failed.\nTx Hash: ${cryptoDebitConfirmation.transactionHash}\nPlease reach out to support if you were debited.`;
             await WhatsAppBotService.sendWhatsappMessage(
-                env.WA_PHONE_NUMBER_ID,
-                MessageGenerators.generateTextMessage(userId, userMessage)
+                businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(userPhoneNumber, userMessage)
             );
 
             return {
@@ -90,15 +108,14 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
                         network: job.data.chainName as SupportedChain,
                         tokenSymbol: job.data.tokenName,
                         triggerTransactionId: txHash,
-                        ownerId: userId,
                         amount: totalAmount,
                         destinationWalletAddress: job.data.userWalletAddress,
                     });
 
                     await WhatsAppBotService.sendWhatsappMessage(
-                        env.WA_PHONE_NUMBER_ID,
+                        businessPhoneNumberId,
                         MessageGenerators.generateTextMessage(
-                            userId,
+                            userPhoneNumber,
                             `An error occurred while sending your transaction.\nYour ${job.data.tokenName} will be refunded to your wallet.`
                         )
                     );
@@ -117,24 +134,41 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
 const cryptoDebitWorker = new Worker<
     Required<TransferAssetTransactionDetails>,
     SendTransferTransactionResult,
-    'send-crypto' | 'offramp-debit'
+    'send-crypto' | 'offramp-debit' | 'user-funds-migration'
 >(
     QueueNames.cryptoDebit,
     async (job) => {
-        try {
-            return await sendTransferAssetTransaction({
+        console.log(job.name);
+        const result = await sendTransferAssetTransaction(
+            {
                 ...job.data,
                 userId: convertBase64ToAsciiString(job.data.userId),
-                transactionPin: decryptWithAES(
-                    job.data.transactionPin,
-                    env.SECURITY_QUESTIONS_MASK_KEY,
-                    env.SECURITY_QUESTIONS_MASK_IV
-                ),
-            });
-        } catch (e) {
-            const error = parseUnknownError(e);
-            return [null, error];
+                transactionPin: job.data.transactionPin
+                    ? decryptWithAES(
+                          job.data.transactionPin,
+                          env.SECURITY_QUESTIONS_MASK_KEY,
+                          env.SECURITY_QUESTIONS_MASK_IV
+                      )
+                    : '',
+            },
+            job.name !== 'user-funds-migration',
+            job.name === 'user-funds-migration' ? 'legacy' : 'new'
+        );
+
+        const [sendCryptoTxResponse, txError] = result;
+
+        if (job.name === 'user-funds-migration' && sendCryptoTxResponse) {
+            await queues.cryptoDebitConfirmation.add(
+                'user-funds-migration-confirmation',
+                sendCryptoTxResponse
+            );
         }
+
+        if (txError !== null) {
+            throw new CryptoDebitWorkerError(txError.message, txError.data);
+        }
+
+        return result;
     },
     {
         connection: connectionConfig,
@@ -144,7 +178,7 @@ const cryptoDebitWorker = new Worker<
 const cryptoDebitConfirmationWorker = new Worker<
     SendTransferTransactionResponse,
     CryptoDebitConfirmationQueueResult,
-    'send-crypto-confirmation' | 'offramp-debit-confirmation'
+    'send-crypto-confirmation' | 'offramp-debit-confirmation' | 'user-funds-migration-confirmation'
 >(
     QueueNames.cryptoDebitConfirmation,
     async (job) => {
@@ -201,12 +235,17 @@ const userTxPinSecurityWorker = new Worker<
         let isSuccessful = false;
 
         const userId = convertBase64ToAsciiString(job.data.userId);
+        const businessPhoneNumberId = job.data.whatsappParams.businessPhoneNumberId;
+        const userPhoneNumber = convertBase64ToAsciiString(job.data.whatsappParams.userPhoneNumber);
 
         switch (job.name) {
             case 'set-tx-pin':
                 await WhatsAppBotService.sendWhatsappMessage(
-                    env.WA_PHONE_NUMBER_ID,
-                    MessageGenerators.generateTextMessage(userId, '🚀 Securing your account 🔐...')
+                    businessPhoneNumberId,
+                    MessageGenerators.generateTextMessage(
+                        userPhoneNumber,
+                        '🚀 Securing your account 🔐...'
+                    )
                 );
                 if ('encryptedSecurityQuestions' in job.data) {
                     isSuccessful = (
@@ -223,9 +262,9 @@ const userTxPinSecurityWorker = new Worker<
 
             case 'change-tx-pin':
                 await WhatsAppBotService.sendWhatsappMessage(
-                    env.WA_PHONE_NUMBER_ID,
+                    businessPhoneNumberId,
                     MessageGenerators.generateTextMessage(
-                        userId,
+                        userPhoneNumber,
                         '🚀 Updating your Transaction PIN 🔐...'
                     )
                 );
@@ -251,16 +290,128 @@ const userTxPinSecurityWorker = new Worker<
                 .join('\n');
 
             const message = MessageGenerators.generateTextMessage(
-                userId,
+                userPhoneNumber,
                 `✅ *Transaction PIN successfully updated!*\n\n🔒 _Keep it safe—your PIN is personal and should not be shared._\n\nHere's what you can do next on Azza:\n\n${actionsList}\n\n💬 Type *help* to ask the bot for guidance or try slash commands like */transfer*, */balance*, or */deposit* to get started!`
             );
 
-            await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
+            await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message);
 
             return { status: 'success' };
         }
 
         return { status: 'failed' };
+    },
+    {
+        connection: connectionConfig,
+    }
+);
+
+const walletMigrationWorker = new Worker<
+    UserWalletMigrationQueueInput,
+    UserWalletMigrationQueueResult
+>(
+    QueueNames.walletMigration,
+    async (job) => {
+        const oldUserId = job.data.oldUserId
+            ? convertBase64ToAsciiString(job.data.oldUserId)
+            : undefined;
+        const userPhoneNumber = convertBase64ToAsciiString(job.data.userPhoneNumber);
+        const businessPhoneNumberId = convertBase64ToAsciiString(job.data.businessPhoneNumberId);
+        let oldUser: UserRecord | null = null;
+
+        if (oldUserId) {
+            oldUser = await UserService.getUserByPhoneNumber(oldUserId);
+        }
+
+        const newUser =
+            (await userServiceV2.getWhatsappUserByPhoneNumber(userPhoneNumber)) ??
+            (await userServiceV2.createWhatsappUser(
+                userPhoneNumber,
+                oldUser
+                    ? {
+                          transactionPinHash: oldUser.transactionPinHash,
+                          securityQuestionsSetup: oldUser.securityQuestionsSetup,
+                          firstName: oldUser.firstName,
+                          lastName: oldUser.lastName,
+                          kycStatus: oldUser.kycStatus,
+                          kycDateOfBirth: oldUser.kycDateOfBirth,
+                          kycIdType: oldUser.kycIdType,
+                          kycDocumentNumber: oldUser.kycDocumentNumber,
+                          additionalKycIdType: oldUser.additionalKycIdType ?? null,
+                          additionalKycIdNumber: oldUser.additionalKycIdNumber,
+                          country: oldUser.country,
+                      }
+                    : undefined
+            ));
+
+        if (oldUser) {
+            await UserService.updateMigratedAt(oldUser, new Date());
+        }
+
+        const newUserId = newUser.id;
+
+        const newWallets = await azzaWalletManager.createUserWallets({
+            userId: newUserId,
+            networks: azzaWalletManager.getSupportedNetworks(),
+            shouldMapEvmAddresses: true,
+        });
+
+        const existingWalletConfig = await userServiceV2.getUserBlockradarWallets(newUserId);
+
+        if (!existingWalletConfig) {
+            await userServiceV2.createUserBlockradarWalletConfig(
+                newUserId,
+                newWallets.map((wallet) => ({
+                    blockchainNetwork: wallet.blockchainNetwork,
+                    addressId: wallet.id,
+                    address: wallet.address,
+                }))
+            );
+
+            if (oldUserId) {
+                await WhatsAppBotService.sendWhatsappMessage(
+                    businessPhoneNumberId,
+                    MessageGenerators.generateTextMessage(
+                        userPhoneNumber,
+                        '🚀 Your wallets have been successfully migrated. You can now continue using Azza!'
+                    )
+                );
+            }
+        }
+
+        if (oldUserId) {
+            const supportedAssetIds = ENABLED_ASSETS.map((asset) => asset.listItemId);
+            const promises = supportedAssetIds.map((assetId) =>
+                UserService.getUserAssetInfo(oldUserId, assetId)
+            );
+            const userAssets = await Promise.all(promises);
+
+            const addCryptoDebitPromises = userAssets.map((asset) => {
+                const targetWallet = newWallets.find(
+                    (wallet) => wallet.blockchainNetwork === asset.assetNetwork
+                )?.address;
+
+                if (asset && asset.tokenBalance > 0 && targetWallet) {
+                    return queues.cryptoDebit.add('user-funds-migration', {
+                        userId: convertAsciiStringToBase64(oldUserId),
+                        transactionType: 'SEND',
+                        assetId: asset.listItemId,
+                        amount: asset.tokenBalance,
+                        recipient: targetWallet,
+                        recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
+                        transactionFee: 0,
+                        transactionPin: '',
+                    });
+                }
+            });
+
+            await Promise.all(addCryptoDebitPromises);
+        }
+
+        return {
+            newUserId,
+            walletIds: newWallets.map((wallet) => wallet.id),
+        };
     },
     {
         connection: connectionConfig,
@@ -301,4 +452,12 @@ userTxPinSecurityWorker.on('completed', async (job) => {
 });
 userTxPinSecurityWorker.on('failed', async (job, error) => {
     console.log(`User Tx Pin Security Worker failed`, error);
+});
+
+// Wallet Migration Worker
+walletMigrationWorker.on('completed', async (job) => {
+    console.log('Wallet Migration Worker completed', job.returnvalue);
+});
+walletMigrationWorker.on('failed', async (job, error) => {
+    console.log(`Wallet Migration Worker failed`, error);
 });

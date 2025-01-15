@@ -9,7 +9,7 @@ import {
     TRANSFER_TRANSACTION_SCRIPT_PATH,
 } from '@/app/azza/backgroundSpawns/script-paths';
 import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
-import UserService from '@/app/User/UserService';
+import userServiceV2 from '@/app/runtime/user';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
@@ -105,7 +105,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
         const { transaction_pin, transaction_summary, transaction_details } = data;
 
         const unmaskedUserId = convertBase64ToAsciiString(transaction_details.userId);
-        const user = await UserService.getUserByPhoneNumber(unmaskedUserId);
+        const user = await userServiceV2.getUserById(unmaskedUserId);
 
         if (!user?.transactionPinHash) {
             return {

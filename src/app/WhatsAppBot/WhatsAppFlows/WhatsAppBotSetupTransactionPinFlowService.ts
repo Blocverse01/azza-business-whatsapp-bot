@@ -1,5 +1,5 @@
 import { SecurityQuestion, transactionPinSchema } from '@/app/azza/azza.schema';
-import UserService from '@/app/User/UserService';
+import userServiceV2 from '@/app/runtime/user';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
@@ -8,11 +8,16 @@ import {
 import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { queues } from '@/background-processing/queues';
+import env from '@/constants/env';
 import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
 import { RECOVERY_QUESTIONS } from '@/resources/data/recovery-questions';
 import { logSync } from '@/resources/logger';
-import { convertAsciiStringToBase64, generateRandomHexString } from '@/resources/utils/encryption';
+import {
+    convertAsciiStringToBase64,
+    convertBase64ToAsciiString,
+    generateRandomHexString,
+} from '@/resources/utils/encryption';
 import { hashString } from '@/resources/utils/hashing';
 
 enum SetupTransactionPinFlowScreens {
@@ -245,6 +250,12 @@ class WhatsAppBotSetupTransactionPinFlowService {
             all_questions_list,
         } = data;
 
+        const user = await userServiceV2.getUserById(convertBase64ToAsciiString(user_id));
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
         const questionsToSave: Array<SecurityQuestion> = [];
 
         [question_1 ?? '', question_2 ?? '', question_3 ?? '', question_4 ?? ''].forEach(
@@ -275,13 +286,17 @@ class WhatsAppBotSetupTransactionPinFlowService {
         }
 
         const hashedPin = await hashString(transaction_pin);
-        const encryptedSecuritySetup = UserService.maskUserSecurityQuestions(questionsToSave);
+        const encryptedSecuritySetup = userServiceV2.maskUserSecurityQuestions(questionsToSave);
 
         // Add to background processing
         await queues.userTxPinSecurity.add('set-tx-pin', {
             newPinHash: hashedPin,
             encryptedSecurityQuestions: encryptedSecuritySetup,
             userId: user_id,
+            whatsappParams: {
+                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
+            },
         });
 
         return {

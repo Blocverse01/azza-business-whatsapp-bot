@@ -1,7 +1,8 @@
-import { SUPPORTED_CHAINS, SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import env from '@/constants/env';
 
-export const ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS: Readonly<Array<SupportedChain>> = [
+export const ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS: Readonly<Array<AllSupportedBlockchains>> = [
     'Polygon',
     'Base',
     'Optimism',

@@ -1,8 +1,3 @@
-import UserService from '@/app/User/UserService';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import WalletKitService from '@/app/WalletKit/WalletKitService';
-import { searchAsset } from '@/config/whatsAppBot';
-import { dbClient, sqlClient } from '@/db/dbClient';
 import {
     CreateCryptoPayoutOrderParams,
     CryptoPayoutAuthorizationPayload,
@@ -10,10 +5,13 @@ import {
     CryptoPayoutOrderStatus,
     CryptoPayoutReasons,
 } from '@/app/CryptoPayout/cryptoPayoutSchema';
-import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import azzaWalletManager from '@/app/runtime/wallet';
+import { searchAsset } from '@/config/whatsAppBot';
 import env from '@/constants/env';
-//import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { dbClient, sqlClient } from '@/db/dbClient';
 import { CryptoPayoutOrder } from '@/db/xata';
+import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
 
 class CryptoPayoutService {
     private static readonly cryptoPayoutOrderRepository = dbClient.CryptoPayoutOrder;
@@ -60,7 +58,11 @@ class CryptoPayoutService {
     }
 
     public static async createOnrampCryptoPayoutOrder(params: CreateCryptoPayoutOrderParams) {
-        if (params?.transactionStatus !== 'complete') {
+        const onrampTransaction = await FiatRampService.getOnrampTransaction(
+            params.triggerTransactionId
+        );
+
+        if (onrampTransaction.status !== 'complete') {
             throw new Error('Onramp transaction is not completed');
         }
 
@@ -78,8 +80,7 @@ class CryptoPayoutService {
             throw new Error('Crypto payout order already exists');
         }
 
-        const { triggerTransactionId, ownerId, transactionStatus, ...cryptoPayoutOrderParams } =
-            params;
+        const { triggerTransactionId, ...cryptoPayoutOrderParams } = params;
 
         return await this.cryptoPayoutOrderRepository.create({
             amount: cryptoPayoutOrderParams.amount,
@@ -100,24 +101,13 @@ class CryptoPayoutService {
         if (!assetConfig) {
             throw new Error('Asset config not found');
         }
-        if (!params.ownerId) {
-            throw new Error('Owner ID is required');
-        }
 
-        const userAssetWallet = await UserService.getUserAssetWalletOrThrow(
-            params.ownerId,
-            assetConfig.listItemId
+        const onchainTransaction = await azzaWalletManager.getTransaction(
+            params.triggerTransactionId,
+            params.network
         );
 
-        const onchainTransaction =
-            'extendedWallet' in userAssetWallet && userAssetWallet.extendedWallet
-                ? await userAssetWallet.extendedWallet.getTransaction(params.triggerTransactionId)
-                : await WalletKitService.getTransactionByHash(
-                      params.triggerTransactionId,
-                      assetConfig.network as SupportedChain
-                  );
-
-        if (onchainTransaction.status !== 'success') {
+        if (onchainTransaction.status !== 'SUCCESS') {
             throw new Error(`Transaction ${params.triggerTransactionId} is not successful`);
         }
 
@@ -135,7 +125,7 @@ class CryptoPayoutService {
             throw new Error('Crypto payout order already exists');
         }
 
-        const { triggerTransactionId, ownerId, ...cryptoPayoutOrderParams } = params;
+        const { triggerTransactionId, ...cryptoPayoutOrderParams } = params;
 
         return await this.cryptoPayoutOrderRepository.create({
             ...cryptoPayoutOrderParams,
@@ -190,7 +180,7 @@ class CryptoPayoutService {
             .getAll();
 
         return pendingCryptoPayoutOrders.filter((payoutOrder) => {
-            const { id, orderAuthorityToken } = payoutOrder;
+            const { orderAuthorityToken } = payoutOrder;
             return this.validateCryptoPayoutOrder(orderAuthorityToken);
         });
     }

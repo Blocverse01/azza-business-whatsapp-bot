@@ -1,5 +1,5 @@
 import { transactionPinSchema } from '@/app/azza/azza.schema';
-import UserService from '@/app/User/UserService';
+import userServiceV2 from '@/app/runtime/user';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
@@ -8,8 +8,10 @@ import {
 import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { queues } from '@/background-processing/queues';
+import env from '@/constants/env';
 import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
+import { UserV2Record } from '@/db/xata';
 import { logSync } from '@/resources/logger';
 import {
     convertAsciiStringToBase64,
@@ -99,11 +101,14 @@ class WhatsAppBotChangeTransactionPinFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static createTransactionPinChangeFlowMessage(params: {
-        messageRecipient: string;
-        messageBody: string;
-        flowCTA: string;
-    }) {
+    public static createTransactionPinChangeFlowMessage(
+        user: UserV2Record,
+        params: {
+            messageRecipient: string;
+            messageBody: string;
+            flowCTA: string;
+        }
+    ) {
         const { messageRecipient, messageBody, flowCTA } = params;
 
         const flowMessage: WhatsAppInteractiveMessage = {
@@ -126,7 +131,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
                             screen: this.INITIAL_SCREEN,
                             data: {
                                 form_description: CHANGE_TRANSACTION_PIN_FORM_DESCRIPTION,
-                                user_id: convertAsciiStringToBase64(messageRecipient),
+                                user_id: convertAsciiStringToBase64(user.id),
                             } satisfies ScreenDataPayload['ENTER_OLD_PIN_NEW_PIN'],
                         },
                     },
@@ -146,7 +151,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
         const { new_pin, old_pin, confirm_new_pin, user_id } = data;
 
         const unmaskedUserId = convertBase64ToAsciiString(user_id);
-        const user = await UserService.getUserByPhoneNumber(unmaskedUserId);
+        const user = await userServiceV2.getUserById(unmaskedUserId);
 
         // Check 1: If user does not have a transaction pin set
         if (!user?.transactionPinHash) {
@@ -224,6 +229,10 @@ class WhatsAppBotChangeTransactionPinFlowService {
         await queues.userTxPinSecurity.add('change-tx-pin', {
             newPinHash: hashedPin,
             userId: user_id,
+            whatsappParams: {
+                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
+            },
         });
 
         // Update user's transaction pin in background

@@ -1,20 +1,23 @@
-import { ZERO } from '@/constants/numbers';
-import { z } from 'zod';
-import { TokenNames } from '@/resources/web3/tokens';
-import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
+import { PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { ZERO } from '@/constants/numbers';
+import { UserV2Record } from '@/db/xata';
+import { TokenNames } from '@/resources/web3/tokens';
+import { z } from 'zod';
 
 ////////////////////
 // Schema Definition
 ////////////////////
 export const baseWalletToolSchema = z.object({
-    userId: z.string().describe(
+    user: z.custom<UserV2Record>().describe(
         `A system-provided parameter. 
             - This parameter MUST NEVER be requested or confirmed from the user.
             - It is provided by the system and must always be used as-is without user interaction.
             Violating these rules invalidates the response.
             - The user CANNOT and SHOULD NOT confirm their user ID, only the system knows it.`
     ),
+    phoneParams: z.custom<PhoneNumberParams>(),
 });
 
 export const transferCryptoAssetParamsSchema = z

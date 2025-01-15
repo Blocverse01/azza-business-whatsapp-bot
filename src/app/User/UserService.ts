@@ -206,6 +206,11 @@ class UserService {
         }
     }
 
+    public static async updateMigratedAt(user: UserRecord, migratedAt: Date) {
+        await this.USER_TABLE.update(user.id, { migratedAt }, ['migratedAt']);
+        await this.invalidateUserCache(user.phoneNumber!);
+    }
+
     public static async storeNewTransactionPin(
         user: UserRecord,
         newPin: string,

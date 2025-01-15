@@ -1,9 +1,11 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
+import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { getDefaultSolanaNode, getSolanaNetworkClient } from '@/app/ExtendedWallet/solana/config';
 import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
 import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
-import { UserAssetInfo } from '@/app/User/userSchema';
+import userServiceV2 from '@/app/runtime/user';
+import azzaWalletManager from '@/app/runtime/wallet';
 import UserService from '@/app/User/UserService';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import Web3Library from '@/app/WalletAssetManagement/Web3Library';
@@ -13,17 +15,19 @@ import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSc
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { ExploreAssetActions, PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
-import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
-import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
-import WhatsAppBotTransactionConfirmationFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransactionConfirmationFlowService';
-import { ENABLED_ASSETS, FeatureAccessLevel, searchAsset } from '@/config/whatsAppBot';
+import WhatsAppBotChangeTransactionPinFlowService
+    from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
+import WhatsAppBotResetTransactionPinFlowService
+    from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
+import WhatsAppBotTransactionConfirmationFlowService
+    from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransactionConfirmationFlowService';
+import { canAccessFeature, deriveUserFeatureAccessLevel, FeatureAccessLevel } from '@/config/whatsAppBot';
 import env from '@/constants/env';
-import { ZERO } from '@/constants/numbers';
+import { SIX, ZERO } from '@/constants/numbers';
+import { USD_SYMBOL } from '@/constants/strings';
+import { UserV2Record } from '@/db/xata';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
-import {
-    getUserCountryCodeFromPhoneNumberOrThrow,
-    prettifyNumber,
-} from '@/resources/utils/currency';
+import { getUserCountryCodeFromPhoneNumberOrThrow, prettifyNumber } from '@/resources/utils/currency';
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
@@ -40,7 +44,7 @@ type ActionHandlerParams = {
         | null
         | Record<string, unknown>;
     botParams: PhoneNumberParams;
-    userFeatureAccessLevel: FeatureAccessLevel;
+    user: UserV2Record;
 };
 
 export type PromptHandlerResponse = {
@@ -54,7 +58,7 @@ export type PromptHandlerResponse = {
 export const handleDepositRelatedPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
-    const { extractedArguments, botParams } = params;
+    const { extractedArguments, botParams, user } = params;
 
     const missingArgsPromptResponse = getAssetChoiceMessage('deposit');
     const missingArgsWhatsAppMessage = MessageGenerators.generateTextMessage(
@@ -89,7 +93,7 @@ export const handleDepositRelatedPrompt = async (
         };
     }
 
-    const targetAsset = searchAsset({
+    const targetAsset = azzaWalletManager.searchAssets({
         tokenName: depositArguments.cryptoCurrencySymbol,
         network: depositArguments.blockchainNetwork as SupportedChain,
     })[0];
@@ -110,14 +114,11 @@ export const handleDepositRelatedPrompt = async (
         };
     }
 
-    const userWalletInfo = await UserService.getUserAssetWalletOrThrow(
-        params.botParams.userPhoneNumber,
-        targetAsset.listItemId
-    );
+    const userWalletInfo = await azzaWalletManager.getUserWallet(user.id, targetAsset.network);
 
     const walletAddressMessage = MessageGenerators.generateTextMessage(
         params.botParams.userPhoneNumber,
-        userWalletInfo.walletAddress
+        userWalletInfo.address,
     );
     const copyInstructionMessage = MessageGenerators.generateTextMessage(
         params.botParams.userPhoneNumber,
@@ -145,7 +146,7 @@ export const handleDepositRelatedPrompt = async (
 export const handleWithdrawRelatedPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
-    const { extractedArguments, botParams } = params;
+    const { extractedArguments, botParams, user } = params;
 
     if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         const missingArgsPromptResponse = getWithdrawalArgumentsGuideMessage({
@@ -198,7 +199,7 @@ export const handleWithdrawRelatedPrompt = async (
         };
     }
 
-    const targetAsset = searchAsset({
+    const targetAsset = azzaWalletManager.searchAssets({
         tokenName: withdrawArguments.cryptoCurrencySymbol,
         network: withdrawArguments.blockchainNetwork as SupportedChain,
     })[0];
@@ -236,13 +237,13 @@ export const handleWithdrawRelatedPrompt = async (
         };
     }
 
-    const assetInfo = await UserService.getUserAssetInfo(
-        params.botParams.userPhoneNumber,
-        targetAsset.listItemId
-    );
+    const balanceInfo = await azzaWalletManager.getAssetBalance({
+        userId: user.id,
+        assetId: targetAsset.listItemId,
+    });
 
-    if (assetInfo.tokenBalance < withdrawArguments.amount) {
-        const insufficientBalanceResponse = `Insufficient balance. You have ${assetInfo.tokenBalance} ${targetAsset.tokenName}`;
+    if (balanceInfo.balance < withdrawArguments.amount) {
+        const insufficientBalanceResponse = `Insufficient balance. You have ${balanceInfo.balance} ${targetAsset.tokenName}`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
@@ -308,8 +309,8 @@ export const handleWithdrawRelatedPrompt = async (
     );
     const totalAmount = withdrawArguments.amount + transactionFee;
 
-    if (assetInfo.tokenBalance < totalAmount) {
-        const amountDeficit = totalAmount - assetInfo.tokenBalance;
+    if (balanceInfo.balance < totalAmount) {
+        const amountDeficit = totalAmount - balanceInfo.balance;
         const notEnoughBalanceResponse = `You need extra ${amountDeficit} ${targetAsset.tokenName} on ${targetAsset.network} to cover for transaction fee`;
 
         await WhatsAppBotService.sendWhatsappMessage(
@@ -355,7 +356,7 @@ export const handleWithdrawRelatedPrompt = async (
             amount: withdrawArguments.amount,
             assetId: targetAsset.listItemId,
             transactionFee,
-            userId: convertAsciiStringToBase64(params.botParams.userPhoneNumber),
+            userId: convertAsciiStringToBase64(user.id),
         },
     });
 
@@ -373,7 +374,7 @@ export const handleWithdrawRelatedPrompt = async (
 export const handleBalanceQueryPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
-    const { extractedArguments, botParams } = params;
+    const { extractedArguments, botParams, user } = params;
 
     const balanceQueryArguments = parseExtractedArguments(
         extractedArguments ?? {
@@ -387,7 +388,7 @@ export const handleBalanceQueryPrompt = async (
 
     const targetAsset =
         cryptoCurrencySymbol && blockchainNetwork
-            ? searchAsset({
+            ? azzaWalletManager.searchAssets({
                   tokenName: cryptoCurrencySymbol,
                   network: blockchainNetwork as SupportedChain,
               })[ZERO]
@@ -412,6 +413,7 @@ export const handleBalanceQueryPrompt = async (
                   type: 'all' as const,
               };
 
+    const supportedAssets = azzaWalletManager.getSupportedAssets();
     switch (balanceQueryMode.type) {
         case 'asset on specific network':
             if (!targetAsset) {
@@ -436,14 +438,16 @@ export const handleBalanceQueryPrompt = async (
                     `*Checking balance for ${targetAsset.tokenName} on ${targetAsset.network}...*`
                 )
             );
-            const assetInfo = await UserService.getUserAssetInfo(
-                botParams.userPhoneNumber,
-                balanceQueryMode.entity.listItemId
-            );
+            const assetBalanceInfo = await azzaWalletManager.getAssetBalance({
+                userId: user.id,
+                assetId: balanceQueryMode.entity.listItemId,
+            });
 
-            const { extendedWallet: _extendedWallet, ...otherInfo } = assetInfo;
-
-            const balanceMessage = `*You have ${otherInfo.tokenBalance} ${targetAsset.tokenName} on ${targetAsset.network}*`;
+            const usdBalanceDisplay =
+                assetBalanceInfo.convertedBalanceUsd !== undefined
+                    ? prettifyNumber(assetBalanceInfo.convertedBalanceUsd, SIX)
+                    : null;
+            const balanceMessage = `*You have ${assetBalanceInfo.balance} ${targetAsset.tokenName} ${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''} on ${targetAsset.network}*`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
@@ -467,22 +471,28 @@ export const handleBalanceQueryPrompt = async (
                 )
             );
 
-            const assetIds = ENABLED_ASSETS.filter((asset) => {
-                return asset.tokenName.toLowerCase() === balanceQueryMode.entity.toLowerCase();
-            }).map((asset) => asset.listItemId);
+            const assetIds = supportedAssets
+                .filter((asset) => {
+                    return asset.tokenName.toLowerCase() === balanceQueryMode.entity.toLowerCase();
+                })
+                .map((asset) => asset.listItemId);
 
             const casePromises = assetIds.map((assetId) =>
-                UserService.getUserAssetInfo(botParams.userPhoneNumber, assetId)
+                azzaWalletManager.getAssetBalance({
+                    userId: user.id,
+                    assetId,
+                })
             );
 
             const _assetsInfo = await Promise.all(casePromises);
             const assetBalances = Object.fromEntries(
                 _assetsInfo.map((assetInfo) => {
-                    const { extendedWallet: _extendedWallet, ...otherInfo } = assetInfo;
-
                     return [
-                        assetInfo.assetNetwork,
-                        { ...otherInfo, networkEmoji: getNetworkEmoji(assetInfo.assetNetwork) },
+                        assetInfo.blockchainNetwork,
+                        {
+                            ...assetInfo,
+                            networkEmoji: getNetworkEmoji(assetInfo.blockchainNetwork),
+                        },
                     ];
                 })
             );
@@ -491,8 +501,14 @@ export const handleBalanceQueryPrompt = async (
 
             const balanceMessages = networks
                 .map((network) => {
-                    const { tokenBalanceDisplay, networkEmoji, assetName } = assetBalances[network];
-                    return `*${networkEmoji} ${assetName} on ${network}*\n- Balance: ${tokenBalanceDisplay} ${assetName}`;
+                    const tokenBalanceDisplay = prettifyNumber(assetBalances[network].balance, 6);
+                    const usdBalanceDisplay =
+                        assetBalances[network].convertedBalanceUsd !== undefined
+                            ? prettifyNumber(assetBalances[network].convertedBalanceUsd, SIX)
+                            : null;
+
+                    const { networkEmoji, asset } = assetBalances[network];
+                    return `*${networkEmoji} ${asset.tokenName} on ${network}*\n- Balance: ${tokenBalanceDisplay} ${asset.tokenName}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}`;
                 })
                 .join('\n\n');
 
@@ -516,26 +532,35 @@ export const handleBalanceQueryPrompt = async (
                     `*Checking balance on ${balanceQueryMode.entity}...*`
                 )
             );
-            const targetAssetIds = ENABLED_ASSETS.filter((asset) => {
-                // filter for assetName | network or assetName && network
-                return asset.network.toLowerCase() === balanceQueryMode.entity.toLowerCase();
-            }).map((asset) => asset.listItemId);
+            const targetAssetIds = supportedAssets
+                .filter((asset) => {
+                    // filter for assetName | network or assetName && network
+                    return asset.network.toLowerCase() === balanceQueryMode.entity.toLowerCase();
+                })
+                .map((asset) => asset.listItemId);
 
             const promises = targetAssetIds.map((assetId) =>
-                UserService.getUserAssetInfo(botParams.userPhoneNumber, assetId)
+                azzaWalletManager.getAssetBalance({
+                    userId: user.id,
+                    assetId,
+                })
             );
 
             const assetsInfo = await Promise.all(promises);
             const balances = Object.fromEntries(
                 assetsInfo.map((assetInfo) => {
-                    const { extendedWallet: _extendedWallet, ...otherInfo } = assetInfo;
-                    return [assetInfo.assetName, otherInfo];
+                    return [assetInfo.asset.tokenName, assetInfo];
                 })
             );
 
             const networkBalances = Object.keys(balances).map((assetName) => {
-                const { tokenBalanceDisplay } = balances[assetName];
-                return `- ${assetName}: ${tokenBalanceDisplay}`;
+                const tokenBalanceDisplay = prettifyNumber(balances[assetName].balance, 6);
+                const usdBalanceDisplay =
+                    balances[assetName].convertedBalanceUsd !== undefined
+                        ? prettifyNumber(balances[assetName].convertedBalanceUsd, SIX)
+                        : null;
+
+                return `- ${assetName}: ${tokenBalanceDisplay}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}`;
             });
 
             const networkBalanceMessage = `*Your balances on ${getNetworkEmoji(balanceQueryMode.entity as SupportedChain)} ${balanceQueryMode.entity}:*\n\n${networkBalances.join('\n\n')}`;
@@ -562,22 +587,24 @@ export const handleBalanceQueryPrompt = async (
                 )
             );
 
-            const allAssetIds = ENABLED_ASSETS.map((asset) => asset.listItemId);
+            const allAssetIds = supportedAssets.map((asset) => asset.listItemId);
             const allPromises = allAssetIds.map((assetId) =>
-                UserService.getUserAssetInfo(botParams.userPhoneNumber, assetId)
+                azzaWalletManager.getAssetBalance({
+                    userId: user.id,
+                    assetId,
+                })
             );
 
             const allAssetsInfo = await Promise.all(allPromises);
             // group the assets by network
             const groupedAssets = allAssetsInfo.reduce(
                 (acc, assetInfo) => {
-                    const { extendedWallet: _extendedWallet, ...otherInfo } = assetInfo;
-                    const network = otherInfo.assetNetwork;
+                    const network = assetInfo.blockchainNetwork;
                     if (!acc[network]) {
                         acc[network] = [];
                     }
                     acc[network].push({
-                        ...otherInfo,
+                        ...assetInfo,
                         networkEmoji: getNetworkEmoji(network),
                     });
                     return acc;
@@ -585,7 +612,7 @@ export const handleBalanceQueryPrompt = async (
                 {} as Record<
                     string,
                     Array<
-                        UserAssetInfo & {
+                        AssetBalance & {
                             networkEmoji: string;
                         }
                     >
@@ -596,7 +623,13 @@ export const handleBalanceQueryPrompt = async (
                 .map(([network, assets]) => {
                     const assetBalances = assets
                         .map((asset) => {
-                            return `- ${asset.tokenBalanceDisplay} ${asset.assetName}`;
+                            const tokenBalanceDisplay = prettifyNumber(asset.balance, 6);
+                            const usdBalanceDisplay =
+                                asset.convertedBalanceUsd !== undefined
+                                    ? prettifyNumber(asset.convertedBalanceUsd, SIX)
+                                    : null;
+
+                            return `- ${tokenBalanceDisplay} ${asset.asset.tokenName}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}`;
                         })
                         .join('\n');
                     return `*${getNetworkEmoji(network as SupportedChain)} ${network}*\n${assetBalances}`;
@@ -626,9 +659,7 @@ export const handleBalanceQueryPrompt = async (
 export const handleResetTransactionPinPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
-    const { botParams } = params;
-
-    const user = await UserService.getUserByPhoneNumber(botParams.userPhoneNumber);
+    const { botParams, user } = params;
 
     if (!user?.transactionPinHash) {
         const responseMessage = 'You have not set a transaction pin yet.';
@@ -643,11 +674,11 @@ export const handleResetTransactionPinPrompt = async (
         };
     }
 
-    const userSecurityQuestions = UserService.retrieveUserSecurityQuestions(user);
+    const userSecurityQuestions = userServiceV2.retrieveUserSecurityQuestions(user);
 
     const message = WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
         botParams.businessPhoneNumberId as PhoneNumberId
-    ).createTransactionPinResetFlowMessage({
+    ).createTransactionPinResetFlowMessage(user, {
         messageRecipient: botParams.userPhoneNumber,
         messageBody: 'Click on `Reset Transaction PIN` to reset your transaction PIN',
         flowCTA: 'Reset Transaction PIN',
@@ -668,9 +699,7 @@ export const handleResetTransactionPinPrompt = async (
 export const handleChangeTransactionPinPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
-    const { botParams } = params;
-
-    const user = await UserService.getUserByPhoneNumber(botParams.userPhoneNumber);
+    const { botParams, user } = params;
 
     if (!user?.transactionPinHash) {
         const responseMessage = 'You have not set a transaction pin yet.';
@@ -687,7 +716,7 @@ export const handleChangeTransactionPinPrompt = async (
 
     const message = WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
         botParams.businessPhoneNumberId as PhoneNumberId
-    ).createTransactionPinChangeFlowMessage({
+    ).createTransactionPinChangeFlowMessage(user, {
         messageRecipient: botParams.userPhoneNumber,
         messageBody: 'Click on `Change Transaction PIN` to change your transaction PIN',
         flowCTA: 'Change Transaction PIN',
@@ -707,7 +736,7 @@ export const handleChangeTransactionPinPrompt = async (
 export const handleBuyCryptoWithFiatPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
-    const { botParams, extractedArguments } = params;
+    const { botParams, extractedArguments, user } = params;
 
     const missingArgsPromptResponse = getAssetChoiceMessage('buy');
     const missingArgsWhatsAppMessage = MessageGenerators.generateTextMessage(
@@ -742,7 +771,7 @@ export const handleBuyCryptoWithFiatPrompt = async (
         };
     }
 
-    const targetAsset = searchAsset({
+    const targetAsset = azzaWalletManager.searchAssets({
         tokenName: buyArguments.cryptoCurrencySymbol,
         network: buyArguments.blockchainNetwork as SupportedChain,
     })[0];
@@ -784,12 +813,12 @@ export const handleBuyCryptoWithFiatPrompt = async (
     }
 
     await WhatsAppBotService.handleBuyAssetAction(
+        user,
         {
             userPhoneNumber: botParams.userPhoneNumber,
             businessPhoneNumberId: botParams.businessPhoneNumberId,
         },
         targetAsset.listItemId,
-        params.userFeatureAccessLevel
     );
 
     return {
@@ -804,7 +833,7 @@ export const handleBuyCryptoWithFiatPrompt = async (
 export const handleSellCryptoForFiatPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
-    const { botParams, extractedArguments } = params;
+    const { botParams, extractedArguments, user } = params;
 
     if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         const missingArgsPromptResponse = getSellCryptoArgumentsGuideMessage({
@@ -849,7 +878,7 @@ export const handleSellCryptoForFiatPrompt = async (
         };
     }
 
-    const targetAsset = searchAsset({
+    const targetAsset = azzaWalletManager.searchAssets({
         tokenName: sellArguments.cryptoCurrencySymbol,
         network: sellArguments.blockchainNetwork as SupportedChain,
     })[0];
@@ -891,12 +920,12 @@ export const handleSellCryptoForFiatPrompt = async (
     }
 
     await WhatsAppBotService.handleSellAssetAction(
+        user,
         {
             userPhoneNumber: botParams.userPhoneNumber,
             businessPhoneNumberId: botParams.businessPhoneNumberId,
         },
         targetAsset.listItemId,
-        params.userFeatureAccessLevel
     );
 
     return {
@@ -911,7 +940,23 @@ export const handleSellCryptoForFiatPrompt = async (
 export const handleSwapCryptoPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
-    const { extractedArguments, botParams } = params;
+    const { extractedArguments, botParams, user } = params;
+
+    const userAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
+    if (!canAccessFeature(userAccessLevel, FeatureAccessLevel.STAGING)) {
+        const responseMessage =
+            "'The swapping feature is currently not available! You\'ll be the first to know when it\'s back up.'
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage),
+        );
+
+        return {
+            response: responseMessage,
+            resetSession: true,
+        };
+    }
 
     if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         const missingArgsPromptResponse = getSwapArgumentsGuideMessage({
@@ -1041,11 +1086,11 @@ export const handleSwapCryptoPrompt = async (
     }
 
     const [fromTokenConfig, toTokenConfig] = [
-        searchAsset({
+        azzaWalletManager.searchAssets({
             tokenName: fromCryptoCurrencySymbol,
             network: typedFromBlockchainNetwork,
         })[ZERO],
-        searchAsset({
+        azzaWalletManager.searchAssets({
             tokenName: toCryptoCurrencySymbol,
             network: typedToBlockchainNetwork,
         })[ZERO],

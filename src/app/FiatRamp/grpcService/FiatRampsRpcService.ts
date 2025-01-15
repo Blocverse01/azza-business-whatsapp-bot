@@ -13,7 +13,7 @@ import {
     supportedPaymentNetworkSchema,
     transactionStatusSchema,
 } from '@/app/FiatRamp/fiatRampSchema';
-import UserService from '@/app/User/UserService';
+import userServiceV2 from '@/app/runtime/user';
 import redis from '@/cache/redis';
 import { HUNDRED } from '@/constants/numbers';
 import { FALLBACK_USE_AZZA_ADDRESS } from '@/constants/strings';
@@ -253,12 +253,7 @@ class FiatRampsRpcService {
 
         const response = await getTransactionFees(request);
 
-        const {
-            offramp_fee_percentage,
-            onramp_fee_percentage,
-            offramp_min_fee_usd,
-            conditional_fee_percent_configs,
-        } = response.toObject();
+        const { offramp_fee_percentage, onramp_fee_percentage } = response.toObject();
 
         if (offramp_fee_percentage === undefined || onramp_fee_percentage === undefined) {
             throw new Error('Invalid response');
@@ -325,7 +320,7 @@ class FiatRampsRpcService {
 
     public static async createBeneficiaryOfframpRequest(params: SendOfframpRequestPayload) {
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
-        const user = await UserService.getUserIdentityInfo(params.userId);
+        const user = await userServiceV2.getWhatsappUserIdentityInfo(params.userId);
 
         if (!user) throw new Error('User not found');
 
