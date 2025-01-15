@@ -31,7 +31,6 @@ class BlockradarMasterWalletWebhookService {
         payload: BlockradarWebhookPayload,
         network: AllSupportedBlockchains
     ): Promise<void> {
-        console.log('Handling webhook', payload);
         if (payload.event === 'deposit.success') {
             await this.handleDepositSuccess(payload, network);
         }
