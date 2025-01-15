@@ -15,19 +15,23 @@ import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSc
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { ExploreAssetActions, PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
-import WhatsAppBotChangeTransactionPinFlowService
-    from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
-import WhatsAppBotResetTransactionPinFlowService
-    from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
-import WhatsAppBotTransactionConfirmationFlowService
-    from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransactionConfirmationFlowService';
-import { canAccessFeature, deriveUserFeatureAccessLevel, FeatureAccessLevel } from '@/config/whatsAppBot';
+import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
+import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
+import WhatsAppBotTransactionConfirmationFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransactionConfirmationFlowService';
+import {
+    canAccessFeature,
+    deriveUserFeatureAccessLevel,
+    FeatureAccessLevel,
+} from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { SIX, ZERO } from '@/constants/numbers';
 import { USD_SYMBOL } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
-import { getUserCountryCodeFromPhoneNumberOrThrow, prettifyNumber } from '@/resources/utils/currency';
+import {
+    getUserCountryCodeFromPhoneNumberOrThrow,
+    prettifyNumber,
+} from '@/resources/utils/currency';
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
@@ -945,11 +949,11 @@ export const handleSwapCryptoPrompt = async (
     const userAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
     if (!canAccessFeature(userAccessLevel, FeatureAccessLevel.STAGING)) {
         const responseMessage =
-            "'The swapping feature is currently not available! You\'ll be the first to know when it\'s back up.'
+            "The swapping feature is currently not available! You'll be the first to know when it's back up.";
 
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage),
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
         );
 
         return {
