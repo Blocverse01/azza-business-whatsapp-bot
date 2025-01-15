@@ -118,7 +118,7 @@ export const handleDepositRelatedPrompt = async (
 
     const walletAddressMessage = MessageGenerators.generateTextMessage(
         params.botParams.userPhoneNumber,
-        userWalletInfo.address,
+        userWalletInfo.address
     );
     const copyInstructionMessage = MessageGenerators.generateTextMessage(
         params.botParams.userPhoneNumber,
@@ -818,7 +818,7 @@ export const handleBuyCryptoWithFiatPrompt = async (
             userPhoneNumber: botParams.userPhoneNumber,
             businessPhoneNumberId: botParams.businessPhoneNumberId,
         },
-        targetAsset.listItemId,
+        targetAsset.listItemId
     );
 
     return {
@@ -925,7 +925,7 @@ export const handleSellCryptoForFiatPrompt = async (
             userPhoneNumber: botParams.userPhoneNumber,
             businessPhoneNumberId: botParams.businessPhoneNumberId,
         },
-        targetAsset.listItemId,
+        targetAsset.listItemId
     );
 
     return {
