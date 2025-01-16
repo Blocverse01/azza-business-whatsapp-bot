@@ -138,7 +138,6 @@ const cryptoDebitWorker = new Worker<
 >(
     QueueNames.cryptoDebit,
     async (job) => {
-        console.log(job.name);
         const result = await sendTransferAssetTransaction(
             {
                 ...job.data,
@@ -158,17 +157,22 @@ const cryptoDebitWorker = new Worker<
         const [sendCryptoTxResponse, txError] = result;
 
         if (job.name === 'user-funds-migration' && sendCryptoTxResponse) {
-            await queues.cryptoDebitConfirmation.add(
-                'user-funds-migration-confirmation',
-                sendCryptoTxResponse
-            );
+            await queues.cryptoDebitConfirmation.add('user-funds-migration-confirmation', {
+                ...sendCryptoTxResponse,
+                userId: convertAsciiStringToBase64(sendCryptoTxResponse.userId),
+            });
         }
 
         if (txError !== null) {
             throw new CryptoDebitWorkerError(txError.message, txError.data);
         }
 
-        return result;
+        const sendCryptoTxResponseWithMaskedUserId = {
+            ...sendCryptoTxResponse,
+            userId: convertAsciiStringToBase64(sendCryptoTxResponse.userId),
+        } as const;
+
+        return [sendCryptoTxResponseWithMaskedUserId, txError];
     },
     {
         connection: connectionConfig,
