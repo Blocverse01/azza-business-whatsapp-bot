@@ -27,10 +27,14 @@ import { SIXTEEN, TWO, ZERO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
 import { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import { decimalToString, fixNumber } from '@/resources/utils/currency';
+import {
+    decimalToString,
+    fixNumber,
+    getUserCountryCodeFromPhoneNumberOrThrow,
+} from '@/resources/utils/currency';
 import { generateRandomHexString } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
-import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
+import { cleanPhoneNumberInput, standardizePhoneNumber } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 
 enum TransferToWalletFlowScreens {
@@ -229,7 +233,15 @@ class WhatsAppBotTransferToWalletFlowService {
             ? [
                   azzaUserRecipient.primaryWhatsappPhoneNumber,
                   ...(azzaUserRecipient.linkedWhatsappPhoneNumbers ?? []),
-              ].find((phone) => phone.includes(data.azza_phone_number))
+              ].find((phone) => {
+                  const countryCode = getUserCountryCodeFromPhoneNumberOrThrow(phone);
+                  const standardInputPhoneNumber = standardizePhoneNumber(
+                      data.azza_phone_number,
+                      countryCode
+                  );
+
+                  return standardInputPhoneNumber === standardizePhoneNumber(phone, countryCode);
+              })
             : null;
 
         if (Object.keys(errorMessages).length > 0) {
@@ -263,6 +275,7 @@ class WhatsAppBotTransferToWalletFlowService {
                 transaction_fee: decimalToString(transactionFee),
                 asset_label: `${asset.tokenName} (${asset.network})`,
                 recipient_type: recipientType,
+                azza_phone_number: azzaRecipientPhoneNumber ?? data.azza_phone_number,
             } satisfies ScreenDataPayload['TRANSACTION_SUMMARY'],
         };
     }
@@ -410,7 +423,7 @@ class WhatsAppBotTransferToWalletFlowService {
                     assetId: data.asset_id,
                     transactionFee: transactionFee,
                     userId: data.user_id,
-                    transactionPin: user.transactionPinHash,
+                    transactionPin: data.transaction_pin,
                 },
                 true,
                 'new'

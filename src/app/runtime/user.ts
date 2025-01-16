@@ -30,7 +30,7 @@ const userServiceV2 = UserServiceV2.init({
                     .filter({
                         $any: {
                             linkedWhatsappPhoneNumbers: { $includes: { $contains: phoneNumber } },
-                            primaryWhatsappPhoneNumber: phoneNumber,
+                            primaryWhatsappPhoneNumber: { $contains: phoneNumber },
                         },
                     })
                     .getFirst(),

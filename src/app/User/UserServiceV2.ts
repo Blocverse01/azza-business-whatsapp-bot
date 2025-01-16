@@ -130,16 +130,20 @@ class UserServiceV2 {
         const existingUserRecord =
             await this.repository.user.searchUserByWhatsappUserPhoneNumber(phoneNumber);
 
+        console.log({ existingUserRecord, phoneNumber });
+
         if (
-            !existingUserRecord?.primaryWhatsappPhoneNumber ||
-            !existingUserRecord.linkedWhatsappPhoneNumbers
+            !existingUserRecord?.primaryWhatsappPhoneNumber &&
+            !existingUserRecord?.linkedWhatsappPhoneNumbers
         ) {
             return null;
         }
 
         const whatsappPhoneNumbers = [
             existingUserRecord.primaryWhatsappPhoneNumber,
-            ...existingUserRecord.linkedWhatsappPhoneNumbers,
+            ...(existingUserRecord.linkedWhatsappPhoneNumbers
+                ? existingUserRecord.linkedWhatsappPhoneNumbers
+                : []),
         ];
 
         const targetPhoneNumber = whatsappPhoneNumbers.find((phone) => {
