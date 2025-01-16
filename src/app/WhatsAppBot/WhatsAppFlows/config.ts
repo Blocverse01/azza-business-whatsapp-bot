@@ -1,5 +1,5 @@
-import { PHONE_NUMBER_IDS } from '@/config/whatsAppPhoneNumbers';
 import { FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { PHONE_NUMBER_IDS } from '@/config/whatsAppPhoneNumbers';
 
 export type PhoneNumberId = (typeof PHONE_NUMBER_IDS)[keyof typeof PHONE_NUMBER_IDS];
 
@@ -28,7 +28,7 @@ const flowConfigs: FlowConfigs = {
     ONRAMP: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
             flowId: '457607423727887',
-            flowMode: 'draft',
+            flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '8811472538928692',
@@ -38,7 +38,7 @@ const flowConfigs: FlowConfigs = {
     OFFRAMP: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
             flowId: '1011245846972252',
-            flowMode: 'draft',
+            flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '1264192347996610',
@@ -48,7 +48,7 @@ const flowConfigs: FlowConfigs = {
     TRANSFER: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
             flowId: '464881709776668',
-            flowMode: 'draft',
+            flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '1282536476102435',
@@ -58,7 +58,7 @@ const flowConfigs: FlowConfigs = {
     ADD_BENEFICIARY: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
             flowId: '597553076140311',
-            flowMode: 'draft',
+            flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '890929746531950',
@@ -68,7 +68,7 @@ const flowConfigs: FlowConfigs = {
     TRANSACTION_CONFIRMATION: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
             flowId: '921577032733495',
-            flowMode: 'draft',
+            flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '570618359103734',
@@ -78,7 +78,7 @@ const flowConfigs: FlowConfigs = {
     SET_TRANSACTION_PIN: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
             flowId: '952767080217721',
-            flowMode: 'draft',
+            flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '1085794556420284',
@@ -88,7 +88,7 @@ const flowConfigs: FlowConfigs = {
     CHANGE_TRANSACTION_PIN: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
             flowId: '520973614271230',
-            flowMode: 'draft',
+            flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '588962750198700',
@@ -98,7 +98,7 @@ const flowConfigs: FlowConfigs = {
     RESET_TRANSACTION_PIN: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
             flowId: '492902789785189',
-            flowMode: 'draft',
+            flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '1224675291952815',
