@@ -28,7 +28,7 @@ blockradarRouter.post('/webhooks/:network', async (req, res) => {
     }
 
     res.sendStatus(OK);
-    console.log('Request OK');
+    console.log('Request OK: ', req.body.event);
 
     await blockradarWebhookService.handleWebhook(req.body, supportedNetwork);
 });

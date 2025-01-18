@@ -69,6 +69,14 @@ export enum TokenAddresses {
     // USDT
     USDT_SOLANA_MAINNET = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
     USDT_SOLANA_TESTNET = 'EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS',
+
+    // USDT
+    USDC_BEP20_MAINNET = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+    USDC_BEP20_TESTNET = '0x64544969ed7EBf5f083679233325356EbE738930',
+
+    // USDT
+    USDT_BEP20_MAINNET = '0x55d398326f99059fF775485246999027B3197955',
+    USDT_BEP20_TESTNET = '0x337610d27c682E347C9cD60BD4b3b107C9d34dDd',
 }
 
 export enum TokenNames {
@@ -265,10 +273,7 @@ export const usdtTronConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_TRON,
     network: 'Tron' as const,
-    supportedAssetActions: [
-        ExploreAssetActions.WITHDRAW_ASSET,
-        ExploreAssetActions.DEPOSIT,
-    ] as ExploreAssetActions[],
+    supportedAssetActions: ALL_ASSET_ACTIONS,
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== TRX ==============
@@ -308,10 +313,7 @@ export const usdcSolanaConfig = {
     tokenName: TokenNames.USDC,
     listItemId: AssetInteractiveButtonIds.USDC_SOLANA,
     network: 'Solana' as const,
-    supportedAssetActions: [
-        ExploreAssetActions.WITHDRAW_ASSET,
-        ExploreAssetActions.DEPOSIT,
-    ] as ExploreAssetActions[],
+    supportedAssetActions: ALL_ASSET_ACTIONS,
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== USDT ==============
@@ -323,10 +325,33 @@ export const usdtSolanaConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_SOLANA,
     network: 'Solana' as const,
-    supportedAssetActions: [
-        ExploreAssetActions.WITHDRAW_ASSET,
-        ExploreAssetActions.DEPOSIT,
-    ] as ExploreAssetActions[],
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: true,
+} satisfies AssetConfig;
+
+// BEP20 Assets
+/// ============== USDC ==============
+export const usdcBep20Config = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDC_BEP20_TESTNET
+            : TokenAddresses.USDC_BEP20_MAINNET,
+    tokenName: TokenNames.USDC,
+    listItemId: AssetInteractiveButtonIds.USDC_BEP20,
+    network: 'Bep20',
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: true,
+} satisfies AssetConfig;
+/// ============== USDT ==============
+export const usdtBep20Config = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDT_BEP20_TESTNET
+            : TokenAddresses.USDT_BEP20_MAINNET,
+    tokenName: TokenNames.USDT,
+    listItemId: AssetInteractiveButtonIds.USDT_BEP20,
+    network: 'Bep20',
+    supportedAssetActions: ALL_ASSET_ACTIONS,
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 

@@ -8,10 +8,12 @@ import {
     solConfig,
     trxTronConfig,
     usdcBaseConfig,
+    usdcBep20Config,
     usdcEthConfig,
     usdcOptimismConfig,
     usdcPolygonConfig,
     usdcSolanaConfig,
+    usdtBep20Config,
     usdtEthConfig,
     usdtOptimismConfig,
     usdtPolygonConfig,
@@ -37,6 +39,8 @@ export const ENABLED_ASSETS = [
     opOptimismConfig,
     ethOptimismConfig,
     trxTronConfig,
+    usdtBep20Config,
+    usdcBep20Config,
 ];
 
 // Get asset config by list item id

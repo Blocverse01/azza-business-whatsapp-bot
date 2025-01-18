@@ -1,6 +1,7 @@
 import { AssetInteractiveButtonIds } from '@/app/WhatsAppBot/WhatsAppBotType';
+import env from '@/constants/env';
 
-const blockradarAssetIdMap: Record<string, string> = {
+const testnet__blockradarAssetIdMap: Record<string, string> = {
     [AssetInteractiveButtonIds.USDC_ETH]: 'a2384b79-2dd8-468a-aee5-6581d86f0c7f',
     [AssetInteractiveButtonIds.ETH_ETHEREUM]: '6147af66-6702-4d2d-b125-6c47f9156189',
     [AssetInteractiveButtonIds.USDT_BEP20]: '0ee7dab5-aa27-4a54-9513-455b10bdd73a',
@@ -17,8 +18,28 @@ const blockradarAssetIdMap: Record<string, string> = {
     [AssetInteractiveButtonIds.USDC_SOLANA]: 'c962060c-ebcd-4b82-a17c-c51305416c11',
 };
 
+const mainnet__blockradarAssetIdMap: Record<string, string> = {
+    [AssetInteractiveButtonIds.USDC_ETH]: '',
+    [AssetInteractiveButtonIds.ETH_ETHEREUM]: '',
+    [AssetInteractiveButtonIds.USDT_BEP20]: '',
+    [AssetInteractiveButtonIds.BNB_BEP20]: '',
+    [AssetInteractiveButtonIds.USDC_POLYGON]: '',
+    [AssetInteractiveButtonIds.POL_POLYGON]: '',
+    [AssetInteractiveButtonIds.USDT_TRON]: '',
+    [AssetInteractiveButtonIds.TRX]: '',
+    [AssetInteractiveButtonIds.USDC_BASE]: '',
+    [AssetInteractiveButtonIds.ETH_BASE]: '',
+    [AssetInteractiveButtonIds.USDC_OPTIMISM]: '',
+    [AssetInteractiveButtonIds.ETH_OPTIMISM]: '',
+    [AssetInteractiveButtonIds.SOL]: '',
+    [AssetInteractiveButtonIds.USDC_SOLANA]: '',
+};
+
 export const getBlockradarAssetId = (assetId: string): string => {
-    const blockradarAssetId = blockradarAssetIdMap[assetId];
+    const blockradarAssetId =
+        env.WEB3_ENVIRONMENT === 'mainnet'
+            ? mainnet__blockradarAssetIdMap[assetId]
+            : testnet__blockradarAssetIdMap[assetId];
 
     if (!blockradarAssetId) {
         throw new Error(`Blockradar asset id not found for asset id: ${assetId}`);
@@ -29,12 +50,12 @@ export const getBlockradarAssetId = (assetId: string): string => {
 
 export const getPlatformAssetId = (blockradarAssetId: string): string | null => {
     return (
-        Object.keys(blockradarAssetIdMap).find(
-            (key) => blockradarAssetIdMap[key] === blockradarAssetId
+        Object.keys(testnet__blockradarAssetIdMap).find(
+            (key) => testnet__blockradarAssetIdMap[key] === blockradarAssetId
         ) ?? null
     );
 };
 
 export const hasBlockradarAssetId = (assetId: string): boolean => {
-    return !!blockradarAssetIdMap[assetId];
+    return !!testnet__blockradarAssetIdMap[assetId];
 };

@@ -1,13 +1,14 @@
 import { Action } from '@/app/llmCallRouter/inputClassifier';
-import { SUPPORTED_CHAINS } from '@/app/WalletKit/walletKitSchema';
+import azzaWalletManager from '@/app/runtime/wallet';
 import { z, ZodSchema } from 'zod';
 
+const supportedChains = azzaWalletManager.getSupportedNetworks();
 export const assetAndNetworkSchema = z.object({
     blockchainNetwork: z
         .string()
         .nullable()
         .describe(
-            `The blockchain network to use for the action. Supported networks: ${SUPPORTED_CHAINS.join(', ')}`
+            `The blockchain network to use for the action. Supported networks: ${supportedChains.join(', ')}`
         ),
     cryptoCurrencySymbol: z
         .string()

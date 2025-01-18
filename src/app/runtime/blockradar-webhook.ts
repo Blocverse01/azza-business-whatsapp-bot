@@ -11,7 +11,6 @@ import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
 const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
     // Todo: Move handler implementation to appropriate service
     handleDepositSuccess: async (data, network) => {
-        console.log('Handling deposit success', data);
         const userId = data.data.metadata?.userId;
         const blockradarAsset = data.data.asset;
         const platformAssetConfig = azzaWalletManager.searchAssets({
@@ -21,6 +20,12 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const amount = data.data.amount;
         const senderAddress = data.data.senderAddress;
         const transactionHash = data.data.hash;
+
+        console.log({
+            senderAddress,
+            userId,
+            platformAssetConfig,
+        });
 
         if (userId && platformAssetConfig) {
             const [newBalance, user] = await Promise.all([
