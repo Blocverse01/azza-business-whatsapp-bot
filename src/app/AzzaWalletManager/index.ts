@@ -63,7 +63,9 @@ class AzzaWalletManager implements BaseWalletProvider {
         return this.walletProvider.getSupportedNetworks();
     }
 
-    public searchAssets(searchParams: Partial<Pick<AssetConfig, 'network' | 'tokenName'>>) {
+    public searchAssets(
+        searchParams: Partial<Pick<AssetConfig, 'network' | 'tokenName' | 'tokenAddress'>>
+    ) {
         return this.walletProvider.searchAssets(searchParams);
     }
 }

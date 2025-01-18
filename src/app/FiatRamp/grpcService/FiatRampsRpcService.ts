@@ -13,6 +13,7 @@ import {
     supportedPaymentNetworkSchema,
     transactionStatusSchema,
 } from '@/app/FiatRamp/fiatRampSchema';
+import { PlatformAddressIdNetworkTag } from '@/app/runtime/platform-wallets';
 import userServiceV2 from '@/app/runtime/user';
 import redis from '@/cache/redis';
 import { HUNDRED } from '@/constants/numbers';
@@ -487,7 +488,7 @@ class FiatRampsRpcService {
             .parse(transformKeysToCamelCase(responseObj));
     }
 
-    public static async getHotWalletAddress(networkType: 'evm') {
+    public static async getHotWalletAddress(networkType: PlatformAddressIdNetworkTag) {
         const request = new GetHotWalletAddressRequest({
             network_type: networkType,
         });

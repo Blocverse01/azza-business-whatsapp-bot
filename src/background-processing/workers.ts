@@ -9,7 +9,6 @@ import {
 } from '@/app/azza/lib/azza.lib.transaction';
 import { changeTransactionPin, setTransactionPin } from '@/app/azza/lib/azza.lib.user-security';
 import { waitForTransactionReceipt } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
-import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import userServiceV2 from '@/app/runtime/user';
@@ -95,10 +94,11 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
         } catch (error) {
             const parsedError = parseUnknownError(error);
 
-            if (
-                txHash &&
-                ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS.includes(job.data.chainName as SupportedChain)
-            ) {
+            const supportedChain = azzaWalletManager
+                .getSupportedNetworks()
+                .find((network) => network.toLowerCase() === job.data.chainName.toLowerCase());
+
+            if (txHash && supportedChain) {
                 if (
                     job.data.tokenName === TokenNames.USDC ||
                     job.data.tokenName === TokenNames.USDT
@@ -110,6 +110,7 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
                         triggerTransactionId: txHash,
                         amount: totalAmount,
                         destinationWalletAddress: job.data.userWalletAddress,
+                        payoutType: 'offramp-refund',
                     });
 
                     await WhatsAppBotService.sendWhatsappMessage(

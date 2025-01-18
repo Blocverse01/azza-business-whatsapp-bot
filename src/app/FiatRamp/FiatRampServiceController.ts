@@ -1,11 +1,10 @@
-import { ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS } from '@/app/CryptoPayout/config';
+import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
 import userServiceV2 from '@/app/runtime/user';
 import azzaWalletManager from '@/app/runtime/wallet';
-import { SUPPORTED_CHAINS, SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { OK } from '@/constants/status-codes';
@@ -91,38 +90,37 @@ class FiatRampServiceController {
                 );
 
             if (supportedChain && newTransactionStatus === 'failed') {
-                if (ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS.includes(supportedChain)) {
-                    if (
-                        transaction.tokenSymbol === TokenNames.USDC ||
-                        transaction.tokenSymbol === TokenNames.USDT
-                    ) {
-                        const assetConfig = azzaWalletManager.searchAssets({
-                            tokenName: transaction.tokenSymbol,
-                            network: supportedChain,
-                        });
+                if (
+                    transaction.tokenSymbol === TokenNames.USDC ||
+                    transaction.tokenSymbol === TokenNames.USDT
+                ) {
+                    const assetConfig = azzaWalletManager.searchAssets({
+                        tokenName: transaction.tokenSymbol,
+                        network: supportedChain,
+                    });
 
-                        const user = await userServiceV2.getWhatsappUserByPhoneNumber(
-                            transaction.ownerId
-                        );
+                    const user = await userServiceV2.getWhatsappUserByPhoneNumber(
+                        transaction.ownerId
+                    );
 
-                        if (!user) {
-                            return;
-                        }
-
-                        const userWalletInfo = await azzaWalletManager.getUserWallet(
-                            user.id,
-                            assetConfig[0].network
-                        );
-
-                        const totalAmount = transaction.usdAmount + transaction.transactionFeeUsd;
-                        await CryptoPayoutService.createOfframpCryptoRefundOrder({
-                            network: transaction.blockchainNetwork as SupportedChain,
-                            tokenSymbol: transaction.tokenSymbol,
-                            triggerTransactionId: transaction.transactionHash,
-                            amount: totalAmount,
-                            destinationWalletAddress: userWalletInfo.address,
-                        });
+                    if (!user) {
+                        return;
                     }
+
+                    const userWalletInfo = await azzaWalletManager.getUserWallet(
+                        user.id,
+                        assetConfig[0].network
+                    );
+
+                    const totalAmount = transaction.usdAmount + transaction.transactionFeeUsd;
+                    await CryptoPayoutService.createOfframpCryptoRefundOrder({
+                        network: transaction.blockchainNetwork as AllSupportedBlockchains,
+                        tokenSymbol: transaction.tokenSymbol,
+                        triggerTransactionId: transaction.transactionHash,
+                        amount: totalAmount,
+                        destinationWalletAddress: userWalletInfo.address,
+                        payoutType: 'offramp-refund',
+                    });
                 }
             }
         } catch (error) {
@@ -177,14 +175,14 @@ class FiatRampServiceController {
             }
 
             if (newTransactionStatus.toLowerCase() === 'complete') {
-                const supportedChain = SUPPORTED_CHAINS.find(
-                    (chain) => chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
-                );
+                const supportedChain = azzaWalletManager
+                    .getSupportedNetworks()
+                    .find(
+                        (chain) =>
+                            chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
+                    );
 
-                if (
-                    supportedChain &&
-                    ENABLED_NETWORKS_FOR_ONRAMP_PAYOUTS.includes(supportedChain)
-                ) {
+                if (supportedChain) {
                     await CryptoPayoutService.createOnrampCryptoPayoutOrder({
                         triggerTransactionId: transaction.sequenceId,
                         network: supportedChain,
@@ -194,6 +192,7 @@ class FiatRampServiceController {
                         >,
                         amount: transaction.usdAmount,
                         destinationWalletAddress: transaction.destinationWalletAddress,
+                        payoutType: 'onramp-payment',
                     });
                 }
             }

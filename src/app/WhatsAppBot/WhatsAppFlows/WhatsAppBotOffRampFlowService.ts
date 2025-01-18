@@ -564,7 +564,9 @@ class WhatsAppBotOffRampFlowService {
         }
 
         try {
-            const hotWalletAddress = await FiatRampService.getHotWalletForNetwork('evm');
+            const hotWalletAddress = await FiatRampService.getHotWalletForNetwork(
+                assetBalanceInfo.blockchainNetwork
+            );
 
             // Process in background and return early processing response
             await offrampFlowProducer.add({

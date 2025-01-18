@@ -138,6 +138,19 @@ class CryptoPayoutService {
         return await this.cryptoPayoutOrderRepository.read(cryptoPayoutOrderReference);
     }
 
+    public static async updateProcessedCryptPayoutOrder(
+        orderId: string,
+        updatableParams: {
+            payoutTransactionHash: string | null;
+            status: CryptoPayoutOrderStatus;
+        }
+    ) {
+        return await this.cryptoPayoutOrderRepository.update(orderId, updatableParams, [
+            'payoutTransactionHash',
+            'status',
+        ]);
+    }
+
     public static async updateCryptoPayoutOrdersStatus(
         orderIds: string[],
         status: CryptoPayoutOrderStatus

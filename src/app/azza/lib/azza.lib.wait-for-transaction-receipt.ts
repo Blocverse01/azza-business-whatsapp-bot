@@ -92,7 +92,9 @@ export async function getReceiptWithTransactionHash(
     }
 }
 
-export async function waitForTransactionReceiptV2(transaction: SendTransferTransactionResponse) {
+export async function waitForTransactionReceiptV2(
+    transaction: Pick<SendTransferTransactionResponse, 'transactionId' | 'asset' | 'walletManager'>
+) {
     const { transactionId, asset, walletManager } = transaction;
 
     if (walletManager !== 'new') {

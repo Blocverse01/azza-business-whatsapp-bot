@@ -1,46 +1,35 @@
-import WalletKitService from '@/app/WalletKit/WalletKitService';
-import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
+import { waitForTransactionReceiptV2 } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
-import { delay } from '@/resources/utils/delay';
+import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
+import { AssetConfig } from '@/resources/web3/tokens';
 
 export type GetTransactionReceiptInBackgroundParams = {
-    orderIds: string[];
+    orderId: string;
     transactionId: string;
+    asset: AssetConfig;
 };
 
 const args: GetTransactionReceiptInBackgroundParams = JSON.parse(process.argv[2]);
 
 async function getTransactionReceiptInBackground(params: GetTransactionReceiptInBackgroundParams) {
-    const { orderIds, transactionId } = params;
+    const { orderId, transactionId, asset } = params;
 
     try {
-        const transaction = await WalletKitService.getTransactionById(transactionId);
+        const transactionReceipt = await waitForTransactionReceiptV2({
+            transactionId,
+            asset,
+            walletManager: 'new',
+        });
 
-        if (transaction.status === 'submitted' || transaction.status === 'pending') {
-            await delay(5000);
-            return getTransactionReceiptInBackground(params);
-        }
+        const newStatus =
+            transactionReceipt.status === 'success'
+                ? CryptoPayoutOrderStatus.COMPLETE
+                : CryptoPayoutOrderStatus.FAILED;
 
-        if (transaction.status === 'success' && transaction.transaction_hash) {
-            await CryptoPayoutService.updateCryptoPayoutOrdersStatus(
-                orderIds,
-                CryptoPayoutOrderStatus.COMPLETE
-            );
-        }
-
-        if (transaction.status === 'failed') {
-            await CryptoPayoutService.updateCryptoPayoutOrdersStatus(
-                orderIds,
-                CryptoPayoutOrderStatus.FAILED
-            );
-        }
-
-        if (transaction.transaction_hash) {
-            await CryptoPayoutService.updateCryptoPayoutOrdersTransactionHash(
-                orderIds,
-                transaction.transaction_hash
-            );
-        }
+        await CryptoPayoutService.updateProcessedCryptPayoutOrder(orderId, {
+            status: newStatus,
+            payoutTransactionHash: transactionReceipt.transactionHash,
+        });
     } catch (error) {
         console.error('Error getting transaction receipt', error);
     }

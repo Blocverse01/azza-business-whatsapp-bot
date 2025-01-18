@@ -414,7 +414,7 @@ class UserService {
     }
 
     public static async sendUserAssetForOfframp(asset: UserAssetInfo, usdAmount: string) {
-        const hotWalletAddress = await FiatRampService.getHotWalletForNetwork('evm');
+        const hotWalletAddress = await FiatRampService.getHotWalletForNetwork(asset.assetNetwork);
 
         if (!validateWalletAddress(hotWalletAddress, asset.assetNetwork)) {
             throw new Error('Hot wallet address is invalid');
