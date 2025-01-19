@@ -363,9 +363,13 @@ const walletMigrationWorker = new Worker<
             shouldMapEvmAddresses: true,
         });
 
+        if (newWallets.length === 0) {
+            throw new Error('No wallets were created for the user');
+        }
+
         const existingWalletConfig = await userServiceV2.getUserBlockradarWallets(newUserId);
 
-        if (!existingWalletConfig) {
+        if (!existingWalletConfig || existingWalletConfig.length === 0) {
             await userServiceV2.createUserBlockradarWalletConfig(
                 newUserId,
                 newWallets.map((wallet) => ({

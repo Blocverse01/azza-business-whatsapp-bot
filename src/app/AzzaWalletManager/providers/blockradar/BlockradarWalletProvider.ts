@@ -287,17 +287,10 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         });
 
         if (failedCreateWalletPromises.length > 0) {
-            if (this.logger) {
-                void this.logger.error('Failed to create user wallets', {
-                    userId: params.userId,
-                    failedCreateWalletPromises,
-                });
-            } else {
-                console.error('Failed to create user wallets', {
-                    userId: params.userId,
-                    failedCreateWalletPromises,
-                });
-            }
+            console.error('Failed to create user wallets', {
+                userId: params.userId,
+                failedCreateWalletPromises,
+            });
         }
 
         const createdEvmWallet = settledCreateWalletPromises.find((wallet) =>
