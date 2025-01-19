@@ -394,9 +394,7 @@ const walletMigrationWorker = new Worker<
         if (oldUserId) {
             const networksToMigrate: AllSupportedBlockchains[] = [
                 'Base',
-                'Solana',
                 'Optimism',
-                'Tron',
                 'Ethereum',
                 'Polygon',
             ];
