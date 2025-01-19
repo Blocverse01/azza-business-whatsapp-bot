@@ -14,3 +14,7 @@ export function transformKeysToCamelCase(obj: any): any {
     }
     return obj; // Primitive types like string, number, etc., are returned as-is
 }
+
+export const capitalize = (str: string): string => {
+    return str.charAt(0).toUpperCase() + str.toLowerCase().slice(1);
+};

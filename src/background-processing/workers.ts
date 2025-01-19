@@ -38,6 +38,7 @@ import {
     convertBase64ToAsciiString,
     decryptWithAES,
 } from '@/resources/utils/encryption';
+import { capitalize } from '@/resources/utils/transformers';
 import { TokenNames } from '@/resources/web3/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
@@ -375,11 +376,16 @@ const walletMigrationWorker = new Worker<
             );
 
             if (oldUserId) {
+                const oldUserFirstName = oldUser?.firstName ?? null;
+                const userTag = oldUserFirstName
+                    ? capitalize(oldUserFirstName.split(' ')[0])
+                    : 'there';
+
                 await WhatsAppBotService.sendWhatsappMessage(
                     businessPhoneNumberId,
                     MessageGenerators.generateTextMessage(
                         userPhoneNumber,
-                        '🚀 Your wallets have been successfully migrated. You can now continue using Azza!'
+                        `Hey ${userTag},\n\nI’ve got some exciting news – I now support BSC, Solana, and Tron chains! 🥳\n\nAs part of this update, all your wallet addresses have been upgraded.\n\n👉 Important: Please request your wallet address to view your new wallet details before making any deposits.\n\nEnjoy seamless transactions across multiple chains! 🚀`
                     )
                 );
             }
