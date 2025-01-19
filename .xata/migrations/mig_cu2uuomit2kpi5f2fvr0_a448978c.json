@@ -1,0 +1,16 @@
+{
+  "id": "mig_cu2uuomit2kpi5f2fvr0",
+  "parentID": "mig_cu2uuhmit2kpi5f2fvq0",
+  "checksum": "1:a448978c9b11187f047ea0c9a5975de31ce3915a1628d85fe6bcf93e8dca901d",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "ownerId",
+          "type": "text"
+        },
+        "table": "user_agent_thread"
+      }
+    }
+  ]
+}

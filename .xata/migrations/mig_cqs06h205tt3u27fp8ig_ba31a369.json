@@ -1,0 +1,18 @@
+{
+  "id": "mig_cqs06h205tt3u27fp8ig",
+  "parentID": "mig_cqs061u0suhdj1lbvsu0",
+  "checksum": "1:ba31a3692c2a2d11b1865ae45a77197aa4a056dea9343fdf9bc008d87135f13d",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "tokenSymbol",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "CryptoPayoutOrder"
+      }
+    }
+  ]
+}

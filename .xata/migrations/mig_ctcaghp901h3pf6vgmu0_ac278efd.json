@@ -1,0 +1,12 @@
+{
+  "id": "mig_ctcaghp901h3pf6vgmu0",
+  "parentID": "mig_ctcagar2vtkja3ivc08g",
+  "checksum": "1:ac278efdd071f6fa4b60c2c4cbb43674631eb9cd98423a01986a601c6aa69bdc",
+  "operations": [
+    {
+      "removeTable": {
+        "table": "fiat_ramp_transaction_fees"
+      }
+    }
+  ]
+}

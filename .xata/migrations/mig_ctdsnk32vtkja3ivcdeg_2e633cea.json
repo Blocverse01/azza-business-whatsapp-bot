@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctdsnk32vtkja3ivcdeg",
+  "parentID": "mig_ctcai2p901h3pf6vgn10",
+  "checksum": "1:2e633ceaa92bb02a03c6aa7bc201eb05dd1e61c792ddd309aa7be734183f40ce",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "BETA_FEATURES_ALLOWED",
+          "type": "json",
+          "notNull": true,
+          "defaultValue": "[\"AI\"]"
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "mig_cu263f1ro7530ttkkipg",
+  "parentID": "mig_cu262p8a9dahcg287fs0",
+  "checksum": "1:cfefc0602bc80be17667f3044bf7376ec90132a67f55f83a23220fa3d363c7ed",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "country",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "user_v2"
+      }
+    }
+  ]
+}

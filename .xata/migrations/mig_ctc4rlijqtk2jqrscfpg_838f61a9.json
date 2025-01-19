@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctc4rlijqtk2jqrscfpg",
+  "parentID": "mig_ctc3jpji2ib8a50ec2hg",
+  "checksum": "1:838f61a93a6445ca63b733e12083ed4af9f244319ab4b42d4a3bb117c66bba39",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "firstName",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "yellowcard_beneficiary"
+      }
+    }
+  ]
+}

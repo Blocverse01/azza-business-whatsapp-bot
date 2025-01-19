@@ -1,5 +1,4 @@
 import { SecurityQuestion, transactionPinSchema } from '@/app/azza/azza.schema';
-import userServiceV2 from '@/app/runtime/user';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
@@ -19,6 +18,7 @@ import {
     generateRandomHexString,
 } from '@/resources/utils/encryption';
 import { hashString } from '@/resources/utils/hashing';
+import userServiceV2 from '@/runtime/user';
 
 enum ResetTransactionPinFlowScreens {
     ANSWER_SECURITY_QUESTIONS = 'ANSWER_SECURITY_QUESTIONS',
@@ -340,14 +340,23 @@ class WhatsAppBotResetTransactionPinFlowService {
         const hashedPin = await hashString(new_pin);
 
         // Update the transaction pin in the background
-        await queues.userTxPinSecurity.add('change-tx-pin', {
-            newPinHash: hashedPin,
-            userId: user_id,
-            whatsappParams: {
-                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
+        await queues.userTxPinSecurity.add(
+            'change-tx-pin',
+            {
+                newPinHash: hashedPin,
+                userId: user_id,
+                whatsappParams: {
+                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                    userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
+                },
             },
-        });
+            {
+                removeOnComplete: true,
+                removeOnFail: {
+                    age: 24 * 3600, // keep up to 24 hours
+                },
+            }
+        );
 
         // Update user's transaction pin in background
         // spawnInBackground<ChangeTransactionPinParams>(

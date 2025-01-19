@@ -1,0 +1,13 @@
+{
+  "id": "mig_cpuk7j9248b0i12miak0",
+  "parentID": "mig_cpuk5e9248b0i12miagg",
+  "checksum": "1:6c59aed582ffda42361a748080d1781849e22599d53526ab1652a4ac03981a47",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "kycStatus",
+        "table": "User"
+      }
+    }
+  ]
+}

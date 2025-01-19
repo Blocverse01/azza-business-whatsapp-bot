@@ -1,0 +1,16 @@
+{
+  "id": "mig_cpq12q19lhsg5enuhh7g",
+  "parentID": "mig_cpq120f7lilural96410",
+  "checksum": "1:6eb8a9a1088df7dc30f5417ccbe512a98778284dca7c4e7ce37b8f77666f3903",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "usdAmount",
+          "type": "float"
+        },
+        "table": "OffRampTemporaryTransaction"
+      }
+    }
+  ]
+}

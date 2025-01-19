@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctar2je1ccglq2sphb7g",
+  "parentID": "mig_ctar29m1ccglq2sphb6g",
+  "checksum": "1:2f68e0dae977dacf74b90de8a69cd55eb2000b9dcea9f2c421213101ac9f9789",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "blockchainNetwork",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "token_registry"
+      }
+    }
+  ]
+}

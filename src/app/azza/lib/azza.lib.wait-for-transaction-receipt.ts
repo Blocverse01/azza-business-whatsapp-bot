@@ -4,7 +4,6 @@ import {
     ExtendedWalletTransaction,
 } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
-import azzaWalletManager from '@/app/runtime/wallet';
 import UserService from '@/app/User/UserService';
 import { SupportedChain, TransactionResponse } from '@/app/WalletKit/walletKitSchema';
 import WalletKitService from '@/app/WalletKit/WalletKitService';
@@ -13,6 +12,7 @@ import { delay } from '@/resources/utils/delay';
 import { getAppDefaultEvmConfig, isEvmNetwork } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
 import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
+import azzaWalletManager from '@/runtime/wallet';
 import { Hex } from 'viem';
 
 type TransactionDetails = TransactionResponse | ExtendedWalletTransaction;

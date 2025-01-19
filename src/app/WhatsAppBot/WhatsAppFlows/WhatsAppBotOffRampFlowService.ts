@@ -6,8 +6,6 @@ import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvid
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { BankBeneficiary, MobileMoneyBeneficiary } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -18,6 +16,7 @@ import {
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { offrampFlowProducer } from '@/background-processing/flow-producers';
+import { defaultQueueRemoveOptions } from '@/background-processing/queues';
 import { OfframpQueueFlowParams } from '@/background-processing/schema';
 import { QueueNames } from '@/background-processing/types';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
@@ -43,6 +42,8 @@ import {
 } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { TokenNames } from '@/resources/web3/tokens';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
 
@@ -569,54 +570,75 @@ class WhatsAppBotOffRampFlowService {
             );
 
             // Process in background and return early processing response
-            await offrampFlowProducer.add({
-                name: 'process-fiat-payout',
-                queueName: QueueNames.fiatPayout,
-                data: {
-                    beneficiaryId,
-                    usdAmount: tokenAmount,
-                    localAmount: fiatAmount,
-                    tokenAddress: assetConfig.tokenAddress,
-                    chainName: assetConfig.network,
-                    tokenName: assetConfig.tokenName,
-                    userWalletAddress: assetWallet.address,
-                    hotWalletAddress,
-                    userId: convertAsciiStringToBase64(userId),
-                    platformFeePercentage,
-                    conversionRate,
-                    transactionFeeUsd,
-                    whatsappParams: {
-                        userPhoneNumber: user.primaryWhatsappPhoneNumber!,
-                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                    },
-                } satisfies OfframpQueueFlowParams,
-                children: [
-                    {
-                        name: 'offramp-debit-confirmation',
-                        queueName: QueueNames.cryptoDebitConfirmation,
-                        children: [
-                            {
-                                name: 'offramp-debit',
-                                queueName: QueueNames.cryptoDebit,
-                                data: {
-                                    userId: convertAsciiStringToBase64(userId),
-                                    amount: tokenAmountToDebit,
-                                    transactionFee: 0, // Fee for onchain transfer
-                                    assetId,
-                                    recipient: hotWalletAddress,
-                                    recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
-                                    transactionType: 'SEND',
-                                    transactionPin: encryptWithAES(
-                                        transactionPin,
-                                        env.SECURITY_QUESTIONS_MASK_KEY,
-                                        env.SECURITY_QUESTIONS_MASK_IV
-                                    ),
-                                } satisfies TransferAssetTransactionDetails,
+            await offrampFlowProducer.add(
+                {
+                    name: 'process-fiat-payout',
+                    queueName: QueueNames.fiatPayout,
+                    data: {
+                        beneficiaryId,
+                        usdAmount: tokenAmount,
+                        localAmount: fiatAmount,
+                        tokenAddress: assetConfig.tokenAddress,
+                        chainName: assetConfig.network,
+                        tokenName: assetConfig.tokenName,
+                        userWalletAddress: assetWallet.address,
+                        hotWalletAddress,
+                        userId: convertAsciiStringToBase64(userId),
+                        platformFeePercentage,
+                        conversionRate,
+                        transactionFeeUsd,
+                        whatsappParams: {
+                            userPhoneNumber: user.primaryWhatsappPhoneNumber!,
+                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        },
+                    } satisfies OfframpQueueFlowParams,
+                    children: [
+                        {
+                            name: 'offramp-debit-confirmation',
+                            queueName: QueueNames.cryptoDebitConfirmation,
+                            children: [
+                                {
+                                    name: 'offramp-debit',
+                                    queueName: QueueNames.cryptoDebit,
+                                    data: {
+                                        userId: convertAsciiStringToBase64(userId),
+                                        amount: tokenAmountToDebit,
+                                        transactionFee: 0, // Fee for onchain transfer
+                                        assetId,
+                                        recipient: hotWalletAddress,
+                                        recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
+                                        transactionType: 'SEND',
+                                        transactionPin: encryptWithAES(
+                                            transactionPin,
+                                            env.SECURITY_QUESTIONS_MASK_KEY,
+                                            env.SECURITY_QUESTIONS_MASK_IV
+                                        ),
+                                    } satisfies TransferAssetTransactionDetails,
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    queuesOptions: {
+                        [QueueNames.cryptoDebitConfirmation]: {
+                            defaultJobOptions: {
+                                ...defaultQueueRemoveOptions,
                             },
-                        ],
+                        },
+                        [QueueNames.cryptoDebit]: {
+                            defaultJobOptions: {
+                                ...defaultQueueRemoveOptions,
+                            },
+                        },
+                        [QueueNames.fiatPayout]: {
+                            defaultJobOptions: {
+                                ...defaultQueueRemoveOptions,
+                            },
+                        },
                     },
-                ],
-            });
+                }
+            );
 
             return {
                 status: 'processing',

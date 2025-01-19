@@ -1,7 +1,5 @@
 import { TransferAssetTransactionDetails, TransferProcessingMode } from '@/app/azza/azza.schema';
 import { AssetTransaction } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import UserService from '@/app/User/UserService';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import { TransactionResponse } from '@/app/WalletKit/walletKitSchema';
@@ -10,6 +8,8 @@ import { compareHashedString } from '@/resources/utils/hashing';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { AssetConfig } from '@/resources/web3/tokens';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 
 export type SendTransferTransactionError = {
     message: string;

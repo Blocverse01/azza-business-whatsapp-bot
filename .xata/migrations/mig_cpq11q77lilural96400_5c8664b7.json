@@ -1,0 +1,16 @@
+{
+  "id": "mig_cpq11q77lilural96400",
+  "parentID": "mig_cpq102u0pb16a427cg50",
+  "checksum": "1:5c8664b7a393c6016d2f07120a1765eea136e72d94108efecd9e50b7d594018b",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "beneficiaryId",
+          "type": "string"
+        },
+        "table": "OffRampTemporaryTransaction"
+      }
+    }
+  ]
+}

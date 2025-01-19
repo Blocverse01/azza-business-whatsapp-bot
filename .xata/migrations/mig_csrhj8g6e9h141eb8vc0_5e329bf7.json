@@ -1,0 +1,18 @@
+{
+  "id": "mig_csrhj8g6e9h141eb8vc0",
+  "parentID": "mig_csrhi7g6e9h141eb8vb0",
+  "checksum": "1:5e329bf75298507ac9cd24d07d57ed1c8071a62b2a8f7d307a23342980ede48a",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "securityQuestionSetup",
+          "type": "json",
+          "notNull": true,
+          "defaultValue": "[]"
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

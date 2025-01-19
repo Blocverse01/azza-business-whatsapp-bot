@@ -4,8 +4,6 @@ import { getDefaultSolanaNode, getSolanaNetworkClient } from '@/app/ExtendedWall
 import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
 import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import UserService from '@/app/User/UserService';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import Web3Library from '@/app/WalletAssetManagement/Web3Library';
@@ -37,6 +35,8 @@ import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { formatUnits, getAddress, parseUnits } from 'viem';
 import { z, ZodSchema } from 'zod';

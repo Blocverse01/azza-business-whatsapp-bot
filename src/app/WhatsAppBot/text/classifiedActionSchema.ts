@@ -1,5 +1,5 @@
 import { Action } from '@/app/llmCallRouter/inputClassifier';
-import azzaWalletManager from '@/app/runtime/wallet';
+import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
 
 const supportedChains = azzaWalletManager.getSupportedNetworks();

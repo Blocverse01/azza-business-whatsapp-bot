@@ -10,7 +10,7 @@ export type EvmNetwork = Exclude<AllSupportedBlockchains, 'Solana' | 'Tron'>;
 
 const BASE_URL = 'https://api.blockradar.co/v1';
 
-const masterWalletApiConfig: Record<
+const testnet__masterWalletApiConfig: Record<
     AllSupportedBlockchains,
     Pick<BlockradarMasterWalletApiClientConstructorParams, 'masterWalletId' | 'apiKey'>
 > = {
@@ -43,6 +43,44 @@ const masterWalletApiConfig: Record<
         apiKey: env.ETHEREUM_MASTER_WALLET_API_KEY,
     },
 };
+const mainnet__masterWalletApiConfig: Record<
+    AllSupportedBlockchains,
+    Pick<BlockradarMasterWalletApiClientConstructorParams, 'masterWalletId' | 'apiKey'>
+> = {
+    Base: {
+        masterWalletId: '006bfc36-7c04-4d6f-acf4-8bc7a5e2ed3b',
+        apiKey: env.BASE_MASTER_WALLET_API_KEY,
+    },
+    Optimism: {
+        masterWalletId: '04a21b5d-8413-4751-850d-5c9b6fbf3889',
+        apiKey: env.OPTIMISM_MASTER_WALLET_API_KEY,
+    },
+    Tron: {
+        masterWalletId: '5fc0a006-d9b7-4139-875b-e93cf9fe0b38',
+        apiKey: env.TRON_MASTER_WALLET_API_KEY,
+    },
+    Bep20: {
+        masterWalletId: '59369735-9b6a-4575-b5ea-054773047589',
+        apiKey: env.BSC_MASTER_WALLET_API_KEY,
+    },
+    Solana: {
+        masterWalletId: '2518e63a-5aeb-4bcb-819e-c2eccc467ba9',
+        apiKey: env.SOLANA_MASTER_WALLET_API_KEY,
+    },
+    Polygon: {
+        masterWalletId: 'c44fa0fd-3618-4c76-aa67-a387c99427d3',
+        apiKey: env.POLYGON_MASTER_WALLET_API_KEY,
+    },
+    Ethereum: {
+        masterWalletId: 'bbe3db5e-5ebb-4882-b9c3-26e66ceb62f7',
+        apiKey: env.ETHEREUM_MASTER_WALLET_API_KEY,
+    },
+};
+
+const masterWalletApiConfig =
+    env.WEB3_ENVIRONMENT === 'testnet'
+        ? testnet__masterWalletApiConfig
+        : mainnet__masterWalletApiConfig;
 
 const masterWalletClients: Map<AllSupportedBlockchains, BlockradarMasterWalletApiClient> =
     new Map();

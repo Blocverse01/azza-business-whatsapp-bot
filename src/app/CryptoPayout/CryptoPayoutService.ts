@@ -6,12 +6,12 @@ import {
     CryptoPayoutReasons,
 } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import azzaWalletManager from '@/app/runtime/wallet';
 import { searchAsset } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { dbClient, sqlClient } from '@/db/dbClient';
 import { CryptoPayoutOrder } from '@/db/xata';
 import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
+import azzaWalletManager from '@/runtime/wallet';
 
 class CryptoPayoutService {
     private static readonly cryptoPayoutOrderRepository = dbClient.CryptoPayoutOrder;
@@ -89,6 +89,7 @@ class CryptoPayoutService {
             destinationWalletAddress: cryptoPayoutOrderParams.destinationWalletAddress,
             orderAuthorityToken: cryptoPayoutOrderAuthorityToken,
             status: CryptoPayoutOrderStatus.PENDING,
+            payoutType: cryptoPayoutOrderParams.payoutType,
         });
     }
 
@@ -131,6 +132,7 @@ class CryptoPayoutService {
             ...cryptoPayoutOrderParams,
             orderAuthorityToken: cryptoPayoutOrderAuthorityToken,
             status: CryptoPayoutOrderStatus.PENDING,
+            payoutType: cryptoPayoutOrderParams.payoutType,
         });
     }
 

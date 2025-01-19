@@ -1,0 +1,14 @@
+{
+  "id": "mig_csriu7gmbvd9qn7pljkg",
+  "parentID": "mig_csrhj8g6e9h141eb8vc0",
+  "checksum": "1:68f923c1b47cf7211e2b343a26421baa5ebbb8e458c57596bbf10041f8d34652",
+  "operations": [
+    {
+      "renameColumn": {
+        "newName": "securityQuestionsSetup",
+        "oldName": "securityQuestionSetup",
+        "table": "User"
+      }
+    }
+  ]
+}

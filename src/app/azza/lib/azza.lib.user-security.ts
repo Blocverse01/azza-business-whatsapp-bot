@@ -4,7 +4,7 @@ import {
     type SetTransactionPinParams,
     setTransactionPinParamsSchema,
 } from '@/app/azza/azza.schema';
-import userServiceV2 from '@/app/runtime/user';
+import userServiceV2 from '@/runtime/user';
 
 export const setTransactionPin = async (params: SetTransactionPinParams) => {
     const validParams = setTransactionPinParamsSchema.parse(params);

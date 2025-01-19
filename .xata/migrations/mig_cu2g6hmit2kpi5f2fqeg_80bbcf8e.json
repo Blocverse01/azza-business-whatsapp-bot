@@ -1,0 +1,16 @@
+{
+  "id": "mig_cu2g6hmit2kpi5f2fqeg",
+  "parentID": "mig_cu2g5heit2kpi5f2fqdg",
+  "checksum": "1:80bbcf8e07b81ee2b3d8366aa78e81ee26bccf85b28f410f9bc00d43465fa0c1",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "migratedAt",
+          "type": "datetime"
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

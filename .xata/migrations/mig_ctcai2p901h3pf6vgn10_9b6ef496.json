@@ -1,0 +1,12 @@
+{
+  "id": "mig_ctcai2p901h3pf6vgn10",
+  "parentID": "mig_ctcaghp901h3pf6vgmu0",
+  "checksum": "1:9b6ef496d133bcb98f7d8aed7ab4ab73c86ed4d46682da227562dc2b95b33824",
+  "operations": [
+    {
+      "removeTable": {
+        "table": "yellowcard_supported_country"
+      }
+    }
+  ]
+}

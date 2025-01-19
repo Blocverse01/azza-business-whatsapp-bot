@@ -3,11 +3,11 @@ import { WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH } from '@/app/azza/backgroundS
 import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
 import { WaitForTransactionReceiptParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
 import { sendTransferAssetTransaction } from '@/app/azza/lib/azza.lib.transaction';
-import userServiceV2 from '@/app/runtime/user';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { logSync } from '@/resources/logger';
+import userServiceV2 from '@/runtime/user';
 
 /**
  * This script is used to send a transfer asset transaction to the blockchain.

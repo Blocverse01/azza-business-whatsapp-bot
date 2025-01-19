@@ -1,0 +1,16 @@
+{
+  "id": "mig_cu278ehro7530ttkkji0",
+  "parentID": "mig_cu278b0a9dahcg287gm0",
+  "checksum": "1:d5c672ef2ebd7da3a29e4768f98f7db0dd172d29c79a865f769cfe4f81a2d771",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "country",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    }
+  ]
+}

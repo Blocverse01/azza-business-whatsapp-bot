@@ -1,0 +1,20 @@
+{
+  "id": "mig_cspkcnia62oes0jmcqb0",
+  "parentID": "mig_cspkcbf9fpeavr522pmg",
+  "checksum": "1:035c1196bfea0dfabce05ba9ad8baa5f75a6cdaeeafbdd97be130dbad104340b",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "user",
+          "type": "link",
+          "link": {
+            "table": "User"
+          },
+          "unique": true
+        },
+        "table": "user_agent_thread"
+      }
+    }
+  ]
+}

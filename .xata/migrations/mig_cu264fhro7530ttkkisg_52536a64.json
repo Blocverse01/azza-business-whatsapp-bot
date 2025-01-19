@@ -1,0 +1,16 @@
+{
+  "id": "mig_cu264fhro7530ttkkisg",
+  "parentID": "mig_cu264d3oqjfbc39h50q0",
+  "checksum": "1:52536a64818620293d7417019624bf218ab13715dad5028a21f6bb54239c6638",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycIdType",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    }
+  ]
+}

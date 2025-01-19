@@ -1,0 +1,13 @@
+{
+  "id": "mig_cu26akroqjfbc39h50ug",
+  "parentID": "mig_cu26agpro7530ttkkj1g",
+  "checksum": "1:209f776bf519b5e273bb30af4258574af5f3687700cca6becba7c5d8bf3ad29e",
+  "operations": [
+    {
+      "renameTable": {
+        "newName": "user_blockradar_wallet_config",
+        "oldName": "user_blockradar_wallet_id"
+      }
+    }
+  ]
+}

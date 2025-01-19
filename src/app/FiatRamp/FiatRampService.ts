@@ -7,10 +7,10 @@ import {
     TransactionFees,
 } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService';
-import { getNetworkTag } from '@/app/runtime/platform-wallets';
 import { HUNDRED } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
 import { HttpException } from '@/resources/exceptions/HttpException';
+import { getNetworkTag } from '@/runtime/platform-wallets';
 import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
 import crypto from 'node:crypto';

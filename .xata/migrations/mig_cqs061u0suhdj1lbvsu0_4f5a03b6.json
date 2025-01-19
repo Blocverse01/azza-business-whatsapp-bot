@@ -1,0 +1,12 @@
+{
+  "id": "mig_cqs061u0suhdj1lbvsu0",
+  "parentID": "mig_cpuk7p1jluq91npld3j0",
+  "checksum": "1:4f5a03b6c9696c66424b9daf8b2cd6ed21ed61e213454d1388aa67b2ce9568d2",
+  "operations": [
+    {
+      "addTable": {
+        "table": "CryptoPayoutOrder"
+      }
+    }
+  ]
+}

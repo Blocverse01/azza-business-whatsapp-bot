@@ -1,0 +1,12 @@
+{
+  "id": "mig_cu269kboqjfbc39h50tg",
+  "parentID": "mig_cu265rboqjfbc39h50s0",
+  "checksum": "1:8434b51c106298c72d71cb5c504b9c1c6e894ddc00bd0d08ddef4dcaee5ea752",
+  "operations": [
+    {
+      "addTable": {
+        "table": "user_blockradar_wallet_id"
+      }
+    }
+  ]
+}

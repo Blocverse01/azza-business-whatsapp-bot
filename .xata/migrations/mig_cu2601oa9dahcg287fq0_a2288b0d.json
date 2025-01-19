@@ -1,0 +1,165 @@
+{
+  "id": "mig_cu2601oa9dahcg287fq0",
+  "parentID": "mig_ctt98e9901h3pf6vkt60",
+  "checksum": "1:a2288b0db28a298c8f02bdde77b8a3ea520888cafbc5e5047fd564ab09a8db86",
+  "operations": [
+    {
+      "addTable": {
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "phoneNumber",
+          "type": "int"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "country",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "firstName",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "lastName",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycDateOfBirth",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycIdType",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycDocumentNumber",
+          "type": "int"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycStatus",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "transactionPinHash",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "securityQuestionsSetup",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "customTokenIds",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "FEATURE_ACCESS_LEVEL",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "additionalKycIdType",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "additionalKycIdNumber",
+          "type": "int"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xatacreatedAt",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataupdatedAt",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataversion",
+          "type": "int"
+        },
+        "table": "user_v2"
+      }
+    }
+  ]
+}

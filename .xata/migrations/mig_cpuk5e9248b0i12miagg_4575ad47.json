@@ -1,0 +1,18 @@
+{
+  "id": "mig_cpuk5e9248b0i12miagg",
+  "parentID": "mig_cpuk5a9jluq91npld3hg",
+  "checksum": "1:4575ad47d5b5c0735e47bace705fbeb735855a99eadc5b39f4b8fea13defd60c",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycDocumentNumber",
+          "type": "string",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

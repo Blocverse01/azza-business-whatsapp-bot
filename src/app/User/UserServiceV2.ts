@@ -96,6 +96,10 @@ class UserServiceV2 {
             throw new Error('User already exists');
         }
 
+        if (this.env.enableCache && this.cacheStore) {
+            await this.cacheStore.del(this.cacheKeys(primaryWAPhoneNumber).user);
+        }
+
         return await this.repository.user.createUser({
             primaryWhatsappPhoneNumber: primaryWAPhoneNumber,
             ...otherInfo,
@@ -129,8 +133,6 @@ class UserServiceV2 {
     public static async searchWhatsappUserByPhoneNumber(phoneNumber: string) {
         const existingUserRecord =
             await this.repository.user.searchUserByWhatsappUserPhoneNumber(phoneNumber);
-
-        console.log({ existingUserRecord, phoneNumber });
 
         if (
             !existingUserRecord?.primaryWhatsappPhoneNumber &&

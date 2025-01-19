@@ -3,7 +3,7 @@ import env from '@/constants/env';
 import { dbClient } from '@/db/dbClient';
 import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput, getPhoneNumberObject } from '@/resources/utils/phone-numbers';
-import UserServiceV2 from '../User/UserServiceV2';
+import UserServiceV2 from '../app/User/UserServiceV2';
 
 const userServiceV2 = UserServiceV2.init({
     utils: {

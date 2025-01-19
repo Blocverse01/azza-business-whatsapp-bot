@@ -1,0 +1,20 @@
+{
+  "id": "mig_ctc63i2jqtk2jqrscgg0",
+  "parentID": "mig_ctc61lajqtk2jqrscgf0",
+  "checksum": "1:f56557c04b3314ef5d477fd19001765b6e3d0d528dfd44508837a74fa1bf93e8",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "country",
+          "type": "link",
+          "link": {
+            "table": "yellowcard_supported_country"
+          },
+          "unique": true
+        },
+        "table": "fiat_ramp_transaction_fees"
+      }
+    }
+  ]
+}

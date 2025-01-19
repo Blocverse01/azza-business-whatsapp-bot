@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctdt32p901h3pf6vh7d0",
+  "parentID": "mig_ctdt2th901h3pf6vh7c0",
+  "checksum": "1:08da53ea16a29d869261c34b34470518bfcb11b08e954cca9ca829a7a829c6b9",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "FEATURE_ACCESS_LEVEL",
+          "type": "int",
+          "notNull": true,
+          "defaultValue": "1"
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

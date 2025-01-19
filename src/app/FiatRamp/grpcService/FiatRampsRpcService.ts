@@ -13,8 +13,6 @@ import {
     supportedPaymentNetworkSchema,
     transactionStatusSchema,
 } from '@/app/FiatRamp/fiatRampSchema';
-import { PlatformAddressIdNetworkTag } from '@/app/runtime/platform-wallets';
-import userServiceV2 from '@/app/runtime/user';
 import redis from '@/cache/redis';
 import { HUNDRED } from '@/constants/numbers';
 import { FALLBACK_USE_AZZA_ADDRESS } from '@/constants/strings';
@@ -22,6 +20,8 @@ import { fiatramps } from '@/proto/fiatramps/v1/service';
 import logger from '@/resources/logger';
 import { defaultAmountFixer } from '@/resources/utils/currency';
 import { transformKeysToCamelCase } from '@/resources/utils/transformers';
+import { PlatformAddressIdNetworkTag } from '@/runtime/platform-wallets';
+import userServiceV2 from '@/runtime/user';
 import { CountryCode } from 'libphonenumber-js';
 import { z } from 'zod';
 import {

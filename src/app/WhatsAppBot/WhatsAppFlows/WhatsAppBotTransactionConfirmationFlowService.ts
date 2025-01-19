@@ -9,7 +9,6 @@ import {
     TRANSFER_TRANSACTION_SCRIPT_PATH,
 } from '@/app/azza/backgroundSpawns/script-paths';
 import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
-import userServiceV2 from '@/app/runtime/user';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
@@ -22,6 +21,7 @@ import { SIXTEEN } from '@/constants/numbers';
 import { logSync } from '@/resources/logger';
 import { convertBase64ToAsciiString, generateRandomHexString } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
+import userServiceV2 from '@/runtime/user';
 
 enum TransactionConfirmationFlowScreens {
     ENTER_TRANSACTION_PIN = 'ENTER_TRANSACTION_PIN',

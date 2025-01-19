@@ -1,0 +1,13 @@
+{
+  "id": "mig_ctar2rg59c6lfk0t64m0",
+  "parentID": "mig_ctar2pe1ccglq2sphb9g",
+  "checksum": "1:d8922a0fefe6f72c8827f06c9f1e19609807c734799e5c24b9c39c0c1ae6896e",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "tokenAddress",
+        "table": "token_registry"
+      }
+    }
+  ]
+}

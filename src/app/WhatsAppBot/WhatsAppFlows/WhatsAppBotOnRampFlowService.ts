@@ -1,8 +1,6 @@
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -33,6 +31,8 @@ import { generateRandomHexString } from '@/resources/utils/encryption';
 import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { AssetConfig, TokenNames } from '@/resources/web3/tokens';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
 

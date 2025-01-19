@@ -1,5 +1,4 @@
 import { SecurityQuestion, transactionPinSchema } from '@/app/azza/azza.schema';
-import userServiceV2 from '@/app/runtime/user';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
@@ -19,6 +18,7 @@ import {
     generateRandomHexString,
 } from '@/resources/utils/encryption';
 import { hashString } from '@/resources/utils/hashing';
+import userServiceV2 from '@/runtime/user';
 
 enum SetupTransactionPinFlowScreens {
     SET_TRANSACTION_PIN = 'SET_TRANSACTION_PIN',
@@ -289,15 +289,24 @@ class WhatsAppBotSetupTransactionPinFlowService {
         const encryptedSecuritySetup = userServiceV2.maskUserSecurityQuestions(questionsToSave);
 
         // Add to background processing
-        await queues.userTxPinSecurity.add('set-tx-pin', {
-            newPinHash: hashedPin,
-            encryptedSecurityQuestions: encryptedSecuritySetup,
-            userId: user_id,
-            whatsappParams: {
-                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
+        await queues.userTxPinSecurity.add(
+            'set-tx-pin',
+            {
+                newPinHash: hashedPin,
+                encryptedSecurityQuestions: encryptedSecuritySetup,
+                userId: user_id,
+                whatsappParams: {
+                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                    userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
+                },
             },
-        });
+            {
+                removeOnComplete: true,
+                removeOnFail: {
+                    age: 24 * 3600, // keep up to 24 hours
+                },
+            }
+        );
 
         return {
             screen: 'FEEDBACK',

@@ -1,0 +1,16 @@
+{
+  "id": "mig_csrhi7g6e9h141eb8vb0",
+  "parentID": "mig_cspkd7aa62oes0jmcqc0",
+  "checksum": "1:b2a8f99f2b6da6abe420e78229694868b81758b172479099215b37445b783cc1",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "transactionPinHash",
+          "type": "text"
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

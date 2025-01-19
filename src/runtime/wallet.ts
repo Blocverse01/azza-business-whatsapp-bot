@@ -5,13 +5,13 @@ import {
     getPlatformAssetId,
 } from '@/app/AzzaWalletManager/providers/blockradar/resources/assets';
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
+import logger from '@/resources/logger';
+import { isEvmNetwork } from '@/resources/web3/evm/evm.config';
 import {
     assetsWithRequiredBlockradarConfig,
     blockchainsEnabledOnBlockradar,
-} from '@/app/runtime/blockradar';
-import userServiceV2 from '@/app/runtime/user';
-import logger from '@/resources/logger';
-import { isEvmNetwork } from '@/resources/web3/evm/evm.config';
+} from '@/runtime/blockradar';
+import userServiceV2 from '@/runtime/user';
 
 const walletProvider = new BlockradarWalletProvider({
     dataSources: {

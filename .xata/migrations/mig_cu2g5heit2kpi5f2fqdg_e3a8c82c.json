@@ -1,0 +1,12 @@
+{
+  "id": "mig_cu2g5heit2kpi5f2fqdg",
+  "parentID": "mig_cu2g5e6l97ufmn0d34cg",
+  "checksum": "1:e3a8c82c2c90fffe59ce6c7cdba03fd63513cd56805943623be6e025e6979391",
+  "operations": [
+    {
+      "removeTable": {
+        "table": "token_registry"
+      }
+    }
+  ]
+}

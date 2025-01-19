@@ -1,7 +1,5 @@
 import { createOrUpdateUserAgentThread, getUserAgentThread } from '@/app/aiAgent/agent.helpers';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import UserService from '@/app/User/UserService';
 import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -32,6 +30,8 @@ import { HttpException } from '@/resources/exceptions/HttpException';
 import { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import type { Request, Response } from 'express';
 import { type CountryCode } from 'libphonenumber-js';
 

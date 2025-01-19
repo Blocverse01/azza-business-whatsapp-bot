@@ -1,0 +1,16 @@
+{
+  "id": "mig_ctar46e1ccglq2sphbag",
+  "parentID": "mig_ctar2uo59c6lfk0t64n0",
+  "checksum": "1:b968c104861f49e9b3e32b600f1fa9c78bcb1c307533ed0edf25740b5d475779",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "customTokenIds",
+          "type": "multiple"
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

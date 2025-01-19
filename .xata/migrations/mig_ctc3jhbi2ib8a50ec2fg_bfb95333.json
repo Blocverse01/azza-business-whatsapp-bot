@@ -1,0 +1,57 @@
+{
+  "id": "mig_ctc3jhbi2ib8a50ec2fg",
+  "parentID": "mig_ctc3f0jeu3t478f14s00",
+  "checksum": "1:bfb9533370da96a9cbe807d5192ef0707b0055becaf310041b338dfd950f0be8",
+  "operations": [
+    {
+      "addTable": {
+        "table": "YellowCardSupportedCurrency1"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "name",
+          "type": "text"
+        },
+        "table": "YellowCardSupportedCurrency1"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "code",
+          "type": "text"
+        },
+        "table": "YellowCardSupportedCurrency1"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "flag",
+          "type": "text"
+        },
+        "table": "YellowCardSupportedCurrency1"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "currencyName",
+          "type": "text"
+        },
+        "table": "YellowCardSupportedCurrency1"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "currencySymbol",
+          "type": "text"
+        },
+        "table": "YellowCardSupportedCurrency1"
+      }
+    }
+  ]
+}

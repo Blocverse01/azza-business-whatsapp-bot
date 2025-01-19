@@ -1,5 +1,3 @@
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import SumSubService from '@/app/SumSub/SumSubService';
 import { UserAssetItem } from '@/app/User/userSchema';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
@@ -22,6 +20,8 @@ import {
 } from '@/constants/regex';
 import { UserV2Record } from '@/db/xata';
 import { TokenNames } from '@/resources/web3/tokens';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 
 type BotCommand = keyof typeof BOT_COMMANDS_REGEX;
 

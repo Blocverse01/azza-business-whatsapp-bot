@@ -107,6 +107,7 @@ export enum AssetInteractiveButtonIds {
 
     // StableCoins
     USDC_BASE = 'usdc-base',
+    USDT_BASE = 'usdt-base',
 
     USDC_POLYGON = 'usdc-polygon',
     USDT_POLYGON = 'usdt-polygon',

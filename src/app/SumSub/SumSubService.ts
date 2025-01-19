@@ -1,10 +1,10 @@
-import userServiceV2 from '@/app/runtime/user';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { BAD_REQUEST, NOT_FOUND, UNAUTHORIZED } from '@/constants/status-codes';
 import { UserV2Record } from '@/db/xata';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import logger from '@/resources/logger';
+import userServiceV2 from '@/runtime/user';
 import axios from 'axios';
 import crypto from 'node:crypto';
 import {

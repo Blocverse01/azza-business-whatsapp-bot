@@ -3,8 +3,6 @@ import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { OK } from '@/constants/status-codes';
@@ -12,6 +10,8 @@ import logger, { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import { prettifyNumber } from '@/resources/utils/currency';
 import { TokenNames } from '@/resources/web3/tokens';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import { Request, Response } from 'express';
 
 class FiatRampServiceController {

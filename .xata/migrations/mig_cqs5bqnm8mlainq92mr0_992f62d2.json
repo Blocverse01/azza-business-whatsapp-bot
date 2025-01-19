@@ -1,0 +1,18 @@
+{
+  "id": "mig_cqs5bqnm8mlainq92mr0",
+  "parentID": "mig_cqs0jji05tt3u27fp8ng",
+  "checksum": "1:992f62d212aed6d460d70d467327684618fb6cb589fd3ef0194500d9de52734d",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "orderAuthorityToken",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "CryptoPayoutOrder"
+      }
+    }
+  ]
+}

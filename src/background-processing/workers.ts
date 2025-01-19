@@ -11,8 +11,6 @@ import { changeTransactionPin, setTransactionPin } from '@/app/azza/lib/azza.lib
 import { waitForTransactionReceipt } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import UserService from '@/app/User/UserService';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -40,6 +38,8 @@ import {
     decryptWithAES,
 } from '@/resources/utils/encryption';
 import { TokenNames } from '@/resources/web3/tokens';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
 
 ///////////////////////

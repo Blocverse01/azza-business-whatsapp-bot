@@ -8,13 +8,13 @@ import {
     AllSupportedBlockchains,
     getMasterWalletClient,
 } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
-import {
-    assetsWithRequiredBlockradarConfig,
-    blockchainsEnabledOnBlockradar,
-} from '@/app/runtime/blockradar';
 import env from '@/constants/env';
 import logger from '@/resources/logger';
 import { isEvmNetwork } from '@/resources/web3/evm/evm.config';
+import {
+    assetsWithRequiredBlockradarConfig,
+    blockchainsEnabledOnBlockradar,
+} from '@/runtime/blockradar';
 
 export type PlatformAddressIdNetworkTag = 'evm' | 'solana' | 'tron';
 type PlatformAddressUserIdPrefix = 'onramp-payout' | 'offramp-hot-wallet';
@@ -22,12 +22,12 @@ type PlatformAddressUserIdPrefix = 'onramp-payout' | 'offramp-hot-wallet';
 export type PlatformAddressIdKey = `${PlatformAddressUserIdPrefix}-${PlatformAddressIdNetworkTag}`;
 
 const mainnet__PlatformAddressIdRecords: Record<PlatformAddressIdKey, string> = {
-    'onramp-payout-evm': '',
-    'onramp-payout-solana': '',
-    'onramp-payout-tron': '',
-    'offramp-hot-wallet-evm': '',
-    'offramp-hot-wallet-solana': '',
-    'offramp-hot-wallet-tron': '',
+    'onramp-payout-evm': 'a051242b-9083-4bcc-825f-497c26884301',
+    'onramp-payout-solana': '6d8f8148-d359-4fee-91f6-4428882fdb11',
+    'onramp-payout-tron': 'dd040689-ff46-4b53-aa54-a637b081fa99',
+    'offramp-hot-wallet-evm': '959eea66-6849-4971-901f-8f9903f2bd3f',
+    'offramp-hot-wallet-solana': '47750a08-2641-43de-bca3-02533b58b653',
+    'offramp-hot-wallet-tron': 'a4c1445d-31d8-4a1a-a539-108f6b1f9bfb',
 };
 const testnet__PlatformAddressIdRecords: Record<PlatformAddressIdKey, string> = {
     'onramp-payout-evm': 'f44866a3-6881-4089-afbb-ae83996cd9b8',

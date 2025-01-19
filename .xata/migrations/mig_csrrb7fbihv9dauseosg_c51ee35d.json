@@ -1,0 +1,16 @@
+{
+  "id": "mig_csrrb7fbihv9dauseosg",
+  "parentID": "mig_csrrauo6e9h141eb93e0",
+  "checksum": "1:c51ee35dfff3e52c9c1d074c9feb93ca0466159585908c8485b049a5726b3169",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "securityQuestionsSetup",
+          "type": "text"
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

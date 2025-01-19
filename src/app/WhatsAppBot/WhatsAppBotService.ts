@@ -5,8 +5,6 @@ import {
     UsersBeneficiaries,
 } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import SumSubService, {
     DEFAULT_KYC_LEVEL_NAME,
     NG_KYC_LEVEL_NAME,
@@ -53,6 +51,8 @@ import {
     decryptRequest,
     encryptResponse,
 } from '@/resources/utils/encryption';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import axios from 'axios';
 import { CountryCode } from 'libphonenumber-js';
 import * as zlib from 'node:zlib';

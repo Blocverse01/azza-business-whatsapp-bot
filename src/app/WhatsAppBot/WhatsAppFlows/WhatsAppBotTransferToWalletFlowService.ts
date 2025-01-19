@@ -7,8 +7,6 @@ import {
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import userServiceV2 from '@/app/runtime/user';
-import azzaWalletManager from '@/app/runtime/wallet';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -36,6 +34,8 @@ import { generateRandomHexString } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { cleanPhoneNumberInput, standardizePhoneNumber } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 
 enum TransferToWalletFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',

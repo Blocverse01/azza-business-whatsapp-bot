@@ -4,7 +4,6 @@ import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { GetTransactionReceiptInBackgroundParams } from '@/app/CryptoPayout/getTransactionReceiptInBackground';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import platformWalletManager, { composePlatformAddressIdKey } from '@/app/runtime/platform-wallets';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { ZERO } from '@/constants/numbers';
 import { CryptoPayoutOrder } from '@/db/xata';
@@ -12,6 +11,7 @@ import logger, { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { decimalToString } from '@/resources/utils/currency';
 import { AssetConfig } from '@/resources/web3/tokens';
+import platformWalletManager, { composePlatformAddressIdKey } from '@/runtime/platform-wallets';
 import { spawn } from 'child_process';
 
 type CryptoOrderInput = {

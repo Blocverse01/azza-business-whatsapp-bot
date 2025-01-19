@@ -1,7 +1,7 @@
 import { getMasterWalletConfig } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
-import blockradarWebhookService from '@/app/runtime/blockradar-webhook';
-import azzaWalletManager from '@/app/runtime/wallet';
 import { BAD_REQUEST, OK } from '@/constants/status-codes';
+import blockradarWebhookService from '@/runtime/blockradar-webhook';
+import azzaWalletManager from '@/runtime/wallet';
 import express from 'express';
 
 const blockradarRouter = express.Router();
