@@ -8,6 +8,8 @@ import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 
+const DEPOSIT_SILENT_MODE = true;
+
 const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
     // Todo: Move handler implementation to appropriate service
     handleDepositSuccess: async (data, network) => {
@@ -21,11 +23,16 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const senderAddress = data.data.senderAddress;
         const transactionHash = data.data.hash;
 
-        console.log({
-            senderAddress,
-            userId,
-            platformAssetConfig,
-        });
+        if (DEPOSIT_SILENT_MODE) {
+            console.log(`Deposit success: ${transactionHash}`, {
+                platformAssetConfig,
+                amount,
+                userId,
+                blockradarAsset,
+            });
+
+            return;
+        }
 
         if (userId && platformAssetConfig) {
             const [newBalance, user] = await Promise.all([
