@@ -96,7 +96,7 @@ class UserServiceV2 {
             throw new Error('User already exists');
         }
 
-        if (this.env.enableCache && this.cacheStore) {
+        if (this.cacheStore) {
             await this.cacheStore.del(this.cacheKeys(primaryWAPhoneNumber).user);
         }
 

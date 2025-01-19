@@ -9,6 +9,7 @@ import {
 } from '@/app/azza/lib/azza.lib.transaction';
 import { changeTransactionPin, setTransactionPin } from '@/app/azza/lib/azza.lib.user-security';
 import { waitForTransactionReceipt } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
+import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import UserService from '@/app/User/UserService';
@@ -385,7 +386,18 @@ const walletMigrationWorker = new Worker<
         }
 
         if (oldUserId) {
-            const supportedAssetIds = ENABLED_ASSETS.map((asset) => asset.listItemId);
+            const networksToMigrate: AllSupportedBlockchains[] = [
+                'Base',
+                'Solana',
+                'Optimism',
+                'Tron',
+                'Ethereum',
+                'Polygon',
+            ];
+
+            const supportedAssetIds = ENABLED_ASSETS.filter((asset) =>
+                networksToMigrate.includes(asset.network)
+            ).map((asset) => asset.listItemId);
             const promises = supportedAssetIds.map((assetId) =>
                 UserService.getUserAssetInfo(oldUserId, assetId)
             );
