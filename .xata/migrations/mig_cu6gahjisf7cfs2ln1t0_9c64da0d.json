@@ -1,0 +1,57 @@
+{
+  "id": "mig_cu6gahjisf7cfs2ln1t0",
+  "parentID": "mig_cu6g9v8bn5466o07l78g",
+  "checksum": "1:9c64da0da415013cd9a34cff1653bf936f71163f5859f2c7f6bdd5bd373a74d4",
+  "operations": [
+    {
+      "addTable": {
+        "table": "user_blockradar_wallet_config"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "user",
+          "type": "text"
+        },
+        "table": "user_blockradar_wallet_config"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "wallets",
+          "type": "text"
+        },
+        "table": "user_blockradar_wallet_config"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xatacreatedAt",
+          "type": "text"
+        },
+        "table": "user_blockradar_wallet_config"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataupdatedAt",
+          "type": "text"
+        },
+        "table": "user_blockradar_wallet_config"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataversion",
+          "type": "int"
+        },
+        "table": "user_blockradar_wallet_config"
+      }
+    }
+  ]
+}

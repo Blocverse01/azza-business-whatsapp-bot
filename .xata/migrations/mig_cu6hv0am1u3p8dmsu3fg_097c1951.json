@@ -1,0 +1,273 @@
+{
+  "id": "mig_cu6hv0am1u3p8dmsu3fg",
+  "parentID": "mig_cu6hlnam1u3p8dmsu390",
+  "checksum": "1:097c19513182d5e19145fb53bfedae5d5a9d60e4d7d3f626d4bb3abcfe4b9346",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "user",
+        "table": "user_agent_thread"
+      }
+    },
+    {
+      "removeColumn": {
+        "column": "adminName",
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "removeColumn": {
+        "column": "accessLevel",
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "removeColumn": {
+        "column": "accessToken",
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "removeColumn": {
+        "column": "lastAccessed",
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addTable": {
+        "table": "user_v2"
+      }
+    },
+    {
+      "addTable": {
+        "table": "user_blockradar_wallet_config"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "ownerId",
+          "type": "text"
+        },
+        "table": "user_agent_thread"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "adminName",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "accessLevel",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "accessToken",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "lastAccessed",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xatacreatedAt",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataupdatedAt",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataversion",
+          "type": "int"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "linkedWhatsappPhoneNumbers",
+          "type": "multiple"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "lastName",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "firstName",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycDateOfBirth",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycIdType",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycDocumentNumber",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycStatus",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "transactionPinHash",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "securityQuestionsSetup",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "FEATURE_ACCESS_LEVEL",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": "PRODUCTION"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "additionalKycIdType",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "additionalKycIdNumber",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "country",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "primaryWhatsappPhoneNumber",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "user",
+          "type": "link",
+          "link": {
+            "table": "user_v2"
+          },
+          "unique": true
+        },
+        "table": "user_blockradar_wallet_config"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "wallets",
+          "type": "json",
+          "notNull": true,
+          "defaultValue": "[]"
+        },
+        "table": "user_blockradar_wallet_config"
+      }
+    }
+  ]
+}

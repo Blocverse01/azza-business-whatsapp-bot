@@ -1,0 +1,12 @@
+{
+  "id": "mig_ctt92v9901h3pf6vksvg",
+  "parentID": "mig_ctnp63d7965n01fhu4n0",
+  "checksum": "1:bba27be07b3f82f4e5b72e8758736aaff52da1724a0e1b788e65d95b3a3a24b0",
+  "operations": [
+    {
+      "addTable": {
+        "table": "bull_dashboard_access"
+      }
+    }
+  ]
+}

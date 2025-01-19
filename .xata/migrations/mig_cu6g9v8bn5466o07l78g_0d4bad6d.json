@@ -1,0 +1,165 @@
+{
+  "id": "mig_cu6g9v8bn5466o07l78g",
+  "parentID": "mig_cu5ulbim1u3p8dmsts0g",
+  "checksum": "1:0d4bad6d132515a438e8ad7626e9d869495dc49013a2c8a79a7925541b4b4692",
+  "operations": [
+    {
+      "addTable": {
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "lastName",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "firstName",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycDateOfBirth",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycIdType",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycDocumentNumber",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycStatus",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "transactionPinHash",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "securityQuestionsSetup",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "FEATURE_ACCESS_LEVEL",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "additionalKycIdType",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "additionalKycIdNumber",
+          "type": "int"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "country",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "linkedWhatsappPhoneNumbers",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "primaryWhatsappPhoneNumber",
+          "type": "int"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xatacreatedAt",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataupdatedAt",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataversion",
+          "type": "int"
+        },
+        "table": "user_v2"
+      }
+    }
+  ]
+}

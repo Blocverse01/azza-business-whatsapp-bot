@@ -1,0 +1,16 @@
+{
+  "id": "mig_ctt94qh901h3pf6vkt3g",
+  "parentID": "mig_ctt94e9901h3pf6vkt2g",
+  "checksum": "1:d2824ad64197bb8f1463ee267070d53fad3562d0f19140a0fda6bada757752a8",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "lastAccessed",
+          "type": "datetime"
+        },
+        "table": "bull_dashboard_access"
+      }
+    }
+  ]
+}
