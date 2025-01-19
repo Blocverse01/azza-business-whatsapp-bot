@@ -1,0 +1,18 @@
+{
+  "id": "mig_cqs08jq05tt3u27fp8kg",
+  "parentID": "mig_cqs07m60suhdj1lbvsv0",
+  "checksum": "1:422c4f85050dc082aaa7ee94d83aa4570866cdab52c60d5572a3576072f3e036",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "destinationWalletAddress",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "CryptoPayoutOrder"
+      }
+    }
+  ]
+}

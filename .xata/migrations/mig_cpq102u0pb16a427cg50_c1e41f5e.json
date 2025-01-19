@@ -1,0 +1,12 @@
+{
+  "id": "mig_cpq102u0pb16a427cg50",
+  "parentID": "mig_cppn82j9qr4670eau4eg",
+  "checksum": "1:c1e41f5eaba7bdfe96758abf1ca4b278e09f2e489811a4f740092a85b325f07d",
+  "operations": [
+    {
+      "addTable": {
+        "table": "OffRampTemporaryTransaction"
+      }
+    }
+  ]
+}

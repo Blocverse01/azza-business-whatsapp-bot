@@ -1,0 +1,13 @@
+{
+  "id": "mig_cqs0bbi05tt3u27fp8lg",
+  "parentID": "mig_cqs0b9nm8mlainq92ki0",
+  "checksum": "1:67cf2ebeee1b27552a153dcb30304cc683c46039ff733adf55f464de930cbfbb",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "platformIssuedAuthority",
+        "table": "CryptoPayoutOrder"
+      }
+    }
+  ]
+}

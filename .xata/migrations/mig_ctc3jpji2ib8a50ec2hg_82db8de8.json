@@ -1,0 +1,13 @@
+{
+  "id": "mig_ctc3jpji2ib8a50ec2hg",
+  "parentID": "mig_ctc3jhbi2ib8a50ec2fg",
+  "checksum": "1:82db8de87ea77a8fc1b2630a265a95f12d0b22ba374d9320824b4bfc136af0c0",
+  "operations": [
+    {
+      "renameTable": {
+        "newName": "yellowcard_supported_country",
+        "oldName": "YellowCardSupportedCurrency1"
+      }
+    }
+  ]
+}

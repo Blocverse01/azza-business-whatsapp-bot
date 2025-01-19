@@ -1,0 +1,18 @@
+{
+  "id": "mig_cspkd7aa62oes0jmcqc0",
+  "parentID": "mig_cspkcnia62oes0jmcqb0",
+  "checksum": "1:329dde367fb5a850508093f8e741368d4e1c3c82c023db0b00decf2993355a51",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "messages",
+          "type": "json",
+          "notNull": true,
+          "defaultValue": "[]"
+        },
+        "table": "user_agent_thread"
+      }
+    }
+  ]
+}

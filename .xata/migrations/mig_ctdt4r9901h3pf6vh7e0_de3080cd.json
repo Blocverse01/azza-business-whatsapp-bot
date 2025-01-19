@@ -1,0 +1,13 @@
+{
+  "id": "mig_ctdt4r9901h3pf6vh7e0",
+  "parentID": "mig_ctdt32p901h3pf6vh7d0",
+  "checksum": "1:de3080cdeb6acc3b5286034a16ac4d50f80f98bdf41c16da22e30c7e64cdc39d",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "FEATURE_ACCESS_LEVEL",
+        "table": "User"
+      }
+    }
+  ]
+}

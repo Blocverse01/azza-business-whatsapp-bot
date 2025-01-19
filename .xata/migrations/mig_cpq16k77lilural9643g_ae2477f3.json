@@ -1,0 +1,17 @@
+{
+  "id": "mig_cpq16k77lilural9643g",
+  "parentID": "mig_cpq16dv7lilural9642g",
+  "checksum": "1:ae2477f3ee887da297619b73e66d2fe8cea01d3ff750de0dac05e5377493115d",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "status",
+          "type": "string",
+          "defaultValue": "pending"
+        },
+        "table": "OffRampTemporaryTransaction"
+      }
+    }
+  ]
+}

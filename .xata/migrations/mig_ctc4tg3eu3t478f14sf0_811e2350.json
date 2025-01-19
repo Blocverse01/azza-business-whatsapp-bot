@@ -1,0 +1,19 @@
+{
+  "id": "mig_ctc4tg3eu3t478f14sf0",
+  "parentID": "mig_ctc4sq2jqtk2jqrscg1g",
+  "checksum": "1:811e2350a59e06ae36cbcb1afb89e8bc5fa8e45e0c01cebd4cbbc6a050f6e3c9",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "country",
+          "type": "link",
+          "link": {
+            "table": "yellowcard_supported_country"
+          }
+        },
+        "table": "yellowcard_beneficiary"
+      }
+    }
+  ]
+}

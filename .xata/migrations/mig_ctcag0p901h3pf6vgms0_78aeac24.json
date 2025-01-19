@@ -1,0 +1,12 @@
+{
+  "id": "mig_ctcag0p901h3pf6vgms0",
+  "parentID": "mig_ctc6ab3i2ib8a50ec37g",
+  "checksum": "1:78aeac24de2df17fd3197722c099f277a02cb3419e39de9ae39b91022046d7e9",
+  "operations": [
+    {
+      "removeTable": {
+        "table": "yellow_card_offramp_transactions"
+      }
+    }
+  ]
+}

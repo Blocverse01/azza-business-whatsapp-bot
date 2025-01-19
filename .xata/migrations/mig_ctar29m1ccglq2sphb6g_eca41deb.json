@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctar29m1ccglq2sphb6g",
+  "parentID": "mig_ctar20u1ccglq2sphb5g",
+  "checksum": "1:eca41deb3040cc90cafe798baf555af462433a7a063504690e9c2c44ff75629c",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "tokenSymbol",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "token_registry"
+      }
+    }
+  ]
+}

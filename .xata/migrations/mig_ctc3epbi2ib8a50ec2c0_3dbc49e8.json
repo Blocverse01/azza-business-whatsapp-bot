@@ -1,0 +1,12 @@
+{
+  "id": "mig_ctc3epbi2ib8a50ec2c0",
+  "parentID": "mig_ctc3ejijqtk2jqrscfd0",
+  "checksum": "1:3dbc49e82ccbe2f69ab86ccc247a3de1587d1cb4da6b9fdc4187a20723099b64",
+  "operations": [
+    {
+      "addTable": {
+        "table": "yellowcard_onramp_transaction"
+      }
+    }
+  ]
+}

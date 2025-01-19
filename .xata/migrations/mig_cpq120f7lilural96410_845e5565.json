@@ -1,0 +1,19 @@
+{
+  "id": "mig_cpq120f7lilural96410",
+  "parentID": "mig_cpq11q77lilural96400",
+  "checksum": "1:845e5565cf36604ad536f52852e6dcdfa4fea90bc047dc0b96ce5ece5edbda9b",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "user",
+          "type": "link",
+          "link": {
+            "table": "User"
+          }
+        },
+        "table": "OffRampTemporaryTransaction"
+      }
+    }
+  ]
+}

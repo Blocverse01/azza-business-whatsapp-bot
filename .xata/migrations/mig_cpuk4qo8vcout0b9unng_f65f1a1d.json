@@ -1,0 +1,18 @@
+{
+  "id": "mig_cpuk4qo8vcout0b9unng",
+  "parentID": "mig_cpuk4hhjluq91npld3gg",
+  "checksum": "1:f65f1a1d9bb058cad19f02f92c6115fcc7405610f5d2f4715575b75f4fd4def4",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycStatus",
+          "type": "string",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

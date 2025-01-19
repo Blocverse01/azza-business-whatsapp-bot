@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctc4sq2jqtk2jqrscg1g",
+  "parentID": "mig_ctc4slqjqtk2jqrscg0g",
+  "checksum": "1:ac25a103c7defed95c2a6bc0824f5f5e34ec96be38da5ca07b384efdff2cffe0",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "channelId",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "yellowcard_beneficiary"
+      }
+    }
+  ]
+}

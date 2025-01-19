@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctar83m1ccglq2sphbig",
+  "parentID": "mig_ctar7ru1ccglq2sphbhg",
+  "checksum": "1:2f1ac1f30b3353053ec08193a5d7d463ac095ed58a7886aceb5d6c123bbe33f1",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "tokenAddress",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "token_registry"
+      }
+    }
+  ]
+}

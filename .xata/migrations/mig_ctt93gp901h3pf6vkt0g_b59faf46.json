@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctt93gp901h3pf6vkt0g",
+  "parentID": "mig_ctt92v9901h3pf6vksvg",
+  "checksum": "1:b59faf4619396463a12a7aa7fe6a9813a23614ef2fbd9beccadc4d393fb8f9f4",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "adminName",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "bull_dashboard_access"
+      }
+    }
+  ]
+}

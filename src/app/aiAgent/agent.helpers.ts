@@ -17,7 +17,7 @@ export const createOrUpdateUserAgentThread = async (params: UpdateUserAgentThrea
 
     const thread = await dbClient.user_agent_thread
         .filter({
-            user: userId,
+            ownerId: userId,
         })
         .getFirst();
 
@@ -25,7 +25,7 @@ export const createOrUpdateUserAgentThread = async (params: UpdateUserAgentThrea
 
     if (!thread) {
         await dbClient.user_agent_thread.createOrUpdate({
-            user: userId,
+            ownerId: userId,
             messages,
             lastSessionId,
         });
@@ -48,7 +48,7 @@ export const getUserAgentThread = async (
 }> => {
     const thread = await dbClient.user_agent_thread
         .filter({
-            user: sessionId,
+            ownerId: sessionId,
         })
         .getFirst();
 

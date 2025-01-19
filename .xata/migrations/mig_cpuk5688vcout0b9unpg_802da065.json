@@ -1,0 +1,18 @@
+{
+  "id": "mig_cpuk5688vcout0b9unpg",
+  "parentID": "mig_cpuk5208vcout0b9unog",
+  "checksum": "1:802da0655f63e886aa5403c85b660b3d5e40a681a473dcaa90d029a404637e51",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycDateOfBirth",
+          "type": "string",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

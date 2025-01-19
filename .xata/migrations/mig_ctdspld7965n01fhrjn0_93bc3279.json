@@ -1,0 +1,13 @@
+{
+  "id": "mig_ctdspld7965n01fhrjn0",
+  "parentID": "mig_ctdsnk32vtkja3ivcdeg",
+  "checksum": "1:93bc32797c031e68d5400b61d4cf64f2255efac3bf63dd3880c2f0d9388d0506",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "BETA_FEATURES_ALLOWED",
+        "table": "User"
+      }
+    }
+  ]
+}

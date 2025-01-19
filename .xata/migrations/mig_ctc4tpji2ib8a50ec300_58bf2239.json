@@ -1,0 +1,16 @@
+{
+  "id": "mig_ctc4tpji2ib8a50ec300",
+  "parentID": "mig_ctc4tnbeu3t478f14sh0",
+  "checksum": "1:58bf22393874de0b9471a2c93f6e2a752bdbb84877059f23b2f14dcfe071ed65",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "mobileNumber",
+          "type": "text"
+        },
+        "table": "yellowcard_beneficiary"
+      }
+    }
+  ]
+}

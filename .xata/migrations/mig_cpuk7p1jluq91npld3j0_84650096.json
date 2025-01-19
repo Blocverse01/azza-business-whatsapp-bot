@@ -1,0 +1,16 @@
+{
+  "id": "mig_cpuk7p1jluq91npld3j0",
+  "parentID": "mig_cpuk7j9248b0i12miak0",
+  "checksum": "1:846500969f27308fc65de10bb7d69d74509ac659546b4c42954151a5249b2a88",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycStatus",
+          "type": "string"
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

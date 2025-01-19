@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctdsq3t7965n01fhrjo0",
+  "parentID": "mig_ctdspld7965n01fhrjn0",
+  "checksum": "1:ac8eb248ef12506470403efa99673050e4016e1e2583ff63f3261930048920fa",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "FEATURE_ACCESS_LEVEL",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": "PRODUCTION"
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

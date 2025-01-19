@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctc6ab3i2ib8a50ec37g",
+  "parentID": "mig_ctc640ajqtk2jqrscgh0",
+  "checksum": "1:363da0807797072100be903085c73147cbabeab76574ac876e09198d708b063d",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "offrampFeePercentage",
+          "type": "float",
+          "notNull": true,
+          "defaultValue": "1"
+        },
+        "table": "fiat_ramp_transaction_fees"
+      }
+    }
+  ]
+}

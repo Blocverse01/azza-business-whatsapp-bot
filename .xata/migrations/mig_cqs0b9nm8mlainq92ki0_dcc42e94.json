@@ -1,0 +1,19 @@
+{
+  "id": "mig_cqs0b9nm8mlainq92ki0",
+  "parentID": "mig_cqs09te0suhdj1lbvt00",
+  "checksum": "1:dcc42e947d2beed3fcf069d62b5330979b5d57d854c98ef74a0b643ff870968f",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "platformIssuedAuthority",
+          "type": "vector",
+          "vector": {
+            "dimension": 1536
+          }
+        },
+        "table": "CryptoPayoutOrder"
+      }
+    }
+  ]
+}

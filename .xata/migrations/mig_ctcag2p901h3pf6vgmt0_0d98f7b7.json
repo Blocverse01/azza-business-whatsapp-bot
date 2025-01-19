@@ -1,0 +1,12 @@
+{
+  "id": "mig_ctcag2p901h3pf6vgmt0",
+  "parentID": "mig_ctcag0p901h3pf6vgms0",
+  "checksum": "1:0d98f7b7378b91bf65e876eed08b325aefd841b25cf388fe063bb57a9f888c02",
+  "operations": [
+    {
+      "removeTable": {
+        "table": "yellowcard_onramp_transaction"
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "mig_cpq16dv7lilural9642g",
+  "parentID": "mig_cpq15dh9lhsg5enuhhbg",
+  "checksum": "1:60e9259b6546c88ec12a9f2fb05eb97a9b91b2ea88bde0341e4eeede3282094e",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "status",
+        "table": "OffRampTemporaryTransaction"
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "mig_ctaqur059c6lfk0t64ig",
+  "parentID": "mig_csrrb7fbihv9dauseosg",
+  "checksum": "1:bf509be2d0e47f420334fb7a8c4d45d216dc9a9f0f98f5397868b3ab8220edaf",
+  "operations": [
+    {
+      "addTable": {
+        "table": "token_registry"
+      }
+    }
+  ]
+}

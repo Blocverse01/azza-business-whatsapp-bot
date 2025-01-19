@@ -1,0 +1,17 @@
+{
+  "id": "mig_ctgf7al7965n01fhsdj0",
+  "parentID": "mig_ctgf6nd7965n01fhsdfg",
+  "checksum": "1:52fc872c48fe6e8acc0a56ae831607291e46f6e972e50c44b6d508bb010d381d",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "additionalKycIdNumber",
+          "type": "text",
+          "defaultValue": ""
+        },
+        "table": "User"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "mig_ctnp63d7965n01fhu4n0",
+  "parentID": "mig_ctgf7rp901h3pf6vhpig",
+  "checksum": "1:4fe193cafa09fcef76bd7a37d75f110ad8fe4f248ddaef037a54b609c250971c",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "lastSessionId",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "user_agent_thread"
+      }
+    }
+  ]
+}
