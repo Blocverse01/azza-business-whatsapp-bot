@@ -50,11 +50,15 @@ export const sendTransferAssetTransaction = async (
             ? await UserService.getUserByPhoneNumber(userId)
             : await userServiceV2.getUserById(userId);
 
-    if (!user?.transactionPinHash) {
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    if (requireTransactionPin && !user?.transactionPinHash) {
         throw new Error('Transaction pin not set');
     }
 
-    if (transactionPin && !(await compareHashedString(transactionPin, user.transactionPinHash))) {
+    if (transactionPin && !(await compareHashedString(transactionPin, user.transactionPinHash!))) {
         throw new Error('Invalid transaction pin');
     }
 
