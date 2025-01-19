@@ -1,3 +1,4 @@
+import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import {
     BankBeneficiary,
     MobileMoneyBeneficiary,
@@ -8,8 +9,7 @@ import SumSubService, {
     DEFAULT_KYC_LEVEL_NAME,
     NG_KYC_LEVEL_NAME,
 } from '@/app/SumSub/SumSubService';
-import { UserAssetInfo, UserAssetItem } from '@/app/User/userSchema';
-import UserService from '@/app/User/UserService';
+import { UserAssetItem } from '@/app/User/userSchema';
 import { sendMessageUsingGo } from '@/app/WhatsAppBot/helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { Message } from '@/app/WhatsAppBot/WhatsAppBotController';
@@ -21,22 +21,26 @@ import WhatsAppBotSetupTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAp
 import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotTransferToWalletFlowService';
 import {
     canAccessFeature,
-    ENABLED_ASSETS,
+    deriveUserFeatureAccessLevel,
     FeatureAccessLevel,
     getAssetConfigOrThrow,
 } from '@/config/whatsAppBot';
 import env from '@/constants/env';
-import { TWO } from '@/constants/numbers';
+import { SIX, TWO } from '@/constants/numbers';
 import {
     SELL_ASSET_DESTINATION_CHOICE_REGEX,
     SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN,
     TRADE_ASSET_REGEX,
 } from '@/constants/regex';
 import { INTERNAL_SERVER_ERROR, OK } from '@/constants/status-codes';
+import { UserV2Record } from '@/db/xata';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import logger, { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import { generateAssetBalanceMessage, getNetworkEmoji } from '@/resources/utils/bot-message-utils';
+import {
+    generateAssetBalanceMessageV2,
+    getNetworkEmoji,
+} from '@/resources/utils/bot-message-utils';
 import {
     getCountryFlagEmoji,
     getUserCountryCodeFromPhoneNumberOrThrow,
@@ -47,10 +51,12 @@ import {
     decryptRequest,
     encryptResponse,
 } from '@/resources/utils/encryption';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import axios from 'axios';
 import { CountryCode } from 'libphonenumber-js';
-import { request } from 'undici';
 import * as zlib from 'node:zlib';
+import { request } from 'undici';
 import {
     ASSET_ACTION_REGEX_PATTERN,
     AssetInteractiveButtonIds,
@@ -199,7 +205,7 @@ class WhatsAppBotService {
         const interactiveListMessage: WhatsAppInteractiveMessage =
             MessageGenerators.generateInteractiveListMessage({
                 recipient,
-                listItems: walletAssets.map((asset) => ({
+                listItems: walletAssets.slice(0, 9).map((asset) => ({
                     id: asset.listItemId,
                     title: `${getNetworkEmoji(asset.network)} ${asset.name} (${asset.network})`,
                     description: `${asset.name} on ${asset.network}`,
@@ -331,27 +337,28 @@ class WhatsAppBotService {
     }
 
     public static async walletDetailsMessage(
-        businessPhoneNumberId: string,
-        recipient: string,
-        userAssetInfo: UserAssetInfo
+        phoneParams: PhoneNumberParams,
+        userAssetInfo: AssetBalance
     ) {
-        const { usdDisplayBalance, listItemId, tokenBalanceDisplay, assetName, assetNetwork } =
-            userAssetInfo;
+        const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
+        const { balance, asset, blockchainNetwork } = userAssetInfo;
 
-        const assetConfig = getAssetConfigOrThrow(listItemId);
+        const tokenBalanceDisplay = prettifyNumber(balance, SIX);
+
+        const assetConfig = getAssetConfigOrThrow(asset.listItemId);
         const actionsToDisplay = manageAssetActions.filter((action) =>
             assetConfig.supportedAssetActions.includes(action.action)
         );
 
         const interactiveListMessage = MessageGenerators.generateInteractiveListMessage({
-            recipient,
+            recipient: userPhoneNumber,
             listItems: actionsToDisplay.map((assetAction) => ({
-                id: `${assetAction.action}:${listItemId}`,
+                id: `${assetAction.action}:${asset.listItemId}`,
                 title: assetAction.text,
                 description: assetAction.description,
             })),
-            bodyText: `\n- *💰Balance:* ${tokenBalanceDisplay} ${assetName}\n- *💰USD Value:* ${usdDisplayBalance}`,
-            headerText: `${getNetworkEmoji(assetNetwork)} ${assetName} (${assetNetwork})`,
+            bodyText: `\n- *💰Balance:* ${tokenBalanceDisplay} ${asset.tokenName}`,
+            headerText: `${getNetworkEmoji(blockchainNetwork)} ${asset.tokenName} (${blockchainNetwork})`,
             actionButtonText: 'Manage Asset',
         });
 
@@ -441,16 +448,22 @@ class WhatsAppBotService {
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
     }
 
-    public static async beginOffRampFlowMessage(params: {
-        businessPhoneNumberId: string;
-        recipient: string;
-        beneficiaryId: string;
-        assetId: string;
-    }) {
-        const { assetId, beneficiaryId, recipient, businessPhoneNumberId } = params;
+    public static async beginOffRampFlowMessage(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams,
+        offrampParams: {
+            beneficiaryId: string;
+            assetId: string;
+        }
+    ) {
+        const { assetId, beneficiaryId } = offrampParams;
+        const { businessPhoneNumberId, userPhoneNumber } = phoneParams;
 
-        const [asset, beneficiary] = await Promise.all([
-            UserService.getUserAssetInfo(recipient, assetId),
+        const [assetBalance, beneficiary] = await Promise.all([
+            azzaWalletManager.getAssetBalance({
+                assetId,
+                userId: user.id,
+            }),
             FiatRampService.getBeneficiary(beneficiaryId),
         ]);
 
@@ -460,10 +473,10 @@ class WhatsAppBotService {
             'offramp'
         );
 
-        const flowMessage = WhatsAppBotOffRampFlowService.generateOffRampFlowInitMessage({
-            asset,
+        const flowMessage = WhatsAppBotOffRampFlowService.generateOffRampFlowInitMessage(user, {
+            assetBalance: assetBalance,
             beneficiary,
-            recipient,
+            recipient: userPhoneNumber,
             fiatConversionRate: rate,
             transactionFee: fee,
         });
@@ -503,18 +516,21 @@ class WhatsAppBotService {
     }
 
     public static async depositAssetCommandHandler(
-        userPhoneNumber: string,
-        businessPhoneNumberId: string,
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams,
         listItemId: string
     ) {
+        const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
+        const { tokenName, network } = getAssetConfigOrThrow(listItemId);
+
         console.time('depositAssetCommandHandler::getUserAssetWalletOrThrow');
-        const asset = await UserService.getUserAssetWalletOrThrow(userPhoneNumber, listItemId);
+        const assetWallet = await azzaWalletManager.getUserWallet(user.id, network);
         console.timeEnd('depositAssetCommandHandler::getUserAssetWalletOrThrow');
 
         const messagePayload: WhatsAppTextMessage = {
             type: WhatsAppMessageType.TEXT,
             text: {
-                body: `${asset.walletAddress}`,
+                body: `${assetWallet.address}`,
                 preview_url: false,
             },
             messaging_product: 'whatsapp',
@@ -526,7 +542,7 @@ class WhatsAppBotService {
 
         const guideMessage = MessageGenerators.generateTextMessage(
             userPhoneNumber,
-            `Steps to deposit ${asset.name} (${asset.network}):\n\n1. Copy the wallet address above 👆\n2. Go to your wallet or exchange where you have ${asset.name} on ${asset.network} and send the desired amount to the copied address.`
+            `☝️That’s your deposit address for ${tokenName} on ${network}:\n- Copy the address carefully. (Tap and hold to copy.)\n- Open your external wallet or exchange.\n- Paste the address and send your ${tokenName}.`
         );
 
         await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, guideMessage);
@@ -626,14 +642,20 @@ class WhatsAppBotService {
         );
     }
 
-    public static async sendKycVerificationUrlMessage(phoneParams: PhoneNumberParams) {
+    public static async sendKycVerificationUrlMessage(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams
+    ) {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
         const kycLevelName =
             getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber) === 'NG'
                 ? NG_KYC_LEVEL_NAME
                 : DEFAULT_KYC_LEVEL_NAME;
-
-        const kycUrl = await SumSubService.generateKycUrl(userPhoneNumber, kycLevelName);
+        const kycUrl = await SumSubService.generateKycUrl({
+            userPhoneNumber,
+            levelName: kycLevelName,
+            userId: user.id,
+        });
 
         const message = MessageGenerators.generateInteractiveCtaUrlButtonMessage({
             recipient: userPhoneNumber,
@@ -756,10 +778,12 @@ class WhatsAppBotService {
     }
 
     public static async handleBuyAssetAction(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        assetId: AssetInteractiveButtonIds,
-        userFeatureAccessLevel: FeatureAccessLevel
+        assetId: AssetInteractiveButtonIds
     ) {
+        const userFeatureAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
+
         if (
             !FiatRampService.SERVICE_ENABLED ||
             !canAccessFeature(userFeatureAccessLevel, FeatureAccessLevel.PRODUCTION)
@@ -770,17 +794,15 @@ class WhatsAppBotService {
             );
         }
 
-        const { userPhoneNumber } = phoneParams;
-
         if (SumSubService.SERVICE_IS_ACTIVE) {
-            const userKycStatus = await UserService.getUserKycStatus(userPhoneNumber);
+            const userKycStatus = userServiceV2.formatKycStatus(user.kycStatus);
 
             if (
                 userKycStatus === 'unverified' ||
                 userKycStatus === 'rejected' ||
                 userKycStatus === 'pending'
             ) {
-                await this.sendKycVerificationUrlMessage(phoneParams);
+                await this.sendKycVerificationUrlMessage(user, phoneParams);
                 return;
             }
 
@@ -798,10 +820,12 @@ class WhatsAppBotService {
     }
 
     public static async handleSellAssetAction(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        assetId: AssetInteractiveButtonIds,
-        userFeatureAccessLevel: FeatureAccessLevel
+        assetId: AssetInteractiveButtonIds
     ) {
+        const userFeatureAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
+
         if (
             !FiatRampService.SERVICE_ENABLED ||
             !canAccessFeature(userFeatureAccessLevel, FeatureAccessLevel.PRODUCTION)
@@ -813,14 +837,14 @@ class WhatsAppBotService {
         }
 
         if (SumSubService.SERVICE_IS_ACTIVE && this.SHOULD_REQUEST_KYC_FOR_OFFRAMP) {
-            const userKycStatus = await UserService.getUserKycStatus(phoneParams.userPhoneNumber);
+            const userKycStatus = userServiceV2.formatKycStatus(user.kycStatus);
 
             if (
                 userKycStatus === 'unverified' ||
                 userKycStatus === 'rejected' ||
                 userKycStatus === 'pending'
             ) {
-                await this.sendKycVerificationUrlMessage(phoneParams);
+                await this.sendKycVerificationUrlMessage(user, phoneParams);
                 return;
             }
 
@@ -838,21 +862,29 @@ class WhatsAppBotService {
     }
 
     public static async handleWithdrawAssetAction(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
         assetId: AssetInteractiveButtonIds
     ) {
         const { userPhoneNumber } = phoneParams;
-        const assetInfo = await UserService.getUserAssetInfo(userPhoneNumber, assetId);
-
-        const message = WhatsAppBotTransferToWalletFlowService.generateTransferToWalletInitMessage({
-            recipient: userPhoneNumber,
-            asset: assetInfo,
+        const assetBalance = await azzaWalletManager.getAssetBalance({
+            assetId,
+            userId: user.id,
         });
+
+        const message = WhatsAppBotTransferToWalletFlowService.generateTransferToWalletInitMessage(
+            user,
+            {
+                recipient: userPhoneNumber,
+                assetBalance: assetBalance,
+            }
+        );
 
         await this.sendWhatsappMessage(phoneParams.businessPhoneNumberId, message);
     }
 
     public static async beginOnrampFlowMessage(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
         params: {
             assetId: AssetInteractiveButtonIds;
@@ -882,7 +914,7 @@ class WhatsAppBotService {
             );
         }
 
-        const flowMessage = WhatsAppBotOnRampFlowService.generateOnRampFlowInitMessage({
+        const flowMessage = WhatsAppBotOnRampFlowService.generateOnRampFlowInitMessage(user, {
             recipient: userPhoneNumber,
             asset,
             localCurrency: currencySymbol,
@@ -952,6 +984,7 @@ class WhatsAppBotService {
     }
 
     public static async handleUserAssetBalanceQuery(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
         assetItemId: string
     ) {
@@ -962,7 +995,10 @@ class WhatsAppBotService {
 
         const [userCountry, userAssetInfo] = await Promise.all([
             this.getUserCountryFromPhoneNumber(phoneParams.userPhoneNumber),
-            UserService.getUserAssetInfo(phoneParams.userPhoneNumber, assetItemId),
+            azzaWalletManager.getAssetBalance({
+                userId: user.id,
+                assetId: assetItemId,
+            }),
         ]);
 
         if (!userCountry) {
@@ -981,6 +1017,7 @@ class WhatsAppBotService {
     }
 
     public static async handleUserBalancesQuery(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
         entityConfig: {
             asset?: string;
@@ -989,21 +1026,32 @@ class WhatsAppBotService {
     ) {
         const { asset: tokenName, network } = entityConfig;
 
-        await this.sendArbitraryTextMessage(
-            phoneParams.userPhoneNumber,
-            'Fetching your balances... Sit tight!'
+        await this.sendWhatsappMessage(
+            phoneParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                phoneParams.userPhoneNumber,
+                'Fetching your balances... Sit tight!'
+            )
         );
 
-        const supportedAssetIds = ENABLED_ASSETS.filter((asset) => {
-            // filter for assetName | network or assetName && network
-            return (
-                (tokenName ? asset.tokenName.toLowerCase() === tokenName.toLowerCase() : true) &&
-                (network ? asset.network.toLowerCase() === network.toLowerCase() : true)
-            );
-        }).map((asset) => asset.listItemId);
+        const supportedAssetIds = azzaWalletManager
+            .getSupportedAssets()
+            .filter((asset) => {
+                // filter for assetName | network or assetName && network
+                return (
+                    (tokenName
+                        ? asset.tokenName.toLowerCase() === tokenName.toLowerCase()
+                        : true) &&
+                    (network ? asset.network.toLowerCase() === network.toLowerCase() : true)
+                );
+            })
+            .map((asset) => asset.listItemId);
 
         const promises = supportedAssetIds.map((assetId) =>
-            UserService.getUserAssetInfo(phoneParams.userPhoneNumber, assetId)
+            azzaWalletManager.getAssetBalance({
+                userId: user.id,
+                assetId: assetId,
+            })
         );
 
         const [userCountry, ...userAssetsInfo] = await Promise.all([
@@ -1028,7 +1076,7 @@ class WhatsAppBotService {
 
     public static async sendUserBalancesMessage(
         phoneParams: PhoneNumberParams,
-        assetsInfo: UserAssetInfo[],
+        assetsInfo: AssetBalance[],
         fiatConfig?: {
             conversionRate: number;
             localCurrencySymbol: string;
@@ -1039,7 +1087,7 @@ class WhatsAppBotService {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
         const userBalancesMessage = assetsInfo.map((assetInfo) => {
-            return generateAssetBalanceMessage(assetInfo, fiatConfig);
+            return generateAssetBalanceMessageV2(assetInfo, fiatConfig);
         });
 
         const message = `*💰 Your Wallet Balances  💰*\n\n${userBalancesMessage.join('\n\n')}`;

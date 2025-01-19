@@ -7,17 +7,17 @@ type StoredMessage = {
 };
 
 type UpdateUserAgentThreadParams = {
-    userId: string;
+    ownerId: string;
     newMessages: Array<StoredMessage>;
     lastSessionId: string;
 };
 
 export const createOrUpdateUserAgentThread = async (params: UpdateUserAgentThreadParams) => {
-    const { userId, newMessages, lastSessionId } = params;
+    const { ownerId, newMessages, lastSessionId } = params;
 
     const thread = await dbClient.user_agent_thread
         .filter({
-            ownerId: userId,
+            ownerId: ownerId,
         })
         .getFirst();
 
@@ -25,7 +25,7 @@ export const createOrUpdateUserAgentThread = async (params: UpdateUserAgentThrea
 
     if (!thread) {
         await dbClient.user_agent_thread.createOrUpdate({
-            ownerId: userId,
+            ownerId: ownerId,
             messages,
             lastSessionId,
         });
@@ -37,7 +37,7 @@ export const createOrUpdateUserAgentThread = async (params: UpdateUserAgentThrea
         });
     }
 
-    return userId;
+    return ownerId;
 };
 
 export const getUserAgentThread = async (

@@ -13,6 +13,10 @@ export const OfframpQueueFlowSchema = z.object({
     platformFeePercentage: z.number(),
     conversionRate: z.number(),
     transactionFeeUsd: z.number(),
+    whatsappParams: z.object({
+        userPhoneNumber: z.string(),
+        businessPhoneNumberId: z.string(),
+    }),
 });
 
 export type OfframpQueueFlowParams = z.infer<typeof OfframpQueueFlowSchema>;

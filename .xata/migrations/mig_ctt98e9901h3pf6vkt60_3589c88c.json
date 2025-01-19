@@ -1,0 +1,75 @@
+{
+  "id": "mig_ctt98e9901h3pf6vkt60",
+  "parentID": "mig_ctnp63d7965n01fhu4n0",
+  "checksum": "1:3589c88cda0417ce9e568b6faaf3bfc94c6057b00f9195532422c7ba41b0d421",
+  "operations": [
+    {
+      "addTable": {
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "adminName",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "accessLevel",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "accessToken",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "lastAccessed",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xatacreatedAt",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataupdatedAt",
+          "type": "text"
+        },
+        "table": "bull_dashboard_access"
+      }
+    },
+    {
+      "addColumn": {
+        "column": {
+          "name": "xataversion",
+          "type": "int"
+        },
+        "table": "bull_dashboard_access"
+      }
+    }
+  ]
+}

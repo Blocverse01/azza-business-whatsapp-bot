@@ -12,6 +12,7 @@ import { delay } from '@/resources/utils/delay';
 import { getAppDefaultEvmConfig, isEvmNetwork } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
 import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
+import azzaWalletManager from '@/runtime/wallet';
 import { Hex } from 'viem';
 
 type TransactionDetails = TransactionResponse | ExtendedWalletTransaction;
@@ -26,7 +27,11 @@ export const waitForTransactionReceipt = async function waitForTransactionReceip
 ) {
     let transactionDetails: TransactionDetails;
 
-    const { transactionId, userId, asset } = transaction;
+    const { transactionId, userId, asset, walletManager } = transaction;
+
+    if (walletManager === 'new') {
+        return waitForTransactionReceiptV2(transaction);
+    }
 
     if (isExtendedNetwork(asset.network)) {
         const extendedWallet = await UserService.getExtendedWallet(userId, asset.network);
@@ -93,4 +98,31 @@ export async function getReceiptWithTransactionHash(
             explorerUrl: null,
         } as const;
     }
+}
+
+export async function waitForTransactionReceiptV2(
+    transaction: Pick<SendTransferTransactionResponse, 'transactionId' | 'asset' | 'walletManager'>
+) {
+    const { transactionId, asset, walletManager } = transaction;
+
+    if (walletManager !== 'new') {
+        throw new Error('Incompatible transaction params');
+    }
+
+    const assetTransaction = await azzaWalletManager.getTransaction(transactionId, asset.network);
+
+    if (assetTransaction.status === 'PENDING') {
+        await delay(5000);
+        return waitForTransactionReceiptV2(transaction);
+    }
+
+    const transactionHash = assetTransaction.hash;
+
+    return {
+        transactionHash,
+        status: assetTransaction.status.toLowerCase() as FinalStateStatus,
+        explorerUrl: transactionHash
+            ? getTransactionExplorerUrl(transactionHash as string, asset.network)
+            : null,
+    };
 }

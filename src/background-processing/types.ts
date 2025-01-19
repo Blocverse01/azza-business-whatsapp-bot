@@ -1,3 +1,5 @@
+import { PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+
 export type FiatPayoutQueueResult =
     | {
           sequenceId: string;
@@ -17,10 +19,12 @@ export type UserTxPinSecurityQueueInput =
           newPinHash: string;
           userId: string;
           encryptedSecurityQuestions: string;
+          whatsappParams: PhoneNumberParams;
       }
     | {
           newPinHash: string;
           userId: string;
+          whatsappParams: PhoneNumberParams;
       };
 export type UserTxPinSecurityQueueResult = {
     status: 'success' | 'failed';
@@ -31,4 +35,14 @@ export enum QueueNames {
     cryptoDebit = 'crypto-debit',
     cryptoDebitConfirmation = 'crypto-debit-confirmation',
     userTxPinSecurity = 'user-tx-pin-security',
+    walletMigration = 'wallet-migration',
 }
+
+export type UserWalletMigrationQueueInput = {
+    oldUserId?: string;
+    userPhoneNumber: string;
+    businessPhoneNumberId: string;
+};
+export type UserWalletMigrationQueueResult = {
+    walletIds: Array<string>;
+};

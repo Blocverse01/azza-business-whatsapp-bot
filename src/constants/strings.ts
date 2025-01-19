@@ -10,3 +10,5 @@ export const FALLBACK_USE_AZZA_ADDRESS =
     'B16, West Bridge 2 Estate, Ikota, Eti-Osa, Lagos, Nigeria';
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
+
+export const USD_SYMBOL = '$';

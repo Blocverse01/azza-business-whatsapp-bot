@@ -1,11 +1,15 @@
 import { TransferAssetTransactionDetails, TransferProcessingMode } from '@/app/azza/azza.schema';
+import { AssetTransaction } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import UserService from '@/app/User/UserService';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
+import { TransactionResponse } from '@/app/WalletKit/walletKitSchema';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { AssetConfig } from '@/resources/web3/tokens';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 
 export type SendTransferTransactionError = {
     message: string;
@@ -19,13 +23,16 @@ export type SendTransferTransactionResponse = {
     transactionFee: number;
     totalAmount: number;
     asset: AssetConfig;
+    walletManager: 'new' | 'legacy';
 };
 export type SendTransferTransactionResult =
     | [SendTransferTransactionResponse, null]
     | [null, SendTransferTransactionError];
 
 export const sendTransferAssetTransaction = async (
-    params: TransferAssetTransactionDetails
+    params: TransferAssetTransactionDetails,
+    requireTransactionPin = true,
+    walletManager: 'new' | 'legacy' = 'new'
 ): Promise<SendTransferTransactionResult> => {
     const { recipient, recipientType, assetId, transactionFee, amount, userId, transactionPin } =
         params;
@@ -33,21 +40,21 @@ export const sendTransferAssetTransaction = async (
     if (!userId) {
         throw new Error('User ID is required');
     }
-    if (!transactionPin) {
+    if (!transactionPin && requireTransactionPin) {
         throw new Error('Transaction pin is required');
     }
 
     const assetConfig = getAssetConfigOrThrow(assetId);
-    const [userWalletInfo, user] = await Promise.all([
-        UserService.getUserAssetInfo(userId, assetId),
-        UserService.getUserByPhoneNumber(userId),
-    ]);
+    const user =
+        walletManager === 'legacy'
+            ? await UserService.getUserByPhoneNumber(userId)
+            : await userServiceV2.getUserById(userId);
 
     if (!user?.transactionPinHash) {
         throw new Error('Transaction pin not set');
     }
 
-    if (!(await compareHashedString(transactionPin, user.transactionPinHash))) {
+    if (transactionPin && !(await compareHashedString(transactionPin, user.transactionPinHash))) {
         throw new Error('Invalid transaction pin');
     }
 
@@ -61,12 +68,13 @@ export const sendTransferAssetTransaction = async (
 
     if (recipientType === 'PHONE_NUMBER') {
         const cleanPhoneInput = cleanPhoneNumberInput(recipient);
-        const existingAzzaUser = await UserService.searchUserByPhoneNumber(cleanPhoneInput);
+        const existingAzzaUser =
+            await userServiceV2.searchWhatsappUserByPhoneNumber(cleanPhoneInput);
 
-        if (existingAzzaUser?.phoneNumber) {
+        if (existingAzzaUser) {
             transferProcessingConfig.resolvedRecipient = (
-                await UserService.getUserAssetWalletOrThrow(existingAzzaUser.phoneNumber, assetId)
-            ).walletAddress;
+                await azzaWalletManager.getUserWallet(existingAzzaUser.id, assetConfig.network)
+            ).address;
         } else {
             transferProcessingConfig.processingMode = 'claimable';
         }
@@ -96,13 +104,33 @@ export const sendTransferAssetTransaction = async (
 
     const totalAmount = amount + transactionFee;
 
-    const transactionResponse = await WalletAssetManagementService.transferUserAssetToWallet(
-        userWalletInfo,
-        transferProcessingConfig.resolvedRecipient,
-        totalAmount.toString()
-    );
+    let transactionResponse: {
+        transactionId: string;
+        status: TransactionResponse['status'] | AssetTransaction['status'];
+    };
 
-    if (transactionResponse.status === 'failed') {
+    if (walletManager === 'legacy') {
+        const userWalletInfo = await UserService.getUserAssetInfo(userId, assetId);
+        transactionResponse = await WalletAssetManagementService.transferUserAssetToWallet(
+            userWalletInfo,
+            transferProcessingConfig.resolvedRecipient,
+            totalAmount.toString()
+        );
+    } else {
+        const assetTransaction = await azzaWalletManager.withdrawAsset({
+            amount: totalAmount.toString(),
+            recipient: transferProcessingConfig.resolvedRecipient,
+            assetId: assetId,
+            userId: userId,
+        });
+
+        transactionResponse = {
+            transactionId: assetTransaction.id,
+            status: assetTransaction.status,
+        };
+    }
+
+    if (transactionResponse.status === 'failed' || transactionResponse.status === 'FAILED') {
         return [
             null,
             {
@@ -120,6 +148,7 @@ export const sendTransferAssetTransaction = async (
             asset: assetConfig,
             transactionFee,
             totalAmount,
+            walletManager,
         },
         null,
     ];

@@ -11,6 +11,8 @@ import {
     QueueNames,
     UserTxPinSecurityQueueInput,
     UserTxPinSecurityQueueResult,
+    UserWalletMigrationQueueInput,
+    UserWalletMigrationQueueResult,
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -21,14 +23,16 @@ export const queues = {
     cryptoDebit: new Queue<
         Required<TransferAssetTransactionDetails>,
         SendTransferTransactionResult,
-        'send-crypto' | 'offramp-debit'
+        'send-crypto' | 'offramp-debit' | 'user-funds-migration'
     >(QueueNames.cryptoDebit, {
         connection: connectionConfig,
     }),
     cryptoDebitConfirmation: new Queue<
         SendTransferTransactionResponse,
         CryptoDebitConfirmationQueueResult,
-        'send-crypto-confirmation' | 'offramp-debit-confirmation'
+        | 'send-crypto-confirmation'
+        | 'offramp-debit-confirmation'
+        | 'user-funds-migration-confirmation'
     >(QueueNames.cryptoDebitConfirmation, {
         connection: connectionConfig,
     }),
@@ -39,4 +43,20 @@ export const queues = {
     >(QueueNames.userTxPinSecurity, {
         connection: connectionConfig,
     }),
+    walletMigration: new Queue<UserWalletMigrationQueueInput, UserWalletMigrationQueueResult>(
+        QueueNames.walletMigration,
+        {
+            connection: connectionConfig,
+        }
+    ),
 };
+
+export const defaultQueueRemoveOptions = {
+    removeOnComplete: {
+        age: 3600, // keep up to 1 hour
+        count: 1000, // keep up to 1000 jobs
+    },
+    removeOnFail: {
+        age: 24 * 3600, // keep up to 24 hours
+    },
+} as const;

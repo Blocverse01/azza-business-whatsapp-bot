@@ -1,0 +1,18 @@
+{
+  "id": "mig_cu2hifj0dno3bog101ng",
+  "parentID": "mig_cu2g6hmit2kpi5f2fqeg",
+  "checksum": "1:54dde425ef77cef82bdd98dd8a046c6c9c6a32b680c8601784f2ef9a4e7dc187",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "primaryWhatsappPhoneNumber",
+          "type": "text",
+          "notNull": true,
+          "defaultValue": ""
+        },
+        "table": "user_v2"
+      }
+    }
+  ]
+}

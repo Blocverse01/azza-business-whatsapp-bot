@@ -1,16 +1,17 @@
-import { getPayoutSpenderWalletAddress } from '@/app/CryptoPayout/config';
+import { AssetTransaction } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
+import { GetTransactionReceiptInBackgroundParams } from '@/app/CryptoPayout/getTransactionReceiptInBackground';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { isExtendedNetwork } from '@/app/ExtendedWallet/utils';
-import { SupportedChain, TransactionResponse } from '@/app/WalletKit/walletKitSchema';
-import WalletKitService from '@/app/WalletKit/WalletKitService';
-import { ENABLED_ASSETS } from '@/config/whatsAppBot';
-import env from '@/constants/env';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { ZERO } from '@/constants/numbers';
 import { CryptoPayoutOrder } from '@/db/xata';
 import logger, { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { decimalToString } from '@/resources/utils/currency';
+import { AssetConfig } from '@/resources/web3/tokens';
+import platformWalletManager, { composePlatformAddressIdKey } from '@/runtime/platform-wallets';
 import { spawn } from 'child_process';
 
 type CryptoOrderInput = {
@@ -19,10 +20,13 @@ type CryptoOrderInput = {
     orderId: string;
 };
 
+type CryptoPayoutType = 'offramp-refund' | 'onramp-payment';
+
 export type CryptoPendingOrderGroup = {
     tokenAddress: string;
-    network: SupportedChain | ExtendedWalletSupportedNetworks;
+    network: AllSupportedBlockchains;
     orders: Array<CryptoOrderInput>;
+    payoutType: CryptoPayoutType;
 };
 
 type ProcessCryptoPayoutGroupResponse = {
@@ -30,7 +34,7 @@ type ProcessCryptoPayoutGroupResponse = {
     unSubmittedOrders: CryptoPendingOrderGroup['orders'];
 };
 type TransferCryptoForIndividualOrderResponse = {
-    transactionResponse: TransactionResponse;
+    transactionResponse: AssetTransaction;
     order: CryptoOrderInput;
 };
 
@@ -62,7 +66,8 @@ class CryptoPayoutCronJobService {
                 group.submittedOrders.forEach((order) => {
                     this.getTransactionReceiptInBackground(
                         order.order.orderId,
-                        order.transactionResponse.transaction_id
+                        order.transactionResponse.id,
+                        order.transactionResponse.asset
                     );
                 });
 
@@ -79,11 +84,16 @@ class CryptoPayoutCronJobService {
         }
     }
 
-    private static getTransactionReceiptInBackground(orderId: string, transactionId: string) {
+    private static getTransactionReceiptInBackground(
+        orderId: string,
+        transactionId: string,
+        asset: AssetConfig
+    ) {
         const serializedParams = JSON.stringify({
-            orderIds: [orderId],
+            orderId: orderId,
             transactionId,
-        });
+            asset,
+        } satisfies GetTransactionReceiptInBackgroundParams);
 
         // Spawn the background process
         const backgroundProcess = spawn(
@@ -109,30 +119,31 @@ class CryptoPayoutCronJobService {
     private static async processCryptoPayoutGroup(
         group: CryptoPendingOrderGroup
     ): Promise<ProcessCryptoPayoutGroupResponse | undefined> {
-        if (isExtendedNetwork(group.network)) {
-            // Todo: Implement extended network payout
-            return;
+        const platformAddressUserId = composePlatformAddressIdKey(
+            group.payoutType === 'onramp-payment' ? 'onramp-payout' : 'offramp-hot-wallet',
+            group.network
+        );
+        const asset = platformWalletManager.searchAssets({
+            network: group.network,
+            tokenAddress: group.tokenAddress,
+        })[ZERO];
+
+        if (!asset) {
+            throw new Error(
+                `Asset not found for token address ${group.tokenAddress} on network ${group.network}`
+            );
         }
 
-        const spenderWalletAddress = getPayoutSpenderWalletAddress(
-            group.network,
-            env.WEB3_ENVIRONMENT
-        );
-
-        if (!spenderWalletAddress) {
-            throw new Error(`No spender wallet address found for ${group.network}`);
-        }
-
-        const tokenBalance = await WalletKitService.getBalance(
-            spenderWalletAddress,
-            group.network,
-            group.tokenAddress
-        );
+        let tokenBalanceNumber = (
+            await platformWalletManager.getAssetBalance({
+                userId: platformAddressUserId,
+                assetId: asset.listItemId,
+            })
+        ).balance;
 
         const processableOrdersInGroup: CryptoPendingOrderGroup['orders'] = [];
         const unProcessableOrdersInGroup: CryptoPendingOrderGroup['orders'] = [];
 
-        let tokenBalanceNumber = Number(tokenBalance);
         group.orders.forEach((order) => {
             if (tokenBalanceNumber >= Number(order.amount)) {
                 processableOrdersInGroup.push(order);
@@ -161,7 +172,8 @@ class CryptoPayoutCronJobService {
                     return this.transferCryptoForIndividualOrder(order, {
                         network: group.network,
                         tokenAddress: group.tokenAddress,
-                        spenderWalletAddress,
+                        payoutAddressUserId: platformAddressUserId,
+                        assetId: asset.listItemId,
                     });
                 });
 
@@ -205,21 +217,15 @@ class CryptoPayoutCronJobService {
         config: {
             tokenAddress: string;
             network: SupportedChain | ExtendedWalletSupportedNetworks;
-            spenderWalletAddress: string;
+            payoutAddressUserId: string;
+            assetId: string;
         }
     ) {
-        if (isExtendedNetwork(config.network)) {
-            // Todo: Implement extended network payout
-            throw new Error('Extended network payout not implemented');
-        }
-
-        const transactionResponse = await WalletKitService.transferToken({
+        const transactionResponse = await platformWalletManager.withdrawAsset({
             amount: order.amount,
-            network: config.network,
-            developer_secret: env.WALLET_KIT_MAINNET_DEVELOPER_SECRET, // Do not change this for now
-            token: config.tokenAddress,
-            from: config.spenderWalletAddress,
+            assetId: config.assetId,
             recipient: order.recipient,
+            userId: config.payoutAddressUserId,
         });
 
         return {
@@ -244,12 +250,10 @@ class CryptoPayoutCronJobService {
         const groupedOrders: Array<CryptoPendingOrderGroup> = [];
 
         pendingOrders.forEach((order) => {
-            const assetConfig = ENABLED_ASSETS.find((asset) => {
-                return (
-                    asset.tokenName.toLowerCase() === order.tokenSymbol.toLowerCase() &&
-                    asset.network.toLowerCase() === order.network.toLowerCase()
-                );
-            });
+            const assetConfig = platformWalletManager.searchAssets({
+                tokenName: order.tokenSymbol,
+                network: order.network as AllSupportedBlockchains,
+            })[ZERO];
 
             if (!assetConfig) {
                 return;
@@ -258,7 +262,8 @@ class CryptoPayoutCronJobService {
             const existingGroup = groupedOrders.find(
                 (group) =>
                     group.tokenAddress === assetConfig.tokenAddress &&
-                    group.network === assetConfig.network
+                    group.network === assetConfig.network &&
+                    group.payoutType === order.payoutType
             );
 
             if (existingGroup) {
@@ -278,6 +283,7 @@ class CryptoPayoutCronJobService {
                             orderId: order.id,
                         },
                     ],
+                    payoutType: order.payoutType as CryptoPayoutType,
                 });
             }
         });

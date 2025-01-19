@@ -1,7 +1,7 @@
-import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
-import { z } from 'zod';
-import { TokenNames } from '@/resources/web3/tokens';
+import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
+import { TokenNames } from '@/resources/web3/tokens';
+import { z } from 'zod';
 
 export enum CryptoPayoutOrderStatus {
     PENDING = 1,
@@ -13,7 +13,6 @@ export enum CryptoPayoutOrderStatus {
 export enum CryptoPayoutReasons {
     ONRAMP = 'ONRAMP',
     OFFRAMP_REFUND = 'OFFRAMP_REFUND',
-    FUNDING_YELLOW_CARD = 'FUNDING_YELLOW_CARD',
 }
 
 export const cryptoPayoutAuthorizationPayloadSchema = z.object({
@@ -29,10 +28,9 @@ export const createCryptoPayoutOrderSchema = z.object({
     tokenSymbol: z.enum([TokenNames.USDT, TokenNames.USDC]),
     amount: z.number(),
     destinationWalletAddress: z.string(),
-    network: supportedChainSchema,
+    network: supportedChainSchema.or(extendedWalletSupportedNetworks),
     triggerTransactionId: z.string(),
-    ownerId: z.string().optional(),
-    transactionStatus: transactionStatusSchema.optional(),
+    payoutType: z.enum(['offramp-refund', 'onramp-payment'] as const),
 });
 
 export type CreateCryptoPayoutOrderParams = z.infer<typeof createCryptoPayoutOrderSchema>;

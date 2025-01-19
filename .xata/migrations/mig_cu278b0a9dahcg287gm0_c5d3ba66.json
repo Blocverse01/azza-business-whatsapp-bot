@@ -1,0 +1,13 @@
+{
+  "id": "mig_cu278b0a9dahcg287gm0",
+  "parentID": "mig_cu26bc9ro7530ttkkj2g",
+  "checksum": "1:c5d3ba6607cc496baeb308206787ce85ab9b83ee4c6c46a4281b880307185220",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "country",
+        "table": "user_v2"
+      }
+    }
+  ]
+}

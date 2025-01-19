@@ -1,0 +1,16 @@
+{
+  "id": "mig_cu26438a9dahcg287fu0",
+  "parentID": "mig_cu263t9ro7530ttkkirg",
+  "checksum": "1:ecd9b9c335294a9bcef8d336258e91534d4552f4c5a583c9a405d018acf8afb0",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "firstName",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    }
+  ]
+}

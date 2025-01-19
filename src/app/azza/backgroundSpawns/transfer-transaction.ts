@@ -1,12 +1,13 @@
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import { WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
 import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
-import { WaitForTransactionReceiptInBackgroundParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
+import { WaitForTransactionReceiptParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
 import { sendTransferAssetTransaction } from '@/app/azza/lib/azza.lib.transaction';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { logSync } from '@/resources/logger';
+import userServiceV2 from '@/runtime/user';
 
 /**
  * This script is used to send a transfer asset transaction to the blockchain.
@@ -17,13 +18,24 @@ import { logSync } from '@/resources/logger';
 const transactionParams: TransferAssetTransactionDetails = JSON.parse(process.argv[2]);
 
 async function executeScript() {
+    const user = await userServiceV2.getUserById(transactionParams.userId);
+
+    if (!user) {
+        throw new Error(`Invalid user ID`);
+    }
+    const userPhoneNumber = user.primaryWhatsappPhoneNumber;
+
     try {
-        const [transaction, error] = await sendTransferAssetTransaction(transactionParams);
+        const [transaction, error] = await sendTransferAssetTransaction(
+            transactionParams,
+            true,
+            'new'
+        );
 
         if (error !== null) {
             await WhatsAppBotService.sendWhatsappMessage(
                 env.WA_PHONE_NUMBER_ID,
-                MessageGenerators.generateTextMessage(transactionParams.userId, error.message)
+                MessageGenerators.generateTextMessage(userPhoneNumber, error.message)
             );
             return;
         }
@@ -31,28 +43,26 @@ async function executeScript() {
         const assetConfig = transaction.asset;
         const responseMessage = `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${transaction.transactionAmount} ${assetConfig.tokenName} on ${assetConfig.network} to ${transaction.destination}\n\n🆔 Request ID: ${transaction.transactionId}`;
 
-        const message = MessageGenerators.generateTextMessage(
-            transactionParams.userId,
-            responseMessage
-        );
+        const message = MessageGenerators.generateTextMessage(userPhoneNumber, responseMessage);
         await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
 
-        spawnInBackground<WaitForTransactionReceiptInBackgroundParams>(
-            {
-                transactionId: transaction.transactionId,
-                userId: transactionParams.userId,
-                destination: transaction.destination,
-                amount: transaction?.totalAmount.toString(),
-                assetLabel: `${assetConfig.tokenName} on ${assetConfig.network}`,
-                network: assetConfig.network,
-            },
-            WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH
-        );
+        if (transaction) {
+            spawnInBackground<WaitForTransactionReceiptParams>(
+                {
+                    transaction,
+                    phoneParams: {
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        userPhoneNumber: userPhoneNumber,
+                    },
+                },
+                WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH
+            );
+        }
     } catch (error) {
         logSync('error', 'Error executing transaction in background', { error });
 
         const message = MessageGenerators.generateTextMessage(
-            transactionParams.userId,
+            userPhoneNumber,
             `An error occurred while sending your transaction. Please try again.`
         );
         await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);

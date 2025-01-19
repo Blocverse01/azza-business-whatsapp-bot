@@ -1,14 +1,19 @@
+import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
 import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
-import { WaitForTransactionReceiptInBackgroundParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
-import { AzzaUserRecord, UserAssetInfo } from '@/app/User/userSchema';
-import UserService from '@/app/User/UserService';
+import { WaitForTransactionReceiptParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
+import {
+    sendTransferAssetTransaction,
+    SendTransferTransactionResponse,
+} from '@/app/azza/lib/azza.lib.transaction';
+import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
+    PhoneNumberParams,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
@@ -17,13 +22,20 @@ import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN, TWO, ZERO } from '@/constants/numbers';
+import { UserV2Record } from '@/db/xata';
 import { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import { decimalToString, fixNumber } from '@/resources/utils/currency';
+import {
+    decimalToString,
+    fixNumber,
+    getUserCountryCodeFromPhoneNumberOrThrow,
+} from '@/resources/utils/currency';
 import { generateRandomHexString } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
-import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
+import { cleanPhoneNumberInput, standardizePhoneNumber } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 
 enum TransferToWalletFlowScreens {
     TRANSACTION_DETAILS = 'TRANSACTION_DETAILS',
@@ -166,10 +178,15 @@ class WhatsAppBotTransferToWalletFlowService {
 
         const userBalance = userBalanceMatch
             ? parseFloat(userBalanceMatch[1])
-            : (await UserService.getUserAssetInfo(data.user_id, data.asset_id)).tokenBalance;
+            : (
+                  await azzaWalletManager.getAssetBalance({
+                      userId: data.user_id,
+                      assetId: data.asset_id,
+                  })
+              ).balance;
         const amount = parseFloat(data.amount);
 
-        let azzaUserRecipient: AzzaUserRecord | null = null;
+        let azzaUserRecipient: UserV2Record | null = null;
         const errorMessages: ScreenDataPayload['TRANSACTION_DETAILS']['error_messages'] = {};
 
         if (!data.wallet_address?.trim() && !data.azza_phone_number?.trim()) {
@@ -204,12 +221,28 @@ class WhatsAppBotTransferToWalletFlowService {
             }
         } else if (recipientType === 'azza-phone-number') {
             const cleanPhoneInput = cleanPhoneNumberInput(data.azza_phone_number);
-            azzaUserRecipient = await UserService.searchUserByPhoneNumber(cleanPhoneInput);
+            azzaUserRecipient =
+                await userServiceV2.searchWhatsappUserByPhoneNumber(cleanPhoneInput);
 
             if (!azzaUserRecipient) {
                 errorMessages.azza_phone_number = 'User does not exist on Azza';
             }
         }
+
+        const azzaRecipientPhoneNumber = azzaUserRecipient
+            ? [
+                  azzaUserRecipient.primaryWhatsappPhoneNumber,
+                  ...(azzaUserRecipient.linkedWhatsappPhoneNumbers ?? []),
+              ].find((phone) => {
+                  const countryCode = getUserCountryCodeFromPhoneNumberOrThrow(phone);
+                  const standardInputPhoneNumber = standardizePhoneNumber(
+                      data.azza_phone_number,
+                      countryCode
+                  );
+
+                  return standardInputPhoneNumber === standardizePhoneNumber(phone, countryCode);
+              })
+            : null;
 
         if (Object.keys(errorMessages).length > 0) {
             return {
@@ -224,7 +257,7 @@ class WhatsAppBotTransferToWalletFlowService {
                     init_values: {
                         wallet_address: data.wallet_address,
                         amount: data.amount,
-                        azza_phone_number: azzaUserRecipient?.phoneNumber ?? data.azza_phone_number,
+                        azza_phone_number: azzaRecipientPhoneNumber ?? data.azza_phone_number,
                     },
                     form_sub_text: TRANSFER_DETAILS_FORM_SUB_TEXT,
                 } satisfies ScreenDataPayload['TRANSACTION_DETAILS'],
@@ -242,17 +275,21 @@ class WhatsAppBotTransferToWalletFlowService {
                 transaction_fee: decimalToString(transactionFee),
                 asset_label: `${asset.tokenName} (${asset.network})`,
                 recipient_type: recipientType,
+                azza_phone_number: azzaRecipientPhoneNumber ?? data.azza_phone_number,
             } satisfies ScreenDataPayload['TRANSACTION_SUMMARY'],
         };
     }
 
     private static async getFeedbackScreenData(data: DataExchangePayload['TRANSACTION_SUMMARY']) {
-        const [walletInfo, user] = await Promise.all([
-            UserService.getUserAssetInfo(data.user_id, data.asset_id),
-            UserService.getUserByPhoneNumber(data.user_id),
+        const [userAssetInfo, user] = await Promise.all([
+            azzaWalletManager.getAssetBalance({
+                userId: data.user_id,
+                assetId: data.asset_id,
+            }),
+            userServiceV2.getUserById(data.user_id),
         ]);
 
-        const assetBalance = walletInfo.tokenBalance;
+        const assetBalance = userAssetInfo.balance;
 
         const transactionFee = parseFloat(data.transaction_fee);
         const amount = parseFloat(data.amount);
@@ -260,11 +297,11 @@ class WhatsAppBotTransferToWalletFlowService {
             ? fixNumber(amount + transactionFee, TWO)
             : amount;
 
-        let azzaUserRecipient: AzzaUserRecord | null = null;
+        let azzaUserRecipient: UserV2Record | null = null;
 
         if (
             data.recipient_type === 'wallet-address' &&
-            !validateWalletAddress(data.wallet_address, walletInfo.assetNetwork)
+            !validateWalletAddress(data.wallet_address, userAssetInfo.blockchainNetwork)
         ) {
             return {
                 screen: TransferToWalletFlowScreens.FEEDBACK,
@@ -280,9 +317,10 @@ class WhatsAppBotTransferToWalletFlowService {
 
         if (data.recipient_type === 'azza-phone-number') {
             const cleanPhoneInput = cleanPhoneNumberInput(data.azza_phone_number);
-            azzaUserRecipient = await UserService.searchUserByPhoneNumber(cleanPhoneInput);
+            azzaUserRecipient =
+                await userServiceV2.searchWhatsappUserByPhoneNumber(cleanPhoneInput);
 
-            if (!azzaUserRecipient?.phoneNumber) {
+            if (!azzaUserRecipient) {
                 return {
                     screen: TransferToWalletFlowScreens.FEEDBACK,
                     data: {
@@ -297,7 +335,7 @@ class WhatsAppBotTransferToWalletFlowService {
         }
 
         if (assetBalance < totalAmount) {
-            const insufficientBalanceMessage = `You're trying to pay: ${totalAmount} ${walletInfo.assetName}\nYou have only: ${assetBalance} ${walletInfo.assetName}`;
+            const insufficientBalanceMessage = `You're trying to pay: ${totalAmount} ${userAssetInfo.asset.tokenName}\nYou have only: ${assetBalance} ${userAssetInfo.asset.tokenName}`;
 
             return {
                 screen: TransferToWalletFlowScreens.FEEDBACK,
@@ -338,7 +376,7 @@ class WhatsAppBotTransferToWalletFlowService {
                     wallet_address: data.wallet_address,
                     azza_phone_number: data.azza_phone_number,
                     recipient_type: data.recipient_type,
-                    asset_label: `${walletInfo.assetName} (${walletInfo.assetNetwork})`,
+                    asset_label: `${userAssetInfo.asset.tokenName} (${userAssetInfo.blockchainNetwork})`,
                     transaction_fee: data.transaction_fee,
                     transaction_pin: data.transaction_pin,
                     error_messages: {
@@ -354,20 +392,16 @@ class WhatsAppBotTransferToWalletFlowService {
         try {
             let walletAddress = data.wallet_address;
 
-            if (
-                data.recipient_type === 'azza-phone-number' &&
-                azzaUserRecipient &&
-                azzaUserRecipient.phoneNumber
-            ) {
+            if (data.recipient_type === 'azza-phone-number' && azzaUserRecipient) {
                 walletAddress = (
-                    await UserService.getUserAssetWalletOrThrow(
-                        azzaUserRecipient.phoneNumber,
-                        data.asset_id
+                    await azzaWalletManager.getUserWallet(
+                        azzaUserRecipient.id,
+                        userAssetInfo.blockchainNetwork
                     )
-                ).walletAddress;
+                ).address;
             }
 
-            if (!validateWalletAddress(walletAddress, walletInfo.assetNetwork)) {
+            if (!validateWalletAddress(walletAddress, userAssetInfo.blockchainNetwork)) {
                 return {
                     screen: TransferToWalletFlowScreens.FEEDBACK,
                     data: {
@@ -380,14 +414,22 @@ class WhatsAppBotTransferToWalletFlowService {
                 };
             }
 
-            const transactionResponse =
-                await WalletAssetManagementService.transferUserAssetToWallet(
-                    walletInfo,
-                    walletAddress,
-                    data.amount
-                );
+            const [transactionResponse, txError] = await sendTransferAssetTransaction(
+                {
+                    transactionType: 'SEND',
+                    amount: Number(data.amount),
+                    recipient: walletAddress,
+                    recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
+                    assetId: data.asset_id,
+                    transactionFee: transactionFee,
+                    userId: data.user_id,
+                    transactionPin: data.transaction_pin,
+                },
+                true,
+                'new'
+            );
 
-            if (transactionResponse.status === 'failed') {
+            if (txError !== null) {
                 return {
                     screen: TransferToWalletFlowScreens.FEEDBACK,
                     data: {
@@ -400,22 +442,18 @@ class WhatsAppBotTransferToWalletFlowService {
                 };
             }
 
-            const assetLabel = `${walletInfo.assetName} (${walletInfo.assetNetwork})`;
+            const assetLabel = `${userAssetInfo.asset.tokenName} (${userAssetInfo.blockchainNetwork})`;
 
             const message = MessageGenerators.generateTextMessage(
-                data.user_id,
+                user.primaryWhatsappPhoneNumber,
                 `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${walletAddress}\n\n➡️ Request ID: ${transactionResponse.transactionId}`
             );
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
 
-            this.waitForTransactionReceiptInBackground({
-                transactionId: transactionResponse.transactionId,
-                userId: data.user_id,
-                destination: walletAddress,
-                amount: data.amount,
-                assetLabel,
-                network: walletInfo.assetNetwork,
+            this.waitForTransactionReceiptInBackground(transactionResponse, {
+                userPhoneNumber: user.primaryWhatsappPhoneNumber,
+                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
             });
 
             return {
@@ -449,28 +487,36 @@ class WhatsAppBotTransferToWalletFlowService {
     }
 
     private static waitForTransactionReceiptInBackground(
-        params: WaitForTransactionReceiptInBackgroundParams
+        transaction: SendTransferTransactionResponse,
+        phoneParams: PhoneNumberParams
     ) {
-        spawnInBackground<WaitForTransactionReceiptInBackgroundParams>(
-            params,
+        spawnInBackground<WaitForTransactionReceiptParams>(
+            {
+                transaction,
+                phoneParams: phoneParams,
+            },
             WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH
         );
     }
 
-    public static generateTransferToWalletInitMessage(params: {
-        recipient: string;
-        asset: UserAssetInfo;
-    }) {
-        const { asset, recipient } = params;
+    public static generateTransferToWalletInitMessage(
+        user: UserV2Record,
+        params: {
+            recipient: string;
+            assetBalance: AssetBalance;
+        }
+    ) {
+        const { assetBalance, recipient } = params;
 
-        const assetLabel = `${asset.assetName} (${asset.assetNetwork})`;
+        const { asset, balance } = assetBalance;
+        const assetLabel = `${asset.tokenName} (${asset.network})`;
 
         const transferMessage = `Withdraw ${assetLabel}`;
 
         /**
          * Updating this will require updating the regex pattern in `this.USER_BALANCE_PATTERN`
          * */
-        const userBalanceMessage = `Your balance: ${asset.tokenBalance} ${asset.assetName}`;
+        const userBalanceMessage = `Your balance: ${balance} ${asset.tokenName}`;
 
         const flowMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
@@ -494,7 +540,7 @@ class WhatsAppBotTransferToWalletFlowService {
                                 dynamic_page_title: transferMessage,
                                 asset_label: assetLabel,
                                 asset_id: asset.listItemId,
-                                user_id: recipient,
+                                user_id: user.id,
                                 user_balance: userBalanceMessage,
                                 form_sub_text: TRANSFER_DETAILS_FORM_SUB_TEXT,
                             } satisfies ScreenDataPayload['TRANSACTION_DETAILS'],

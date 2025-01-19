@@ -1,0 +1,13 @@
+{
+  "id": "mig_cu2uuhmit2kpi5f2fvq0",
+  "parentID": "mig_cu2himr0dno3bog101og",
+  "checksum": "1:caf85387146d77c88ba74472e70da30c37605e760366d1968fd99bd163c44218",
+  "operations": [
+    {
+      "removeColumn": {
+        "column": "user",
+        "table": "user_agent_thread"
+      }
+    }
+  ]
+}

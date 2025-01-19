@@ -1,0 +1,20 @@
+{
+  "id": "mig_cu26agpro7530ttkkj1g",
+  "parentID": "mig_cu269kboqjfbc39h50tg",
+  "checksum": "1:ec726cf8f2d64f6546927568e88ff6327b9141cbc8fb4f1f1691abb6aca21070",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "user",
+          "type": "link",
+          "link": {
+            "table": "user_v2"
+          },
+          "unique": true
+        },
+        "table": "user_blockradar_wallet_id"
+      }
+    }
+  ]
+}

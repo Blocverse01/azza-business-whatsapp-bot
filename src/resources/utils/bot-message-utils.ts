@@ -1,12 +1,14 @@
+import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { UserAssetInfo } from '@/app/User/userSchema';
+import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { SIX } from '@/constants/numbers';
+import { USD_SYMBOL } from '@/constants/strings';
 import {
     formatNumberAsCurrency,
     getCountryFlagEmoji,
     prettifyNumber,
 } from '@/resources/utils/currency';
-import { UserAssetInfo } from '@/app/User/userSchema';
-import { TWO } from '@/constants/numbers';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 
 type BankInfo = {
     name: string;
@@ -119,4 +121,35 @@ export function generateAssetBalanceMessage(
     const assetLabel = `${assetName} on ${assetNetwork}`;
 
     return `_*${EMOJIS_FOR_NETWORKS[assetNetwork]} ${assetLabel}*_\n- *Balance:* ${tokenBalanceDisplay}\n- *USD Value:*  ${usdDisplayBalance}${localCurrencyEquivalent ? `\n- ${localCurrencyEquivalent}` : ''}`;
+}
+
+export function generateAssetBalanceMessageV2(
+    assetBalance: AssetBalance,
+    fiatConfig?: {
+        localCurrencySymbol: string;
+        countryCode: string;
+        conversionRate: number;
+    }
+) {
+    const { asset, blockchainNetwork, balance, convertedBalanceUsd } = assetBalance;
+    const assetName = asset.tokenName;
+
+    const localCurrencyBalance =
+        convertedBalanceUsd !== undefined && fiatConfig
+            ? formatNumberAsCurrency(
+                  convertedBalanceUsd * fiatConfig.conversionRate,
+                  fiatConfig.localCurrencySymbol
+              )
+            : '';
+
+    const localCurrencyEquivalent = fiatConfig
+        ? `${getCountryFlagEmoji(fiatConfig.countryCode)} *Value:* ${localCurrencyBalance}`
+        : '';
+
+    const assetLabel = `${assetName} on ${blockchainNetwork}`;
+    const tokenBalanceDisplay = prettifyNumber(balance, SIX);
+    const usdBalanceDisplay =
+        convertedBalanceUsd !== undefined ? prettifyNumber(convertedBalanceUsd, SIX) : null;
+
+    return `_*${EMOJIS_FOR_NETWORKS[blockchainNetwork]} ${assetLabel}*_\n- *Balance:* ${tokenBalanceDisplay}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}${localCurrencyEquivalent ? `\n- ${localCurrencyEquivalent}` : ''}`;
 }

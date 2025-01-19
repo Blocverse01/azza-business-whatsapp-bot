@@ -1,5 +1,5 @@
 import SumSubService from '@/app/SumSub/SumSubService';
-import UserService from '@/app/User/UserService';
+import { UserAssetItem } from '@/app/User/userSchema';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { getSupportedAssetAndNetworksText } from '@/app/WhatsAppBot/utils';
@@ -12,13 +12,16 @@ import {
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
 import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
-import { FeatureAccessLevel, searchAsset } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import {
     BOT_COMMANDS_REGEX,
     extractGroups,
     TradeAssetBotCommandMatchGroups,
 } from '@/constants/regex';
+import { UserV2Record } from '@/db/xata';
+import { TokenNames } from '@/resources/web3/tokens';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 
 type BotCommand = keyof typeof BOT_COMMANDS_REGEX;
 
@@ -27,7 +30,7 @@ class BotCommandHandler {
         text: string,
         phoneParams: PhoneNumberParams,
         displayName: string,
-        userAccessLevel: FeatureAccessLevel
+        user: UserV2Record
     ): Promise<{
         handled: boolean;
     }> {
@@ -44,40 +47,40 @@ class BotCommandHandler {
                 await BotCommandHandler.getRates(phoneParams);
                 break;
             case 'SELL_ASSET':
-                await BotCommandHandler.sellAsset(phoneParams, botCommand.params, userAccessLevel);
+                await BotCommandHandler.sellAsset(user, phoneParams, botCommand.params);
                 break;
             case 'BUY_ASSET':
-                await BotCommandHandler.buyAsset(phoneParams, botCommand.params, userAccessLevel);
+                await BotCommandHandler.buyAsset(user, phoneParams, botCommand.params);
                 break;
             case 'ASSETS_MENU':
-                await BotCommandHandler.getAssetsMenu(phoneParams, displayName);
+                await BotCommandHandler.getAssetsMenu(user, phoneParams, displayName);
                 break;
             case 'HELP':
                 await BotCommandHandler.getHelp(phoneParams);
                 break;
             case 'TRANSFER':
-                await BotCommandHandler.transferAsset(phoneParams, botCommand.params);
+                await BotCommandHandler.transferAsset(user, phoneParams, botCommand.params);
                 break;
             case 'BALANCES':
-                await BotCommandHandler.getAllBalances(phoneParams);
+                await BotCommandHandler.getAllBalances(user, phoneParams);
                 break;
             case 'ASSET_BALANCE':
-                await BotCommandHandler.getAssetBalance(phoneParams, botCommand.params);
+                await BotCommandHandler.getAssetBalance(user, phoneParams, botCommand.params);
                 break;
             case 'ENTITY_BALANCE':
-                await BotCommandHandler.getAllBalances(phoneParams, botCommand.params);
+                await BotCommandHandler.getAllBalances(user, phoneParams, botCommand.params);
                 break;
             case 'DEPOSIT':
-                await BotCommandHandler.depositAsset(phoneParams, botCommand.params);
+                await BotCommandHandler.depositAsset(user, phoneParams, botCommand.params);
                 break;
             case 'RESET_PIN':
-                await BotCommandHandler.resetTransactionPin(phoneParams);
+                await BotCommandHandler.resetTransactionPin(user, phoneParams);
                 break;
             case 'CHANGE_PIN':
-                await BotCommandHandler.changeTransactionPin(phoneParams);
+                await BotCommandHandler.changeTransactionPin(user, phoneParams);
                 break;
             case 'PERFORM_KYC':
-                await BotCommandHandler.handleKycVerificationRequest(phoneParams);
+                await BotCommandHandler.handleKycVerificationRequest(user, phoneParams);
                 break;
             default:
                 return {
@@ -98,16 +101,16 @@ class BotCommandHandler {
     }
 
     private static async sellAsset(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        params: TradeAssetBotCommandMatchGroups,
-        userFeatureAccessLevel: FeatureAccessLevel
+        params: TradeAssetBotCommandMatchGroups
     ) {
         const [searchAssetForward, searchAssetBackward] = [
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.network as SupportedChain,
                 tokenName: params.asset,
             })[0],
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.asset as SupportedChain,
                 tokenName: params.network,
             })[0],
@@ -152,23 +155,23 @@ class BotCommandHandler {
         }
 
         return await WhatsAppBotService.handleSellAssetAction(
+            user,
             phoneParams,
-            supportedAsset.listItemId,
-            userFeatureAccessLevel
+            supportedAsset.listItemId
         );
     }
 
     private static async buyAsset(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        params: TradeAssetBotCommandMatchGroups,
-        userFeatureAccessLevel: FeatureAccessLevel
+        params: TradeAssetBotCommandMatchGroups
     ) {
         const [searchAssetForward, searchAssetBackward] = [
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.network as SupportedChain,
                 tokenName: params.asset,
             })[0],
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.asset as SupportedChain,
                 tokenName: params.network,
             })[0],
@@ -213,33 +216,50 @@ class BotCommandHandler {
         }
 
         return await WhatsAppBotService.handleBuyAssetAction(
+            user,
             phoneParams,
-            supportedAsset.listItemId,
-            userFeatureAccessLevel
+            supportedAsset.listItemId
         );
     }
 
-    private static async getAssetsMenu(phoneParams: PhoneNumberParams, displayName: string) {
+    private static async getAssetsMenu(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams,
+        displayName: string
+    ) {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
-        const user = await UserService.userExists(userPhoneNumber);
+        const supportedChains = azzaWalletManager.getSupportedNetworks();
+        const allUserWallets = await Promise.all(
+            supportedChains.map((chain) => azzaWalletManager.getUserWallet(user.id, chain))
+        );
 
-        if (user) {
-            const userWallets = await UserService.getUserWalletAssetsList(userPhoneNumber);
-            await WhatsAppBotService.listWalletAddressMessage(
-                businessPhoneNumberId,
-                displayName,
-                userPhoneNumber,
-                userWallets,
-                'old_account'
-            );
-        } else {
-            await WhatsAppBotService.createWalletMessage(
-                businessPhoneNumberId,
-                displayName,
-                userPhoneNumber
-            );
-        }
+        const userWallets = azzaWalletManager
+            .getSupportedAssets()
+            .map((assetConfig) => {
+                const wallet = allUserWallets.find(
+                    (wallet) => wallet.blockchainNetwork === assetConfig.network
+                );
+
+                if (wallet) {
+                    return {
+                        network: wallet.blockchainNetwork,
+                        name: assetConfig.tokenName as TokenNames,
+                        listItemId: assetConfig.listItemId,
+                        walletAddress: wallet.address,
+                        tokenAddress: assetConfig.tokenAddress,
+                    } satisfies UserAssetItem;
+                }
+            })
+            .filter((wallet) => wallet !== undefined);
+
+        await WhatsAppBotService.listWalletAddressMessage(
+            businessPhoneNumberId,
+            displayName,
+            userPhoneNumber,
+            userWallets,
+            'old_account'
+        );
     }
 
     private static async getHelp(phoneParams: PhoneNumberParams) {
@@ -247,15 +267,16 @@ class BotCommandHandler {
     }
 
     private static async transferAsset(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
         const [searchAssetForward, searchAssetBackward] = [
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.network as SupportedChain,
                 tokenName: params.asset,
             })[0],
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.asset as SupportedChain,
                 tokenName: params.network,
             })[0],
@@ -277,21 +298,23 @@ class BotCommandHandler {
         const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
 
         return await WhatsAppBotService.handleWithdrawAssetAction(
+            user,
             phoneParams,
             supportedAsset.listItemId
         );
     }
 
     private static async depositAsset(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
         const [searchAssetForward, searchAssetBackward] = [
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.network as SupportedChain,
                 tokenName: params.asset,
             })[0],
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.asset as SupportedChain,
                 tokenName: params.network,
             })[0],
@@ -313,29 +336,31 @@ class BotCommandHandler {
         const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
 
         return await WhatsAppBotService.depositAssetCommandHandler(
-            phoneParams.userPhoneNumber,
-            phoneParams.businessPhoneNumberId,
+            user,
+            phoneParams,
             supportedAsset.listItemId
         );
     }
 
     private static async getAllBalances(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
         params?: Partial<TradeAssetBotCommandMatchGroups>
     ) {
-        return await WhatsAppBotService.handleUserBalancesQuery(phoneParams, params);
+        return await WhatsAppBotService.handleUserBalancesQuery(user, phoneParams, params);
     }
 
     private static async getAssetBalance(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
         const [searchAssetForward, searchAssetBackward] = [
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.network as SupportedChain,
                 tokenName: params.asset,
             })[0],
-            searchAsset({
+            azzaWalletManager.searchAssets({
                 network: params.asset as SupportedChain,
                 tokenName: params.network,
             })[0],
@@ -357,14 +382,13 @@ class BotCommandHandler {
         const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
 
         return await WhatsAppBotService.handleUserAssetBalanceQuery(
+            user,
             phoneParams,
             supportedAsset.listItemId
         );
     }
 
-    private static async resetTransactionPin(params: PhoneNumberParams) {
-        const user = await UserService.getUserByPhoneNumber(params.userPhoneNumber);
-
+    private static async resetTransactionPin(user: UserV2Record, params: PhoneNumberParams) {
         if (!user?.transactionPinHash) {
             return await WhatsAppBotService.sendArbitraryTextMessage(
                 params.userPhoneNumber,
@@ -372,11 +396,11 @@ class BotCommandHandler {
             );
         }
 
-        const userSecurityQuestions = UserService.retrieveUserSecurityQuestions(user);
+        const userSecurityQuestions = userServiceV2.retrieveUserSecurityQuestions(user);
 
         const message = WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
             params.businessPhoneNumberId as PhoneNumberId
-        ).createTransactionPinResetFlowMessage({
+        ).createTransactionPinResetFlowMessage(user, {
             messageRecipient: params.userPhoneNumber,
             messageBody: 'Click on `Reset Transaction PIN` to reset your transaction PIN',
             flowCTA: 'Reset Transaction PIN',
@@ -386,9 +410,7 @@ class BotCommandHandler {
         await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
     }
 
-    private static async changeTransactionPin(params: PhoneNumberParams) {
-        const user = await UserService.getUserByPhoneNumber(params.userPhoneNumber);
-
+    private static async changeTransactionPin(user: UserV2Record, params: PhoneNumberParams) {
         if (!user?.transactionPinHash) {
             return await WhatsAppBotService.sendArbitraryTextMessage(
                 params.userPhoneNumber,
@@ -398,7 +420,7 @@ class BotCommandHandler {
 
         const message = WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
             env.WA_PHONE_NUMBER_ID
-        ).createTransactionPinChangeFlowMessage({
+        ).createTransactionPinChangeFlowMessage(user, {
             messageRecipient: params.userPhoneNumber,
             messageBody: 'Click on `Change Transaction PIN` to change your transaction PIN',
             flowCTA: 'Change Transaction PIN',
@@ -407,8 +429,11 @@ class BotCommandHandler {
         await WhatsAppBotService.sendWhatsappMessage(params.businessPhoneNumberId, message);
     }
 
-    private static async handleKycVerificationRequest(params: PhoneNumberParams) {
-        const userKycStatus = await UserService.getUserKycStatus(params.userPhoneNumber);
+    private static async handleKycVerificationRequest(
+        user: UserV2Record,
+        params: PhoneNumberParams
+    ) {
+        const userKycStatus = userServiceV2.formatKycStatus(user.kycStatus);
 
         if (userKycStatus === 'verified') {
             const responseMessage = `Your KYC is already verified.`;
@@ -426,7 +451,7 @@ class BotCommandHandler {
                 userKycStatus === 'rejected' ||
                 userKycStatus === 'pending'
             ) {
-                await WhatsAppBotService.sendKycVerificationUrlMessage(params);
+                await WhatsAppBotService.sendKycVerificationUrlMessage(user, params);
                 return;
             }
 

@@ -206,6 +206,11 @@ class UserService {
         }
     }
 
+    public static async updateMigratedAt(user: UserRecord, migratedAt: Date) {
+        await this.USER_TABLE.update(user.id, { migratedAt }, ['migratedAt']);
+        await this.invalidateUserCache(user.phoneNumber!);
+    }
+
     public static async storeNewTransactionPin(
         user: UserRecord,
         newPin: string,
@@ -409,7 +414,7 @@ class UserService {
     }
 
     public static async sendUserAssetForOfframp(asset: UserAssetInfo, usdAmount: string) {
-        const hotWalletAddress = await FiatRampService.getHotWalletForNetwork('evm');
+        const hotWalletAddress = await FiatRampService.getHotWalletForNetwork(asset.assetNetwork);
 
         if (!validateWalletAddress(hotWalletAddress, asset.assetNetwork)) {
             throw new Error('Hot wallet address is invalid');

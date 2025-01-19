@@ -43,6 +43,7 @@ createBullBoard({
         new BullMQAdapter(queues.cryptoDebit),
         new BullMQAdapter(queues.cryptoDebitConfirmation),
         new BullMQAdapter(queues.userTxPinSecurity),
+        new BullMQAdapter(queues.walletMigration),
     ],
     serverAdapter: serverAdapter,
 });

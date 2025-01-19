@@ -1,5 +1,4 @@
 import { SecurityQuestion, transactionPinSchema } from '@/app/azza/azza.schema';
-import UserService from '@/app/User/UserService';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
@@ -8,8 +7,10 @@ import {
 import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { queues } from '@/background-processing/queues';
+import env from '@/constants/env';
 import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
+import { UserV2Record } from '@/db/xata';
 import { logSync } from '@/resources/logger';
 import {
     convertAsciiStringToBase64,
@@ -17,6 +18,7 @@ import {
     generateRandomHexString,
 } from '@/resources/utils/encryption';
 import { hashString } from '@/resources/utils/hashing';
+import userServiceV2 from '@/runtime/user';
 
 enum ResetTransactionPinFlowScreens {
     ANSWER_SECURITY_QUESTIONS = 'ANSWER_SECURITY_QUESTIONS',
@@ -134,12 +136,15 @@ class WhatsAppBotResetTransactionPinFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static createTransactionPinResetFlowMessage(params: {
-        messageRecipient: string;
-        messageBody: string;
-        flowCTA: string;
-        userSecurityQuestions: Array<Pick<SecurityQuestion, 'question' | 'immutableId'>>;
-    }) {
+    public static createTransactionPinResetFlowMessage(
+        user: UserV2Record,
+        params: {
+            messageRecipient: string;
+            messageBody: string;
+            flowCTA: string;
+            userSecurityQuestions: Array<Pick<SecurityQuestion, 'question' | 'immutableId'>>;
+        }
+    ) {
         const { messageRecipient, messageBody, flowCTA, userSecurityQuestions } = params;
 
         const payloadSecurityQuestionEntries = userSecurityQuestions.map((question, index) => [
@@ -191,7 +196,7 @@ class WhatsAppBotResetTransactionPinFlowService {
                             screen: this.INITIAL_SCREEN,
                             data: {
                                 form_description: RESET_TRANSACTION_PIN_FORM_DESCRIPTION,
-                                user_id: convertAsciiStringToBase64(messageRecipient),
+                                user_id: convertAsciiStringToBase64(user.id),
                                 ...questionsForDisplay,
                                 all_questions_list: payloadSecurityQuestions,
                             } satisfies ScreenDataPayload['ANSWER_SECURITY_QUESTIONS'],
@@ -213,7 +218,7 @@ class WhatsAppBotResetTransactionPinFlowService {
         const { user_id, all_questions_list } = data;
 
         const unmaskedUserId = convertBase64ToAsciiString(user_id);
-        const user = await UserService.getUserByPhoneNumber(unmaskedUserId);
+        const user = await userServiceV2.getUserById(unmaskedUserId);
 
         const storedSecurityQuestionsConfig = user?.securityQuestionsSetup;
 
@@ -246,7 +251,7 @@ class WhatsAppBotResetTransactionPinFlowService {
             })
             .filter((answer) => answer.questionId !== '');
 
-        const scoreSheet = UserService.scoreUserSecurityQuestionsAnswers(
+        const scoreSheet = userServiceV2.scoreUserSecurityQuestionsAnswers(
             user,
             normalizedSecurityQuestionAnswers
         );
@@ -292,6 +297,12 @@ class WhatsAppBotResetTransactionPinFlowService {
     private static async completeResetTransactionPinFlow(data: DataExchangePayload['NEW_PIN']) {
         const { new_pin, confirm_new_pin, user_id } = data;
 
+        const user = await userServiceV2.getUserById(convertBase64ToAsciiString(user_id));
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
         // Check 1: If transaction pin matches the allowed schema
         if (!transactionPinSchema.safeParse(new_pin).success) {
             return {
@@ -329,10 +340,23 @@ class WhatsAppBotResetTransactionPinFlowService {
         const hashedPin = await hashString(new_pin);
 
         // Update the transaction pin in the background
-        await queues.userTxPinSecurity.add('change-tx-pin', {
-            newPinHash: hashedPin,
-            userId: user_id,
-        });
+        await queues.userTxPinSecurity.add(
+            'change-tx-pin',
+            {
+                newPinHash: hashedPin,
+                userId: user_id,
+                whatsappParams: {
+                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                    userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
+                },
+            },
+            {
+                removeOnComplete: true,
+                removeOnFail: {
+                    age: 24 * 3600, // keep up to 24 hours
+                },
+            }
+        );
 
         // Update user's transaction pin in background
         // spawnInBackground<ChangeTransactionPinParams>(

@@ -1,7 +1,6 @@
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import UserService from '@/app/User/UserService';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -15,6 +14,7 @@ import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN, TWO } from '@/constants/numbers';
+import { UserV2Record } from '@/db/xata';
 import logger from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import {
@@ -31,6 +31,8 @@ import { generateRandomHexString } from '@/resources/utils/encryption';
 import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { AssetConfig, TokenNames } from '@/resources/web3/tokens';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
 
@@ -501,9 +503,13 @@ class WhatsAppBotOnRampFlowService {
                     }
                 }
 
+                const assetConfig = getAssetConfigOrThrow(asset_id);
                 const [assetWallet, verifiedUserDetails] = await Promise.all([
-                    UserService.getUserAssetWalletOrThrow(user_id, asset_id),
-                    UserService.getUserIdentityInfo(user_id),
+                    azzaWalletManager.getUserWallet(
+                        user_id,
+                        getAssetConfigOrThrow(asset_id).network
+                    ),
+                    userServiceV2.getWhatsappUserIdentityInfo(user_id),
                 ]);
 
                 if (!verifiedUserDetails) {
@@ -523,10 +529,10 @@ class WhatsAppBotOnRampFlowService {
                     accountType: account_type,
                     userWalletAddress: buying_to_external_wallet
                         ? transaction_details.external_wallet_address
-                        : assetWallet.walletAddress,
+                        : assetWallet.address,
                     localAmount: parseFloat(transaction_details.fiat_to_pay),
-                    tokenName: assetWallet.name,
-                    chainName: assetWallet.network.toUpperCase(),
+                    tokenName: assetConfig.tokenName,
+                    chainName: assetConfig.network.toUpperCase(),
                     channelId: transaction_details.channel_id,
                     country: country_code,
                     userDetails: verifiedUserDetails,
@@ -552,14 +558,17 @@ class WhatsAppBotOnRampFlowService {
 
                 const message = generateOnrampTransactionInitiatedMessage({
                     tokenAmount: transaction_details.token_amount,
-                    assetNetwork: assetWallet.network,
-                    assetName: assetWallet.name,
+                    assetNetwork: assetConfig.network,
+                    assetName: assetConfig.tokenName,
                     bankInfo: onrampResponse.bankInfo,
                     localCurrency: local_currency,
                     fiatToPay: transaction_details.fiat_to_pay,
                 });
 
-                void WhatsAppBotService.sendArbitraryTextMessage(user_id, message);
+                void WhatsAppBotService.sendArbitraryTextMessage(
+                    verifiedUserDetails.phoneNumber,
+                    message
+                );
 
                 return {
                     screen: OnRampFlowScreens.BANK_PAYMENT,
@@ -699,9 +708,10 @@ class WhatsAppBotOnRampFlowService {
         }
 
         try {
+            const assetConfig = getAssetConfigOrThrow(asset_id);
             const [assetWallet, verifiedUserDetails] = await Promise.all([
-                UserService.getUserAssetWalletOrThrow(user_id, asset_id),
-                UserService.getUserIdentityInfo(user_id),
+                azzaWalletManager.getUserWallet(user_id, getAssetConfigOrThrow(asset_id).network),
+                userServiceV2.getWhatsappUserIdentityInfo(user_id),
             ]);
 
             if (!verifiedUserDetails) {
@@ -760,10 +770,10 @@ class WhatsAppBotOnRampFlowService {
                 userDetails: verifiedUserDetails,
                 userWalletAddress: buying_to_external_wallet
                     ? transaction_details.external_wallet_address
-                    : assetWallet.walletAddress,
+                    : assetWallet.address,
                 localAmount: parseFloat(transaction_details.fiat_to_pay),
-                chainName: assetWallet.network.toUpperCase(),
-                tokenName: assetWallet.name,
+                chainName: assetConfig.network.toUpperCase(),
+                tokenName: assetConfig.tokenName,
                 customerId: user_id,
                 platformFeePercentage: parseFloat(transaction_details.platform_fee_percentage),
                 conversionRate: parseFloat(transaction_details.conversion_rate),
@@ -777,8 +787,8 @@ class WhatsAppBotOnRampFlowService {
 
             const message = generateOnrampTransactionInitiatedWithMomoPaymentMessage({
                 tokenAmount: transaction_details.token_amount,
-                assetName: assetWallet.name,
-                assetNetwork: assetWallet.network,
+                assetName: assetConfig.tokenName,
+                assetNetwork: assetConfig.network,
                 fiatToPay: transaction_details.fiat_to_pay,
                 localCurrency: local_currency,
                 momoDetails: {
@@ -788,7 +798,10 @@ class WhatsAppBotOnRampFlowService {
                 },
             });
 
-            void WhatsAppBotService.sendArbitraryTextMessage(user_id, message);
+            void WhatsAppBotService.sendArbitraryTextMessage(
+                verifiedUserDetails.phoneNumber,
+                message
+            );
 
             return {
                 screen: OnRampFlowScreens.PROCESSING_FEEDBACK,
@@ -820,13 +833,16 @@ class WhatsAppBotOnRampFlowService {
         }
     }
 
-    public static generateOnRampFlowInitMessage(params: {
-        asset: AssetConfig;
-        localCurrency: string;
-        countryCode: string;
-        recipient: string;
-        paymentMethods: Array<DropdownOption>;
-    }) {
+    public static generateOnRampFlowInitMessage(
+        user: UserV2Record,
+        params: {
+            asset: AssetConfig;
+            localCurrency: string;
+            countryCode: string;
+            recipient: string;
+            paymentMethods: Array<DropdownOption>;
+        }
+    ) {
         const { asset, localCurrency, recipient, paymentMethods, countryCode } = params;
 
         const assetLabel = `${asset.tokenName} (${asset.network})`;
@@ -854,7 +870,7 @@ class WhatsAppBotOnRampFlowService {
                                 dynamic_page_title: buyMessage,
                                 asset_label: assetLabel,
                                 asset_id: asset.listItemId,
-                                user_id: recipient,
+                                user_id: user.id,
                                 local_currency: localCurrency,
                                 payment_methods: paymentMethods,
                                 country_code: countryCode,

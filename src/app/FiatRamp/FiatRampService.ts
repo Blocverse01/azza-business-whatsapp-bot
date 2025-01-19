@@ -1,3 +1,4 @@
+import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import {
     CreateBeneficiaryParams,
     OnrampTransactionPayload,
@@ -9,6 +10,7 @@ import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService'
 import { HUNDRED } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
 import { HttpException } from '@/resources/exceptions/HttpException';
+import { getNetworkTag } from '@/runtime/platform-wallets';
 import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
 import crypto from 'node:crypto';
@@ -126,8 +128,9 @@ class FiatRampService {
         return await FiatRampsRpcService.getOnrampTransaction(sequenceId);
     }
 
-    public static async getHotWalletForNetwork(networkType: 'evm') {
-        return await FiatRampsRpcService.getHotWalletAddress(networkType);
+    public static async getHotWalletForNetwork(network: AllSupportedBlockchains) {
+        const networkTag = getNetworkTag(network);
+        return await FiatRampsRpcService.getHotWalletAddress(networkTag);
     }
 
     public static validateWebHookData(

@@ -107,6 +107,7 @@ export enum AssetInteractiveButtonIds {
 
     // StableCoins
     USDC_BASE = 'usdc-base',
+    USDT_BASE = 'usdt-base',
 
     USDC_POLYGON = 'usdc-polygon',
     USDT_POLYGON = 'usdt-polygon',
@@ -124,6 +125,10 @@ export enum AssetInteractiveButtonIds {
 
     SOL = 'sol-solana',
     TRX = 'trx-tron',
+
+    BNB_BEP20 = 'bnb-bep20',
+    USDT_BEP20 = 'usdt-bep20',
+    USDC_BEP20 = 'usdc-bep20',
 }
 
 export enum ExploreAssetActions {
@@ -244,6 +249,7 @@ export type PhoneNumberParams = { userPhoneNumber: string; businessPhoneNumberId
 
 export enum ActionExecuted {
     CREATED_NEW_USER = 'CREATED_NEW_USER',
+    MIGRATING_USER_WALLET = 'MIGRATING_USER_WALLET',
     FAILED_TO_CREATE_NEW_USER = 'FAILED_TO_CREATE_NEW_USER',
     SEND_CREATE_WALLET_MESSAGE = 'SEND_CREATE_WALLET_MESSAGE',
     SEND_SET_TRANSACTION_PIN_MESSAGE = 'SEND_SET_TRANSACTION_PIN_MESSAGE',

@@ -1,0 +1,16 @@
+{
+  "id": "mig_cu262p8a9dahcg287fs0",
+  "parentID": "mig_cu26243oqjfbc39h50p0",
+  "checksum": "1:41b81fcff6bcdda1ba3a73f09dd69e0e9fca5bd489ef7a43317fb4d7b65dc940",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "whatsappPhoneNumbers",
+          "type": "multiple"
+        },
+        "table": "user_v2"
+      }
+    }
+  ]
+}

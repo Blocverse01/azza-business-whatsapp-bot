@@ -1,0 +1,14 @@
+{
+  "id": "mig_cu261koa9dahcg287fr0",
+  "parentID": "mig_cu2601oa9dahcg287fq0",
+  "checksum": "1:c5e4a759cc19898113e14937939a3d7cdc38539a819a4552595767c24323fa73",
+  "operations": [
+    {
+      "renameColumn": {
+        "newName": "whatsappPhoneNumbers",
+        "oldName": "phoneNumber",
+        "table": "user_v2"
+      }
+    }
+  ]
+}

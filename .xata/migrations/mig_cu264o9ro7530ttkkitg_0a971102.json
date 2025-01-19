@@ -1,0 +1,16 @@
+{
+  "id": "mig_cu264o9ro7530ttkkitg",
+  "parentID": "mig_cu264fhro7530ttkkisg",
+  "checksum": "1:0a97110242be4ddbe89f9cdec7727542569da3da0eb0bade9dff2180d56d4987",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "kycDocumentNumber",
+          "type": "text"
+        },
+        "table": "user_v2"
+      }
+    }
+  ]
+}

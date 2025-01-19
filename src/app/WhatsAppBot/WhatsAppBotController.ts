@@ -2,6 +2,7 @@ import { createOrUpdateUserAgentThread, getUserAgentThread } from '@/app/aiAgent
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import UserService from '@/app/User/UserService';
 import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { getSessionId, textPromptHandler } from '@/app/WhatsAppBot/text/textPromptHandler';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -16,7 +17,7 @@ import {
     RATES_COMMAND,
     WhatsAppMessageType,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { deriveUserFeatureAccessLevel } from '@/config/whatsAppBot';
+import { queues } from '@/background-processing/queues';
 import env from '@/constants/env';
 import {
     extractGroups,
@@ -28,6 +29,9 @@ import { BAD_REQUEST, OK } from '@/constants/status-codes';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
+import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
+import userServiceV2 from '@/runtime/user';
+import azzaWalletManager from '@/runtime/wallet';
 import type { Request, Response } from 'express';
 import { type CountryCode } from 'libphonenumber-js';
 
@@ -175,17 +179,41 @@ class WhatsAppBotController {
 
         const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
 
-        const [user, messageThread] = await Promise.all([
+        const [user, messageThread, userV2] = await Promise.all([
             UserService.getUserByPhoneNumber(from),
             getUserAgentThread(from),
+            userServiceV2.getWhatsappUserByPhoneNumber(from),
         ]);
 
-        if (!user) {
+        if (user && !userV2) {
+            await WhatsAppBotService.sendWhatsappMessage(
+                businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    from,
+                    `Hello ${displayName}, we are currently migrating your wallet to a new system. Please wait a moment.\n_This process will take a few minutes_.`
+                )
+            );
+
+            await queues.walletMigration.add('migrate user data and wallet', {
+                oldUserId: convertAsciiStringToBase64(user.id),
+                userPhoneNumber: convertAsciiStringToBase64(from),
+                businessPhoneNumberId: convertAsciiStringToBase64(businessPhoneNumberId),
+            });
+
+            return ActionExecuted.MIGRATING_USER_WALLET;
+        }
+
+        if (!userV2) {
             if (
                 interactive &&
                 interactive.button_reply?.id === BaseInteractiveButtonIds.CREATE_WALLET
             ) {
-                const createdNewUser = await UserService.createUser(from, displayName);
+                const createdNewUser = await userServiceV2.createWhatsappUser(from);
+
+                await queues.walletMigration.add(`Create wallets for user: ${createdNewUser.id}`, {
+                    userPhoneNumber: convertAsciiStringToBase64(from),
+                    businessPhoneNumberId: convertAsciiStringToBase64(businessPhoneNumberId),
+                });
 
                 if (createdNewUser) {
                     await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams);
@@ -200,7 +228,7 @@ class WhatsAppBotController {
             return ActionExecuted.SEND_CREATE_WALLET_MESSAGE;
         }
 
-        if (type === WhatsAppMessageType.TEXT && user && !user?.transactionPinHash) {
+        if (type === WhatsAppMessageType.TEXT && userV2 && !userV2.transactionPinHash) {
             await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams, {
                 displayName,
             });
@@ -217,7 +245,7 @@ class WhatsAppBotController {
                     text.body.toLowerCase(),
                     phoneParams,
                     displayName,
-                    deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL)
+                    userV2
                 );
 
                 if (response.handled) {
@@ -241,7 +269,7 @@ class WhatsAppBotController {
                 lastSessionId: messageThread.lastSessionId,
                 prompt: normalizedPrompt,
                 botParams: phoneParams,
-                userFeatureAccessLevel: deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL),
+                user: userV2,
             });
 
             if (result.handledTextPrompt) {
@@ -255,7 +283,7 @@ class WhatsAppBotController {
                 const lastSessionId = result.promptHandlerResponse.resetSession ? '' : sessionId;
 
                 await createOrUpdateUserAgentThread({
-                    userId: user.id,
+                    ownerId: from,
                     newMessages: [
                         {
                             role: 'user',
@@ -294,23 +322,33 @@ class WhatsAppBotController {
 
                 switch (interactiveActionResponse) {
                     case 'create-wallet':
-                        const createdNewUser = await UserService.createUser(from, displayName);
+                        const createdNewUser = await userServiceV2.createWhatsappUser(from);
+
+                        await queues.walletMigration.add(
+                            `Create wallets for user: ${createdNewUser.id}`,
+                            {
+                                userPhoneNumber: convertAsciiStringToBase64(from),
+                                businessPhoneNumberId:
+                                    convertAsciiStringToBase64(businessPhoneNumberId),
+                            }
+                        );
 
                         if (createdNewUser) {
                             await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams);
+
+                            return ActionExecuted.CREATED_NEW_USER;
                         }
 
                         return ActionExecuted.CREATED_NEW_USER;
 
                     case 'explore-asset':
-                        const userAssetInfo = await UserService.getUserAssetInfo(
-                            from,
-                            interactiveButtonId
-                        );
+                        const userAssetBalance = await azzaWalletManager.getAssetBalance({
+                            userId: userV2.id,
+                            assetId: interactiveButtonId,
+                        });
                         await WhatsAppBotService.walletDetailsMessage(
-                            businessPhoneNumberId,
-                            from,
-                            userAssetInfo
+                            phoneParams,
+                            userAssetBalance
                         );
                         return ActionExecuted.SEND_MANAGE_ASSET_MESSAGE;
 
@@ -365,12 +403,11 @@ class WhatsAppBotController {
                         const { sell, beneficiaryId } =
                             extractSellAssetToBeneficiaryGroups(interactiveListId);
 
-                        await WhatsAppBotService.beginOffRampFlowMessage({
-                            businessPhoneNumberId,
-                            recipient: from,
+                        await WhatsAppBotService.beginOffRampFlowMessage(userV2, phoneParams, {
                             assetId: sell,
                             beneficiaryId,
                         });
+
                         return ActionExecuted.SEND_OFFRAMP_FLOW_MESSAGE;
 
                     case 'return-more-currencies':
@@ -418,14 +455,13 @@ class WhatsAppBotController {
                         return ActionExecuted.SEND_SELL_ASSET_DESTINATION_CHOICE_MESSAGE;
 
                     case 'explore-asset':
-                        const userAssetInfo = await UserService.getUserAssetInfo(
-                            from,
-                            interactiveListId
-                        );
+                        const userAssetBalance = await azzaWalletManager.getAssetBalance({
+                            userId: userV2.id,
+                            assetId: interactiveListId,
+                        });
                         await WhatsAppBotService.walletDetailsMessage(
-                            businessPhoneNumberId,
-                            from,
-                            userAssetInfo
+                            phoneParams,
+                            userAssetBalance
                         );
                         return ActionExecuted.SEND_MANAGE_ASSET_MESSAGE;
 
@@ -447,7 +483,7 @@ class WhatsAppBotController {
                         }
 
                         if (tradeAction === ExploreAssetActions.BUY_ASSET) {
-                            await WhatsAppBotService.beginOnrampFlowMessage(phoneParams, {
+                            await WhatsAppBotService.beginOnrampFlowMessage(userV2, phoneParams, {
                                 assetId: assetInteractiveId,
                                 currencySymbol: currency,
                                 countryCode: countryCode as CountryCode,
@@ -465,9 +501,9 @@ class WhatsAppBotController {
 
                         if (assetAction === 'sell') {
                             await WhatsAppBotService.handleSellAssetAction(
+                                userV2,
                                 phoneParams,
-                                assetId,
-                                deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL)
+                                assetId
                             );
 
                             return ActionExecuted.SEND_SELL_ASSET_MESSAGE;
@@ -475,9 +511,9 @@ class WhatsAppBotController {
 
                         if (assetAction === 'buy') {
                             await WhatsAppBotService.handleBuyAssetAction(
+                                userV2,
                                 phoneParams,
-                                assetId,
-                                deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL)
+                                assetId
                             );
 
                             return ActionExecuted.SEND_BUY_ASSET_MESSAGE;
@@ -485,6 +521,7 @@ class WhatsAppBotController {
 
                         if (assetAction === 'withdraw') {
                             await WhatsAppBotService.handleWithdrawAssetAction(
+                                userV2,
                                 phoneParams,
                                 assetId
                             );
@@ -494,8 +531,8 @@ class WhatsAppBotController {
 
                         if (assetAction === 'deposit') {
                             await WhatsAppBotService.depositAssetCommandHandler(
-                                from,
-                                businessPhoneNumberId,
+                                userV2,
+                                phoneParams,
                                 assetId
                             );
 
@@ -514,9 +551,7 @@ class WhatsAppBotController {
                     WhatsAppBotService.determineInteractiveNfmReplyAction(nfm_reply);
 
                 if (responseAction.action === 'trigger-offramp-flow') {
-                    await WhatsAppBotService.beginOffRampFlowMessage({
-                        businessPhoneNumberId,
-                        recipient: from,
+                    await WhatsAppBotService.beginOffRampFlowMessage(userV2, phoneParams, {
                         assetId: responseAction.data.assetId,
                         beneficiaryId: responseAction.data.beneficiaryId,
                     });

@@ -1,0 +1,18 @@
+{
+  "id": "mig_cu26bc9ro7530ttkkj2g",
+  "parentID": "mig_cu26akroqjfbc39h50ug",
+  "checksum": "1:77bc0896542ec2fd0c5e3059151a01bf0dbbcdf988ea2515795dbd3b6b30eb37",
+  "operations": [
+    {
+      "addColumn": {
+        "column": {
+          "name": "wallets",
+          "type": "json",
+          "notNull": true,
+          "defaultValue": "[]"
+        },
+        "table": "user_blockradar_wallet_config"
+      }
+    }
+  ]
+}

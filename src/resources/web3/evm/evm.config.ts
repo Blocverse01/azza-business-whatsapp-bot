@@ -1,9 +1,10 @@
+import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { ANKR_BASE_MAINNET_RPC_URL, ANKR_BASE_SEPOLIA_RPC_URL } from '@/constants/strings';
 import { Chain } from 'viem';
 import {
     base,
     baseSepolia,
-    lisk,
     mainnet,
     optimism,
     optimismSepolia,
@@ -11,7 +12,6 @@ import {
     polygonAmoy,
     sepolia,
 } from 'viem/chains';
-import { ANKR_BASE_MAINNET_RPC_URL, ANKR_BASE_SEPOLIA_RPC_URL } from '@/constants/strings';
 
 export type EvmNetwork = Exclude<SupportedChain, 'Solana'>;
 export type EvmNode =
@@ -123,6 +123,8 @@ export const getAppDefaultEvmConfig = (
     return config[environment];
 };
 
-export const isEvmNetwork = (network: SupportedChain): network is EvmNetwork => {
-    return network !== 'Solana';
+export const isEvmNetwork = (
+    network: SupportedChain | ExtendedWalletSupportedNetworks
+): network is EvmNetwork => {
+    return network !== 'Solana' && network !== 'Tron';
 };

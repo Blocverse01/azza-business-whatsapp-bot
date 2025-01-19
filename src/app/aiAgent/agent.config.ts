@@ -1,20 +1,6 @@
-import Web3Library from '@/app/WalletAssetManagement/Web3Library';
-import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
-import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
-import { getPublicClient } from '@/resources/web3/evm/viem/clients';
-import { CoreToolCallUnion, CoreToolResultUnion, tool, CoreTool } from 'ai';
-import { z } from 'zod';
-import { createOpenAI } from '@ai-sdk/openai';
-import env from '@/constants/env';
-import { TokenNames } from '@/resources/web3/tokens';
-import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
-import { ENABLED_ASSETS } from '@/config/whatsAppBot';
-import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import {
-    baseWalletToolSchema,
     depositCryptoAssetParamsSchema,
     requestTransactionPinSetupParams,
-    swapTokensOnBaseParamsSchema,
     swapTokensParamsSchema,
     transferCryptoAssetParamsSchema,
     walletBalanceParamsSchema,
@@ -25,10 +11,19 @@ import {
     executeRequestTransactionPinSetup,
     executeResetTransactionPin,
     executeSwapTokens,
-    executeSwapTokensOnBase,
     executeTransferAsset,
     executeWalletBalanceQuery,
 } from '@/app/aiAgent/agent.tools-logic';
+import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
+import { PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { ENABLED_ASSETS } from '@/config/whatsAppBot';
+import env from '@/constants/env';
+import { UserV2Record } from '@/db/xata';
+import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
+import { createOpenAI } from '@ai-sdk/openai';
+import { CoreTool, CoreToolCallUnion, CoreToolResultUnion, tool } from 'ai';
+import { z } from 'zod';
 
 function getSupportedAssetAndNetworksText() {
     const supportedTokenNames = ENABLED_ASSETS.map((asset) => asset.tokenName);
@@ -48,15 +43,16 @@ function getSupportedAssetAndNetworksText() {
 ////////////////////
 // Agent Toolset
 ////////////////////
-export const toolSet = (userId: string) =>
+export const toolSet = (user: UserV2Record, phoneParams: PhoneNumberParams) =>
     ({
         transferCrypto: tool({
             description: `A transaction tool for transferring a crypto asset to a specified address or phone number. Always confirm with the user the cryptocurrency, amount, recipient, and blockchain network before proceeding. If any of these are missing, ask the user to specify them in one prompt. The recipient can be a wallet address or a phone number`,
-            parameters: transferCryptoAssetParamsSchema.omit({ userId: true }),
+            parameters: transferCryptoAssetParamsSchema.omit({ user: true, phoneParams: true }),
             execute: async (params) => {
                 return executeTransferAsset({
                     ...params,
-                    userId: userId,
+                    user,
+                    phoneParams,
                 });
             },
         }),
@@ -76,11 +72,12 @@ export const toolSet = (userId: string) =>
         ${getSupportedAssetAndNetworksText()}
         "
     `,
-            parameters: depositCryptoAssetParamsSchema.omit({ userId: true }),
+            parameters: depositCryptoAssetParamsSchema.omit({ user: true, phoneParams: true }),
             execute: async (params) => {
                 return executeDepositCryptoAsset({
                     ...params,
-                    userId: userId,
+                    user,
+                    phoneParams,
                 });
             },
         }),
@@ -89,73 +86,15 @@ export const toolSet = (userId: string) =>
                 "Retrieve the balance of a user's wallet for a specified cryptocurrency or blockchain network. " +
                 'If no cryptocurrency or network is specified, return balances for all supported assets and networks, grouping them as needed by asset and network (only when listing balances for multiple networks). ' +
                 'Use the unique emoji provided by the `networkEmoji` parameter in the tool result as a visual identifier for each network following this text arrangement format [emoji] [network]. Never guess or assume the emoji for any network. Also, the format for displaying a crypto asset balance should be [amount] [cryptocurrency symbol] [usd value], e.g 0.5 USDT ($0.5)',
-            parameters: walletBalanceParamsSchema.omit({ userId: true }),
+            parameters: walletBalanceParamsSchema.omit({ user: true, phoneParams: true }),
             execute: async (params) => {
                 return executeWalletBalanceQuery({
                     ...params,
-                    userId: userId,
+                    user,
+                    phoneParams,
                 });
             },
         }),
-        // buyCrypto: tool({
-        //     description:
-        //         "Use this tool to handle the user's request to purchase a cryptocurrency asset with a fiat currency. Ensure that the user has specified both the asset and blockchain network for the purchase. " +
-        //         'If these are missing, prompt the user to provide them before proceeding.',
-        //     parameters: z.object({
-        //         cryptoCurrencySymbol: z
-        //             .nativeEnum(TokenNames)
-        //             .describe(
-        //                 'The symbol of the cryptocurrency to buy, e.g., USDT, BTC. Confirm with the user if not specified.'
-        //             ),
-        //         blockchainNetwork: supportedChainSchema
-        //             .or(extendedWalletSupportedNetworks)
-        //             .describe(
-        //                 'The blockchain network on which the asset is to be purchased, e.g., Ethereum, Binance Smart Chain. Confirm if not specified.'
-        //             )
-        //             .optional(),
-        //     }),
-        //     execute: async ({ cryptoCurrencySymbol, blockchainNetwork }) => {
-        //         console.log({ cryptoCurrencySymbol, blockchainNetwork });
-        //         return {
-        //             message: 'Initiating purchase',
-        //         };
-        //     },
-        // }),
-        // sellCrypto: tool({
-        //     description:
-        //         "Use this tool to handle the user's request to sell a cryptocurrency for a fiat currency. Ensure that the user has specified both the asset and blockchain network for the sale. " +
-        //         'If these are missing, prompt the user to provide them before proceeding.',
-        //     parameters: z.object({
-        //         cryptoCurrencySymbol: z
-        //             .nativeEnum(TokenNames)
-        //             .describe(
-        //                 'The symbol of the cryptocurrency to buy, e.g., USDT, BTC. Confirm with the user if not specified.'
-        //             ),
-        //         blockchainNetwork: supportedChainSchema
-        //             .or(extendedWalletSupportedNetworks)
-        //             .describe(
-        //                 'The blockchain network on which the asset is to be sold, e.g., Ethereum, Binance Smart Chain. Confirm if not specified.'
-        //             ),
-        //     }),
-        //     execute: async ({ cryptoCurrencySymbol, blockchainNetwork }) => {
-        //         console.log({ cryptoCurrencySymbol, blockchainNetwork });
-        //         return {
-        //             message: 'Initiating sale',
-        //         };
-        //     },
-        // }),
-        // getFiatRates: tool({
-        //     description:
-        //         'Use this tool to get the current exchange rates for USD/a target fiat currency',
-        //     parameters: z.object({
-        //         targetFiatCurrency: z
-        //             .string()
-        //             .describe('The target fiat currency to get the exchange rates for'),
-        //     }),
-        //     execute: async ({ targetFiatCurrency }) => {
-        //         console.log({ targetFiatCurrency });
-        //     },
-        // }),
         getSupportedNetworks: tool({
             description: 'Use this tool to get the supported blockchain networks on the wallet',
             execute: async () => {
@@ -179,11 +118,12 @@ export const toolSet = (userId: string) =>
         }),
         requestTransactionPinSetup: tool({
             description: `Use this tool when the user is requesting to set a transaction pin. When using this tool you MUST NEVER confirm the 'userId' parameter with the user or ask for the 'userId' parameter from the user. The 'userId' parameter is always a system-provided value and is already taken care of by the system to be dynamic for each user.`,
-            parameters: requestTransactionPinSetupParams.omit({ userId: true }),
+            parameters: requestTransactionPinSetupParams.omit({ user: true, phoneParams: true }),
             execute: async (params) => {
                 return executeRequestTransactionPinSetup({
                     ...params,
-                    userId: userId,
+                    user,
+                    phoneParams,
                 });
             },
         }),
@@ -203,22 +143,23 @@ export const toolSet = (userId: string) =>
             parameters: z.object({}),
             description: 'Use this tool to handle the user request to change their transaction pin',
             execute: async () => {
-                return executeChangeTransactionPin({ userId });
+                return executeChangeTransactionPin({ user, phoneParams });
             },
         }),
         resetTransactionPin: tool({
             parameters: z.object({}),
             description: 'Use this tool to handle the user request to reset their transaction pin',
             execute: async () => {
-                return executeResetTransactionPin({ userId });
+                return executeResetTransactionPin({ user, phoneParams });
             },
         }),
         swapTokens: tool({
-            parameters: swapTokensParamsSchema.omit({ userId: true }),
+            parameters: swapTokensParamsSchema.omit({ user: true, phoneParams: true }),
             execute: async (params) =>
                 executeSwapTokens({
                     ...params,
-                    userId,
+                    user,
+                    phoneParams,
                 }),
             description:
                 'Use this tool to handle the user request to swap one token for another. Ensure that the user has specified both the from and to tokens for the swap and other parameters. If these are missing, prompt the user to provide them before proceeding.',
