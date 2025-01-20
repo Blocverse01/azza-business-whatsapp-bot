@@ -392,8 +392,7 @@ class UserServiceV2 {
 
         const walletConfig = await this.repository.blockradarWallet.createWalletConfig(
             userId,
-            walle,
-            tsToCreate
+            walletsToCreate
         );
 
         if (!walletConfig) {
