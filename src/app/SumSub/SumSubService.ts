@@ -304,8 +304,10 @@ class SumSubService {
                         user.primaryWhatsappPhoneNumber
                     );
 
+                    const { phoneNumber, ...otherInfo } = userInfo;
+
                     await userServiceV2.updateUserInfo(user, {
-                        ...userInfo,
+                        ...otherInfo,
                         kycStatus: 'VERIFIED',
                     });
                 }
