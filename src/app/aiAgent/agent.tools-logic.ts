@@ -304,7 +304,7 @@ export const executeRequestTransactionPinSetup = async (
 
     const message = WhatsAppBotSetupTransactionPinFlowService.withPhoneNumberId(
         phoneParams.businessPhoneNumberId as PhoneNumberId
-    ).createSetupTransactionPinFlowMessage({
+    ).createSetupTransactionPinFlowMessage(user, {
         messageRecipient: phoneParams.userPhoneNumber,
         messageBody:
             'Please click on the `Set up Transaction PIN` button to set up your transaction PIN',
