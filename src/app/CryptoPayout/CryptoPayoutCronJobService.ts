@@ -138,6 +138,11 @@ class CryptoPayoutCronJobService {
             );
         }
 
+        console.log({
+            asset,
+            platformAddressUserId,
+        });
+
         let tokenBalanceNumber = (
             await platformWalletManager.getAssetBalance({
                 userId: platformAddressUserId,
@@ -145,11 +150,7 @@ class CryptoPayoutCronJobService {
             })
         ).balance;
 
-        console.log({
-            asset,
-            platformAddressUserId,
-            tokenBalanceNumber,
-        });
+        console.log(`Got token balance: ${tokenBalanceNumber}`);
 
         const processableOrdersInGroup: CryptoPendingOrderGroup['orders'] = [];
         const unProcessableOrdersInGroup: CryptoPendingOrderGroup['orders'] = [];
