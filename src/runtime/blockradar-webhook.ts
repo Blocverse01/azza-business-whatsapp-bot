@@ -8,7 +8,7 @@ import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 
-const DEPOSIT_SILENT_MODE = true;
+const DEPOSIT_SILENT_MODE = false;
 
 const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
     // Todo: Move handler implementation to appropriate service

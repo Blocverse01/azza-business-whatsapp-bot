@@ -84,7 +84,7 @@ interface WebhookRequestBody {
     ];
 }
 
-const FINISHED_MIGRATION = false;
+const FINISHED_MIGRATION = true;
 
 class WhatsAppBotController {
     public static async receiveMessageWebhook(req: Request, res: Response) {
