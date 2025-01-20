@@ -1,9 +1,9 @@
-import cluster from 'cluster';
-import os from 'os';
-import './app/globalErrorHandler';
 import CronHandler from '@/app/Cron';
 import { CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION } from '@/config/backgroundJobs';
 import env from '@/constants/env';
+import cluster from 'cluster';
+import os from 'os';
+import './app/globalErrorHandler';
 
 if (cluster.isPrimary) {
     const numCPUs = os.cpus().length;
@@ -24,6 +24,8 @@ if (cluster.isPrimary) {
     if (env.SHOULD_EXECUTE_CRYPTO_PAYOUTS) {
         CronHandler.scheduleCryptoPayoutExecution(CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION);
     }
+
+    import('./background-processing/single-instance-workers');
 } else {
     // Your worker code here
     import('./');
