@@ -84,6 +84,8 @@ interface WebhookRequestBody {
     ];
 }
 
+const FINISHED_MIGRATION = false;
+
 class WhatsAppBotController {
     public static async receiveMessageWebhook(req: Request, res: Response) {
         try {
@@ -184,6 +186,18 @@ class WhatsAppBotController {
             getUserAgentThread(from),
             userServiceV2.getWhatsappUserByPhoneNumber(from),
         ]);
+
+        if (!FINISHED_MIGRATION) {
+            await WhatsAppBotService.sendWhatsappMessage(
+                businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    from,
+                    `Hello ${displayName}, features are currently disabled until wallet migration is complete`
+                )
+            );
+
+            return ActionExecuted.MIGRATING_USER_WALLET;
+        }
 
         if (user && !userV2) {
             await WhatsAppBotService.sendWhatsappMessage(
