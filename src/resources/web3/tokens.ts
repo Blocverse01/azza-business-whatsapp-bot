@@ -178,7 +178,11 @@ export const usdcEthConfig = {
     tokenName: TokenNames.USDC,
     listItemId: AssetInteractiveButtonIds.USDC_ETH,
     network: 'Ethereum' as const,
-    supportedAssetActions: ALL_ASSET_ACTIONS,
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+        ExploreAssetActions.SELL_ASSET,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== USDT ==============
@@ -190,7 +194,11 @@ export const usdtEthConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_ETH,
     network: 'Ethereum' as const,
-    supportedAssetActions: ALL_ASSET_ACTIONS,
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+        ExploreAssetActions.SELL_ASSET,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== ETH ==============
