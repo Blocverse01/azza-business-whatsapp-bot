@@ -367,16 +367,33 @@ class UserServiceV2 {
         userId: string,
         wallets: Array<UserBlockRadarWallet>
     ) {
+        const evmWallet = wallets.find((wallet) =>
+            this.utils.isEvmNetwork(wallet.blockchainNetwork as AllSupportedBlockchains)
+        );
+        const otherWallets = wallets
+            .filter(
+                (wallet) =>
+                    !this.utils.isEvmNetwork(wallet.blockchainNetwork as AllSupportedBlockchains)
+            )
+            .map((wallet) => ({
+                ...wallet,
+                blockchainNetwork: wallet.blockchainNetwork.toUpperCase(),
+            }));
+
+        const walletsToCreate = evmWallet
+            ? [
+                  {
+                      ...evmWallet,
+                      blockchainNetwork: 'EVM',
+                  },
+                  ...otherWallets,
+              ]
+            : otherWallets;
+
         const walletConfig = await this.repository.blockradarWallet.createWalletConfig(
             userId,
-            wallets.map((wallet) => ({
-                ...wallet,
-                blockchainNetwork: this.utils.isEvmNetwork(
-                    wallet.blockchainNetwork as AllSupportedBlockchains
-                )
-                    ? 'EVM'
-                    : wallet.blockchainNetwork.toUpperCase(),
-            }))
+            walle,
+            tsToCreate
         );
 
         if (!walletConfig) {
