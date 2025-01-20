@@ -60,6 +60,9 @@ class CryptoPayoutCronJobService {
         const successfulResults = processingResults.filter(
             (result) => result.status === 'fulfilled'
         ) as Array<PromiseFulfilledResult<ProcessCryptoPayoutGroupResponse | undefined>>;
+        const failedResults = processingResults.filter(
+            (result) => result.status === 'rejected'
+        ) as Array<PromiseRejectedResult>;
 
         const successfulGroupOrders = successfulResults.map((result) => result.value);
 
@@ -85,6 +88,10 @@ class CryptoPayoutCronJobService {
                 allUnsubmittedOrderIds.flat(),
                 CryptoPayoutOrderStatus.PENDING
             );
+        }
+
+        if (failedResults.length > 0) {
+            console.error('Failed to process crypto payout groups', failedResults);
         }
     }
 
