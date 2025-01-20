@@ -254,7 +254,9 @@ class WhatsAppBotSetupTransactionPinFlowService {
             all_questions_list,
         } = data;
 
-        const user = await userServiceV2.getUserById(convertBase64ToAsciiString(user_id));
+        const user =
+            (await userServiceV2.getUserById(convertBase64ToAsciiString(user_id))) ??
+            (await userServiceV2.getWhatsappUserByPhoneNumber(convertBase64ToAsciiString(user_id)));
 
         if (!user) {
             throw new Error('User not found');
