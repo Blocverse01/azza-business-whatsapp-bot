@@ -11,7 +11,7 @@ import logger, { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { decimalToString } from '@/resources/utils/currency';
 import { AssetConfig } from '@/resources/web3/tokens';
-import platformWalletManager, { composePlatformAddressIdKey } from '@/runtime/platform-wallets';
+import platformWalletManager from '@/runtime/platform-wallets';
 import { spawn } from 'child_process';
 
 type CryptoOrderInput = {
@@ -91,7 +91,7 @@ class CryptoPayoutCronJobService {
         }
 
         if (failedResults.length > 0) {
-            console.error('Failed to process crypto payout groups', failedResults);
+            console.dir(failedResults, { depth: Infinity });
         }
     }
 
@@ -130,10 +130,9 @@ class CryptoPayoutCronJobService {
     private static async processCryptoPayoutGroup(
         group: CryptoPendingOrderGroup
     ): Promise<ProcessCryptoPayoutGroupResponse | undefined> {
-        const platformAddressUserId = composePlatformAddressIdKey(
-            group.payoutType === 'onramp-payment' ? 'onramp-payout' : 'offramp-hot-wallet',
-            group.network
-        );
+        const platformAddressUserId =
+            group.payoutType === 'onramp-payment' ? 'onramp-payout' : 'offramp-hot-wallet';
+
         const asset = platformWalletManager.searchAssets({
             network: group.network,
             tokenAddress: group.tokenAddress,
