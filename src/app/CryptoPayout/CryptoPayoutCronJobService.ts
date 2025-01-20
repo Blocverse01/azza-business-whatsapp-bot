@@ -132,11 +132,6 @@ class CryptoPayoutCronJobService {
             tokenAddress: group.tokenAddress,
         })[ZERO];
 
-        console.log({
-            asset,
-            platformAddressUserId,
-        });
-
         if (!asset) {
             throw new Error(
                 `Asset not found for token address ${group.tokenAddress} on network ${group.network}`
@@ -149,6 +144,12 @@ class CryptoPayoutCronJobService {
                 assetId: asset.listItemId,
             })
         ).balance;
+
+        console.log({
+            asset,
+            platformAddressUserId,
+            tokenBalanceNumber,
+        });
 
         const processableOrdersInGroup: CryptoPendingOrderGroup['orders'] = [];
         const unProcessableOrdersInGroup: CryptoPendingOrderGroup['orders'] = [];
