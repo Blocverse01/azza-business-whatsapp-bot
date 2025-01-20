@@ -173,6 +173,7 @@ class WhatsAppBotService {
      * This message is sent immediately after a user onboards on the board and has created a wallet.
      */
     public static async sendSetTransactionPinMessage(
+        user: UserV2Record,
         phoneParams: PhoneNumberParams,
         existingUser?: {
             displayName: string;
@@ -180,7 +181,7 @@ class WhatsAppBotService {
     ) {
         const message = WhatsAppBotSetupTransactionPinFlowService.withPhoneNumberId(
             phoneParams.businessPhoneNumberId as PhoneNumberId
-        ).createSetupTransactionPinFlowMessage({
+        ).createSetupTransactionPinFlowMessage(user, {
             messageBody: existingUser
                 ? `Welcome back ${existingUser.displayName}!\n🔐We've improved security on your wallet. Please set up a transaction pin to secure your account.`
                 : '🎉You have successfully created a wallet.\n🔐Please set up a transaction pin to secure your account.',

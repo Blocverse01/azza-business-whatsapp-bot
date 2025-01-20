@@ -230,7 +230,10 @@ class WhatsAppBotController {
                 });
 
                 if (createdNewUser) {
-                    await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams);
+                    await WhatsAppBotService.sendSetTransactionPinMessage(
+                        createdNewUser,
+                        phoneParams
+                    );
 
                     return ActionExecuted.CREATED_NEW_USER;
                 }
@@ -243,7 +246,7 @@ class WhatsAppBotController {
         }
 
         if (type === WhatsAppMessageType.TEXT && userV2 && !userV2.transactionPinHash) {
-            await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams, {
+            await WhatsAppBotService.sendSetTransactionPinMessage(userV2, phoneParams, {
                 displayName,
             });
             return ActionExecuted.SEND_SET_TRANSACTION_PIN_MESSAGE;
@@ -348,7 +351,10 @@ class WhatsAppBotController {
                         );
 
                         if (createdNewUser) {
-                            await WhatsAppBotService.sendSetTransactionPinMessage(phoneParams);
+                            await WhatsAppBotService.sendSetTransactionPinMessage(
+                                createdNewUser,
+                                phoneParams
+                            );
 
                             return ActionExecuted.CREATED_NEW_USER;
                         }

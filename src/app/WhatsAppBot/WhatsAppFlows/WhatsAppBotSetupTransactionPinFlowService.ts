@@ -10,6 +10,7 @@ import { queues } from '@/background-processing/queues';
 import env from '@/constants/env';
 import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
+import { UserV2Record } from '@/db/xata';
 import { RECOVERY_QUESTIONS } from '@/resources/data/recovery-questions';
 import { logSync } from '@/resources/logger';
 import {
@@ -142,10 +143,13 @@ class WhatsAppBotSetupTransactionPinFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static createSetupTransactionPinFlowMessage(params: {
-        messageBody: string;
-        messageRecipient: string;
-    }) {
+    public static createSetupTransactionPinFlowMessage(
+        user: UserV2Record,
+        params: {
+            messageBody: string;
+            messageRecipient: string;
+        }
+    ) {
         const { messageBody, messageRecipient } = params;
 
         const flowMessage: WhatsAppInteractiveMessage = {
@@ -168,7 +172,7 @@ class WhatsAppBotSetupTransactionPinFlowService {
                             screen: this.INITIAL_SCREEN,
                             data: {
                                 pin_form_description: PIN_FORM_DESCRIPTION,
-                                user_id: convertAsciiStringToBase64(messageRecipient),
+                                user_id: convertAsciiStringToBase64(user.id),
                             } satisfies ScreenDataPayload['SET_TRANSACTION_PIN'],
                         },
                     },
