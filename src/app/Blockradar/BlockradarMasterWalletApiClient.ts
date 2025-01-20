@@ -14,6 +14,7 @@ import {
     withdrawAssetResponseDataSchema,
 } from '@/app/Blockradar/schema';
 import { OK } from '@/constants/status-codes';
+import { z } from 'zod';
 
 export type BlockradarMasterWalletApiClientConstructorParams = {
     baseUrl: string;
@@ -199,6 +200,42 @@ class BlockradarMasterWalletApiClient {
         }
 
         return validatedData.data;
+    }
+
+    public async getTransactionByHash(transactionHash: string) {
+        const transactionResourceUrl = this.getResourceUrl(MasterWalletApiResources.TRANSACTION);
+        const url = transactionResourceUrl + `?hash=${transactionHash}`;
+
+        const response = await this.fetch(url, {
+            headers: this.headers,
+            method: 'GET',
+        });
+
+        if (response.statusCode !== OK) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: response.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+            });
+        }
+
+        const validatedData = z.array(blockradarTransactionSchema).safeParse(response.data);
+
+        if (!validatedData.success) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: validatedData.error.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+            });
+        }
+
+        const targetTransaction = validatedData.data.find(
+            (transaction) => transaction.hash?.toLowerCase() === transactionHash.toLowerCase()
+        );
+
+        return targetTransaction ?? null;
     }
 
     public async updateAddress(addressId: string, params: UpdateAddressRequestBody) {

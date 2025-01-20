@@ -6,7 +6,6 @@ import {
     CryptoPayoutReasons,
 } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { searchAsset } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { dbClient, sqlClient } from '@/db/dbClient';
 import { CryptoPayoutOrder } from '@/db/xata';
@@ -94,7 +93,7 @@ class CryptoPayoutService {
     }
 
     public static async createOfframpCryptoRefundOrder(params: CreateCryptoPayoutOrderParams) {
-        const assetConfig = searchAsset({
+        const assetConfig = azzaWalletManager.searchAssets({
             tokenName: params.tokenSymbol,
             network: params.network,
         })[0];
@@ -103,9 +102,9 @@ class CryptoPayoutService {
             throw new Error('Asset config not found');
         }
 
-        const onchainTransaction = await azzaWalletManager.getTransaction(
+        const onchainTransaction = await azzaWalletManager.getTransactionByHash(
             params.triggerTransactionId,
-            params.network
+            assetConfig.network
         );
 
         if (onchainTransaction.status !== 'SUCCESS') {

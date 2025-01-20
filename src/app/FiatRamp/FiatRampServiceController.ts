@@ -1,4 +1,3 @@
-import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
@@ -114,7 +113,7 @@ class FiatRampServiceController {
 
                     const totalAmount = transaction.usdAmount + transaction.transactionFeeUsd;
                     await CryptoPayoutService.createOfframpCryptoRefundOrder({
-                        network: transaction.blockchainNetwork as AllSupportedBlockchains,
+                        network: supportedChain,
                         tokenSymbol: transaction.tokenSymbol,
                         triggerTransactionId: transaction.transactionHash,
                         amount: totalAmount,

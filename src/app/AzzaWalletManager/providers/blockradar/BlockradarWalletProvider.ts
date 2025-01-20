@@ -180,6 +180,53 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         };
     }
 
+    public async getTransactionByHash(
+        transactionHash: string,
+        network: AllSupportedBlockchains
+    ): Promise<AssetTransaction> {
+        const walletClient = this.dataSources.blockradarMasterWalletClient(network);
+        const blockradarTransaction = await walletClient.getTransactionByHash(transactionHash);
+
+        if (!blockradarTransaction) {
+            throw new BlockradarWalletProviderError({
+                message: 'No transaction found for hash',
+                data: {
+                    transactionHash,
+                    network,
+                },
+            });
+        }
+
+        const assetConfig = this.searchAssets({
+            tokenName: blockradarTransaction.asset.symbol,
+            network,
+        })[0];
+
+        if (!assetConfig) {
+            throw new BlockradarWalletProviderError({
+                message: 'No asset config found for asset in transaction',
+                data: {
+                    transaction: blockradarTransaction,
+                    transactionHash,
+                    network,
+                },
+            });
+        }
+
+        return {
+            asset: assetConfig,
+            amount: blockradarTransaction.amount,
+            blockchainNetwork: network,
+            confirmations: blockradarTransaction.confirmations,
+            confirmed: blockradarTransaction.confirmed,
+            status: blockradarTransaction.status,
+            hash: blockradarTransaction.hash,
+            recipientAddress: blockradarTransaction.recipientAddress,
+            senderAddress: blockradarTransaction.senderAddress,
+            id: blockradarTransaction.id,
+        };
+    }
+
     public async withdrawAsset(params: WithdrawAssetParams): Promise<AssetTransaction> {
         const assetConfig = this.getAssetConfig(params.assetId);
         const blockradarAssetId = this.dataSources.blockradarAssetId(params.assetId);

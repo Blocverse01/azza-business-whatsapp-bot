@@ -73,6 +73,11 @@ export abstract class BaseWalletProvider {
         network: AllSupportedBlockchains
     ): Promise<AssetTransaction>;
 
+    public abstract getTransactionByHash(
+        transactionHash: string,
+        network: AllSupportedBlockchains
+    ): Promise<AssetTransaction>;
+
     public abstract withdrawAsset(params: WithdrawAssetParams): Promise<AssetTransaction>;
 
     public abstract searchAssets(

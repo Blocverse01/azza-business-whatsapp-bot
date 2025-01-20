@@ -43,6 +43,13 @@ class AzzaWalletManager implements BaseWalletProvider {
         return this.walletProvider.getTransaction(transactionId, network);
     }
 
+    public async getTransactionByHash(
+        transactionHash: string,
+        network: AllSupportedBlockchains
+    ): Promise<AssetTransaction> {
+        return this.walletProvider.getTransactionByHash(transactionHash, network);
+    }
+
     public async withdrawAsset(params: WithdrawAssetParams): Promise<AssetTransaction> {
         return this.walletProvider.withdrawAsset(params);
     }
