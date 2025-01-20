@@ -43,9 +43,13 @@ class CryptoPayoutCronJobService {
         const validPendingCryptoPayoutOrders =
             await CryptoPayoutService.getValidPendingCryptoPayoutOrders();
 
+        console.log(validPendingCryptoPayoutOrders);
+
         const groupedOrders = this.groupCryptoOrdersByTokenAndNetwork(
             validPendingCryptoPayoutOrders
         );
+
+        console.log(groupedOrders);
 
         const promises = groupedOrders.map((group) => {
             return this.processCryptoPayoutGroup(group);
@@ -127,6 +131,11 @@ class CryptoPayoutCronJobService {
             network: group.network,
             tokenAddress: group.tokenAddress,
         })[ZERO];
+
+        console.log({
+            asset,
+            platformAddressUserId,
+        });
 
         if (!asset) {
             throw new Error(
