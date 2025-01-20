@@ -43,13 +43,9 @@ class CryptoPayoutCronJobService {
         const validPendingCryptoPayoutOrders =
             await CryptoPayoutService.getValidPendingCryptoPayoutOrders();
 
-        console.log(validPendingCryptoPayoutOrders);
-
         const groupedOrders = this.groupCryptoOrdersByTokenAndNetwork(
             validPendingCryptoPayoutOrders
         );
-
-        console.log(groupedOrders);
 
         const promises = groupedOrders.map((group) => {
             return this.processCryptoPayoutGroup(group);
@@ -144,19 +140,12 @@ class CryptoPayoutCronJobService {
             );
         }
 
-        console.log({
-            asset,
-            platformAddressUserId,
-        });
-
         let tokenBalanceNumber = (
             await platformWalletManager.getAssetBalance({
                 userId: platformAddressUserId,
                 assetId: asset.listItemId,
             })
         ).balance;
-
-        console.log(`Got token balance: ${tokenBalanceNumber}`);
 
         const processableOrdersInGroup: CryptoPendingOrderGroup['orders'] = [];
         const unProcessableOrdersInGroup: CryptoPendingOrderGroup['orders'] = [];
@@ -169,16 +158,6 @@ class CryptoPayoutCronJobService {
                 unProcessableOrdersInGroup.push(order);
             }
         });
-
-        console.dir(
-            {
-                processableOrdersInGroup,
-                unProcessableOrdersInGroup,
-            },
-            {
-                depth: Infinity,
-            }
-        );
 
         if (unProcessableOrdersInGroup.length > 0) {
             await this.handleUnprocessableOrdersInGroup(
