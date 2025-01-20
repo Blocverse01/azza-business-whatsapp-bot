@@ -1,9 +1,11 @@
 import { type SecurityQuestion } from '@/app/azza/azza.schema';
+import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import { type KycStatus, userIdentityInfoSchema } from '@/app/User/userSchema';
 import { ONE } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
-import type { UserBlockradarWalletConfigRecord, UserV2Record } from '@/db/xata';
+import type { UserBlockradarWalletRecord, UserV2Record } from '@/db/xata';
 import { HttpException } from '@/resources/exceptions/HttpException';
+import { EvmNetwork } from '@/resources/web3/evm/evm.config';
 import type Redis from 'ioredis';
 import type { PhoneNumber } from 'libphonenumber-js/types';
 
@@ -48,14 +50,11 @@ type UserServiceV2InitParams = {
         blockradarWallet: {
             getWalletConfig: (
                 userId: string
-            ) => Promise<Pick<UserBlockradarWalletConfigRecord, 'wallets'> | null>;
+            ) => Promise<Array<Omit<UserBlockradarWalletRecord, 'user'>>>;
             createWalletConfig: (
                 userId: string,
-                wallets: Array<{
-                    addressId: string;
-                    blockchainNetwork: string;
-                }>
-            ) => Promise<Pick<UserBlockradarWalletConfigRecord, 'wallets'> | null>;
+                wallets: Array<UserBlockRadarWallet>
+            ) => Promise<Array<Omit<UserBlockradarWalletRecord, 'user'>>>;
         };
     };
     utils: {
@@ -63,6 +62,7 @@ type UserServiceV2InitParams = {
         getPhoneNumberObject: (phoneNumber: string) => PhoneNumber | undefined;
         encryptWithAES: (data: string, key: string, iv: string) => string;
         decryptWithAES: (data: string, key: string, iv: string) => string;
+        isEvmNetwork: (network: AllSupportedBlockchains) => network is EvmNetwork;
     };
     env: {
         securityQuestionsMaskKey: string;
@@ -343,13 +343,24 @@ class UserServiceV2 {
             return null;
         }
 
-        return walletConfig.wallets as Array<UserBlockRadarWallet>;
+        return walletConfig.map((wallet) => ({
+            addressId: wallet.addressId,
+            blockchainNetwork: wallet.blockchainNetwork,
+            address: wallet.address,
+        })) satisfies Array<UserBlockRadarWallet>;
     }
 
     public static async getUserBlockradarWalletAddressId(userId: string, network: string) {
         const wallets = await this.getUserBlockradarWallets(userId);
 
-        return wallets?.find((wallet) => wallet.blockchainNetwork === network)?.addressId ?? null;
+        const formattedNetwork = this.utils.isEvmNetwork(network as AllSupportedBlockchains)
+            ? 'EVM'
+            : network.toUpperCase();
+
+        return (
+            wallets?.find((wallet) => wallet.blockchainNetwork.toUpperCase() === formattedNetwork)
+                ?.addressId ?? null
+        );
     }
 
     public static async createUserBlockradarWalletConfig(
@@ -358,14 +369,21 @@ class UserServiceV2 {
     ) {
         const walletConfig = await this.repository.blockradarWallet.createWalletConfig(
             userId,
-            wallets
+            wallets.map((wallet) => ({
+                ...wallet,
+                blockchainNetwork: this.utils.isEvmNetwork(
+                    wallet.blockchainNetwork as AllSupportedBlockchains
+                )
+                    ? 'EVM'
+                    : wallet.blockchainNetwork.toUpperCase(),
+            }))
         );
 
         if (!walletConfig) {
             return null;
         }
 
-        return walletConfig.wallets as Array<UserBlockRadarWallet>;
+        return walletConfig as Array<UserBlockRadarWallet>;
     }
 
     private static unmaskUserSecurityQuestions(encryptedSecuritySetup: string) {

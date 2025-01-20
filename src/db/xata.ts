@@ -35,7 +35,7 @@ const tables = [
       },
       { name: "additionalKycIdType", type: "text", defaultValue: "" },
       { name: "additionalKycIdNumber", type: "text", defaultValue: "" },
-        { name: 'migratedAt', type: 'datetime' },
+      { name: 'migratedAt', type: 'datetime' },
     ],
   },
   {
@@ -58,7 +58,7 @@ const tables = [
         notNull: true,
         defaultValue: "",
       },
-        { name: 'payoutType', type: 'text', notNull: true, defaultValue: '' },
+      { name: 'payoutType', type: 'text', notNull: true, defaultValue: '' },
     ],
   },
   {
@@ -66,56 +66,73 @@ const tables = [
     columns: [
       { name: "messages", type: "json", notNull: true, defaultValue: "[]" },
       { name: "lastSessionId", type: "text", notNull: true, defaultValue: "" },
-        { name: 'ownerId', type: 'text' },
+      { name: 'ownerId', type: 'text' },
     ],
   },
   {
-      name: 'bull_dashboard_access',
+    name: 'bull_dashboard_access',
     columns: [
-        { name: 'adminName', type: 'text' },
-        { name: 'accessLevel', type: 'text' },
-        { name: 'accessToken', type: 'text' },
-        { name: 'lastAccessed', type: 'text' },
-        { name: 'xatacreatedAt', type: 'text' },
-        { name: 'xataupdatedAt', type: 'text' },
-        { name: 'xataversion', type: 'int' },
+      { name: 'adminName', type: 'text' },
+      { name: 'accessLevel', type: 'text' },
+      { name: 'accessToken', type: 'text' },
+      { name: 'lastAccessed', type: 'text' },
+      { name: 'xatacreatedAt', type: 'text' },
+      { name: 'xataupdatedAt', type: 'text' },
+      { name: 'xataversion', type: 'int' },
     ],
   },
-    {
-        name: 'user_v2',
-        columns: [
-            { name: 'linkedWhatsappPhoneNumbers', type: 'multiple' },
-            { name: 'lastName', type: 'text' },
-            { name: 'firstName', type: 'text' },
-            { name: 'kycDateOfBirth', type: 'text' },
-            { name: 'kycIdType', type: 'text' },
-            { name: 'kycDocumentNumber', type: 'text' },
-            { name: 'kycStatus', type: 'text' },
-            { name: 'transactionPinHash', type: 'text' },
-            { name: 'securityQuestionsSetup', type: 'text' },
+  {
+    name: 'user_v2',
+    columns: [
+      { name: 'linkedWhatsappPhoneNumbers', type: 'multiple' },
+      { name: 'lastName', type: 'text' },
+      { name: 'firstName', type: 'text' },
+      { name: 'kycDateOfBirth', type: 'text' },
+      { name: 'kycIdType', type: 'text' },
+      { name: 'kycDocumentNumber', type: 'text' },
+      { name: 'kycStatus', type: 'text' },
+      { name: 'transactionPinHash', type: 'text' },
+      { name: 'securityQuestionsSetup', type: 'text' },
       {
-          name: 'FEATURE_ACCESS_LEVEL',
-          type: 'text',
-          notNull: true,
-          defaultValue: 'PRODUCTION',
+        name: 'FEATURE_ACCESS_LEVEL',
+        type: 'text',
+        notNull: true,
+        defaultValue: 'PRODUCTION',
       },
-            { name: 'additionalKycIdType', type: 'text' },
-            { name: 'additionalKycIdNumber', type: 'text' },
-            { name: 'country', type: 'text' },
-            {
-                name: 'primaryWhatsappPhoneNumber',
+      { name: 'additionalKycIdType', type: 'text' },
+      { name: 'additionalKycIdNumber', type: 'text' },
+      { name: 'country', type: 'text' },
+      {
+        name: 'primaryWhatsappPhoneNumber',
         type: "text",
         notNull: true,
         defaultValue: "",
       },
     ],
-        revLinks: [{ column: 'user', table: 'user_blockradar_wallet_config' }],
+    revLinks: [
+      { column: 'user', table: 'user_blockradar_wallet_config' },
+      { column: 'user', table: 'user_blockradar_wallet' },
+    ],
   },
   {
-      name: 'user_blockradar_wallet_config',
+    name: 'user_blockradar_wallet_config',
     columns: [
-        { name: 'user', type: 'link', link: { table: 'user_v2' }, unique: true },
-        { name: 'wallets', type: 'json', notNull: true, defaultValue: '[]' },
+      { name: 'user', type: 'link', link: { table: 'user_v2' }, unique: true },
+      { name: 'wallets', type: 'json', notNull: true, defaultValue: '[]' },
+    ],
+  },
+  {
+    name: 'user_blockradar_wallet',
+    columns: [
+      { name: 'addressId', type: 'text', notNull: true, defaultValue: '' },
+      { name: 'address', type: 'text', notNull: true, defaultValue: '' },
+      {
+        name: 'blockchainNetwork',
+        type: 'text',
+        notNull: true,
+        defaultValue: '',
+      },
+      { name: 'user', type: 'link', link: { table: 'user_v2' } },
     ],
   },
 ] as const;
@@ -143,13 +160,17 @@ export type UserBlockradarWalletConfig =
 export type UserBlockradarWalletConfigRecord = UserBlockradarWalletConfig &
     XataRecord;
 
+export type UserBlockradarWallet = InferredTypes['user_blockradar_wallet'];
+export type UserBlockradarWalletRecord = UserBlockradarWallet & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
   user_agent_thread: UserAgentThreadRecord;
   bull_dashboard_access: BullDashboardAccessRecord;
-    user_v2: UserV2Record;
-    user_blockradar_wallet_config: UserBlockradarWalletConfigRecord;
+  user_v2: UserV2Record;
+  user_blockradar_wallet_config: UserBlockradarWalletConfigRecord;
+  user_blockradar_wallet: UserBlockradarWalletRecord;
 };
 
 const DatabaseClient = buildClient();

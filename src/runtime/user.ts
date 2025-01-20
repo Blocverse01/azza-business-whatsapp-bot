@@ -3,6 +3,7 @@ import env from '@/constants/env';
 import { dbClient } from '@/db/dbClient';
 import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput, getPhoneNumberObject } from '@/resources/utils/phone-numbers';
+import { isEvmNetwork } from '@/resources/web3/evm/evm.config';
 import UserServiceV2 from '../app/User/UserServiceV2';
 
 const userServiceV2 = UserServiceV2.init({
@@ -11,6 +12,7 @@ const userServiceV2 = UserServiceV2.init({
         cleanPhoneNumberInput: cleanPhoneNumberInput,
         encryptWithAES: encryptWithAES,
         decryptWithAES: decryptWithAES,
+        isEvmNetwork: isEvmNetwork,
     },
     repository: {
         user: {
@@ -38,14 +40,19 @@ const userServiceV2 = UserServiceV2.init({
         },
         blockradarWallet: {
             getWalletConfig: (userId) =>
-                dbClient.user_blockradar_wallet_config
-                    .select(['wallets'])
+                dbClient.user_blockradar_wallet
+                    .select(['*'])
                     .filter({
                         user: userId,
                     })
-                    .getFirst(),
+                    .getAll(),
             createWalletConfig: (userId, wallets) =>
-                dbClient.user_blockradar_wallet_config.create({ user: userId, wallets }),
+                dbClient.user_blockradar_wallet.create(
+                    wallets.map((wallet) => ({
+                        user: userId,
+                        ...wallet,
+                    }))
+                ),
         },
     },
     cacheStore: redis,
