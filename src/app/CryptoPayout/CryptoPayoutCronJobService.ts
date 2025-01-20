@@ -164,6 +164,16 @@ class CryptoPayoutCronJobService {
             }
         });
 
+        console.dir(
+            {
+                processableOrdersInGroup,
+                unProcessableOrdersInGroup,
+            },
+            {
+                depth: Infinity,
+            }
+        );
+
         if (unProcessableOrdersInGroup.length > 0) {
             await this.handleUnprocessableOrdersInGroup(
                 unProcessableOrdersInGroup,
