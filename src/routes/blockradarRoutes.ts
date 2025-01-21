@@ -6,7 +6,7 @@ import express from 'express';
 
 const blockradarRouter = express.Router();
 
-blockradarRouter.post('/webhooks/:network', async (req, res) => {
+blockradarRouter.all('/webhooks/:network', async (req, res) => {
     const supportedNetwork = azzaWalletManager
         .getSupportedNetworks()
         .find((network) => network.toLowerCase() === req.params.network.toLowerCase());
