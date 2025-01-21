@@ -310,6 +310,8 @@ class SumSubService {
                         ...otherInfo,
                         kycStatus: 'VERIFIED',
                     });
+
+                    return;
                 }
 
                 await WhatsAppBotService.sendKycRejectedMessage(user.primaryWhatsappPhoneNumber);
@@ -317,6 +319,8 @@ class SumSubService {
                 await userServiceV2.updateUserInfo(user, {
                     kycStatus: 'REJECTED',
                 });
+
+                return;
             },
 
             async applicantPending(_, user) {
