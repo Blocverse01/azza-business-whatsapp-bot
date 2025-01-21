@@ -6,7 +6,7 @@ import express from 'express';
 
 const blockradarRouter = express.Router();
 
-blockradarRouter.all('/webhooks/:network', async (req, res) => {
+blockradarRouter.post('/webhooks/:network', async (req, res) => {
     const supportedNetwork = azzaWalletManager
         .getSupportedNetworks()
         .find((network) => network.toLowerCase() === req.params.network.toLowerCase());
@@ -16,6 +16,16 @@ blockradarRouter.all('/webhooks/:network', async (req, res) => {
     }
 
     const masterWalletApiKey = getMasterWalletConfig(supportedNetwork).apiKey;
+
+    console.log({
+        signatureHeader: req.headers['x-blockradar-signature'],
+        payload: JSON.stringify(req.body),
+        method: req.method,
+    });
+
+    if (!req.headers['x-blockradar-signature']) {
+        return res.status(BAD_REQUEST).send('Missing webhook signature');
+    }
 
     const payloadIsValid = blockradarWebhookService.verifyWebhookSignature({
         signatureHeader: req.headers['x-blockradar-signature'] as string,
