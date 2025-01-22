@@ -1,5 +1,7 @@
 import { addAlchemyContextToRequest } from '@/app/AlchemyNotify/webhookUtils';
+import CronHandler from '@/app/Cron';
 import { queues } from '@/background-processing/queues';
+import { CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION } from '@/config/backgroundJobs';
 import env from '@/constants/env';
 import { NOT_FOUND, OK } from '@/constants/status-codes';
 import logger from '@/resources/logger';
@@ -12,6 +14,8 @@ import CookieParser from 'cookie-parser';
 import express, { type Request } from 'express';
 import apiRoutes from './routes';
 import './background-processing/workers';
+import './app/globalErrorHandler';
+import './background-processing/single-instance-workers';
 
 const app = express();
 
@@ -60,3 +64,7 @@ app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found'
 app.listen(env.PORT, () => {
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
+
+if (env.SHOULD_EXECUTE_CRYPTO_PAYOUTS) {
+    CronHandler.scheduleCryptoPayoutExecution(CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION);
+}
