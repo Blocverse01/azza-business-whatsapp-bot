@@ -51,9 +51,7 @@ class CronHandler {
                 this.pauseCronTask(key);
 
                 try {
-                    console.time('CryptoPayoutCronJobService');
                     await CryptoPayoutCronJobService.execute();
-                    console.timeEnd('CryptoPayoutCronJobService');
                 } catch (error) {
                     const parsedError = parseUnknownError(error);
 

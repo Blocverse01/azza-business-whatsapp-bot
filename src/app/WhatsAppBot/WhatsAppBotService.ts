@@ -35,7 +35,6 @@ import {
 import { INTERNAL_SERVER_ERROR, OK } from '@/constants/status-codes';
 import { UserV2Record } from '@/db/xata';
 import { HttpException } from '@/resources/exceptions/HttpException';
-import logger, { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import {
     generateAssetBalanceMessageV2,
@@ -93,14 +92,12 @@ class WhatsAppBotService {
 
     public static async sendMessageUsingGo(businessPhoneNumberId: string, message: object) {
         try {
-            console.time('sendWhatsappMessage::Go');
             const response = await sendMessageUsingGo({
                 message: JSON.stringify(message),
                 token: env.CLOUD_API_ACCESS_TOKEN,
                 url: env.CLOUD_API_URL,
                 id: businessPhoneNumberId,
             });
-            console.timeEnd('sendWhatsappMessage::Go');
 
             if (response.statusCode !== OK) {
                 await logServiceError(
@@ -113,10 +110,6 @@ class WhatsAppBotService {
 
                 return;
             }
-
-            void logger.info('Message sent successfully', {
-                response,
-            });
         } catch (error) {
             await logServiceError(error, 'Error sending message');
             throw error;
@@ -130,7 +123,6 @@ class WhatsAppBotService {
             const requestOptions = this.getRequestConfig();
             const compressedData = zlib.gzipSync(JSON.stringify(message));
 
-            console.time('sendWhatsappMessage::API');
             const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
                 method: 'POST',
                 headers: {
@@ -139,7 +131,6 @@ class WhatsAppBotService {
                 },
                 body: compressedData,
             });
-            console.timeEnd('sendWhatsappMessage::API');
 
             const responseData = await response.body.json();
 
@@ -151,10 +142,6 @@ class WhatsAppBotService {
 
                 return;
             }
-
-            void logger.info('Message sent successfully', {
-                responseData,
-            });
         } catch (error) {
             await logServiceError(error, 'Error sending message');
             throw error;
@@ -407,13 +394,7 @@ class WhatsAppBotService {
 
         try {
             const requestOptions = this.getRequestConfig();
-            const response = await axios.post(
-                `${env.CLOUD_API_URL}/${endpoint}`,
-                data,
-                requestOptions
-            );
-
-            logSync('debug', 'Message marked as read successfully:', response.data);
+            await axios.post(`${env.CLOUD_API_URL}/${endpoint}`, data, requestOptions);
         } catch (error) {
             await logServiceError(error, 'Error marking message as read:');
         }

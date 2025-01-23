@@ -12,7 +12,6 @@ import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
 import { RECOVERY_QUESTIONS } from '@/resources/data/recovery-questions';
-import { logSync } from '@/resources/logger';
 import {
     convertAsciiStringToBase64,
     convertBase64ToAsciiString,
@@ -127,12 +126,6 @@ class WhatsAppBotSetupTransactionPinFlowService {
             if (!nextScreenData) {
                 throw new Error('Unhandled screen');
             }
-
-            logSync('debug', 'Next screen data', {
-                screen: nextScreenData.screen,
-                errors: nextScreenData.data?.error_messages,
-                user_id: nextScreenData.data?.user_id,
-            });
 
             return {
                 ...nextScreenData,

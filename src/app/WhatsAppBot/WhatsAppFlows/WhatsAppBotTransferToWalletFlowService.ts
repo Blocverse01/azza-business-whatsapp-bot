@@ -143,12 +143,6 @@ class WhatsAppBotTransferToWalletFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            logSync('debug', 'Next screen data', {
-                screen: nextScreenData.screen,
-                errors: nextScreenData.data?.error_messages,
-                user_id: nextScreenData.data?.user_id,
-            });
-
             return {
                 ...nextScreenData,
                 version: requestBody.version,

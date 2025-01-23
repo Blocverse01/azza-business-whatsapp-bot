@@ -22,7 +22,6 @@ import { queues } from '@/background-processing/queues';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
-import { logSync } from '@/resources/logger';
 import { convertBase64ToAsciiString, generateRandomHexString } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
 import userServiceV2 from '@/runtime/user';
@@ -87,12 +86,6 @@ class WhatsAppBotTransactionConfirmationFlowService {
             if (!nextScreenData) {
                 throw new Error('Unhandled screen');
             }
-
-            logSync('debug', 'Next screen data', {
-                screen: nextScreenData.screen,
-                errors: nextScreenData.data?.error_messages,
-                user_id: nextScreenData.data?.user_id,
-            });
 
             return {
                 ...nextScreenData,

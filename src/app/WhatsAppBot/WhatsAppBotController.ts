@@ -89,8 +89,6 @@ const FINISHED_MIGRATION = true;
 class WhatsAppBotController {
     public static async receiveMessageWebhook(req: Request, res: Response) {
         try {
-            const messageReceivedAt = new Date();
-
             res.sendStatus(OK);
 
             const messageParts = WhatsAppBotController.extractStringMessageParts(req.body);
@@ -102,20 +100,11 @@ class WhatsAppBotController {
             }
 
             if (message && message.id && businessPhoneNumberId && displayName) {
-                const actionExecuted = await WhatsAppBotController.messageTypeCheck(
+                await WhatsAppBotController.messageTypeCheck(
                     message,
                     businessPhoneNumberId,
                     displayName
                 );
-
-                const messageHandledAt = new Date();
-                const messageHandledDuration =
-                    messageHandledAt.getTime() - messageReceivedAt.getTime();
-
-                logSync('debug', 'Message handled', {
-                    timeTaken: `${messageHandledDuration}ms`,
-                    actionExecuted,
-                });
             } else {
                 return;
             }
@@ -136,10 +125,6 @@ class WhatsAppBotController {
         }
 
         if (!firstChangeValue.metadata || !firstChangeValue.metadata.phone_number_id) {
-            logSync('info', 'No phone number id found in request body', {
-                firstChangeValue,
-            });
-
             return {};
         }
 
@@ -332,11 +317,6 @@ class WhatsAppBotController {
                 const interactiveActionResponse =
                     WhatsAppBotService.determineInteractiveButtonReplyAction(interactiveButtonId);
 
-                logSync('debug', 'Interactive button reply action', {
-                    interactiveActionResponse,
-                    interactiveButtonId,
-                });
-
                 switch (interactiveActionResponse) {
                     case 'create-wallet':
                         const createdNewUser = await userServiceV2.createWhatsappUser(from);
@@ -412,11 +392,6 @@ class WhatsAppBotController {
 
                 const interactiveActionResponse =
                     WhatsAppBotService.determineInteractiveListReplyAction(interactiveListId);
-
-                logSync('debug', 'Interactive list reply action', {
-                    interactiveActionResponse,
-                    interactiveListId,
-                });
 
                 switch (interactiveActionResponse) {
                     case 'trigger-offramp-flow':

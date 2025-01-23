@@ -24,7 +24,6 @@ import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN, THREE, TWO, ZERO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
-import { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { generateOfframpProcessingMessage } from '@/resources/utils/bot-message-utils';
 import {
@@ -163,12 +162,6 @@ class WhatsAppBotOffRampFlowService {
             if (!nextScreenData) {
                 throw new Error('Unhandled screen');
             }
-
-            logSync('debug', 'Next screen data', {
-                screen: nextScreenData.screen,
-                errors: nextScreenData.data?.error_messages,
-                user_id: nextScreenData.data?.user_id,
-            });
 
             return {
                 ...nextScreenData,

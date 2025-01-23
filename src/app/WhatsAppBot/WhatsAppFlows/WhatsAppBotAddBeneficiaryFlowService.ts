@@ -192,12 +192,6 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 throw new Error('Unhandled screen');
             }
 
-            void logger.debug('Next screen data', {
-                screen: nextScreenData.screen,
-                errors: nextScreenData.data?.error_messages,
-                user_id: nextScreenData.data?.user_id,
-            });
-
             return {
                 ...nextScreenData,
                 version: requestBody.version,
