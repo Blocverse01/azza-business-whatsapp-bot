@@ -12,7 +12,6 @@ import SumSubService, {
 import { UserAssetItem } from '@/app/User/userSchema';
 import { sendMessageUsingGo } from '@/app/WhatsAppBot/helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import { Message } from '@/app/WhatsAppBot/WhatsAppBotController';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import WhatsAppBotAddBeneficiaryFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotAddBeneficiaryFlowService';
 import WhatsAppBotOffRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOffRampFlowService';
@@ -63,6 +62,7 @@ import {
     BaseInteractiveButtonIds,
     ExploreAssetActions,
     FlowNfmReplyResponse,
+    IncomingWhatsappMessage,
     InteractiveButtonReplyTypes,
     InteractiveListReplyTypes,
     manageAssetActions,
@@ -589,7 +589,7 @@ class WhatsAppBotService {
     }
 
     public static determineInteractiveNfmReplyAction(
-        nfmReply: Required<Message['interactive']>['nfm_reply']
+        nfmReply: Required<IncomingWhatsappMessage['interactive']>['nfm_reply']
     ) {
         const { name, response_json } = nfmReply;
         const response = JSON.parse(response_json);
