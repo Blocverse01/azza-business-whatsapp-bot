@@ -337,17 +337,24 @@ class UserServiceV2 {
     }
 
     public static async getUserBlockradarWallets(userId: string) {
+        const cacheKey = this.env.enableCache ? this.cacheKeys(userId).wallets : null;
+        const cachedWallets = cacheKey ? await this.cacheStore.get(cacheKey) : null;
+
+        if (cachedWallets) {
+            return JSON.parse(cachedWallets) as Array<UserBlockRadarWallet>;
+        }
+
         const walletConfig = await this.repository.blockradarWallet.getWalletConfig(userId);
 
         if (!walletConfig) {
             return null;
         }
 
-        return walletConfig.map((wallet) => ({
-            addressId: wallet.addressId,
-            blockchainNetwork: wallet.blockchainNetwork,
-            address: wallet.address,
-        })) satisfies Array<UserBlockRadarWallet>;
+        if (cacheKey && this.cacheStore) {
+            await this.cacheStore.set(cacheKey, JSON.stringify(walletConfig));
+        }
+
+        return walletConfig satisfies Array<UserBlockRadarWallet>;
     }
 
     public static async getUserBlockradarWalletAddressId(userId: string, network: string) {
@@ -414,7 +421,8 @@ class UserServiceV2 {
 
     private static cacheKeys(userId: string) {
         return {
-            user: `user-${userId}`,
+            user: `cache-user-${userId}`,
+            wallets: `cache-wallets-${userId}`,
         };
     }
 

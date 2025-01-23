@@ -59,7 +59,7 @@ const userServiceV2 = UserServiceV2.init({
     env: {
         securityQuestionsMaskKey: env.SECURITY_QUESTIONS_MASK_KEY,
         securityQuestionsMaskIV: env.SECURITY_QUESTIONS_MASK_IV,
-        enableCache: false,
+        enableCache: true,
     },
 });
 
