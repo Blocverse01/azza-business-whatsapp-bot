@@ -17,12 +17,6 @@ blockradarRouter.post('/webhooks/:network', async (req, res) => {
 
     const masterWalletApiKey = getMasterWalletConfig(supportedNetwork).apiKey;
 
-    console.log({
-        signatureHeader: req.headers['x-blockradar-signature'],
-        payload: JSON.stringify(req.body),
-        method: req.method,
-    });
-
     if (!req.headers['x-blockradar-signature']) {
         return res.status(BAD_REQUEST).send('Missing webhook signature');
     }
