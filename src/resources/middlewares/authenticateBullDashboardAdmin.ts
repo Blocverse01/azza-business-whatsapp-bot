@@ -35,7 +35,6 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
             },
             ['lastAccessed']
         );
-        console.log(`${validToken.adminName} accessed BullMQ Dashboard`);
 
         next();
     } catch (error) {
