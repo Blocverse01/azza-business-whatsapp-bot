@@ -134,10 +134,6 @@ class WhatsAppBotTransactionConfirmationFlowService {
 
         switch (transaction_details.transactionType) {
             case 'SEND':
-                const user = await userServiceV2.getUserById(transaction_details.userId);
-                if (!user) {
-                    throw new Error(`Invalid user ID`);
-                }
                 const userPhoneNumber = user.primaryWhatsappPhoneNumber;
 
                 const [transaction, error] = await sendTransferAssetTransaction(
