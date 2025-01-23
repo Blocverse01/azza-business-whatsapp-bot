@@ -268,3 +268,28 @@ export enum ActionExecuted {
     SEND_DEPOSIT_ASSET_MESSAGE = 'SEND_DEPOSIT_ASSET_MESSAGE',
     SEND_WITHDRAW_ASSET_MESSAGE = 'SEND_WITHDRAW_ASSET_MESSAGE',
 }
+
+export type IncomingWhatsappMessage = {
+    id: string;
+    type: string;
+    from: string;
+    text: {
+        body: string;
+    };
+    interactive: {
+        type: 'button_reply' | 'list_reply' | 'nfm_reply';
+        list_reply?: {
+            id: string;
+            title: string;
+            description: string;
+        };
+        button_reply?: {
+            id: string;
+            title: string;
+        };
+        nfm_reply?: {
+            name: 'flow';
+            response_json: string;
+        };
+    };
+};

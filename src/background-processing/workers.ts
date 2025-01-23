@@ -10,6 +10,7 @@ import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import { createWhatsappMessagingWorker } from '@/app/WhatsAppBot/messagingQueueHelpers';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { CryptoDebitWorkerError } from '@/background-processing/errors';
 import { queues } from '@/background-processing/queues';
@@ -355,6 +356,11 @@ const userTxPinSecurityWorker = new Worker<
         connection: connectionConfig,
     }
 );
+
+// Start 10 whatsapp messaging workers
+for (let i = 0; i < 10; i++) {
+    createWhatsappMessagingWorker();
+}
 
 ///////////////////////
 // Worker Event Handlers

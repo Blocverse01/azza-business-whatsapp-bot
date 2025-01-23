@@ -14,6 +14,8 @@ import {
     UserTxPinSecurityQueueResult,
     UserWalletMigrationQueueInput,
     UserWalletMigrationQueueResult,
+    WhatsAppBotMessagingQueueInput,
+    WhatsAppBotMessagingQueueResult,
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -50,6 +52,12 @@ export const queues = {
             connection: connectionConfig,
         }
     ),
+    whatsappBotMessaging: new Queue<
+        WhatsAppBotMessagingQueueInput,
+        WhatsAppBotMessagingQueueResult
+    >(QueueNames.whatsappBotMessaging, {
+        connection: connectionConfig,
+    }),
 };
 
 export const defaultQueueRemoveOptions = {
