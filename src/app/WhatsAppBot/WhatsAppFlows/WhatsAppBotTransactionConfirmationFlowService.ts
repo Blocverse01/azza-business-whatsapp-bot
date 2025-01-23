@@ -137,7 +137,11 @@ class WhatsAppBotTransactionConfirmationFlowService {
                 const userPhoneNumber = user.primaryWhatsappPhoneNumber;
 
                 const [transaction, error] = await sendTransferAssetTransaction(
-                    transaction_details,
+                    {
+                        ...transaction_details,
+                        userId: unmaskedUserId,
+                        transactionPin: transaction_pin,
+                    },
                     true,
                     'new'
                 );
