@@ -6,9 +6,11 @@ import {
 import {
     SWAP_TOKENS_ON_BASE_SCRIPT_PATH,
     SWAP_TOKENS_SCRIPT_PATH,
-    TRANSFER_TRANSACTION_SCRIPT_PATH,
 } from '@/app/azza/backgroundSpawns/script-paths';
 import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
+import { sendTransferAssetTransaction } from '@/app/azza/lib/azza.lib.transaction';
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
@@ -16,6 +18,8 @@ import {
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { queues } from '@/background-processing/queues';
+import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
 import { logSync } from '@/resources/logger';
@@ -137,14 +141,47 @@ class WhatsAppBotTransactionConfirmationFlowService {
 
         switch (transaction_details.transactionType) {
             case 'SEND':
-                spawnInBackground(
-                    {
-                        ...transaction_details,
-                        userId: convertBase64ToAsciiString(transaction_details.userId),
-                        transactionPin: transaction_pin,
-                    },
-                    TRANSFER_TRANSACTION_SCRIPT_PATH
+                const user = await userServiceV2.getUserById(transaction_details.userId);
+                if (!user) {
+                    throw new Error(`Invalid user ID`);
+                }
+                const userPhoneNumber = user.primaryWhatsappPhoneNumber;
+
+                const [transaction, error] = await sendTransferAssetTransaction(
+                    transaction_details,
+                    true,
+                    'new'
                 );
+
+                if (error !== null) {
+                    return {
+                        screen: TransactionConfirmationFlowScreens.FEEDBACK,
+                        data: {
+                            feedback_title: 'An error occurred',
+                            feedback_message: `Submitting transaction failed: ${error.message}`,
+                            feedback_sub_message: 'Click on the button below to exit the flow',
+                            footer_cta_text: 'Exit',
+                            icon_src: ERROR_FEEDBACK_ICON,
+                        } satisfies ScreenDataPayload['FEEDBACK'],
+                    };
+                }
+
+                const assetLabel = `${transaction.asset.tokenName} (${transaction.asset.network})`;
+
+                const message = MessageGenerators.generateTextMessage(
+                    user.primaryWhatsappPhoneNumber,
+                    `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${transaction.transactionAmount} ${assetLabel} to ${transaction.destination}\n\n➡️ Request ID: ${transaction.transactionId}`
+                );
+
+                await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
+
+                await queues.cryptoDebitConfirmation.add('send-crypto-confirmation', {
+                    transactionResponse: transaction,
+                    whatsappParams: {
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        userPhoneNumber: userPhoneNumber,
+                    },
+                });
                 break;
 
             case 'SWAP_TOKENS_ON_BASE':

@@ -6,6 +6,7 @@ import {
 import { connectionConfig } from '@/background-processing/redis-connection-config';
 import { OfframpQueueFlowParams } from '@/background-processing/schema';
 import {
+    CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
     FiatPayoutQueueResult,
     QueueNames,
@@ -28,7 +29,7 @@ export const queues = {
         connection: connectionConfig,
     }),
     cryptoDebitConfirmation: new Queue<
-        SendTransferTransactionResponse,
+        SendTransferTransactionResponse | CryptoDebitConfirmationQueueInput,
         CryptoDebitConfirmationQueueResult,
         | 'send-crypto-confirmation'
         | 'offramp-debit-confirmation'

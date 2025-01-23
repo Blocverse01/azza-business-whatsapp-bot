@@ -16,6 +16,7 @@ import { queues } from '@/background-processing/queues';
 import { connectionConfig } from '@/background-processing/redis-connection-config';
 import { OfframpQueueFlowParams } from '@/background-processing/schema';
 import {
+    CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
     FiatPayoutQueueResult,
     QueueNames,
@@ -23,7 +24,8 @@ import {
     UserTxPinSecurityQueueResult,
 } from '@/background-processing/types';
 import env from '@/constants/env';
-import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
+import { HttpException } from '@/resources/exceptions/HttpException';
+import { logServiceError, parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import {
     convertAsciiStringToBase64,
     convertBase64ToAsciiString,
@@ -172,7 +174,7 @@ const cryptoDebitWorker = new Worker<
 );
 
 const cryptoDebitConfirmationWorker = new Worker<
-    SendTransferTransactionResponse,
+    SendTransferTransactionResponse | CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
     'send-crypto-confirmation' | 'offramp-debit-confirmation' | 'user-funds-migration-confirmation'
 >(
@@ -199,6 +201,58 @@ const cryptoDebitConfirmationWorker = new Worker<
                 ...cryptoDebitTx,
                 userId: convertBase64ToAsciiString(cryptoDebitTx.userId),
             });
+
+            return {
+                status: transactionReceipt.status,
+                transactionHash: transactionReceipt.transactionHash,
+            };
+        }
+
+        if ('whatsappParams' in job.data) {
+            const transactionReceipt = await waitForTransactionReceipt({
+                ...job.data.transactionResponse,
+                userId: convertBase64ToAsciiString(job.data.transactionResponse.userId),
+            });
+
+            const { transactionId, transactionAmount, destination, asset } =
+                job.data.transactionResponse;
+            const { businessPhoneNumberId, userPhoneNumber } = job.data.whatsappParams;
+
+            const assetLabel = `${asset.tokenName} (${asset.network})`;
+
+            const transactionHash = transactionReceipt.transactionHash;
+            const transactionStatus = transactionReceipt.status;
+            const explorerUrl = transactionReceipt.explorerUrl;
+
+            if (transactionStatus === 'success' && transactionHash) {
+                const message = MessageGenerators.generateInteractiveCtaUrlButtonMessage({
+                    bodyText: `✅ Your Transaction with the following details has been completed:\n\n🔀 Transfer ${transactionAmount} ${assetLabel} to ${destination}${transactionId !== transactionHash ? `\n\n➡️ Request ID: ${transactionId}` : ''}\n\n➡️ Transaction Hash: ${transactionHash}`,
+                    ctaText: 'View In Explorer',
+                    ctaUrl: explorerUrl!,
+                    recipient: userPhoneNumber,
+                    headerText: 'Transaction Completed',
+                    footerText: 'Thank you for using Azza!',
+                });
+
+                await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message);
+            }
+
+            if (transactionStatus === 'failed') {
+                const message = MessageGenerators.generateTextMessage(
+                    userPhoneNumber,
+                    `❌ Your Transaction with the following details has failed:\n\n🔀 Transfer ${transactionAmount} ${assetLabel} to ${destination}\n\n➡️ Request ID: ${transactionId}\n\nPlease try again later or contact support for assistance.`
+                );
+
+                await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message);
+
+                await logServiceError(
+                    new HttpException(500, 'Transaction failed', {
+                        transactionReceipt,
+                        params: job.data,
+                    }),
+                    'Transaction failed:'
+                );
+            }
 
             return {
                 status: transactionReceipt.status,

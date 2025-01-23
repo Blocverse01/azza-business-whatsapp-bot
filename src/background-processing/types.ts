@@ -1,3 +1,4 @@
+import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
 import { PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
 
 export type FiatPayoutQueueResult =
@@ -45,4 +46,9 @@ export type UserWalletMigrationQueueInput = {
 };
 export type UserWalletMigrationQueueResult = {
     walletIds: Array<string>;
+};
+
+export type CryptoDebitConfirmationQueueInput = {
+    transactionResponse: SendTransferTransactionResponse;
+    whatsappParams: PhoneNumberParams;
 };

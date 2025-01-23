@@ -1,7 +1,4 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
-import { WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH } from '@/app/azza/backgroundSpawns/script-paths';
-import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
-import { WaitForTransactionReceiptParams } from '@/app/azza/backgroundSpawns/wait-for-transaction-receipt';
 import {
     sendTransferAssetTransaction,
     SendTransferTransactionResponse,
@@ -18,6 +15,7 @@ import {
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { FeedbackScreenPayload, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
+import { queues } from '@/background-processing/queues';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
@@ -451,7 +449,7 @@ class WhatsAppBotTransferToWalletFlowService {
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
 
-            this.waitForTransactionReceiptInBackground(transactionResponse, {
+            await this.waitForTransactionReceiptInBackground(transactionResponse, {
                 userPhoneNumber: user.primaryWhatsappPhoneNumber,
                 businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
             });
@@ -486,17 +484,14 @@ class WhatsAppBotTransferToWalletFlowService {
         }
     }
 
-    private static waitForTransactionReceiptInBackground(
+    private static async waitForTransactionReceiptInBackground(
         transaction: SendTransferTransactionResponse,
         phoneParams: PhoneNumberParams
     ) {
-        spawnInBackground<WaitForTransactionReceiptParams>(
-            {
-                transaction,
-                phoneParams: phoneParams,
-            },
-            WAIT_FOR_TRANSACTION_RECEIPT_SCRIPT_PATH
-        );
+        await queues.cryptoDebitConfirmation.add('send-crypto-confirmation', {
+            transactionResponse: transaction,
+            whatsappParams: phoneParams,
+        });
     }
 
     public static generateTransferToWalletInitMessage(
