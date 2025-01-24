@@ -28,18 +28,15 @@ const rl = readline.createInterface({
 });
 
 function runScript() {
-    rl.question(
-        'Enter the cache keys to clear (separate multi keys with a comma): ',
-        async (message) => {
-            if (!message) {
-                console.error('No message provided');
-                process.exit(1);
-            }
-
-            await sendBroadcastMessage(message);
-            rl.close();
+    rl.question('Enter the message to broadcast: ', async (message) => {
+        if (!message) {
+            console.error('No message provided');
+            process.exit(1);
         }
-    );
+
+        await sendBroadcastMessage(message);
+        rl.close();
+    });
 }
 
 void runScript();
