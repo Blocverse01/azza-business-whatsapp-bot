@@ -1,8 +1,6 @@
 import { createOrUpdateUserAgentThread, getUserAgentThread } from '@/app/aiAgent/agent.helpers';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import UserService from '@/app/User/UserService';
 import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
-import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { getSessionId, textPromptHandler } from '@/app/WhatsAppBot/text/textPromptHandler';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -68,29 +66,10 @@ const handleIncomingWhatsappMessage = async (
 
     const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
 
-    const [user, messageThread, userV2] = await Promise.all([
-        UserService.getUserByPhoneNumber(from),
+    const [messageThread, userV2] = await Promise.all([
         getUserAgentThread(from),
         userServiceV2.getWhatsappUserByPhoneNumber(from),
     ]);
-
-    if (user && !userV2) {
-        await WhatsAppBotService.sendWhatsappMessage(
-            businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(
-                from,
-                `Hello ${displayName}, we are currently migrating your wallet to a new system. Please wait a moment.\n_This process will take a few minutes_.`
-            )
-        );
-
-        await queues.walletMigration.add('migrate user data and wallet', {
-            oldUserId: convertAsciiStringToBase64(user.id),
-            userPhoneNumber: convertAsciiStringToBase64(from),
-            businessPhoneNumberId: convertAsciiStringToBase64(businessPhoneNumberId),
-        });
-
-        return ActionExecuted.MIGRATING_USER_WALLET;
-    }
 
     if (!userV2) {
         if (
@@ -110,7 +89,7 @@ const handleIncomingWhatsappMessage = async (
                 return ActionExecuted.CREATED_NEW_USER;
             }
 
-            return ActionExecuted.FAILED_TO_CREATE_NEW_USER;
+            throw new Error('Failed to create new user');
         }
 
         await WhatsAppBotService.createWalletMessage(businessPhoneNumberId, displayName, from);

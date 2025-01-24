@@ -96,10 +96,6 @@ class UserServiceV2 {
             throw new Error('User already exists');
         }
 
-        if (this.cacheStore) {
-            await this.cacheStore.del(this.cacheKeys(primaryWAPhoneNumber).user);
-        }
-
         return await this.repository.user.createUser({
             primaryWhatsappPhoneNumber: primaryWAPhoneNumber,
             ...otherInfo,
@@ -107,7 +103,23 @@ class UserServiceV2 {
     }
 
     public static async getWhatsappUserByPhoneNumber(phoneNumber: string) {
-        return await this.repository.user.getUserByWhatsappPhoneNumber(phoneNumber);
+        const cacheKey = this.cacheKeys(phoneNumber).userIdForPhoneNumber;
+
+        if (this.cacheStore && this.env.enableCache) {
+            const cachedUserId = await this.cacheStore.get(cacheKey);
+
+            if (cachedUserId) {
+                return await this.getUserById(cachedUserId);
+            }
+        }
+
+        const user = await this.repository.user.getUserByWhatsappPhoneNumber(phoneNumber);
+
+        if (user && this.cacheStore && this.env.enableCache) {
+            await this.cacheStore.set(cacheKey, user.id);
+        }
+
+        return user;
     }
 
     public static async getUserById(userId: string) {
@@ -423,6 +435,7 @@ class UserServiceV2 {
         return {
             user: `cache-user-${userId}`,
             wallets: `cache-wallets-${userId}`,
+            userIdForPhoneNumber: `cache-user-id-${userId}`,
         };
     }
 
