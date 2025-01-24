@@ -6,7 +6,11 @@ import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
 
 async function sendBroadcastMessage(message: string) {
-    const allUsers = await dbClient.user_v2.getAll();
+    const allUsers = await dbClient.user_v2
+        .filter({
+            primaryWhatsappPhoneNumber: '2348143100808',
+        })
+        .getAll();
 
     for (const user of allUsers) {
         const phoneNumber = user.primaryWhatsappPhoneNumber!;
