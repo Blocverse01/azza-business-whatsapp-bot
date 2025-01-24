@@ -1,3 +1,4 @@
+import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
 import { IncomingWhatsappMessage, PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
 
@@ -47,6 +48,16 @@ export type UserWalletMigrationQueueInput = {
 };
 export type UserWalletMigrationQueueResult = {
     walletIds: Array<string>;
+};
+
+export type CryptoDebitQueueInput = {
+    transferDetails: Required<TransferAssetTransactionDetails>;
+    whatsappParams: PhoneNumberParams;
+};
+
+export type CryptoDebitQueueResult = {
+    transactionResponse: SendTransferTransactionResponse;
+    whatsappParams: PhoneNumberParams | null;
 };
 
 export type CryptoDebitConfirmationQueueInput = {

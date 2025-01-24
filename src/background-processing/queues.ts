@@ -1,13 +1,12 @@
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
-import {
-    SendTransferTransactionResponse,
-    SendTransferTransactionResult,
-} from '@/app/azza/lib/azza.lib.transaction';
+import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
 import { connectionConfig } from '@/background-processing/redis-connection-config';
 import { OfframpQueueFlowParams } from '@/background-processing/schema';
 import {
     CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
+    CryptoDebitQueueInput,
+    CryptoDebitQueueResult,
     FiatPayoutQueueResult,
     QueueNames,
     UserTxPinSecurityQueueInput,
@@ -24,8 +23,8 @@ export const queues = {
         connection: connectionConfig,
     }),
     cryptoDebit: new Queue<
-        Required<TransferAssetTransactionDetails>,
-        SendTransferTransactionResult,
+        Required<TransferAssetTransactionDetails> | CryptoDebitQueueInput,
+        CryptoDebitQueueResult,
         'send-crypto' | 'offramp-debit' | 'user-funds-migration'
     >(QueueNames.cryptoDebit, {
         connection: connectionConfig,

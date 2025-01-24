@@ -19,6 +19,8 @@ import { OfframpQueueFlowParams } from '@/background-processing/schema';
 import {
     CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
+    CryptoDebitQueueInput,
+    CryptoDebitQueueResult,
     FiatPayoutQueueResult,
     QueueNames,
     UserTxPinSecurityQueueInput,
@@ -127,47 +129,56 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
     }
 );
 const cryptoDebitWorker = new Worker<
-    Required<TransferAssetTransactionDetails>,
-    SendTransferTransactionResult,
+    Required<TransferAssetTransactionDetails> | CryptoDebitQueueInput,
+    CryptoDebitQueueResult,
     'send-crypto' | 'offramp-debit' | 'user-funds-migration'
 >(
     QueueNames.cryptoDebit,
     async (job) => {
+        const transactionData = 'transferDetails' in job.data ? job.data.transferDetails : job.data;
+        const whatsappParams = 'whatsappParams' in job.data ? job.data.whatsappParams : null;
+
+        const requirePin = job.name !== 'user-funds-migration';
+        const walletManager = job.name === 'user-funds-migration' ? 'legacy' : ('new' as const);
+
         const result = await sendTransferAssetTransaction(
             {
-                ...job.data,
-                userId: convertBase64ToAsciiString(job.data.userId),
-                transactionPin: job.data.transactionPin
+                ...transactionData,
+                userId: convertBase64ToAsciiString(transactionData.userId),
+                transactionPin: transactionData.transactionPin
                     ? decryptWithAES(
-                          job.data.transactionPin,
+                          transactionData.transactionPin,
                           env.SECURITY_QUESTIONS_MASK_KEY,
                           env.SECURITY_QUESTIONS_MASK_IV
                       )
                     : '',
             },
-            job.name !== 'user-funds-migration',
-            job.name === 'user-funds-migration' ? 'legacy' : 'new'
+            requirePin,
+            walletManager
         );
 
         const [sendCryptoTxResponse, txError] = result;
-
-        if (job.name === 'user-funds-migration' && sendCryptoTxResponse) {
-            await queues.cryptoDebitConfirmation.add('user-funds-migration-confirmation', {
-                ...sendCryptoTxResponse,
-                userId: convertAsciiStringToBase64(sendCryptoTxResponse.userId),
-            });
-        }
 
         if (txError !== null) {
             throw new CryptoDebitWorkerError(txError.message, txError.data);
         }
 
-        const sendCryptoTxResponseWithMaskedUserId = {
+        const refinedSendCryptoTxResponse = {
             ...sendCryptoTxResponse,
             userId: convertAsciiStringToBase64(sendCryptoTxResponse.userId),
-        } as const;
+        } satisfies SendTransferTransactionResponse;
 
-        return [sendCryptoTxResponseWithMaskedUserId, txError];
+        if (job.name === 'user-funds-migration' && refinedSendCryptoTxResponse) {
+            await queues.cryptoDebitConfirmation.add(
+                'user-funds-migration-confirmation',
+                refinedSendCryptoTxResponse
+            );
+        }
+
+        return {
+            transactionResponse: refinedSendCryptoTxResponse,
+            whatsappParams: whatsappParams,
+        };
     },
     {
         connection: connectionConfig,
@@ -181,27 +192,57 @@ const cryptoDebitConfirmationWorker = new Worker<
 >(
     QueueNames.cryptoDebitConfirmation,
     async (job) => {
-        const childrenValues = await job.getChildrenValues<SendTransferTransactionResult>();
-
         if (job.name === 'offramp-debit-confirmation') {
+            const childrenValues = await job.getChildrenValues<CryptoDebitQueueResult>();
+
             const targetChildValueKey = Object.keys(childrenValues).find((key) =>
                 key.includes(QueueNames.cryptoDebit)
             );
-            const [cryptoDebitTx, txError] = targetChildValueKey
-                ? (childrenValues[targetChildValueKey] as SendTransferTransactionResult)
-                : [null, { message: 'No crypto debit transaction' }];
 
-            if (txError !== null || cryptoDebitTx === null) {
+            const cryptoDebitResult = targetChildValueKey
+                ? (childrenValues[targetChildValueKey] as CryptoDebitQueueResult)
+                : null;
+
+            if (cryptoDebitResult === null) {
                 return {
                     status: 'failed',
                     transactionHash: null,
                 };
             }
 
+            if (cryptoDebitResult.whatsappParams) {
+                const message = MessageGenerators.generateTextMessage(
+                    cryptoDebitResult.whatsappParams.userPhoneNumber,
+                    `🚀 Confirming crypto debit transaction...`
+                );
+
+                await WhatsAppBotService.sendWhatsappMessage(
+                    cryptoDebitResult.whatsappParams.businessPhoneNumberId,
+                    message
+                );
+            }
+
             const transactionReceipt = await waitForTransactionReceipt({
-                ...cryptoDebitTx,
-                userId: convertBase64ToAsciiString(cryptoDebitTx.userId),
+                ...cryptoDebitResult.transactionResponse,
+                userId: convertBase64ToAsciiString(cryptoDebitResult.transactionResponse.userId),
             });
+
+            if (cryptoDebitResult.whatsappParams) {
+                const messageText =
+                    transactionReceipt.status === 'success'
+                        ? `✅ Crypto debit transaction confirmed!`
+                        : `❌ Crypto debit transaction failed!\n\nWe could not debit ${cryptoDebitResult.transactionResponse.transactionAmount} ${cryptoDebitResult.transactionResponse.asset.tokenName} on ${cryptoDebitResult.transactionResponse.asset.network} from your wallet.\n\n_Please try again later or contact support for assistance._`;
+
+                const messageObject = MessageGenerators.generateTextMessage(
+                    cryptoDebitResult.whatsappParams.userPhoneNumber,
+                    messageText
+                );
+
+                await WhatsAppBotService.sendWhatsappMessage(
+                    cryptoDebitResult.whatsappParams.businessPhoneNumberId,
+                    messageObject
+                );
+            }
 
             return {
                 status: transactionReceipt.status,
@@ -209,15 +250,18 @@ const cryptoDebitConfirmationWorker = new Worker<
             };
         }
 
-        if ('whatsappParams' in job.data) {
-            const transactionReceipt = await waitForTransactionReceipt({
-                ...job.data.transactionResponse,
-                userId: convertBase64ToAsciiString(job.data.transactionResponse.userId),
-            });
+        const transactionResponse =
+            'transactionResponse' in job.data ? job.data.transactionResponse : job.data;
+        const whatsappParams = 'whatsappParams' in job.data ? job.data.whatsappParams : null;
 
-            const { transactionId, transactionAmount, destination, asset } =
-                job.data.transactionResponse;
-            const { businessPhoneNumberId, userPhoneNumber } = job.data.whatsappParams;
+        const transactionReceipt = await waitForTransactionReceipt({
+            ...transactionResponse,
+            userId: convertBase64ToAsciiString(transactionResponse.userId),
+        });
+
+        if (job.name === 'send-crypto-confirmation' && whatsappParams) {
+            const { transactionId, transactionAmount, destination, asset } = transactionResponse;
+            const { businessPhoneNumberId, userPhoneNumber } = whatsappParams;
 
             const assetLabel = `${asset.tokenName} (${asset.network})`;
 
@@ -254,17 +298,7 @@ const cryptoDebitConfirmationWorker = new Worker<
                     'Transaction failed:'
                 );
             }
-
-            return {
-                status: transactionReceipt.status,
-                transactionHash: transactionReceipt.transactionHash,
-            };
         }
-
-        const transactionReceipt = await waitForTransactionReceipt({
-            ...job.data,
-            userId: convertBase64ToAsciiString(job.data.userId),
-        });
 
         return {
             status: transactionReceipt.status,

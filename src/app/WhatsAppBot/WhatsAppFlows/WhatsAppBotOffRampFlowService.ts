@@ -1,7 +1,4 @@
-import {
-    AssetTransferRecipientType,
-    TransferAssetTransactionDetails,
-} from '@/app/azza/azza.schema';
+import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { BankBeneficiary, MobileMoneyBeneficiary } from '@/app/FiatRamp/fiatRampSchema';
@@ -18,7 +15,7 @@ import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/t
 import { offrampFlowProducer } from '@/background-processing/flow-producers';
 import { defaultQueueRemoveOptions } from '@/background-processing/queues';
 import { OfframpQueueFlowParams } from '@/background-processing/schema';
-import { QueueNames } from '@/background-processing/types';
+import { CryptoDebitQueueInput, QueueNames } from '@/background-processing/types';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
@@ -594,19 +591,26 @@ class WhatsAppBotOffRampFlowService {
                                     name: 'offramp-debit',
                                     queueName: QueueNames.cryptoDebit,
                                     data: {
-                                        userId: convertAsciiStringToBase64(userId),
-                                        amount: tokenAmountToDebit,
-                                        transactionFee: 0, // Fee for onchain transfer
-                                        assetId,
-                                        recipient: hotWalletAddress,
-                                        recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
-                                        transactionType: 'SEND',
-                                        transactionPin: encryptWithAES(
-                                            transactionPin,
-                                            env.SECURITY_QUESTIONS_MASK_KEY,
-                                            env.SECURITY_QUESTIONS_MASK_IV
-                                        ),
-                                    } satisfies TransferAssetTransactionDetails,
+                                        transferDetails: {
+                                            userId: convertAsciiStringToBase64(userId),
+                                            amount: tokenAmountToDebit,
+                                            transactionFee: 0, // Fee for onchain transfer
+                                            assetId,
+                                            recipient: hotWalletAddress,
+                                            recipientType:
+                                                AssetTransferRecipientType.WALLET_ADDRESS,
+                                            transactionType: 'SEND',
+                                            transactionPin: encryptWithAES(
+                                                transactionPin,
+                                                env.SECURITY_QUESTIONS_MASK_KEY,
+                                                env.SECURITY_QUESTIONS_MASK_IV
+                                            ),
+                                        },
+                                        whatsappParams: {
+                                            userPhoneNumber: user.primaryWhatsappPhoneNumber!,
+                                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                                        },
+                                    } satisfies CryptoDebitQueueInput,
                                 },
                             ],
                         },
