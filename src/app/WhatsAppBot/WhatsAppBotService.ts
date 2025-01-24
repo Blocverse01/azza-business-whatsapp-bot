@@ -617,11 +617,7 @@ class WhatsAppBotService {
             }
         }
 
-        throw new HttpException(
-            INTERNAL_SERVER_ERROR,
-            'No configured response action for nfm reply',
-            { nfmReply }
-        );
+        return null;
     }
 
     public static async sendKycVerificationUrlMessage(

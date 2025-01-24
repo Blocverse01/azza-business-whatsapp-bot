@@ -15,8 +15,8 @@ import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
+    createWhatsappBroadcastWorker,
     createWhatsappMessagingWorker,
-    createWhatsppBroadcastWorker,
 } from '@/app/WhatsAppBot/messagingQueueHelpers';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { CryptoDebitWorkerError } from '@/background-processing/errors';
@@ -431,7 +431,7 @@ const userTxPinSecurityWorker = new Worker<
     }
 );
 
-createWhatsppBroadcastWorker();
+createWhatsappBroadcastWorker();
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

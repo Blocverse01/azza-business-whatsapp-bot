@@ -399,7 +399,7 @@ const handleIncomingWhatsappMessage = async (
 
             const responseAction = WhatsAppBotService.determineInteractiveNfmReplyAction(nfm_reply);
 
-            if (responseAction.action === 'trigger-offramp-flow') {
+            if (responseAction?.action === 'trigger-offramp-flow') {
                 await WhatsAppBotService.beginOffRampFlowMessage(userV2, phoneParams, {
                     assetId: responseAction.data.assetId,
                     beneficiaryId: responseAction.data.beneficiaryId,
@@ -431,7 +431,7 @@ export const createWhatsappMessagingWorker = () => {
     );
 };
 
-export const createWhatsppBroadcastWorker = () => {
+export const createWhatsappBroadcastWorker = () => {
     return new Worker<WhatsappBroadcastQueueInput>(
         QueueNames.whatsappBroadcast,
         async (job) => {
