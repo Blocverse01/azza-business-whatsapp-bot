@@ -49,6 +49,7 @@ createBullBoard({
         new BullMQAdapter(queues.userTxPinSecurity),
         new BullMQAdapter(queues.walletMigration),
         new BullMQAdapter(queues.whatsappBotMessaging),
+        new BullMQAdapter(queues.whatsappBroadcast),
     ],
     serverAdapter: serverAdapter,
 });

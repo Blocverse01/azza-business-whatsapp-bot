@@ -16,6 +16,7 @@ import {
     UserWalletMigrationQueueResult,
     WhatsAppBotMessagingQueueInput,
     WhatsAppBotMessagingQueueResult,
+    WhatsappBroadcastQueueInput,
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -59,6 +60,9 @@ export const queues = {
         WhatsAppBotMessagingQueueInput,
         WhatsAppBotMessagingQueueResult
     >(QueueNames.whatsappBotMessaging, {
+        connection: connectionConfig,
+    }),
+    whatsappBroadcast: new Queue<WhatsappBroadcastQueueInput>(QueueNames.whatsappBroadcast, {
         connection: connectionConfig,
     }),
 };

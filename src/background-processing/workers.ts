@@ -14,7 +14,10 @@ import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import { createWhatsappMessagingWorker } from '@/app/WhatsAppBot/messagingQueueHelpers';
+import {
+    createWhatsappMessagingWorker,
+    createWhatsppBroadcastWorker,
+} from '@/app/WhatsAppBot/messagingQueueHelpers';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { CryptoDebitWorkerError } from '@/background-processing/errors';
 import { queues } from '@/background-processing/queues';
@@ -253,7 +256,7 @@ const cryptoDebitConfirmationWorker = new Worker<
                     `🚀 Confirming crypto debit transaction...`
                 );
 
-                await WhatsAppBotService.sendWhatsappMessage(
+                void WhatsAppBotService.sendWhatsappMessage(
                     cryptoDebitResult.whatsappParams.businessPhoneNumberId,
                     message
                 );
@@ -427,6 +430,8 @@ const userTxPinSecurityWorker = new Worker<
         connection: connectionConfig,
     }
 );
+
+createWhatsppBroadcastWorker();
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

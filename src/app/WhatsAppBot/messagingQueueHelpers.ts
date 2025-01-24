@@ -22,6 +22,7 @@ import {
     QueueNames,
     WhatsAppBotMessagingQueueInput,
     WhatsAppBotMessagingQueueResult,
+    WhatsappBroadcastQueueInput,
 } from '@/background-processing/types';
 import {
     extractGroups,
@@ -428,4 +429,28 @@ export const createWhatsappMessagingWorker = () => {
         },
         { connection: connectionConfig }
     );
+};
+
+export const createWhatsppBroadcastWorker = () => {
+    return new Worker<WhatsappBroadcastQueueInput>(
+        QueueNames.whatsappBroadcast,
+        async (job) => {
+            const { businessPhoneNumberId, message } = job.data;
+
+            await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message);
+
+            return { status: 'success' };
+        },
+        {
+            connection: connectionConfig,
+        }
+    );
+};
+
+export const sendWhatsappBroadcastMessage = async (params: WhatsappBroadcastQueueInput) => {
+    await queues.whatsappBroadcast.add('Send broadcast message', params, {
+        removeOnComplete: true,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 }, // Retry with a delay
+    });
 };

@@ -1,6 +1,10 @@
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
-import { IncomingWhatsappMessage, PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+import {
+    IncomingWhatsappMessage,
+    PhoneNumberParams,
+    WhatsAppTextMessage,
+} from '@/app/WhatsAppBot/WhatsAppBotType';
 import { AssetConfig } from '@/resources/web3/tokens';
 
 export type FiatPayoutQueueResult =
@@ -40,6 +44,7 @@ export enum QueueNames {
     userTxPinSecurity = 'user-tx-pin-security',
     walletMigration = 'wallet-migration',
     whatsappBotMessaging = 'whatsapp-bot-messaging',
+    whatsappBroadcast = 'whatsapp-broadcast',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -80,4 +85,9 @@ export type WhatsAppBotMessagingQueueInput = {
 
 export type WhatsAppBotMessagingQueueResult = {
     actionExecuted: string;
+};
+
+export type WhatsappBroadcastQueueInput = {
+    message: WhatsAppTextMessage;
+    businessPhoneNumberId: string;
 };

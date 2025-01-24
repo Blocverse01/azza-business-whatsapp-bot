@@ -8,7 +8,8 @@
     "dev": "tsx watch --env-file=.env --clear-screen=false src/index.ts",
     "build": "rimraf build && tsc && echo 'BUILT SUCCESSFULLY 🚀'",
     "start": "tsx src/index.ts",
-    "crc": "tsx scripts/clear-redis-cache.ts"
+    "crc": "tsx scripts/clear-redis-cache.ts",
+    "broadcast": "tsx scripts/send-broadcast-message.ts"
   },
   "author": "",
   "license": "ISC",
