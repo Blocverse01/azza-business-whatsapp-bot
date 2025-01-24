@@ -7,6 +7,7 @@ import {
     CryptoDebitConfirmationQueueResult,
     CryptoDebitQueueInput,
     CryptoDebitQueueResult,
+    CryptoPayoutDebitConfirmationInput,
     FiatPayoutQueueResult,
     QueueNames,
     UserTxPinSecurityQueueInput,
@@ -30,11 +31,14 @@ export const queues = {
         connection: connectionConfig,
     }),
     cryptoDebitConfirmation: new Queue<
-        SendTransferTransactionResponse | CryptoDebitConfirmationQueueInput,
+        | SendTransferTransactionResponse
+        | CryptoDebitConfirmationQueueInput
+        | CryptoPayoutDebitConfirmationInput,
         CryptoDebitConfirmationQueueResult,
         | 'send-crypto-confirmation'
         | 'offramp-debit-confirmation'
         | 'user-funds-migration-confirmation'
+        | 'crypto-payout-confirmation'
     >(QueueNames.cryptoDebitConfirmation, {
         connection: connectionConfig,
     }),

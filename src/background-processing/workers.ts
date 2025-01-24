@@ -5,7 +5,11 @@ import {
     SendTransferTransactionResult,
 } from '@/app/azza/lib/azza.lib.transaction';
 import { changeTransactionPin, setTransactionPin } from '@/app/azza/lib/azza.lib.user-security';
-import { waitForTransactionReceipt } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
+import {
+    waitForTransactionReceipt,
+    waitForTransactionReceiptV2,
+} from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
+import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
@@ -21,6 +25,7 @@ import {
     CryptoDebitConfirmationQueueResult,
     CryptoDebitQueueInput,
     CryptoDebitQueueResult,
+    CryptoPayoutDebitConfirmationInput,
     FiatPayoutQueueResult,
     QueueNames,
     UserTxPinSecurityQueueInput,
@@ -186,12 +191,44 @@ const cryptoDebitWorker = new Worker<
 );
 
 const cryptoDebitConfirmationWorker = new Worker<
-    SendTransferTransactionResponse | CryptoDebitConfirmationQueueInput,
+    | SendTransferTransactionResponse
+    | CryptoDebitConfirmationQueueInput
+    | CryptoPayoutDebitConfirmationInput,
     CryptoDebitConfirmationQueueResult,
-    'send-crypto-confirmation' | 'offramp-debit-confirmation' | 'user-funds-migration-confirmation'
+    | 'send-crypto-confirmation'
+    | 'offramp-debit-confirmation'
+    | 'user-funds-migration-confirmation'
+    | 'crypto-payout-confirmation'
 >(
     QueueNames.cryptoDebitConfirmation,
     async (job) => {
+        if ('orderId' in job.data) {
+            if (job.name === 'crypto-payout-confirmation') {
+                const transactionReceipt = await waitForTransactionReceiptV2({
+                    transactionId: job.data.transactionId,
+                    asset: job.data.asset,
+                    walletManager: 'new',
+                });
+
+                const newStatus =
+                    transactionReceipt.status === 'success'
+                        ? CryptoPayoutOrderStatus.COMPLETE
+                        : CryptoPayoutOrderStatus.FAILED;
+
+                await CryptoPayoutService.updateProcessedCryptPayoutOrder(job.data.orderId, {
+                    status: newStatus,
+                    payoutTransactionHash: transactionReceipt.transactionHash,
+                });
+
+                return {
+                    status: transactionReceipt.status,
+                    transactionHash: transactionReceipt.transactionHash,
+                };
+            }
+
+            throw new Error(`Invalid job data for ${job.name}`);
+        }
+
         if (job.name === 'offramp-debit-confirmation') {
             const childrenValues = await job.getChildrenValues<CryptoDebitQueueResult>();
 

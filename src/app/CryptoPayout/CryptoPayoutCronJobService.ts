@@ -2,17 +2,16 @@ import { AssetTransaction } from '@/app/AzzaWalletManager/providers/BaseWalletPr
 import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
-import { GetTransactionReceiptInBackgroundParams } from '@/app/CryptoPayout/getTransactionReceiptInBackground';
 import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { queues } from '@/background-processing/queues';
 import { ZERO } from '@/constants/numbers';
 import { CryptoPayoutOrder } from '@/db/xata';
-import logger, { logSync } from '@/resources/logger';
+import logger from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { decimalToString } from '@/resources/utils/currency';
 import { AssetConfig } from '@/resources/web3/tokens';
 import platformWalletManager from '@/runtime/platform-wallets';
-import { spawn } from 'child_process';
 
 type CryptoOrderInput = {
     recipient: string;
@@ -91,35 +90,15 @@ class CryptoPayoutCronJobService {
         }
     }
 
-    private static getTransactionReceiptInBackground(
+    private static async getTransactionReceiptInBackground(
         orderId: string,
         transactionId: string,
         asset: AssetConfig
     ) {
-        const serializedParams = JSON.stringify({
-            orderId: orderId,
+        await queues.cryptoDebitConfirmation.add('crypto-payout-confirmation', {
+            orderId,
             transactionId,
             asset,
-        } satisfies GetTransactionReceiptInBackgroundParams);
-
-        // Spawn the background process
-        const backgroundProcess = spawn(
-            'tsx',
-            ['src/app/CryptoPayout/getTransactionReceiptInBackground.ts', serializedParams],
-            {
-                stdio: 'inherit', // Optional: Inherit stdio to see logs in the parent process console
-            }
-        );
-
-        backgroundProcess.on('spawn', () => {
-            logSync('debug', `Began background process to get transaction receipt`, {
-                orderId,
-                transactionId,
-            });
-        });
-
-        backgroundProcess.on('error', (err) => {
-            logSync('debug', 'Failed to start background process:', err);
         });
     }
 

@@ -1,6 +1,7 @@
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
 import { IncomingWhatsappMessage, PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { AssetConfig } from '@/resources/web3/tokens';
 
 export type FiatPayoutQueueResult =
     | {
@@ -63,6 +64,12 @@ export type CryptoDebitQueueResult = {
 export type CryptoDebitConfirmationQueueInput = {
     transactionResponse: SendTransferTransactionResponse;
     whatsappParams: PhoneNumberParams;
+};
+
+export type CryptoPayoutDebitConfirmationInput = {
+    orderId: string;
+    transactionId: string;
+    asset: AssetConfig;
 };
 
 export type WhatsAppBotMessagingQueueInput = {
