@@ -98,10 +98,6 @@ class FiatRampServiceController {
                         network: supportedChain,
                     });
 
-                    const user = await userServiceV2.getWhatsappUserByPhoneNumber(
-                        transaction.ownerId
-                    );
-
                     if (!user) {
                         return;
                     }
