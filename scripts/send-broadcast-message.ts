@@ -1,6 +1,4 @@
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import process from 'node:process';
-import readline from 'node:readline';
 import { sendWhatsappBroadcastMessage } from '../src/app/WhatsAppBot/messagingQueueHelpers';
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
@@ -26,21 +24,17 @@ async function sendBroadcastMessage(message: string) {
     console.log('Broadcast message queued to all users');
 }
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-});
-
-function runScript() {
-    rl.question('Enter the message to broadcast: ', async (message) => {
-        if (!message) {
-            console.error('No message provided');
-            process.exit(1);
-        }
-
-        await sendBroadcastMessage(message);
-        rl.close();
-    });
+async function runScript() {
+    const message =
+        'Hey Azza User,\n' +
+        '\n' +
+        'We had some issues with naira payouts earlier, but it’s all sorted now! You can continue transacting seamlessly.\n' +
+        '\n' +
+        'Thanks for sticking with us—you’re awesome!\n' +
+        '\n' +
+        'Cheers,\n' +
+        'The Azza Team';
+    await sendBroadcastMessage(message);
 }
 
 void runScript();
