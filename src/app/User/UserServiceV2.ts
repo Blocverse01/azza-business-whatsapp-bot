@@ -352,7 +352,7 @@ class UserServiceV2 {
         const cacheKey = this.env.enableCache ? this.cacheKeys(userId).wallets : null;
         const cachedWallets = cacheKey ? await this.cacheStore.get(cacheKey) : null;
 
-        if (cachedWallets) {
+        if (cachedWallets && cachedWallets !== '[]') {
             return JSON.parse(cachedWallets) as Array<UserBlockRadarWallet>;
         }
 
@@ -416,6 +416,12 @@ class UserServiceV2 {
 
         if (!walletConfig) {
             return null;
+        }
+
+        const cacheKey = this.cacheKeys(userId).wallets;
+
+        if (this.cacheStore && this.env.enableCache) {
+            await this.cacheStore.set(cacheKey, JSON.stringify(walletConfig));
         }
 
         return walletConfig as Array<UserBlockRadarWallet>;
