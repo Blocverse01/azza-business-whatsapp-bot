@@ -427,7 +427,7 @@ export const createWhatsappMessagingWorker = () => {
 
             return { actionExecuted };
         },
-        { connection: connectionConfig }
+        { connection: connectionConfig, concurrency: 100 }
     );
 };
 
@@ -443,6 +443,7 @@ export const createWhatsappBroadcastWorker = () => {
         },
         {
             connection: connectionConfig,
+            concurrency: 50,
         }
     );
 };

@@ -134,6 +134,7 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
     },
     {
         connection: connectionConfig,
+        concurrency: 100,
     }
 );
 const cryptoDebitWorker = new Worker<
@@ -190,6 +191,7 @@ const cryptoDebitWorker = new Worker<
     },
     {
         connection: connectionConfig,
+        concurrency: 100,
     }
 );
 
@@ -347,6 +349,7 @@ const cryptoDebitConfirmationWorker = new Worker<
     },
     {
         connection: connectionConfig,
+        concurrency: 50,
     }
 );
 
@@ -428,6 +431,7 @@ const userTxPinSecurityWorker = new Worker<
     },
     {
         connection: connectionConfig,
+        concurrency: 50,
     }
 );
 
