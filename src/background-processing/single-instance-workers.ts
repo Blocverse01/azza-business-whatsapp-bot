@@ -148,7 +148,7 @@ const walletMigrationWorker = new Worker<
     },
     {
         connection: connectionConfig,
-        concurrency: 1,
+        concurrency: 20,
     }
 );
 
