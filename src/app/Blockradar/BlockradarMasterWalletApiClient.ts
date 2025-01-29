@@ -328,11 +328,18 @@ class BlockradarMasterWalletApiClient {
         let responseData = {};
 
         try {
-            responseData = await response.json();
-        } catch (error) {
             const responseText = await response.text();
+            try {
+                responseData = JSON.parse(responseText);
+            } catch (jsonError) {
+                responseData = {
+                    message: responseText,
+                    statusCode: response.status,
+                };
+            }
+        } catch (error) {
             responseData = {
-                message: responseText,
+                message: 'Failed to read response text',
                 statusCode: response.status,
             };
         }
