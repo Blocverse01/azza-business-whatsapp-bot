@@ -324,7 +324,19 @@ class BlockradarMasterWalletApiClient {
             console.time(`${options.method} [${url}]`);
         }
         const response = await fetch(url, options);
-        const responseData = await response.json();
+
+        let responseData = {};
+
+        try {
+            responseData = await response.json();
+        } catch (error) {
+            const responseText = await response.text();
+            responseData = {
+                message: responseText,
+                statusCode: response.status,
+            };
+        }
+
         if (this.debug) {
             console.timeEnd(`${options.method} [${url}]`);
         }
