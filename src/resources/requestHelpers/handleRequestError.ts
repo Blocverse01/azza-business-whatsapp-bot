@@ -1,4 +1,5 @@
 import { BlockradarWalletProviderError } from '@/app/AzzaWalletManager/providers/blockradar/resources/errors';
+import { BlockradarMasterWalletApiClientError } from '@/app/Blockradar/errors';
 import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import logger from '@/resources/logger';
 import { isAxiosError } from 'axios';
@@ -51,13 +52,26 @@ const parseUnknownError = (error: unknown): ParsedError => {
         statusCode: INTERNAL_SERVER_ERROR,
     };
 
+    if (error instanceof BlockradarMasterWalletApiClientError) {
+        parsedError['message'] = error.message;
+        parsedError['stack'] = error.stack;
+        parsedError['data'] = {
+            rawJsonResponse: error.rawJsonResponse,
+            requestData: error.requestData,
+            requestUrl: error.requestUrl,
+        };
+        parsedError['cause'] = error.cause;
+        parsedError['name'] = error.name;
+        parsedError['statusCode'] = error.statusCode;
+        return parsedError;
+    }
+
     if (error instanceof BlockradarWalletProviderError) {
         parsedError['message'] = error.message;
         parsedError['stack'] = error.stack;
         parsedError['data'] = error.data;
         parsedError['cause'] = error.cause;
         parsedError['name'] = error.name;
-
         return parsedError;
     }
 
