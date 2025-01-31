@@ -444,6 +444,10 @@ export const createWhatsappBroadcastWorker = () => {
         {
             connection: connectionConfig,
             concurrency: 50,
+            limiter: {
+                max: 20,
+                duration: 1000,
+            },
         }
     );
 };
