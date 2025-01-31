@@ -6,7 +6,7 @@ import { dbClient } from '../src/db/dbClient';
 async function sendBroadcastMessage(message: string) {
     const allUsers = await dbClient.user_v2
         .filter({
-            primaryWhatsappPhoneNumber: '2348143100808',
+            primaryWhatsappPhoneNumber: '2347082953784',
         })
         .getAll();
     const sendSendMessagesPromises = allUsers.map(
@@ -34,12 +34,9 @@ async function runScript() {
     const message =
         'Gain access to all features like crypto-to-cash in just 1 minute by completing your KYC!\n' +
         '\n' +
-        '\n' +
         "Simply use your International Passport, driver's licence, or Voter’s Card to verify your identity.\n" +
         '\n' +
-        '\n' +
         '✅ Get started now with the */verify_me* command.\n' +
-        '\n' +
         '\n' +
         '❓ Need help? Join the Azza Community for support. https://chat.whatsapp.com/IYCiFBgpNtM1rCPhtBpv2c';
     await sendBroadcastMessage(message);
