@@ -267,6 +267,7 @@ class BlockradarMasterWalletApiClient {
                 requestUrl: url,
                 statusCode: response.statusCode,
                 rawJsonResponse: response,
+                requestData: bodyPayload,
             });
         }
 
@@ -291,6 +292,7 @@ class BlockradarMasterWalletApiClient {
                 requestUrl: url,
                 statusCode: response.statusCode,
                 rawJsonResponse: response,
+                requestData: bodyPayload,
             });
         }
 
@@ -302,6 +304,7 @@ class BlockradarMasterWalletApiClient {
                 requestUrl: url,
                 statusCode: response.statusCode,
                 rawJsonResponse: response,
+                requestData: bodyPayload,
             });
         }
 
@@ -356,6 +359,7 @@ class BlockradarMasterWalletApiClient {
                 requestUrl: url,
                 statusCode: response.status,
                 rawJsonResponse: responseData,
+                requestData: options.body,
             });
         }
 
