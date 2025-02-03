@@ -5,9 +5,10 @@ import { dbClient } from '../src/db/dbClient';
 
 async function sendBroadcastMessage(message: string) {
     const allUsers = await dbClient.user_v2
+        .select(['primaryWhatsappPhoneNumber'])
         .filter({
             primaryWhatsappPhoneNumber: {
-                $any: ['2347082953784', '2348146843432'],
+                $any: ['2348143100808', '2348146843432'],
             },
         })
         .getAll();
