@@ -109,13 +109,10 @@ export const textPromptHandler = async (
         //     phoneParams: params.botParams,
         // });
         //
-        // const promptResponse = response.assistantMessage.content;
+        const promptResponse = getWelcomeBackMessageText();
         await WhatsAppBotService.sendWhatsappMessage(
             params.botParams.businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(
-                params.botParams.userPhoneNumber,
-                getWelcomeBackMessageText()
-            )
+            MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, promptResponse)
         );
 
         return {
