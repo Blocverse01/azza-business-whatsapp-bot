@@ -90,7 +90,9 @@ class UserServiceV2 {
         primaryWAPhoneNumber: string,
         otherInfo?: Omit<UpdatableInfo, 'primaryWhatsappPhoneNumber'>
     ) {
-        const existingRecord = await this.getWhatsappUserByPhoneNumber(primaryWAPhoneNumber);
+        const existingRecord = await this.getWhatsappUserByPhoneNumber(primaryWAPhoneNumber, {
+            omitCache: true,
+        });
 
         if (existingRecord) {
             throw new Error('User already exists');
@@ -102,13 +104,18 @@ class UserServiceV2 {
         });
     }
 
-    public static async getWhatsappUserByPhoneNumber(phoneNumber: string) {
+    public static async getWhatsappUserByPhoneNumber(
+        phoneNumber: string,
+        options: {
+            omitCache?: boolean;
+        } = {}
+    ) {
         const cacheKey = this.cacheKeys(phoneNumber).userIdForPhoneNumber;
 
-        if (this.cacheStore && this.env.enableCache) {
+        if (options.omitCache !== true && this.cacheStore && this.env.enableCache) {
             const cachedUserId = await this.cacheStore.get(cacheKey);
 
-            if (cachedUserId) {
+            if (cachedUserId?.trim()) {
                 return await this.getUserById(cachedUserId);
             }
         }

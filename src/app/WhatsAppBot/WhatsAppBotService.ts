@@ -12,6 +12,10 @@ import SumSubService, {
 import { UserAssetItem } from '@/app/User/userSchema';
 import { sendMessageUsingGo } from '@/app/WhatsAppBot/helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import {
+    getFirstTimeUserMessageText,
+    getWalletCreationSuccessMessageText,
+} from '@/app/WhatsAppBot/utils';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import WhatsAppBotAddBeneficiaryFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotAddBeneficiaryFlowService';
 import WhatsAppBotOffRampFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotOffRampFlowService';
@@ -171,7 +175,7 @@ class WhatsAppBotService {
         ).createSetupTransactionPinFlowMessage(user, {
             messageBody: existingUser
                 ? `Welcome back ${existingUser.displayName}!\n🔐We've improved security on your wallet. Please set up a transaction pin to secure your account.`
-                : '🎉You have successfully created a wallet.\n🔐Please set up a transaction pin to secure your account.',
+                : getWalletCreationSuccessMessageText(),
             messageRecipient: phoneParams.userPhoneNumber,
         });
 
@@ -363,7 +367,7 @@ class WhatsAppBotService {
             interactive: {
                 type: 'button',
                 body: {
-                    text: `Hi ${displayName}! Ready to get started? Let us create a wallet for you.`,
+                    text: getFirstTimeUserMessageText(displayName),
                 },
                 action: {
                     buttons: [
@@ -371,7 +375,7 @@ class WhatsAppBotService {
                             type: 'reply',
                             reply: {
                                 id: BaseInteractiveButtonIds.CREATE_WALLET,
-                                title: "Let's go 🚀",
+                                title: 'Create wallet 🚀',
                             },
                         },
                     ],

@@ -28,6 +28,7 @@ export const BOT_COMMANDS_REGEX = {
     RESET_PIN: /^\/reset_pin$/,
     CHANGE_PIN: /^\/change_pin$/,
     PERFORM_KYC: /^\/verify_me$/,
+    SUPPORT: /^\/support$/,
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {

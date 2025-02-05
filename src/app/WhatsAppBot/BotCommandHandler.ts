@@ -2,7 +2,11 @@ import SumSubService from '@/app/SumSub/SumSubService';
 import { UserAssetItem } from '@/app/User/userSchema';
 import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import { getSupportedAssetAndNetworksText } from '@/app/WhatsAppBot/utils';
+import {
+    getHelpMessageText,
+    getSupportContactsMessageText,
+    getSupportedAssetAndNetworksText,
+} from '@/app/WhatsAppBot/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     assetInteractiveButtonsIds,
@@ -57,6 +61,9 @@ class BotCommandHandler {
                 break;
             case 'HELP':
                 await BotCommandHandler.getHelp(phoneParams);
+                break;
+            case 'SUPPORT':
+                await BotCommandHandler.getSupportContacts(phoneParams);
                 break;
             case 'TRANSFER':
                 await BotCommandHandler.transferAsset(user, phoneParams, botCommand.params);
@@ -262,7 +269,23 @@ class BotCommandHandler {
         );
     }
 
+    private static async getSupportContacts(phoneParams: PhoneNumberParams) {
+        const responseMessage = getSupportContactsMessageText();
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            phoneParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+        );
+        return;
+    }
+
     private static async getHelp(phoneParams: PhoneNumberParams) {
+        const responseMessage = getHelpMessageText();
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            phoneParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+        );
         return;
     }
 

@@ -18,6 +18,10 @@ import {
     createWhatsappBroadcastWorker,
     createWhatsappMessagingWorker,
 } from '@/app/WhatsAppBot/messagingQueueHelpers';
+import {
+    getPossibleBotActionsMessageText,
+    getTransactionPinSetMessageText,
+} from '@/app/WhatsAppBot/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { CryptoDebitWorkerError } from '@/background-processing/errors';
 import { queues } from '@/background-processing/queues';
@@ -407,22 +411,19 @@ const userTxPinSecurityWorker = new Worker<
         }
 
         if (isSuccessful) {
-            const possibleActions = [
-                { emoji: '🔁', description: 'Transfer assets to contacts and wallet addresses' },
-                { emoji: '📈', description: 'Check your wallet balance' },
-                { emoji: '💰', description: 'Deposit crypto into your wallet' },
+            const [message1, message2] = [
+                MessageGenerators.generateTextMessage(
+                    userPhoneNumber,
+                    getTransactionPinSetMessageText()
+                ),
+                MessageGenerators.generateTextMessage(
+                    userPhoneNumber,
+                    getPossibleBotActionsMessageText()
+                ),
             ];
 
-            const actionsList = possibleActions
-                .map((action) => `• ${action.emoji} ${action.description}`)
-                .join('\n');
-
-            const message = MessageGenerators.generateTextMessage(
-                userPhoneNumber,
-                `✅ *Transaction PIN successfully updated!*\n\n🔒 _Keep it safe—your PIN is personal and should not be shared._\n\nHere's what you can do next on Azza:\n\n${actionsList}\n\n💬 Type *help* to ask the bot for guidance or try slash commands like */transfer*, */balance*, or */deposit* to get started!`
-            );
-
-            await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message);
+            await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message1);
+            await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message2);
 
             return { status: 'success' };
         }

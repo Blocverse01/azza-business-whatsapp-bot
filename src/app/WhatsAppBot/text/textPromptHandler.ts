@@ -18,6 +18,7 @@ import {
     PromptHandlerResponse,
 } from '@/app/WhatsAppBot/text/actionHandlers';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
+import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { UserV2Record } from '@/db/xata';
 import logger from '@/resources/logger';
@@ -102,16 +103,19 @@ export const textPromptHandler = async (
 
     if (classifiedAction.class === 'NO_PREDEFINED_ACTION') {
         // Branch 1 [No identified action]: LLM Usage 2
-        const response = await handleUserPrompt({
-            messages: runtimeMessages,
-            user: user,
-            phoneParams: params.botParams,
-        });
-
-        const promptResponse = response.assistantMessage.content;
+        // const response = await handleUserPrompt({
+        //     messages: runtimeMessages,
+        //     user: user,
+        //     phoneParams: params.botParams,
+        // });
+        //
+        // const promptResponse = response.assistantMessage.content;
         await WhatsAppBotService.sendWhatsappMessage(
             params.botParams.businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, promptResponse)
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                getWelcomeBackMessageText()
+            )
         );
 
         return {
