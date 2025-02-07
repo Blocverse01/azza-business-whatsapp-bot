@@ -145,7 +145,7 @@ class CryptoPayoutCronJobService {
                 tokenBalanceNumber
             );
 
-            await logger.debug('Unproccessable crypto payout orders', {
+            await logger.debug('Unprocessable crypto payout orders', {
                 unProcessableOrdersInGroup,
                 group,
                 tokenBalanceNumber,

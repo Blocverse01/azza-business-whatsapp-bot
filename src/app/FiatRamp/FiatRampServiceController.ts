@@ -7,7 +7,7 @@ import env from '@/constants/env';
 import { OK } from '@/constants/status-codes';
 import logger, { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
-import { prettifyNumber } from '@/resources/utils/currency';
+import { fixNumber, prettifyNumber } from '@/resources/utils/currency';
 import { TokenNames } from '@/resources/web3/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
@@ -107,7 +107,10 @@ class FiatRampServiceController {
                         assetConfig[0].network
                     );
 
-                    const totalAmount = transaction.usdAmount + transaction.transactionFeeUsd;
+                    const totalAmount = fixNumber(
+                        transaction.usdAmount + transaction.transactionFeeUsd,
+                        3
+                    );
                     await CryptoPayoutService.createOfframpCryptoRefundOrder({
                         network: supportedChain,
                         tokenSymbol: transaction.tokenSymbol,
