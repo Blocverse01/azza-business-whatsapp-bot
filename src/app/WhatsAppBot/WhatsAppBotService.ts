@@ -140,7 +140,11 @@ class WhatsAppBotService {
 
             if (response.statusCode !== OK) {
                 await logServiceError(
-                    new HttpException(response.statusCode, 'Error sending message', responseData),
+                    new HttpException(response.statusCode, 'Error sending message', {
+                        responseData,
+                        message,
+                        businessPhoneNumberId,
+                    }),
                     'Error sending message'
                 );
 
