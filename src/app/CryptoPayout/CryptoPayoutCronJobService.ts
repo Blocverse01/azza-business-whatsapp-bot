@@ -144,6 +144,12 @@ class CryptoPayoutCronJobService {
                 group,
                 tokenBalanceNumber
             );
+
+            await logger.debug('Unproccessable crypto payout orders', {
+                unProcessableOrdersInGroup,
+                group,
+                tokenBalanceNumber,
+            });
         }
 
         if (processableOrdersInGroup.length > 0) {
@@ -167,6 +173,13 @@ class CryptoPayoutCronJobService {
                 const successfulResults = results.filter(
                     (result) => result.status === 'fulfilled'
                 ) as Array<PromiseFulfilledResult<TransferCryptoForIndividualOrderResponse>>;
+                const unsuccessfulResults = results.filter(
+                    (result) => result.status === 'rejected'
+                ) as Array<PromiseRejectedResult>;
+
+                if (unsuccessfulResults.length > 0) {
+                    console.dir(unsuccessfulResults, { depth: Infinity });
+                }
 
                 const submittedTransactionResponses = successfulResults.map(
                     (result) => result.value
