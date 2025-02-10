@@ -7,7 +7,10 @@ import {
     getCountryFlagEmoji,
     prettifyNumber,
 } from '@/resources/utils/currency';
-import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+import {
+    AllSupportedBlockchains,
+    normalizeBlockchainInput,
+} from '@/resources/web3/core/blockchains';
 
 type BankInfo = {
     name: string;
@@ -89,10 +92,14 @@ export const EMOJIS_FOR_NETWORKS: Record<AllSupportedBlockchains, string> = {
     Tron: '♦️',
     Bep20: '🟡',
     Solana: '🟢',
-    AssetChain: '🟩',
+    AssetChain: '⛓️',
 };
 
-export const getNetworkEmoji = (network: AllSupportedBlockchains) => EMOJIS_FOR_NETWORKS[network];
+export const getNetworkEmoji = (blockchain: AllSupportedBlockchains) => {
+    const normalizedBlockchain = normalizeBlockchainInput(blockchain);
+
+    return EMOJIS_FOR_NETWORKS[normalizedBlockchain];
+};
 
 export function generateAssetBalanceMessage(
     assetInfo: UserAssetInfo,
