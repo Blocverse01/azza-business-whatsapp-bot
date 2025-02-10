@@ -20,9 +20,13 @@ export type EvmCompatibleBlockchain = z.infer<typeof evmChainSchema>;
 export type NonCompatibleBlockchain = z.infer<typeof nonEvmChainSchema>;
 
 export const normalizeBlockchainInput = (network: string): AllSupportedBlockchains => {
-    const normalizedNetwork = network.toLowerCase();
-    return (normalizedNetwork.charAt(0).toUpperCase() +
-        normalizedNetwork.slice(1)) as AllSupportedBlockchains;
+    const normalizedNetwork = SUPPORTED_BLOCKCHAINS.find(
+        (chain) => chain.toLowerCase() === network.toLowerCase()
+    );
+    if (normalizedNetwork) {
+        return normalizedNetwork;
+    }
+    throw new Error(`Unsupported blockchain network: ${network}`);
 };
 
 export const isEvmCompatibleBlockchain = (
