@@ -4,13 +4,13 @@ import {
     getBlockradarAssetId,
     getPlatformAssetId,
 } from '@/app/AzzaWalletManager/providers/blockradar/resources/assets';
-import {
-    AllSupportedBlockchains,
-    getMasterWalletClient,
-} from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
+import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import env from '@/constants/env';
 import logger from '@/resources/logger';
-import { isEvmNetwork } from '@/resources/web3/evm/evm.config';
+import {
+    AllSupportedBlockchains,
+    isEvmCompatibleBlockchain,
+} from '@/resources/web3/core/blockchains';
 import {
     assetsWithRequiredBlockradarConfig,
     blockchainsEnabledOnBlockradar,
@@ -39,7 +39,7 @@ const testnet__PlatformAddressIdRecords: Record<PlatformAddressIdKey, string> = 
 };
 
 export const getNetworkTag = (network: AllSupportedBlockchains) => {
-    return isEvmNetwork(network)
+    return isEvmCompatibleBlockchain(network)
         ? ('evm' as const)
         : (network.toLowerCase() as PlatformAddressIdNetworkTag);
 };
@@ -76,7 +76,7 @@ const platformWalletProvider = new BlockradarWalletProvider({
         platformAssetId: getPlatformAssetId,
     },
     networkUtils: {
-        isEvmNetwork: isEvmNetwork,
+        isEvmCompatibleBlockchain,
     },
     logger: logger,
 });

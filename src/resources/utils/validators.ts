@@ -1,12 +1,11 @@
-import { isAddress } from 'viem';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { publicTronWebClient } from '@/app/ExtendedWallet/tron/tronNetworkClient';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { PublicKey } from '@solana/web3.js';
+import { isAddress } from 'viem';
 
 export const validateWalletAddress = (
     address: string,
-    network: SupportedChain | ExtendedWalletSupportedNetworks
+    network: AllSupportedBlockchains
 ): boolean => {
     const networkFamily = getNetworkFamily(network);
 
@@ -30,15 +29,14 @@ export const validateWalletAddress = (
     throw new Error('Unsupported network family');
 };
 
-export const getNetworkFamily = (
-    network: SupportedChain | ExtendedWalletSupportedNetworks
-): 'evm' | 'solana' | 'tron' => {
+export const getNetworkFamily = (network: AllSupportedBlockchains): 'evm' | 'solana' | 'tron' => {
     switch (network) {
         case 'Base':
         case 'Ethereum':
         case 'Optimism':
         case 'Polygon':
         case 'Bep20':
+        case 'AssetChain':
             return 'evm';
         case 'Tron':
             return 'tron';

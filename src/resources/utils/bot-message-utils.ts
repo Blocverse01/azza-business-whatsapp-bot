@@ -1,7 +1,5 @@
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { UserAssetInfo } from '@/app/User/userSchema';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { SIX } from '@/constants/numbers';
 import { USD_SYMBOL } from '@/constants/strings';
 import {
@@ -9,6 +7,7 @@ import {
     getCountryFlagEmoji,
     prettifyNumber,
 } from '@/resources/utils/currency';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 
 type BankInfo = {
     name: string;
@@ -82,19 +81,18 @@ export function generateReceivedTokenMessage(params: {
     return `🔔 Crypto Deposit Notification.\n\n🧾 *Summary:*\nReceived *${tokenAmount} ${assetName}* on *${assetNetwork}* from ${senderAddress}\n\n*You now have: ${newTokenBalance} ${assetName}*\n\n➡️ *Transaction Hash:* ${transactionHash}\n\n🔍 *View In Explorer:* ${explorerUrl}`;
 }
 
-export const EMOJIS_FOR_NETWORKS: Record<SupportedChain | ExtendedWalletSupportedNetworks, string> =
-    {
-        Ethereum: '🔷',
-        Optimism: '🎯',
-        Polygon: '💜',
-        Base: '🔵',
-        Tron: '♦️',
-        Bep20: '🟡',
-        Solana: '🟢',
-    };
+export const EMOJIS_FOR_NETWORKS: Record<AllSupportedBlockchains, string> = {
+    Ethereum: '🔷',
+    Optimism: '🎯',
+    Polygon: '💜',
+    Base: '🔵',
+    Tron: '♦️',
+    Bep20: '🟡',
+    Solana: '🟢',
+    AssetChain: '🟩',
+};
 
-export const getNetworkEmoji = (network: SupportedChain | ExtendedWalletSupportedNetworks) =>
-    EMOJIS_FOR_NETWORKS[network];
+export const getNetworkEmoji = (network: AllSupportedBlockchains) => EMOJIS_FOR_NETWORKS[network];
 
 export function generateAssetBalanceMessage(
     assetInfo: UserAssetInfo,

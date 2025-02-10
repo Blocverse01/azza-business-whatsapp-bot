@@ -1,5 +1,4 @@
 import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
-import ExtendedTronWalletLibrary from '@/app/ExtendedWallet/tron/ExtendedTronWalletLibrary';
 import {
     ExtendedWalletIdentity,
     ExtendedWalletSupportedNetworks,
@@ -7,16 +6,17 @@ import {
     TransferTransactionResponse,
 } from '@/app/ExtendedWallet/extendedWalletSchema';
 import {
-    createPrivateTronWebClient,
-    publicTronWebClient,
-} from '@/app/ExtendedWallet/tron/tronNetworkClient';
-import {
     createPrivateNodeConfig,
     getDefaultTronNode,
     TronNode,
 } from '@/app/ExtendedWallet/tron/config';
+import ExtendedTronWalletLibrary from '@/app/ExtendedWallet/tron/ExtendedTronWalletLibrary';
+import {
+    createPrivateTronWebClient,
+    publicTronWebClient,
+} from '@/app/ExtendedWallet/tron/tronNetworkClient';
+import { getTransactionExplorerUrl } from '@/resources/web3/core/explorerUrls';
 import { TronWeb } from 'tronweb';
-import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
 
 class ExtendedTronWallet extends ExtendedWallet {
     private readonly tronNode: TronNode;

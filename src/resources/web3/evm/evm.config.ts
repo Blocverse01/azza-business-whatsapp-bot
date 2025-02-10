@@ -1,10 +1,13 @@
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { ANKR_BASE_MAINNET_RPC_URL, ANKR_BASE_SEPOLIA_RPC_URL } from '@/constants/strings';
+import { EvmCompatibleBlockchain } from '@/resources/web3/core/blockchains';
+import { assetChainMainnet } from '@/resources/web3/evm/viem/chains';
 import { Chain } from 'viem';
 import {
+    assetChainTestnet,
     base,
     baseSepolia,
+    bsc,
+    bscTestnet,
     mainnet,
     optimism,
     optimismSepolia,
@@ -13,7 +16,6 @@ import {
     sepolia,
 } from 'viem/chains';
 
-export type EvmNetwork = Exclude<SupportedChain, 'Solana'>;
 export type EvmNode =
     | 'ankr-base-mainnet'
     | 'ankr-base-sepolia'
@@ -24,12 +26,16 @@ export type EvmNode =
     | 'default-ethereum'
     | 'default-ethereum-sepolia'
     | 'default-lisk'
-    | 'default-lisk-sepolia';
+    | 'default-lisk-sepolia'
+    | 'default-asset-chain-testnet'
+    | 'default-asset-chain-mainnet'
+    | 'default-bsc-testnet'
+    | 'default-bsc-mainnet';
 
 export type EvmNetworkConfig = {
     rpcUrl: string;
     key: EvmNode;
-    network: EvmNetwork;
+    network: EvmCompatibleBlockchain;
     viemChain: Chain;
 };
 
@@ -88,6 +94,32 @@ export const defaultEthereumSepolia: EvmNetworkConfig = {
     viemChain: sepolia,
 };
 
+export const defaultAssetChainTestnet: EvmNetworkConfig = {
+    rpcUrl: assetChainTestnet.rpcUrls['default'].http[0],
+    key: 'default-asset-chain-testnet',
+    network: 'AssetChain',
+    viemChain: assetChainTestnet,
+};
+export const defaultAssetChainMainnet: EvmNetworkConfig = {
+    rpcUrl: assetChainMainnet.rpcUrls['default'].http[0],
+    key: 'default-asset-chain-mainnet',
+    network: 'AssetChain',
+    viemChain: assetChainMainnet,
+};
+
+export const defaultBscTestnet: EvmNetworkConfig = {
+    rpcUrl: bscTestnet.rpcUrls['default'].http[0],
+    key: 'default-bsc-testnet',
+    network: 'Bep20',
+    viemChain: bscTestnet,
+};
+export const defaultBscMainnet: EvmNetworkConfig = {
+    rpcUrl: bsc.rpcUrls['default'].http[0],
+    key: 'default-bsc-mainnet',
+    network: 'Bep20',
+    viemChain: bsc,
+};
+
 const APP_DEFAULT_EVM_NETWORK_CONFIGS: Record<
     EvmNetworkConfig['network'],
     Record<'testnet' | 'mainnet', EvmNetworkConfig>
@@ -108,6 +140,14 @@ const APP_DEFAULT_EVM_NETWORK_CONFIGS: Record<
         mainnet: defaultEthereum,
         testnet: defaultEthereumSepolia,
     },
+    AssetChain: {
+        mainnet: defaultAssetChainMainnet,
+        testnet: defaultAssetChainTestnet,
+    },
+    Bep20: {
+        mainnet: defaultBscMainnet,
+        testnet: defaultBscTestnet,
+    },
 };
 
 export const getAppDefaultEvmConfig = (
@@ -121,10 +161,4 @@ export const getAppDefaultEvmConfig = (
     }
 
     return config[environment];
-};
-
-export const isEvmNetwork = (
-    network: SupportedChain | ExtendedWalletSupportedNetworks
-): network is EvmNetwork => {
-    return network !== 'Solana' && network !== 'Tron';
 };

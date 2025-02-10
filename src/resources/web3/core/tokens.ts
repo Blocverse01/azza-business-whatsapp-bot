@@ -1,8 +1,6 @@
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { AssetInteractiveButtonIds, ExploreAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
 import env from '@/constants/env';
-import { DUMMY_ETH_PRICE, DUMMY_MATIC_PRICE, DUMMY_USD_PRICE } from '@/constants/numbers';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 
 // For testnet tokens, it's best to deploy a mock token on the intended network to ensure available supply.
 // Especially when there's no official faucet for such token.
@@ -70,6 +68,9 @@ export enum TokenAddresses {
     USDT_SOLANA_MAINNET = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
     USDT_SOLANA_TESTNET = 'EJwZgeZrdC8TXTQbQBoL6bfuAnFUUy1PVCMB4DYPzVaS',
 
+    /**
+     * BEP20 Asset Addresses
+     */
     // USDT
     USDC_BEP20_MAINNET = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
     USDC_BEP20_TESTNET = '0x64544969ed7EBf5f083679233325356EbE738930',
@@ -77,6 +78,17 @@ export enum TokenAddresses {
     // USDT
     USDT_BEP20_MAINNET = '0x55d398326f99059fF775485246999027B3197955',
     USDT_BEP20_TESTNET = '0x337610d27c682E347C9cD60BD4b3b107C9d34dDd',
+
+    /**
+     * Asset Chain Asset Addresses
+     */
+    // USDC
+    USDC_ASSET_CHAIN_MAINNET = '0x2B7C1342Cc64add10B2a79C8f9767d2667DE64B2',
+    USDC_ASSET_CHAIN_TESTNET = '0x39C6b75fAeAb6B54541BE34860AE6250263377e9',
+
+    // USDT
+    USDT_ASSET_CHAIN_MAINNET = '0x26E490d30e73c36800788DC6d6315946C4BbEa24',
+    USDT_ASSET_CHAIN_TESTNET = '0x04f868C5b3F0A100a207c7e9312946cC2c48a7a3',
 }
 
 export enum TokenNames {
@@ -93,7 +105,7 @@ export type AssetConfig = {
     tokenAddress: string;
     tokenName: TokenNames | string;
     listItemId: AssetInteractiveButtonIds;
-    network: SupportedChain | ExtendedWalletSupportedNetworks;
+    network: AllSupportedBlockchains;
     supportedAssetActions: ExploreAssetActions[];
     showOnAssetsMenu?: boolean;
     isNative?: boolean;
@@ -363,18 +375,36 @@ export const usdtBep20Config = {
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
 
-// Dummy USD value for testing
-export const getDummyUsdValue = (tokenName: TokenNames) => {
-    switch (tokenName) {
-        case TokenNames.USDT:
-            return DUMMY_USD_PRICE;
-        case TokenNames.USDC:
-            return DUMMY_USD_PRICE;
-        case TokenNames.POL:
-            return DUMMY_MATIC_PRICE;
-        case TokenNames.ETH:
-            return DUMMY_ETH_PRICE;
-        default:
-            return 0.0;
-    }
-};
+// Asset Chain Assets
+/// ============== USDC ==============
+export const usdcAssetChainConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDC_ASSET_CHAIN_TESTNET
+            : TokenAddresses.USDC_ASSET_CHAIN_MAINNET,
+    tokenName: TokenNames.USDC,
+    listItemId: AssetInteractiveButtonIds.USDC_ASSET_CHAIN,
+    network: 'AssetChain',
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+        ExploreAssetActions.SELL_ASSET,
+    ] as ExploreAssetActions[],
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+/// ============== USDT ==============
+export const usdtAssetChainConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDT_ASSET_CHAIN_TESTNET
+            : TokenAddresses.USDT_ASSET_CHAIN_MAINNET,
+    tokenName: TokenNames.USDT,
+    listItemId: AssetInteractiveButtonIds.USDT_ASSET_CHAIN,
+    network: 'AssetChain',
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+        ExploreAssetActions.SELL_ASSET,
+    ] as ExploreAssetActions[],
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;

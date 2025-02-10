@@ -1,8 +1,7 @@
 import ExtendedWallet from '@/app/ExtendedWallet/ExtendedWallet';
-import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 import { UserV2Record } from '@/db/xata';
-import { TokenNames } from '@/resources/web3/tokens';
+import { supportedBlockchainChainSchema } from '@/resources/web3/core/blockchains';
+import { TokenNames } from '@/resources/web3/core/tokens';
 import { SelectedPick } from '@xata.io/client';
 import { z } from 'zod';
 
@@ -11,7 +10,7 @@ export const userAssetSchema = z.object({
     walletAddress: z.string(),
     name: z.nativeEnum(TokenNames),
     tokenAddress: z.string(),
-    network: supportedChainSchema.or(extendedWalletSupportedNetworks),
+    network: supportedBlockchainChainSchema,
 });
 
 export type UserAssetItem = z.infer<typeof userAssetSchema>;
@@ -23,7 +22,7 @@ export const userAssetInfoSchema = z.object({
     walletAddress: z.string(),
     listItemId: z.string(),
     assetName: z.nativeEnum(TokenNames),
-    assetNetwork: supportedChainSchema.or(extendedWalletSupportedNetworks),
+    assetNetwork: supportedBlockchainChainSchema,
     tokenAddress: z.string(),
     extendedWallet: z.custom<ExtendedWallet>().optional(),
 });

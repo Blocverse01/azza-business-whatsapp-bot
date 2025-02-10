@@ -39,6 +39,8 @@ const mainnet__blockradarAssetIdMap: Record<string, string> = {
     [AssetInteractiveButtonIds.USDC_SOLANA]: 'dc2bb1ea-00ef-454d-89ea-18bcba9d40b1',
     [AssetInteractiveButtonIds.USDT_SOLANA]: '4bcd19e6-2c28-4855-8e79-525b0b3d44d1',
     [AssetInteractiveButtonIds.SOL]: '5b4a3d28-6b19-4b5f-b734-0c32feeb0aa5',
+    [AssetInteractiveButtonIds.USDT_ASSET_CHAIN]: 'ee768b78-26b4-4c11-9d06-7eb22251958f',
+    [AssetInteractiveButtonIds.USDC_ASSET_CHAIN]: 'ee29932b-a3d4-4dd5-a491-be5177c52bdc',
 };
 
 const blockradarAssetIdMap =

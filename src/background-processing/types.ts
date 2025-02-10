@@ -5,7 +5,7 @@ import {
     PhoneNumberParams,
     WhatsAppTextMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { AssetConfig } from '@/resources/web3/tokens';
+import { AssetConfig } from '@/resources/web3/core/tokens';
 
 export type FiatPayoutQueueResult =
     | {

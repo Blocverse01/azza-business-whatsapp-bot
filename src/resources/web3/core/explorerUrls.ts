@@ -1,11 +1,10 @@
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import env from '@/constants/env';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 
 const SOLANA_TESTNET_CLUSTER = 'devnet';
 
 const EXPLORER_URLS: {
-    [key in SupportedChain | ExtendedWalletSupportedNetworks]: {
+    [key in AllSupportedBlockchains]: {
         [key in 'testnet' | 'mainnet']: string;
     };
 } = {
@@ -37,11 +36,15 @@ const EXPLORER_URLS: {
         testnet: 'https://explorer.solana.com',
         mainnet: 'https://explorer.solana.com',
     },
+    AssetChain: {
+        testnet: 'https://scan-testnet.assetchain.org',
+        mainnet: 'https://scan.assetchain.org',
+    },
 };
 
 export const getTransactionExplorerUrl = (
     txHash: string,
-    chain: SupportedChain | ExtendedWalletSupportedNetworks,
+    chain: AllSupportedBlockchains,
     environment = env.WEB3_ENVIRONMENT
 ) => {
     switch (chain) {

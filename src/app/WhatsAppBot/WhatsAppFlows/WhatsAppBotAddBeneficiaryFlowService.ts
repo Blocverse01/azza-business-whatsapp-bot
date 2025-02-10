@@ -13,7 +13,7 @@ import logger from '@/resources/logger';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import { generateRandomHexString } from '@/resources/utils/encryption';
 import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
-import { AssetConfig } from '@/resources/web3/tokens';
+import { AssetConfig } from '@/resources/web3/core/tokens';
 import { type CountryCode } from 'libphonenumber-js';
 
 enum AddBeneficiaryFlowScreens {

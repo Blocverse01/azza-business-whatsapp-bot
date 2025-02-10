@@ -1,9 +1,8 @@
-import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 import { PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { ZERO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
-import { TokenNames } from '@/resources/web3/tokens';
+import { supportedBlockchainChainSchema } from '@/resources/web3/core/blockchains';
+import { TokenNames } from '@/resources/web3/core/tokens';
 import { z } from 'zod';
 
 ////////////////////
@@ -37,11 +36,9 @@ export const transferCryptoAssetParamsSchema = z
             .describe(
                 'The recipient wallet address or phone number to send to. Confirm with the user. If the recipient is a phone number, ensure it is in the international format.'
             ),
-        blockchainNetwork: supportedChainSchema
-            .or(extendedWalletSupportedNetworks)
-            .describe(
-                'The blockchain network, such as Ethereum or Binance Smart Chain. Confirm with the user if not specified.'
-            ),
+        blockchainNetwork: supportedBlockchainChainSchema.describe(
+            'The blockchain network, such as Ethereum or Binance Smart Chain. Confirm with the user if not specified.'
+        ),
     })
     .merge(baseWalletToolSchema);
 
@@ -53,8 +50,7 @@ export const walletBalanceParamsSchema = z
                 'The symbol of the cryptocurrency for which the balance is being queried, e.g., USDT, BTC. Confirm with the user if not specified.'
             )
             .optional(),
-        blockchainNetwork: supportedChainSchema
-            .or(extendedWalletSupportedNetworks)
+        blockchainNetwork: supportedBlockchainChainSchema
             .describe(
                 'The blockchain network to check the asset balance on, e.g., Ethereum, Solana. Confirm with the user if not specified.'
             )
@@ -69,11 +65,9 @@ export const depositCryptoAssetParamsSchema = z
             .describe(
                 'The symbol of the cryptocurrency to deposit, e.g., USDT, USDC, ETH. Never assume the cryptocurrency, the user has to specify it.'
             ),
-        blockchainNetwork: supportedChainSchema
-            .or(extendedWalletSupportedNetworks)
-            .describe(
-                'The blockchain network, such as Ethereum or Binance Smart Chain. Never assume the blockchain network, the user has to specify it.'
-            ),
+        blockchainNetwork: supportedBlockchainChainSchema.describe(
+            'The blockchain network, such as Ethereum or Binance Smart Chain. Never assume the blockchain network, the user has to specify it.'
+        ),
     })
     .merge(baseWalletToolSchema);
 
@@ -112,10 +106,10 @@ export const swapTokensParamsSchema = z
         fromAmount: z.coerce
             .number()
             .describe('The amount of cryptocurrency to swap. Confirm with the user.'),
-        fromBlockchainNetwork: supportedChainSchema.describe(
+        fromBlockchainNetwork: supportedBlockchainChainSchema.describe(
             'The blockchain network to swap the asset from, e.g., Ethereum, Solana. Confirm with the user.'
         ),
-        toBlockchainNetwork: supportedChainSchema.describe(
+        toBlockchainNetwork: supportedBlockchainChainSchema.describe(
             'The blockchain network to swap the asset to, e.g., Ethereum, Solana. Confirm with the user.'
         ),
     })

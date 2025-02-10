@@ -7,19 +7,21 @@ import {
     polConfig,
     solConfig,
     trxTronConfig,
+    usdcAssetChainConfig,
     usdcBaseConfig,
     usdcBep20Config,
     usdcEthConfig,
     usdcOptimismConfig,
     usdcPolygonConfig,
     usdcSolanaConfig,
+    usdtAssetChainConfig,
     usdtBep20Config,
     usdtEthConfig,
     usdtOptimismConfig,
     usdtPolygonConfig,
     usdtSolanaConfig,
     usdtTronConfig,
-} from '@/resources/web3/tokens';
+} from '@/resources/web3/core/tokens';
 
 export const ENABLED_ASSETS = [
     usdcEthConfig,
@@ -41,6 +43,8 @@ export const ENABLED_ASSETS = [
     trxTronConfig,
     usdtBep20Config,
     usdcBep20Config,
+    usdtAssetChainConfig,
+    usdcAssetChainConfig,
 ];
 
 // Get asset config by list item id

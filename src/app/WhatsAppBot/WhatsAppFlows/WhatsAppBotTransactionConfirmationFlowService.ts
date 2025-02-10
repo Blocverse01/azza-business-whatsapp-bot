@@ -3,11 +3,6 @@ import {
     SwapTokensTransactionDetails,
     TransferAssetTransactionDetails,
 } from '@/app/azza/azza.schema';
-import {
-    SWAP_TOKENS_ON_BASE_SCRIPT_PATH,
-    SWAP_TOKENS_SCRIPT_PATH,
-} from '@/app/azza/backgroundSpawns/script-paths';
-import { spawnInBackground } from '@/app/azza/backgroundSpawns/spawn-in-background';
 import { sendTransferAssetTransaction } from '@/app/azza/lib/azza.lib.transaction';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -177,26 +172,8 @@ class WhatsAppBotTransactionConfirmationFlowService {
                 });
                 break;
 
-            case 'SWAP_TOKENS_ON_BASE':
-                spawnInBackground(
-                    {
-                        ...transaction_details,
-                        userId: convertBase64ToAsciiString(transaction_details.userId),
-                        transactionPin: transaction_pin,
-                    },
-                    SWAP_TOKENS_ON_BASE_SCRIPT_PATH
-                );
-                break;
-            case 'SWAP_TOKENS':
-                spawnInBackground(
-                    {
-                        ...transaction_details,
-                        userId: convertBase64ToAsciiString(transaction_details.userId),
-                        transactionPin: transaction_pin,
-                    },
-                    SWAP_TOKENS_SCRIPT_PATH
-                );
-                break;
+            default:
+                throw new Error('Invalid transaction type');
         }
 
         return {

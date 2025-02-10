@@ -1,5 +1,4 @@
 import express from 'express';
-import alchemyNotifyRoutes from './alchemyNotifyRoutes';
 import blockradarRoutes from './blockradarRoutes';
 import fiatRampRoutes from './fiatRampRoutes';
 import sumSubRoutes from './sumSubRoutes';
@@ -10,7 +9,6 @@ const apiRoutes = express
     .use('/whatsapp', whatsappBotRoutes)
     .use('/sum-sub', sumSubRoutes)
     .use('/fiat-ramp', fiatRampRoutes)
-    .use('/alchemy-notify', alchemyNotifyRoutes)
     .use('/blockradar', blockradarRoutes);
 
 export default apiRoutes;

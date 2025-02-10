@@ -9,12 +9,12 @@ import type {
     WithdrawAssetParams,
 } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { BlockradarWalletProviderError } from '@/app/AzzaWalletManager/providers/blockradar/resources/errors';
-import type {
-    AllSupportedBlockchains,
-    EvmNetwork,
-} from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import type BlockradarMasterWalletApiClient from '@/app/Blockradar/BlockradarMasterWalletApiClient';
-import type { AssetConfig } from '@/resources/web3/tokens';
+import {
+    AllSupportedBlockchains,
+    EvmCompatibleBlockchain,
+} from '@/resources/web3/core/blockchains';
+import type { AssetConfig } from '@/resources/web3/core/tokens';
 import type { Logtail } from '@logtail/node';
 
 type BlockradarWalletProviderParams = {
@@ -29,7 +29,9 @@ type BlockradarWalletProviderParams = {
         supportedNetworks: () => Array<AllSupportedBlockchains>;
     };
     networkUtils: {
-        isEvmNetwork: (network: AllSupportedBlockchains) => network is EvmNetwork;
+        isEvmCompatibleBlockchain: (
+            network: AllSupportedBlockchains
+        ) => network is EvmCompatibleBlockchain;
     };
     logger?: Logtail;
 };
@@ -298,7 +300,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         const failedCreateWalletPromises: Array<unknown> = [];
 
         const evmNetworks = params.networks.filter((network) =>
-            this.networkUtils.isEvmNetwork(network)
+            this.networkUtils.isEvmCompatibleBlockchain(network)
         );
 
         if (params.shouldMapEvmAddresses && evmNetworks.length > 0) {
@@ -312,7 +314,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         }
 
         const otherNetworks = params.networks.filter(
-            (network) => !this.networkUtils.isEvmNetwork(network)
+            (network) => !this.networkUtils.isEvmCompatibleBlockchain(network)
         );
 
         otherNetworks.forEach((network) => {
@@ -341,12 +343,12 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         }
 
         const createdEvmWallet = settledCreateWalletPromises.find((wallet) =>
-            this.networkUtils.isEvmNetwork(wallet.blockchainNetwork)
+            this.networkUtils.isEvmCompatibleBlockchain(wallet.blockchainNetwork)
         );
 
         return params.networks
             .map((network) => {
-                if (this.networkUtils.isEvmNetwork(network) && createdEvmWallet) {
+                if (this.networkUtils.isEvmCompatibleBlockchain(network) && createdEvmWallet) {
                     return {
                         ...createdEvmWallet,
                         blockchainNetwork: network,

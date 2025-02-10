@@ -8,7 +8,7 @@ import { OK } from '@/constants/status-codes';
 import logger, { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import { fixNumber, prettifyNumber } from '@/resources/utils/currency';
-import { TokenNames } from '@/resources/web3/tokens';
+import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Request, Response } from 'express';

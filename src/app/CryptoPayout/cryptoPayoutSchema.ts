@@ -1,6 +1,5 @@
-import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
-import { TokenNames } from '@/resources/web3/tokens';
+import { supportedBlockchainChainSchema } from '@/resources/web3/core/blockchains';
+import { TokenNames } from '@/resources/web3/core/tokens';
 import { z } from 'zod';
 
 export enum CryptoPayoutOrderStatus {
@@ -28,7 +27,7 @@ export const createCryptoPayoutOrderSchema = z.object({
     tokenSymbol: z.enum([TokenNames.USDT, TokenNames.USDC]),
     amount: z.number(),
     destinationWalletAddress: z.string(),
-    network: supportedChainSchema.or(extendedWalletSupportedNetworks),
+    network: supportedBlockchainChainSchema,
     triggerTransactionId: z.string(),
     payoutType: z.enum(['offramp-refund', 'onramp-payment'] as const),
 });

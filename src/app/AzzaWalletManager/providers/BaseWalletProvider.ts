@@ -1,5 +1,5 @@
-import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
-import { AssetConfig } from '@/resources/web3/tokens';
+import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+import type { AssetConfig } from '@/resources/web3/core/tokens';
 
 export type BalanceQueryParams = {
     assetId: string;

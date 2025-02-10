@@ -98,6 +98,7 @@ const envSchema = z.object({
     OPTIMISM_MASTER_WALLET_API_KEY: notEmptyStringSchema('OPTIMISM_MASTER_WALLET_API_KEY'),
     BSC_MASTER_WALLET_API_KEY: notEmptyStringSchema('BSC_MASTER_WALLET_API_KEY'),
     SOLANA_MASTER_WALLET_API_KEY: notEmptyStringSchema('SOLANA_MASTER_WALLET_API_KEY'),
+    ASSET_CHAIN_MASTER_WALLET_API_KEY: notEmptyStringSchema('ASSET_CHAIN_MASTER_WALLET_API_KEY'),
 });
 
 const env = envSchema.parse(process.env);

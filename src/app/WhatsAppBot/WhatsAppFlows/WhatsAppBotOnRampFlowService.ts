@@ -1,7 +1,5 @@
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     DataExchangeResponse,
@@ -29,7 +27,8 @@ import {
 import { generateRandomHexString } from '@/resources/utils/encryption';
 import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
-import { AssetConfig, TokenNames } from '@/resources/web3/tokens';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+import { AssetConfig, TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { CountryCode } from 'libphonenumber-js';
@@ -171,7 +170,7 @@ type DataExchangePayload = {
 };
 
 type TokenAmountPattern =
-    `${number} ${TokenNames} (${SupportedChain | ExtendedWalletSupportedNetworks})\n---------------------------------\nFee = ${number} ${TokenNames}`;
+    `${number} ${TokenNames} (${AllSupportedBlockchains})\n---------------------------------\nFee = ${number} ${TokenNames}`;
 
 type FiatToPayPattern = `${string}\n---------------------------------\n1 ${TokenNames} = ${string}`;
 

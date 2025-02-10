@@ -12,7 +12,6 @@ import {
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     createWhatsappBroadcastWorker,
@@ -46,7 +45,8 @@ import {
     convertBase64ToAsciiString,
     decryptWithAES,
 } from '@/resources/utils/encryption';
-import { TokenNames } from '@/resources/web3/tokens';
+import { normalizeBlockchainInput } from '@/resources/web3/core/blockchains';
+import { TokenNames } from '@/resources/web3/core/tokens';
 import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
 
@@ -113,7 +113,7 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
                 ) {
                     const totalAmount = job.data.usdAmount + job.data.transactionFeeUsd;
                     await CryptoPayoutService.createOfframpCryptoRefundOrder({
-                        network: job.data.chainName as SupportedChain,
+                        network: normalizeBlockchainInput(job.data.chainName),
                         tokenSymbol: job.data.tokenName,
                         triggerTransactionId: txHash,
                         amount: totalAmount,

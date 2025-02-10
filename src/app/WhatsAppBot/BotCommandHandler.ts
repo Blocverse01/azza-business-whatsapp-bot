@@ -1,6 +1,5 @@
 import SumSubService from '@/app/SumSub/SumSubService';
 import { UserAssetItem } from '@/app/User/userSchema';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     getHelpMessageText,
@@ -20,10 +19,11 @@ import env from '@/constants/env';
 import {
     BOT_COMMANDS_REGEX,
     extractGroups,
-    TradeAssetBotCommandMatchGroups,
+    type TradeAssetBotCommandMatchGroups,
 } from '@/constants/regex';
-import { UserV2Record } from '@/db/xata';
-import { TokenNames } from '@/resources/web3/tokens';
+import type { UserV2Record } from '@/db/xata';
+import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 
@@ -114,11 +114,11 @@ class BotCommandHandler {
     ) {
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
-                network: params.network as SupportedChain,
+                network: params.network as AllSupportedBlockchains,
                 tokenName: params.asset,
             })[0],
             azzaWalletManager.searchAssets({
-                network: params.asset as SupportedChain,
+                network: params.asset as AllSupportedBlockchains,
                 tokenName: params.network,
             })[0],
         ];
@@ -175,11 +175,11 @@ class BotCommandHandler {
     ) {
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
-                network: params.network as SupportedChain,
+                network: params.network as AllSupportedBlockchains,
                 tokenName: params.asset,
             })[0],
             azzaWalletManager.searchAssets({
-                network: params.asset as SupportedChain,
+                network: params.asset as AllSupportedBlockchains,
                 tokenName: params.network,
             })[0],
         ];
@@ -296,11 +296,11 @@ class BotCommandHandler {
     ) {
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
-                network: params.network as SupportedChain,
+                network: params.network as AllSupportedBlockchains,
                 tokenName: params.asset,
             })[0],
             azzaWalletManager.searchAssets({
-                network: params.asset as SupportedChain,
+                network: params.asset as AllSupportedBlockchains,
                 tokenName: params.network,
             })[0],
         ];
@@ -334,11 +334,11 @@ class BotCommandHandler {
     ) {
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
-                network: params.network as SupportedChain,
+                network: params.network as AllSupportedBlockchains,
                 tokenName: params.asset,
             })[0],
             azzaWalletManager.searchAssets({
-                network: params.asset as SupportedChain,
+                network: params.asset as AllSupportedBlockchains,
                 tokenName: params.network,
             })[0],
         ];
@@ -380,11 +380,11 @@ class BotCommandHandler {
     ) {
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
-                network: params.network as SupportedChain,
+                network: params.network as AllSupportedBlockchains,
                 tokenName: params.asset,
             })[0],
             azzaWalletManager.searchAssets({
-                network: params.asset as SupportedChain,
+                network: params.asset as AllSupportedBlockchains,
                 tokenName: params.network,
             })[0],
         ];

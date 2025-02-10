@@ -1,4 +1,4 @@
-import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
+import { supportedBlockchainChainSchema } from '@/resources/web3/core/blockchains';
 import { z } from 'zod';
 
 export const transactionPinSchema = z.string().min(4).max(6).describe('The transaction pin.');
@@ -96,8 +96,8 @@ export const swapTokensTransactionDetailsSchema = z.object({
         value: z.string().optional(),
     }),
     transactionPin: transactionPinSchema.optional(),
-    fromChain: supportedChainSchema,
-    toChain: supportedChainSchema,
+    fromChain: supportedBlockchainChainSchema,
+    toChain: supportedBlockchainChainSchema,
     approvalAddress: z.string().optional(),
 });
 

@@ -1,6 +1,6 @@
 import { hasBlockradarAssetId } from '@/app/AzzaWalletManager/providers/blockradar/resources/assets';
-import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import { ENABLED_ASSETS } from '@/config/whatsAppBot';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 
 export const blockchainsEnabledOnBlockradar: Array<AllSupportedBlockchains> = [
     'Tron',
@@ -10,6 +10,7 @@ export const blockchainsEnabledOnBlockradar: Array<AllSupportedBlockchains> = [
     'Base',
     'Bep20',
     'Solana',
+    'AssetChain',
 ];
 export const assetsWithRequiredBlockradarConfig = ENABLED_ASSETS.filter(
     (asset) =>

@@ -3,7 +3,7 @@ import env from '@/constants/env';
 import { dbClient } from '@/db/dbClient';
 import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput, getPhoneNumberObject } from '@/resources/utils/phone-numbers';
-import { isEvmNetwork } from '@/resources/web3/evm/evm.config';
+import { isEvmCompatibleBlockchain } from '@/resources/web3/core/blockchains';
 import UserServiceV2 from '../app/User/UserServiceV2';
 
 const userServiceV2 = UserServiceV2.init({
@@ -12,7 +12,7 @@ const userServiceV2 = UserServiceV2.init({
         cleanPhoneNumberInput: cleanPhoneNumberInput,
         encryptWithAES: encryptWithAES,
         decryptWithAES: decryptWithAES,
-        isEvmNetwork: isEvmNetwork,
+        isEvmNetwork: isEvmCompatibleBlockchain,
     },
     repository: {
         user: {

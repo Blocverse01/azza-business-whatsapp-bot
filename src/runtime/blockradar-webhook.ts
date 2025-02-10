@@ -4,7 +4,7 @@ import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
 import env from '@/constants/env';
 import { generateReceivedTokenMessage } from '@/resources/utils/bot-message-utils';
-import { getTransactionExplorerUrl } from '@/resources/web3/explorerUrls';
+import { getTransactionExplorerUrl } from '@/resources/web3/core/explorerUrls';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 

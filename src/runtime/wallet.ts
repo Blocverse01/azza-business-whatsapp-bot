@@ -6,7 +6,7 @@ import {
 } from '@/app/AzzaWalletManager/providers/blockradar/resources/assets';
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import logger from '@/resources/logger';
-import { isEvmNetwork } from '@/resources/web3/evm/evm.config';
+import { isEvmCompatibleBlockchain } from '@/resources/web3/core/blockchains';
 import {
     assetsWithRequiredBlockradarConfig,
     blockchainsEnabledOnBlockradar,
@@ -24,7 +24,7 @@ const walletProvider = new BlockradarWalletProvider({
         platformAssetId: getPlatformAssetId,
     },
     networkUtils: {
-        isEvmNetwork: isEvmNetwork,
+        isEvmCompatibleBlockchain,
     },
     logger: logger,
 });

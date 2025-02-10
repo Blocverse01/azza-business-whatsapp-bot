@@ -1,4 +1,3 @@
-import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import {
     CreateBeneficiaryParams,
     OnrampTransactionPayload,
@@ -10,6 +9,7 @@ import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService'
 import { HUNDRED } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
 import { HttpException } from '@/resources/exceptions/HttpException';
+import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { getNetworkTag } from '@/runtime/platform-wallets';
 import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
@@ -221,6 +221,35 @@ class FiatRampService {
         return {
             feeUsd: Math.max(minFeeUsd, calculatedFeeUsd),
             feePercentage,
+        };
+    }
+
+    public static calculateFiatAmountToReceiveFromUsdAmount(input: {
+        usdAmount: number;
+        conversionRate: number;
+        rampType: 'onramp' | 'offramp';
+        feeConfig: {
+            defaultFeePercentage: number;
+            conditionalFeePercentageConfigs: TransactionFees['conditionalFeePercentConfigs'];
+            minFeeUsd: number;
+        };
+    }) {
+        const { usdAmount, conversionRate, rampType, feeConfig } = input;
+
+        const feeData = this.calculateTransactionFeeUsd({
+            usdAmount,
+            ...feeConfig,
+            rampType,
+        });
+
+        const usdAmountToProcess = math.subtract(usdAmount, feeData.feeUsd);
+        const fiatAmountToReceive = math.multiply(usdAmountToProcess, conversionRate);
+
+        return {
+            fiatAmount: fiatAmountToReceive,
+            usdAmountToProcess,
+            transactionFeeUsd: feeData.feeUsd,
+            totalAmountUsd: math.add(usdAmountToProcess, feeData.feeUsd),
         };
     }
 }

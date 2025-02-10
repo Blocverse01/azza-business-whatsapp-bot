@@ -4,10 +4,8 @@ import { getDefaultSolanaNode, getSolanaNetworkClient } from '@/app/ExtendedWall
 import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
 import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
-import UserService from '@/app/User/UserService';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import Web3Library from '@/app/WalletAssetManagement/Web3Library';
-import { SUPPORTED_CHAINS, SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -33,6 +31,12 @@ import {
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
+import {
+    AllSupportedBlockchains,
+    isValidBlockchain,
+    normalizeBlockchainInput,
+    SUPPORTED_BLOCKCHAINS,
+} from '@/resources/web3/core/blockchains';
 import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
 import { getPublicClient } from '@/resources/web3/evm/viem/clients';
 import userServiceV2 from '@/runtime/user';
@@ -99,7 +103,7 @@ export const handleDepositRelatedPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: depositArguments.cryptoCurrencySymbol,
-        network: depositArguments.blockchainNetwork as SupportedChain,
+        network: normalizeBlockchainInput(depositArguments.blockchainNetwork),
     })[0];
 
     if (!targetAsset) {
@@ -205,7 +209,7 @@ export const handleWithdrawRelatedPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: withdrawArguments.cryptoCurrencySymbol,
-        network: withdrawArguments.blockchainNetwork as SupportedChain,
+        network: normalizeBlockchainInput(withdrawArguments.blockchainNetwork),
     })[0];
 
     if (!targetAsset) {
@@ -394,7 +398,7 @@ export const handleBalanceQueryPrompt = async (
         cryptoCurrencySymbol && blockchainNetwork
             ? azzaWalletManager.searchAssets({
                   tokenName: cryptoCurrencySymbol,
-                  network: blockchainNetwork as SupportedChain,
+                  network: normalizeBlockchainInput(blockchainNetwork),
               })[ZERO]
             : undefined;
 
@@ -567,7 +571,7 @@ export const handleBalanceQueryPrompt = async (
                 return `- ${assetName}: ${tokenBalanceDisplay}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}`;
             });
 
-            const networkBalanceMessage = `*Your balances on ${getNetworkEmoji(balanceQueryMode.entity as SupportedChain)} ${balanceQueryMode.entity}:*\n\n${networkBalances.join('\n\n')}`;
+            const networkBalanceMessage = `*Your balances on ${getNetworkEmoji(balanceQueryMode.entity as AllSupportedBlockchains)} ${balanceQueryMode.entity}:*\n\n${networkBalances.join('\n\n')}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
@@ -636,7 +640,7 @@ export const handleBalanceQueryPrompt = async (
                             return `- ${tokenBalanceDisplay} ${asset.asset.tokenName}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}`;
                         })
                         .join('\n');
-                    return `*${getNetworkEmoji(network as SupportedChain)} ${network}*\n${assetBalances}`;
+                    return `*${getNetworkEmoji(normalizeBlockchainInput(network))} ${network}*\n${assetBalances}`;
                 })
                 .join('\n\n');
 
@@ -777,7 +781,7 @@ export const handleBuyCryptoWithFiatPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: buyArguments.cryptoCurrencySymbol,
-        network: buyArguments.blockchainNetwork as SupportedChain,
+        network: normalizeBlockchainInput(buyArguments.blockchainNetwork),
     })[0];
 
     if (!targetAsset) {
@@ -884,7 +888,7 @@ export const handleSellCryptoForFiatPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: sellArguments.cryptoCurrencySymbol,
-        network: sellArguments.blockchainNetwork as SupportedChain,
+        network: normalizeBlockchainInput(sellArguments.blockchainNetwork),
     })[0];
 
     if (!targetAsset) {
@@ -1041,17 +1045,10 @@ export const handleSwapCryptoPrompt = async (
         };
     }
 
-    const typedFromBlockchainNetwork = SUPPORTED_CHAINS.find(
-        (chain) => chain.toLowerCase() === fromBlockchainNetwork.toLowerCase()
-    );
-    const typedToBlockchainNetwork = SUPPORTED_CHAINS.find(
-        (chain) => chain.toLowerCase() === toBlockchainNetwork.toLowerCase()
-    );
-
-    if (!typedFromBlockchainNetwork || !typedToBlockchainNetwork) {
-        const responseMessage = !typedFromBlockchainNetwork
-            ? `${fromBlockchainNetwork} is not a supported blockchain network. Supported networks are: ${SUPPORTED_CHAINS.join(', ')}`
-            : `${toBlockchainNetwork} is not a supported blockchain network. Supported networks are: ${SUPPORTED_CHAINS.join(', ')}`;
+    if (!isValidBlockchain(fromBlockchainNetwork) || !isValidBlockchain(toBlockchainNetwork)) {
+        const responseMessage = !isValidBlockchain(fromBlockchainNetwork)
+            ? `${fromBlockchainNetwork} is not a supported blockchain network. Supported networks are: ${SUPPORTED_BLOCKCHAINS.join(', ')}`
+            : `${toBlockchainNetwork} is not a supported blockchain network. Supported networks are: ${SUPPORTED_BLOCKCHAINS.join(', ')}`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
@@ -1062,6 +1059,9 @@ export const handleSwapCryptoPrompt = async (
             resetSession: false,
         };
     }
+
+    const typedFromBlockchainNetwork = normalizeBlockchainInput(fromBlockchainNetwork);
+    const typedToBlockchainNetwork = normalizeBlockchainInput(toBlockchainNetwork);
 
     if (!LiFiIntegrationLibrary.isSupportedChain(typedFromBlockchainNetwork)) {
         const responseMessage = `Swaps from ${fromBlockchainNetwork} are not supported at the moment.`;
@@ -1140,11 +1140,8 @@ export const handleSwapCryptoPrompt = async (
     );
 
     const [fromUserWallet, toUserWallet] = await Promise.all([
-        UserService.getUserAssetWalletOrThrow(
-            botParams.userPhoneNumber,
-            fromTokenConfig.listItemId
-        ),
-        UserService.getUserAssetWalletOrThrow(botParams.userPhoneNumber, toTokenConfig.listItemId),
+        azzaWalletManager.getUserWallet(user.id, fromTokenConfig.network),
+        azzaWalletManager.getUserWallet(user.id, toTokenConfig.network),
     ]);
 
     const formattedAmount =
@@ -1202,11 +1199,11 @@ export const handleSwapCryptoPrompt = async (
     const quote = await LiFiIntegrationLibrary.getQuote({
         fromToken: fromTokenConfig.tokenAddress,
         fromAmount: formattedAmount,
-        fromAddress: fromUserWallet.walletAddress,
+        fromAddress: fromUserWallet.address,
         toToken: toTokenConfig.tokenAddress,
         fromChain: fromChainKey,
         toChain: toChainKey,
-        toAddress: toUserWallet.walletAddress,
+        toAddress: toUserWallet.address,
     });
 
     const quote_fromToken = quote.action.fromToken;

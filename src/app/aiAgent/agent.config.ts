@@ -1,7 +1,6 @@
 import {
     depositCryptoAssetParamsSchema,
     requestTransactionPinSetupParams,
-    swapTokensParamsSchema,
     transferCryptoAssetParamsSchema,
     walletBalanceParamsSchema,
 } from '@/app/aiAgent/agent.schema';
@@ -10,17 +9,15 @@ import {
     executeDepositCryptoAsset,
     executeRequestTransactionPinSetup,
     executeResetTransactionPin,
-    executeSwapTokens,
     executeTransferAsset,
     executeWalletBalanceQuery,
 } from '@/app/aiAgent/agent.tools-logic';
-import { extendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { supportedChainSchema } from '@/app/WalletKit/walletKitSchema';
 import { PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { ENABLED_ASSETS } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { UserV2Record } from '@/db/xata';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
+import { supportedBlockchainChainSchema } from '@/resources/web3/core/blockchains';
 import { createOpenAI } from '@ai-sdk/openai';
 import { CoreTool, CoreToolCallUnion, CoreToolResultUnion, tool } from 'ai';
 import { z } from 'zod';
@@ -129,9 +126,9 @@ export const toolSet = (user: UserV2Record, phoneParams: PhoneNumberParams) =>
         }),
         getNetworkSpecificEmoji: tool({
             parameters: z.object({
-                blockchainNetwork: supportedChainSchema
-                    .or(extendedWalletSupportedNetworks)
-                    .describe('The blockchain network to retrieve the emoji for'),
+                blockchainNetwork: supportedBlockchainChainSchema.describe(
+                    'The blockchain network to retrieve the emoji for'
+                ),
             }),
             description:
                 'Retrieve the unique emoji assigned to a blockchain network. These emojis act as visual identifiers and must precede the network name in messages (e.g., 🔷Ethereum, where 🔷 represents Ethereum). Use the exact emoji provided by this tool to maintain accuracy and consistency. Avoid guessing or assuming the emoji for any network.',
@@ -152,17 +149,6 @@ export const toolSet = (user: UserV2Record, phoneParams: PhoneNumberParams) =>
             execute: async () => {
                 return executeResetTransactionPin({ user, phoneParams });
             },
-        }),
-        swapTokens: tool({
-            parameters: swapTokensParamsSchema.omit({ user: true, phoneParams: true }),
-            execute: async (params) =>
-                executeSwapTokens({
-                    ...params,
-                    user,
-                    phoneParams,
-                }),
-            description:
-                'Use this tool to handle the user request to swap one token for another. Ensure that the user has specified both the from and to tokens for the swap and other parameters. If these are missing, prompt the user to provide them before proceeding.',
         }),
     }) satisfies Record<string, CoreTool>;
 

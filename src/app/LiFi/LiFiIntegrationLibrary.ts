@@ -1,8 +1,11 @@
 import { getQuoteRequestParamsSchema } from '@/app/LiFi/app.lifi.schema';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { createConfig, getActiveRoute, getQuote, QuoteRequest } from '@lifi/sdk';
 
-export type ChainsSupportedByLifi = Exclude<SupportedChain, 'Lisk'>;
+export type ChainsSupportedByLifi = Exclude<
+    AllSupportedBlockchains,
+    'Lisk' | 'AssetChain' | 'Tron' | 'Bep20'
+>;
 
 export const chainsSupportedByLifi: ChainsSupportedByLifi[] = [
     'Solana',
@@ -51,7 +54,7 @@ class LiFiIntegrationLibrary {
         )[platformChain];
     }
 
-    public static isSupportedChain(chain: SupportedChain): chain is ChainsSupportedByLifi {
+    public static isSupportedChain(chain: AllSupportedBlockchains): chain is ChainsSupportedByLifi {
         return chainsSupportedByLifi.includes(chain as ChainsSupportedByLifi);
     }
 }

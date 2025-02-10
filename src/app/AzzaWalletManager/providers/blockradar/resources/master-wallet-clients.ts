@@ -1,12 +1,8 @@
 import BlockradarMasterWalletApiClient, {
     BlockradarMasterWalletApiClientConstructorParams,
 } from '@/app/Blockradar/BlockradarMasterWalletApiClient';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import env from '@/constants/env';
-
-export type AllSupportedBlockchains = SupportedChain | ExtendedWalletSupportedNetworks;
-export type EvmNetwork = Exclude<AllSupportedBlockchains, 'Solana' | 'Tron'>;
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 
 const BASE_URL = 'https://api.blockradar.co/v1';
 
@@ -42,6 +38,10 @@ const testnet__masterWalletApiConfig: Record<
         masterWalletId: '0cbe04f6-2168-4727-82d4-c81e30c3516c',
         apiKey: env.ETHEREUM_MASTER_WALLET_API_KEY,
     },
+    AssetChain: {
+        masterWalletId: '',
+        apiKey: env.ASSET_CHAIN_MASTER_WALLET_API_KEY,
+    },
 };
 const mainnet__masterWalletApiConfig: Record<
     AllSupportedBlockchains,
@@ -74,6 +74,10 @@ const mainnet__masterWalletApiConfig: Record<
     Ethereum: {
         masterWalletId: 'bbe3db5e-5ebb-4882-b9c3-26e66ceb62f7',
         apiKey: env.ETHEREUM_MASTER_WALLET_API_KEY,
+    },
+    AssetChain: {
+        masterWalletId: '79abf771-c1cb-4130-9d9a-e287a2d5964e',
+        apiKey: env.ASSET_CHAIN_MASTER_WALLET_API_KEY,
     },
 };
 

@@ -1,13 +1,9 @@
 import { TransferAssetTransactionDetails, TransferProcessingMode } from '@/app/azza/azza.schema';
-import { AssetTransaction } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import UserService from '@/app/User/UserService';
-import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
-import { TransactionResponse } from '@/app/WalletKit/walletKitSchema';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
-import { AssetConfig } from '@/resources/web3/tokens';
+import { AssetConfig } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 
@@ -45,10 +41,7 @@ export const sendTransferAssetTransaction = async (
     }
 
     const assetConfig = getAssetConfigOrThrow(assetId);
-    const user =
-        walletManager === 'legacy'
-            ? await UserService.getUserByPhoneNumber(userId)
-            : await userServiceV2.getUserById(userId);
+    const user = await userServiceV2.getUserById(userId);
 
     if (!user) {
         throw new Error('User not found');
@@ -108,33 +101,19 @@ export const sendTransferAssetTransaction = async (
 
     const totalAmount = amount + transactionFee;
 
-    let transactionResponse: {
-        transactionId: string;
-        status: TransactionResponse['status'] | AssetTransaction['status'];
+    const assetTransaction = await azzaWalletManager.withdrawAsset({
+        amount: totalAmount.toString(),
+        recipient: transferProcessingConfig.resolvedRecipient,
+        assetId: assetId,
+        userId: userId,
+    });
+
+    const transactionResponse = {
+        transactionId: assetTransaction.id,
+        status: assetTransaction.status,
     };
 
-    if (walletManager === 'legacy') {
-        const userWalletInfo = await UserService.getUserAssetInfo(userId, assetId);
-        transactionResponse = await WalletAssetManagementService.transferUserAssetToWallet(
-            userWalletInfo,
-            transferProcessingConfig.resolvedRecipient,
-            totalAmount.toString()
-        );
-    } else {
-        const assetTransaction = await azzaWalletManager.withdrawAsset({
-            amount: totalAmount.toString(),
-            recipient: transferProcessingConfig.resolvedRecipient,
-            assetId: assetId,
-            userId: userId,
-        });
-
-        transactionResponse = {
-            transactionId: assetTransaction.id,
-            status: assetTransaction.status,
-        };
-    }
-
-    if (transactionResponse.status === 'failed' || transactionResponse.status === 'FAILED') {
+    if (transactionResponse.status === 'FAILED') {
         return [
             null,
             {

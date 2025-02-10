@@ -8,8 +8,8 @@ import {
     type UserWallet,
     type WithdrawAssetParams,
 } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import type { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
-import type { AssetConfig } from '@/resources/web3/tokens';
+import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+import type { AssetConfig } from '@/resources/web3/core/tokens';
 
 class AzzaWalletManager implements BaseWalletProvider {
     private readonly walletProvider: BaseWalletProvider;

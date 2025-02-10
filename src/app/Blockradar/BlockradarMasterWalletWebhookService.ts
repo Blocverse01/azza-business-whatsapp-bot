@@ -1,5 +1,5 @@
-import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import { BlockradarWebhookPayload } from '@/app/Blockradar/schema';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import crypto from 'node:crypto';
 
 type BlockradarMasterWalletWebhookServiceParams = {

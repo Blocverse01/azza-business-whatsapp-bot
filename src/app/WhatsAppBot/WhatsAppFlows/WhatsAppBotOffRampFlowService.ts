@@ -1,9 +1,7 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
 import { BankBeneficiary, MobileMoneyBeneficiary } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     DataExchangeResponse,
@@ -37,7 +35,8 @@ import {
     generateRandomHexString,
 } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
-import { TokenNames } from '@/resources/web3/tokens';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { CountryCode } from 'libphonenumber-js';
@@ -109,7 +108,7 @@ type AmountInputScreenData = {
 };
 
 type TokenAmountPattern =
-    `${string} ${TokenNames} (${SupportedChain | ExtendedWalletSupportedNetworks})\n---------------------------------\nFee = ${number} ${TokenNames}`;
+    `${string} ${TokenNames} (${AllSupportedBlockchains})\n---------------------------------\nFee = ${number} ${TokenNames}`;
 type TokenAmountToDebitPattern = `${number} ${TokenNames}`;
 type DestinationPattern = `${string} | ${string} | ${string}`;
 type FiatToReceivePattern =
@@ -173,7 +172,7 @@ class WhatsAppBotOffRampFlowService {
         amount: string,
         asset: {
             assetName: TokenNames;
-            assetNetwork: SupportedChain | ExtendedWalletSupportedNetworks;
+            assetNetwork: AllSupportedBlockchains;
         },
         transactionFee: number
     ) {

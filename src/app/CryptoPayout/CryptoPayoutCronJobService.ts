@@ -1,16 +1,14 @@
 import { AssetTransaction } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
 import { queues } from '@/background-processing/queues';
 import { ZERO } from '@/constants/numbers';
 import { CryptoPayoutOrder } from '@/db/xata';
 import logger from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { decimalToString } from '@/resources/utils/currency';
-import { AssetConfig } from '@/resources/web3/tokens';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+import { AssetConfig } from '@/resources/web3/core/tokens';
 import platformWalletManager from '@/runtime/platform-wallets';
 
 type CryptoOrderInput = {
@@ -214,7 +212,7 @@ class CryptoPayoutCronJobService {
         },
         config: {
             tokenAddress: string;
-            network: SupportedChain | ExtendedWalletSupportedNetworks;
+            network: AllSupportedBlockchains;
             payoutAddressUserId: string;
             assetId: string;
         }

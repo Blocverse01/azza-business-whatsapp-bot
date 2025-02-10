@@ -1,5 +1,4 @@
-import { SupportedChain } from '@/app/WalletKit/walletKitSchema';
-import { ExtendedWalletSupportedNetworks } from '@/app/ExtendedWallet/extendedWalletSchema';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 
 type NetworkTransactionFeeConfig = {
     minimumFee: number;
@@ -12,7 +11,7 @@ type NetworkTransactionFeeConfig = {
  * @description Fee configuration for stable token transfer on different networks. Stable token tokens are tokens like USDC, USDT, etc.
  * */
 export const networkStableTokenTransferFeeConfig: Record<
-    SupportedChain | ExtendedWalletSupportedNetworks,
+    AllSupportedBlockchains,
     NetworkTransactionFeeConfig
 > = {
     Base: {
@@ -58,10 +57,16 @@ export const networkStableTokenTransferFeeConfig: Record<
         feeThreshold: 0,
         feePerThreshold: 0, // 0 for every 10 USDT | USDC
     },
+    AssetChain: {
+        minimumFee: 0.1, // 0.1 USDT | USDC
+        maximumFee: 0.5,
+        feeThreshold: 10,
+        feePerThreshold: 0.001, // 0.001 for every 10 USDT | USDC
+    },
 };
 
 export function calculateStableTokenTransferTransactionFee(
-    chain: SupportedChain | ExtendedWalletSupportedNetworks,
+    chain: AllSupportedBlockchains,
     amount: number
 ): number {
     const config = networkStableTokenTransferFeeConfig[chain];

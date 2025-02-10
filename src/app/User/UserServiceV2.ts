@@ -1,11 +1,13 @@
 import { type SecurityQuestion } from '@/app/azza/azza.schema';
-import { AllSupportedBlockchains } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import { type KycStatus, userIdentityInfoSchema } from '@/app/User/userSchema';
 import { ONE } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
 import type { UserBlockradarWalletRecord, UserV2Record } from '@/db/xata';
 import { HttpException } from '@/resources/exceptions/HttpException';
-import { EvmNetwork } from '@/resources/web3/evm/evm.config';
+import {
+    AllSupportedBlockchains,
+    EvmCompatibleBlockchain,
+} from '@/resources/web3/core/blockchains';
 import type Redis from 'ioredis';
 import type { PhoneNumber } from 'libphonenumber-js/types';
 
@@ -62,7 +64,7 @@ type UserServiceV2InitParams = {
         getPhoneNumberObject: (phoneNumber: string) => PhoneNumber | undefined;
         encryptWithAES: (data: string, key: string, iv: string) => string;
         decryptWithAES: (data: string, key: string, iv: string) => string;
-        isEvmNetwork: (network: AllSupportedBlockchains) => network is EvmNetwork;
+        isEvmNetwork: (network: AllSupportedBlockchains) => network is EvmCompatibleBlockchain;
     };
     env: {
         securityQuestionsMaskKey: string;

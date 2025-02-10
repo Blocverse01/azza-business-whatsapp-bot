@@ -1,4 +1,3 @@
-import { addAlchemyContextToRequest } from '@/app/AlchemyNotify/webhookUtils';
 import CronHandler from '@/app/Cron';
 import { queues } from '@/background-processing/queues';
 import { CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION } from '@/config/backgroundJobs';
@@ -23,10 +22,9 @@ app.use(compression());
 // middleware for capturing raw body
 app.use(
     express.json({
-        limit: '5mb',
-        verify: (req: Request, res, buf, encoding: BufferEncoding) => {
+        limit: '10mb',
+        verify: (req: Request, res, buf) => {
             req.rawBody = buf.toString();
-            addAlchemyContextToRequest(req, res, buf, encoding);
         },
     })
 );
@@ -54,7 +52,7 @@ createBullBoard({
     serverAdapter: serverAdapter,
 });
 
-app.use('/bjs/ui', serverAdapter.getRouter());
+app.use('/bjs/ui', authenticateAdmin, serverAdapter.getRouter());
 
 app.use('/api', apiRoutes, async () => {
     // flush logs: ensure all logs are sent
