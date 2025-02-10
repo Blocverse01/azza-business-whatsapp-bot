@@ -96,6 +96,7 @@ export const EMOJIS_FOR_NETWORKS: Record<AllSupportedBlockchains, string> = {
 };
 
 export const getNetworkEmoji = (blockchain: AllSupportedBlockchains) => {
+    console.log({ blockchain });
     const normalizedBlockchain = normalizeBlockchainInput(blockchain);
 
     return EMOJIS_FOR_NETWORKS[normalizedBlockchain];

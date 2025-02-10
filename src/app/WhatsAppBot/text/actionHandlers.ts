@@ -1,5 +1,4 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
-import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { getDefaultSolanaNode, getSolanaNetworkClient } from '@/app/ExtendedWallet/solana/config';
 import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
 import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
@@ -410,7 +409,7 @@ export const handleBalanceQueryPrompt = async (
         : blockchainNetwork
           ? {
                 type: 'network' as const,
-                entity: blockchainNetwork,
+                entity: normalizeBlockchainInput(blockchainNetwork),
             }
           : cryptoCurrencySymbol
             ? {
@@ -595,41 +594,15 @@ export const handleBalanceQueryPrompt = async (
                 )
             );
 
-            const allAssetIds = supportedAssets.map((asset) => asset.listItemId);
-            const allPromises = allAssetIds.map((assetId) =>
-                azzaWalletManager.getAssetBalance({
-                    userId: user.id,
-                    assetId,
-                })
+            const uniqueNetworks = [...new Set(supportedAssets.map((asset) => asset.network))];
+            const allPromises = uniqueNetworks.map((network) =>
+                azzaWalletManager.getNetworkBalances(user.id, network)
             );
+            const networkAssetsInfo = await Promise.all(allPromises);
 
-            const allAssetsInfo = await Promise.all(allPromises);
-            // group the assets by network
-            const groupedAssets = allAssetsInfo.reduce(
-                (acc, assetInfo) => {
-                    const network = assetInfo.blockchainNetwork;
-                    if (!acc[network]) {
-                        acc[network] = [];
-                    }
-                    acc[network].push({
-                        ...assetInfo,
-                        networkEmoji: getNetworkEmoji(network),
-                    });
-                    return acc;
-                },
-                {} as Record<
-                    string,
-                    Array<
-                        AssetBalance & {
-                            networkEmoji: string;
-                        }
-                    >
-                >
-            );
-
-            const networkBalancesMessage = Object.entries(groupedAssets)
-                .map(([network, assets]) => {
-                    const assetBalances = assets
+            const networkBalancesMessage = networkAssetsInfo
+                .map((networkGroup) => {
+                    const assetBalances = networkGroup
                         .map((asset) => {
                             const tokenBalanceDisplay = prettifyNumber(asset.balance, 6);
                             const usdBalanceDisplay =
@@ -640,7 +613,13 @@ export const handleBalanceQueryPrompt = async (
                             return `- ${tokenBalanceDisplay} ${asset.asset.tokenName}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}`;
                         })
                         .join('\n');
-                    return `*${getNetworkEmoji(normalizeBlockchainInput(network))} ${network}*\n${assetBalances}`;
+
+                    const network = networkGroup[0].blockchainNetwork;
+
+                    const emoji = getNetworkEmoji(network);
+
+                    console.log({ emoji, network });
+                    return `*${emoji ? emoji : ''} ${network}*\n${assetBalances}`;
                 })
                 .join('\n\n');
 
