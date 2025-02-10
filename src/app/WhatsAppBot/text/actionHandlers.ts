@@ -618,7 +618,6 @@ export const handleBalanceQueryPrompt = async (
 
                     const emoji = getNetworkEmoji(network);
 
-                    console.log({ emoji, network });
                     return `*${emoji ? emoji : ''} ${network}*\n${assetBalances}`;
                 })
                 .join('\n\n');
