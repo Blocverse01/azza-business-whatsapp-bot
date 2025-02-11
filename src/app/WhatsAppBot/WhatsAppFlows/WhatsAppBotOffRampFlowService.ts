@@ -336,12 +336,21 @@ class WhatsAppBotOffRampFlowService {
             transactionFee
         );
 
-        const amountToDebit = fixNumber(math.add(usdAmount, transactionFee), THREE);
+        const amountToDebit =
+            amount_denomination === beneficiary.currency_symbol
+                ? fixNumber(math.add(usdAmount, transactionFee), THREE)
+                : usdAmount;
         const token_amount_to_debit: TokenAmountToDebitPattern = `${amountToDebit} ${assetName}`;
 
         const destination_account = this.generateDestinationString(beneficiary);
 
-        const fiatEquivalent = defaultAmountFixer(math.multiply(usdAmount, conversionRate));
+        const usdAmountToConvert =
+            amount_denomination === beneficiary.currency_symbol
+                ? usdAmount
+                : math.subtract(usdAmount, transactionFee);
+        const fiatEquivalent = defaultAmountFixer(
+            math.multiply(usdAmountToConvert, conversionRate)
+        );
 
         const fiat_to_receive: FiatToReceivePattern = this.generateFiatToReceivePattern(
             conversionRate,
