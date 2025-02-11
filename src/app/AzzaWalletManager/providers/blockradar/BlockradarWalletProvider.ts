@@ -110,8 +110,9 @@ class BlockradarWalletProvider implements BaseWalletProvider {
 
                 return {
                     asset: assetConfig,
-                    balance: Number(balance.convertedBalance),
+                    balance: Number(balance.balance),
                     blockchainNetwork: network,
+                    convertedBalanceUsd: Number(balance.convertedBalance),
                 };
             })
             .filter((balance) => balance !== undefined);
