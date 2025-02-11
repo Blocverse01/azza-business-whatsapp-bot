@@ -574,7 +574,10 @@ class WhatsAppBotOffRampFlowService {
                     queueName: QueueNames.fiatPayout,
                     data: {
                         beneficiaryId,
-                        usdAmount: tokenAmount,
+                        // When `tokenAmount` is equal to `tokenAmountToDebit`, it means the transaction fee is included in the amount
+                        usdAmount: math.equal(tokenAmount, tokenAmountToDebit)
+                            ? math.subtract(tokenAmount, transactionFeeUsd)
+                            : tokenAmount,
                         localAmount: fiatAmount,
                         tokenAddress: assetConfig.tokenAddress,
                         chainName: assetConfig.network,
