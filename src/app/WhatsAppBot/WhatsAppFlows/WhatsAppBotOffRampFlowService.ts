@@ -17,7 +17,7 @@ import { CryptoDebitQueueInput, QueueNames } from '@/background-processing/types
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIXTEEN, THREE, TWO, ZERO } from '@/constants/numbers';
+import { FOUR, SIXTEEN, THREE, TWO, ZERO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { generateOfframpProcessingMessage } from '@/resources/utils/bot-message-utils';
@@ -236,7 +236,19 @@ class WhatsAppBotOffRampFlowService {
         const [minLimit, maxLimit] = [
             amount_denomination === beneficiary.currency_symbol
                 ? countryLimits.min
-                : countryLimits.min / conversionRate,
+                : (() => {
+                      const usdLimit = countryLimits.min / conversionRate;
+
+                      const feeForUsdLimit = FiatRampService.calculateTransactionFeeUsd({
+                          usdAmount: usdLimit,
+                          conditionalFeePercentageConfigs: quotes.conditionalFeePercentConfigs,
+                          minFeeUsd: quotes.minFeeUsd,
+                          defaultFeePercentage: quotes.rawFeePercentage,
+                          rampType: 'offramp',
+                      });
+
+                      return fixNumber(usdLimit + feeForUsdLimit.feeUsd, TWO);
+                  })(),
             amount_denomination === beneficiary.currency_symbol
                 ? countryLimits.max
                 : countryLimits.max / conversionRate,
@@ -275,7 +287,7 @@ class WhatsAppBotOffRampFlowService {
         }
 
         if (Object.keys(errorMessages).length > 0) {
-            const userBalanceFormatted = prettifyNumber(userBalance) + ' ' + assetName;
+            const userBalanceFormatted = prettifyNumber(userBalance, FOUR) + ' ' + assetName;
             const userBalanceInFiat = formatNumberAsCurrency(
                 fixNumber(userBalance * conversionRate, THREE),
                 beneficiary.currency_symbol
@@ -689,7 +701,7 @@ class WhatsAppBotOffRampFlowService {
 
         const sellMessage = `To sell ${assetLabel} for ${getCountryFlagEmoji(beneficiary.country.code)} ${beneficiary.country.currencySymbol}, tap "Proceed" to enter the amount you want to sell`;
 
-        const userBalanceFormatted = prettifyNumber(userBalance) + ' ' + asset.tokenName;
+        const userBalanceFormatted = prettifyNumber(userBalance, FOUR) + ' ' + asset.tokenName;
         const userBalanceInFiat = formatNumberAsCurrency(
             fixNumber(userBalance * params.fiatConversionRate, THREE),
             beneficiary.country.currencySymbol
