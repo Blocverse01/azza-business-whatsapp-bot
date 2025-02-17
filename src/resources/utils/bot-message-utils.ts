@@ -93,6 +93,7 @@ export const EMOJIS_FOR_NETWORKS: Record<AllSupportedBlockchains, string> = {
     Bep20: '🟡',
     Solana: '🟢',
     AssetChain: '⛓️',
+    Arbitrum: '💠'
 };
 
 export const getNetworkEmoji = (blockchain: AllSupportedBlockchains) => {

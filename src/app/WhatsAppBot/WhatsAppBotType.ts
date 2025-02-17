@@ -104,6 +104,7 @@ export enum AssetInteractiveButtonIds {
     OP_OPTIMISM = 'op-optimism',
     POL_POLYGON = 'pol-polygon',
     ETH_ETHEREUM = 'eth-ethereum',
+    ETH_ARBITRUM = 'eth-arbitrum',
 
     // StableCoins
     USDC_BASE = 'usdc-base',
@@ -132,6 +133,9 @@ export enum AssetInteractiveButtonIds {
 
     USDC_ASSET_CHAIN = 'usdc-asset-chain',
     USDT_ASSET_CHAIN = 'usdt-asset-chain',
+
+    USDC_ARBITRUM = 'usdc-arbitrum',
+    USDT_ARBITRUM = 'usdt-arbitrum',
 }
 
 export enum ExploreAssetActions {

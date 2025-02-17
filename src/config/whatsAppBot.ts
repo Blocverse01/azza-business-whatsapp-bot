@@ -7,6 +7,7 @@ import {
     polConfig,
     solConfig,
     trxTronConfig,
+    usdcArbitrumConfig,
     usdcAssetChainConfig,
     usdcBaseConfig,
     usdcBep20Config,
@@ -14,6 +15,7 @@ import {
     usdcOptimismConfig,
     usdcPolygonConfig,
     usdcSolanaConfig,
+    usdtArbitrumConfig,
     usdtAssetChainConfig,
     usdtBep20Config,
     usdtEthConfig,
@@ -45,6 +47,8 @@ export const ENABLED_ASSETS = [
     usdcBep20Config,
     usdtAssetChainConfig,
     usdcAssetChainConfig,
+    usdtArbitrumConfig,
+    usdcArbitrumConfig,
 ];
 
 // Get asset config by list item id

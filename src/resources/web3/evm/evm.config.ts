@@ -3,6 +3,8 @@ import { EvmCompatibleBlockchain } from '@/resources/web3/core/blockchains';
 import { assetChainMainnet } from '@/resources/web3/evm/viem/chains';
 import { Chain } from 'viem';
 import {
+    arbitrum,
+    arbitrumSepolia,
     assetChainTestnet,
     base,
     baseSepolia,
@@ -30,7 +32,7 @@ export type EvmNode =
     | 'default-asset-chain-testnet'
     | 'default-asset-chain-mainnet'
     | 'default-bsc-testnet'
-    | 'default-bsc-mainnet';
+    | 'default-bsc-mainnet' | 'default-arbitrum-mainnet' | 'default-arbitrum-testnet';
 
 export type EvmNetworkConfig = {
     rpcUrl: string;
@@ -119,6 +121,18 @@ export const defaultBscMainnet: EvmNetworkConfig = {
     network: 'Bep20',
     viemChain: bsc,
 };
+const defaultArbitrumMainnet: EvmNetworkConfig = {
+    rpcUrl: arbitrum.rpcUrls['default'].http[0],
+    key: 'default-arbitrum-mainnet',
+    network: 'Arbitrum',
+    viemChain: arbitrum
+}
+const defaultArbitrumTestnet: EvmNetworkConfig = {
+    rpcUrl: arbitrumSepolia.rpcUrls['default'].http[0],
+    key: 'default-arbitrum-testnet',
+    network: 'Arbitrum',
+    viemChain: arbitrumSepolia
+}
 
 const APP_DEFAULT_EVM_NETWORK_CONFIGS: Record<
     EvmNetworkConfig['network'],
@@ -148,6 +162,10 @@ const APP_DEFAULT_EVM_NETWORK_CONFIGS: Record<
         mainnet: defaultBscMainnet,
         testnet: defaultBscTestnet,
     },
+    Arbitrum: {
+        mainnet: defaultArbitrumMainnet,
+        testnet: defaultArbitrumTestnet
+    }
 };
 
 export const getAppDefaultEvmConfig = (

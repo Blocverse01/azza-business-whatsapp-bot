@@ -40,6 +40,10 @@ const EXPLORER_URLS: {
         testnet: 'https://scan-testnet.assetchain.org',
         mainnet: 'https://scan.assetchain.org',
     },
+    Arbitrum: {
+        testnet: 'https://sepolia.arbiscan.io/',
+        mainnet: 'https://arbiscan.io/',
+    },
 };
 
 export const getTransactionExplorerUrl = (

@@ -42,6 +42,10 @@ const testnet__masterWalletApiConfig: Record<
         masterWalletId: '',
         apiKey: env.ASSET_CHAIN_MASTER_WALLET_API_KEY,
     },
+    Arbitrum: {
+        masterWalletId: '',
+        apiKey: env.ARBITRUM_MASTER_WALLET_API_KEY,
+    },
 };
 const mainnet__masterWalletApiConfig: Record<
     AllSupportedBlockchains,
@@ -79,6 +83,11 @@ const mainnet__masterWalletApiConfig: Record<
         masterWalletId: '79abf771-c1cb-4130-9d9a-e287a2d5964e',
         apiKey: env.ASSET_CHAIN_MASTER_WALLET_API_KEY,
     },
+    Arbitrum: {
+        masterWalletId: 'ce1f41a2-a8bd-43cb-a5ad-dacfec29cfd6',
+        apiKey: env.ARBITRUM_MASTER_WALLET_API_KEY,
+    },
+    
 };
 
 const masterWalletApiConfig =

@@ -89,6 +89,17 @@ export enum TokenAddresses {
     // USDT
     USDT_ASSET_CHAIN_MAINNET = '0x26E490d30e73c36800788DC6d6315946C4BbEa24',
     USDT_ASSET_CHAIN_TESTNET = '0x04f868C5b3F0A100a207c7e9312946cC2c48a7a3',
+
+    /**
+     * Arbitrum Asset Addresses
+     */
+    // USDC
+    USDC_ARBITRUM_MAINNET = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+    USDC_ARBITRUM_TESTNET = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
+
+    // USDT
+    USDT_ARBITRUM_MAINNET = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+    USDT_ARBITRUM_TESTNET = '0x30fa2fbe15c1eadfbef28c188b7b8dbd3c1ff2eb',
 }
 
 export enum TokenNames {
@@ -401,6 +412,39 @@ export const usdtAssetChainConfig = {
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_ASSET_CHAIN,
     network: 'AssetChain',
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+        ExploreAssetActions.SELL_ASSET,
+    ] as ExploreAssetActions[],
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+// Arbitrum Assets
+/// ============== USDC ==============
+export const usdcArbitrumConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDC_ARBITRUM_TESTNET
+            : TokenAddresses.USDC_ARBITRUM_MAINNET,
+    tokenName: TokenNames.USDC,
+    listItemId: AssetInteractiveButtonIds.USDC_ARBITRUM,
+    network: 'Arbitrum',
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+        ExploreAssetActions.SELL_ASSET,
+    ] as ExploreAssetActions[],
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+/// ============== USDT ==============
+export const usdtArbitrumConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDT_ARBITRUM_TESTNET
+            : TokenAddresses.USDT_ARBITRUM_MAINNET,
+    tokenName: TokenNames.USDT,
+    listItemId: AssetInteractiveButtonIds.USDT_ARBITRUM,
+    network: 'Arbitrum',
     supportedAssetActions: [
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
