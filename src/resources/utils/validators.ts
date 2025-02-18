@@ -1,5 +1,8 @@
 import { publicTronWebClient } from '@/app/ExtendedWallet/tron/tronNetworkClient';
-import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+import {
+    AllSupportedBlockchains,
+    isEvmCompatibleBlockchain,
+} from '@/resources/web3/core/blockchains';
 import { PublicKey } from '@solana/web3.js';
 import { isAddress } from 'viem';
 
@@ -30,14 +33,11 @@ export const validateWalletAddress = (
 };
 
 export const getNetworkFamily = (network: AllSupportedBlockchains): 'evm' | 'solana' | 'tron' => {
+    if (isEvmCompatibleBlockchain(network)) {
+        return 'evm';
+    }
+
     switch (network) {
-        case 'Base':
-        case 'Ethereum':
-        case 'Optimism':
-        case 'Polygon':
-        case 'Bep20':
-        case 'AssetChain':
-            return 'evm';
         case 'Tron':
             return 'tron';
         case 'Solana':
