@@ -179,18 +179,25 @@ export const transactionStatusSchema = z.enum([
 
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
 
-export const transactionWebhookPayloadSchema = z.object({
-    sequenceId: z.string(),
-    transactionStatus: transactionStatusSchema,
-    transactionOwnerId: z.string(),
-    transactionType: z.union([z.literal('on-ramp'), z.literal('off-ramp')]),
-    localAmount: z.number(),
+export const OfframpTransactionRecordSchema = z.object({
+    status: transactionStatusSchema,
+    blockchainNetwork: z.string(),
     usdAmount: z.number(),
-    chainName: z.string(),
-    tokenName: z.string(),
+    localAmount: z.number(),
     localCurrencySymbol: z.string(),
-    beneficiaryId: z.string().optional(),
-    destinationWalletAddress: z.string().optional(),
+    tokenSymbol: z.string(),
+    ownerId: z.string(),
+    transactionHash: z.string(),
+    transactionFeeUsd: z.number(),
+    destination: z.object({
+        accountName: z.string(),
+        accountNumber: z.string(),
+        networkName: z.string(),
+        networkId: z.string(),
+        country: z.string(),
+        accountType: z.enum(['bank', 'phone']),
+    }),
+    createdAt: z.string().datetime(),
 });
 
-export type TransactionWebhookPayload = z.infer<typeof transactionWebhookPayloadSchema>;
+export type OfframpTransactionRecord = z.infer<typeof OfframpTransactionRecordSchema>;

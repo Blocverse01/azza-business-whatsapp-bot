@@ -223,6 +223,8 @@ message GetPaymentRequestTransactionResponse {
   string blockchain_network = 9;
   string transaction_hash = 10;
   double transaction_fee_usd = 11;
+  PaymentRequestDestination destination = 12;
+  string created_at = 13;
 }
 
 message GetHotWalletAddressRequest {

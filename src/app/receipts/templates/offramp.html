@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Offramp Receipt</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @font-face {
+                font-family: 'Subjectivity.Extrabold';
+                src: url(./fonts/Subjectivity.Extrabold.woff2) format('woff2');
+            }
+
+            .font-subjectivity {
+                font-family: 'Subjectivity.Extrabold', sans-serif;
+            }
+
+            .font-inter {
+                font-family: 'Inter', sans-serif;
+            }
+
+            .amount-card {
+                position: relative;
+                background-color: #3430e9; /* Base color */
+            }
+
+            .amount-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: url('./images/pattern-bg.png');
+                background-size: cover;
+                background-position: center;
+                border-radius: 16px;
+                mix-blend-mode: overlay;
+            }
+        </style>
+    </head>
+    <body class="bg-white py-10 px-5 rounded-xl min-w-[390px] w-fit mx-auto">
+        <main class="flex flex-col gap-8">
+            <img src="./images/azza-purple-logo.svg" alt="Azza" class="w-fit mx-auto" />
+            <h3
+                class="text-2xl font-subjectivity leading-[24px] text-[#3430E9] font-extrabold w-fit mx-auto uppercase"
+            >
+                FIAT WITHDRAWAL
+            </h3>
+            <section
+                class="amount-card min-w-[350px] px-6 py-[27px] w-fit text-white min-h-[160px] h-fit gap-6 rounded-2xl flex flex-col justify-center items-center"
+            >
+                <p class="font-inter text-xl leading-[28px]">You Sold:</p>
+                <p class="font-extrabold font-subjectivity text-[56px] leading-[54px]">
+                    {{tokenAmount}}{{tokenSymbol}}
+                </p>
+            </section>
+            <section class="w-full flex flex-col gap-3">
+                <h3
+                    class="text-xs font-extrabold font-subjectivity leading-[24px] text-[#0E231C] uppercase"
+                >
+                    Transaction Summary
+                </h3>
+                <section class="flex font-inter flex-col gap-6">
+                    <div class="flex justify-between">
+                        <span class="font-normal text-sm leading-[24px] text-[#292929]"
+                            >Amount (in crypto):</span
+                        >
+                        <span class="flex items-center gap-1">
+                            <img src="{{tokenIcon}}" class="w-5 h-5" alt="{{tokenSymbol}}" />
+                            <span class="text-[#1E1E1E] font-bold"
+                                >{{tokenAmount}} {{tokenSymbol}}</span
+                            >
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
+                            >Amount (in fiat):</span
+                        >
+                        <span class="flex items-center gap-1">
+                            <span>{{fiatCurrencyIcon}}</span>
+                            <span class="text-[#1E1E1E] font-bold"
+                                >{{fiatAmount}} {{fiatCurrencySymbol}}</span
+                            >
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
+                            >Receiving Bank Name:</span
+                        >
+                        <span class="text-[#1E1E1E] font-bold">{{recipientBankName}} </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
+                            >Account Name:</span
+                        >
+                        <span class="text-[#1E1E1E] font-bold">{{recipientAccountName}} </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
+                            >Account Number:</span
+                        >
+                        <span class="text-[#1E1E1E] font-bold">{{recipientAccountNumber}} </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-normal text-sm leading-[24px] text-[#292929]"
+                            >Transaction Fee:</span
+                        >
+                        <span class="flex items-center gap-1">
+                            <img src="{{tokenIcon}}" class="w-5 h-5" alt="{{tokenSymbol}}" />
+                            <span class="text-[#1E1E1E] font-bold"
+                                >{{transactionFee}} {{tokenSymbol}}</span
+                            >
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
+                            >Date:</span
+                        >
+                        <span class="text-[#1E1E1E] font-bold">{{transactionDate}} </span>
+                    </div>
+                </section>
+            </section>
+            <p
+                class="font-subjectivity w-fit mx-auto uppercase text-[#3430E9] text-xs leading-[24px]"
+            >
+                Thank you for choosing azza!
+            </p>
+        </main>
+    </body>
+</html>

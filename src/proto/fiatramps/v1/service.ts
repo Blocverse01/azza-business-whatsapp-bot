@@ -723,10 +723,8 @@ export namespace fiatramps.v1 {
             return Rate.deserialize(bytes);
         }
     }
-
     export class ConditionalFeePercentConfig extends pb_1.Message {
         #one_of_decls: number[][] = [];
-
         constructor(data?: any[] | {
             rule?: string;
             fee_percentage?: number;
@@ -750,39 +748,30 @@ export namespace fiatramps.v1 {
                 }
             }
         }
-
         get rule() {
             return pb_1.Message.getFieldWithDefault(this, 1, '') as string;
         }
-
         set rule(value: string) {
             pb_1.Message.setField(this, 1, value);
         }
-
         get fee_percentage() {
             return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
         }
-
         set fee_percentage(value: number) {
             pb_1.Message.setField(this, 2, value);
         }
-
         get trigger_amount() {
             return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
         }
-
         set trigger_amount(value: number) {
             pb_1.Message.setField(this, 3, value);
         }
-
         get ramp_type() {
             return pb_1.Message.getFieldWithDefault(this, 4, '') as string;
         }
-
         set ramp_type(value: string) {
             pb_1.Message.setField(this, 4, value);
         }
-
         static fromObject(data: {
             rule?: string;
             fee_percentage?: number;
@@ -804,7 +793,6 @@ export namespace fiatramps.v1 {
             }
             return message;
         }
-
         toObject() {
             const data: {
                 rule?: string;
@@ -826,7 +814,6 @@ export namespace fiatramps.v1 {
             }
             return data;
         }
-
         serialize(): Uint8Array;
         serialize(w: pb_1.BinaryWriter): void;
         serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
@@ -842,7 +829,6 @@ export namespace fiatramps.v1 {
             if (!w)
                 return writer.getResultBuffer();
         }
-
         static deserialize(bytes: Uint8Array | pb_1.BinaryReader): ConditionalFeePercentConfig {
             const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
                 message = new ConditionalFeePercentConfig();
@@ -868,11 +854,9 @@ export namespace fiatramps.v1 {
             }
             return message;
         }
-
         serializeBinary(): Uint8Array {
             return this.serialize();
         }
-
         static deserializeBinary(bytes: Uint8Array): ConditionalFeePercentConfig {
             return ConditionalFeePercentConfig.deserialize(bytes);
         }
@@ -911,23 +895,18 @@ export namespace fiatramps.v1 {
         get offramp_fee_percentage() {
             return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
         }
-
         set offramp_fee_percentage(value: number) {
             pb_1.Message.setField(this, 2, value);
         }
-
         get offramp_min_fee_usd() {
             return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
         }
-
         set offramp_min_fee_usd(value: number) {
             pb_1.Message.setField(this, 3, value);
         }
-
         get conditional_fee_percent_configs() {
             return pb_1.Message.getRepeatedWrapperField(this, ConditionalFeePercentConfig, 4) as ConditionalFeePercentConfig[];
         }
-
         set conditional_fee_percent_configs(value: ConditionalFeePercentConfig[]) {
             pb_1.Message.setRepeatedWrapperField(this, 4, value);
         }
@@ -3796,6 +3775,8 @@ export namespace fiatramps.v1 {
             blockchain_network?: string;
             transaction_hash?: string;
             transaction_fee_usd?: number;
+            destination?: PaymentRequestDestination;
+            created_at?: string;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -3832,6 +3813,12 @@ export namespace fiatramps.v1 {
                 }
                 if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
                     this.transaction_fee_usd = data.transaction_fee_usd;
+                }
+                if ('destination' in data && data.destination != undefined) {
+                    this.destination = data.destination;
+                }
+                if ('created_at' in data && data.created_at != undefined) {
+                    this.created_at = data.created_at;
                 }
             }
         }
@@ -3901,6 +3888,26 @@ export namespace fiatramps.v1 {
         set transaction_fee_usd(value: number) {
             pb_1.Message.setField(this, 11, value);
         }
+
+        get destination() {
+            return pb_1.Message.getWrapperField(this, PaymentRequestDestination, 12) as PaymentRequestDestination;
+        }
+
+        set destination(value: PaymentRequestDestination) {
+            pb_1.Message.setWrapperField(this, 12, value);
+        }
+
+        get has_destination() {
+            return pb_1.Message.getField(this, 12) != null;
+        }
+
+        get created_at() {
+            return pb_1.Message.getFieldWithDefault(this, 13, '') as string;
+        }
+
+        set created_at(value: string) {
+            pb_1.Message.setField(this, 13, value);
+        }
         static fromObject(data: {
             sequence_id?: string;
             usd_amount?: number;
@@ -3913,6 +3920,8 @@ export namespace fiatramps.v1 {
             blockchain_network?: string;
             transaction_hash?: string;
             transaction_fee_usd?: number;
+            destination?: ReturnType<typeof PaymentRequestDestination.prototype.toObject>;
+            created_at?: string;
         }): GetPaymentRequestTransactionResponse {
             const message = new GetPaymentRequestTransactionResponse({});
             if (data.sequence_id != null) {
@@ -3948,6 +3957,12 @@ export namespace fiatramps.v1 {
             if (data.transaction_fee_usd != null) {
                 message.transaction_fee_usd = data.transaction_fee_usd;
             }
+            if (data.destination != null) {
+                message.destination = PaymentRequestDestination.fromObject(data.destination);
+            }
+            if (data.created_at != null) {
+                message.created_at = data.created_at;
+            }
             return message;
         }
         toObject() {
@@ -3963,6 +3978,8 @@ export namespace fiatramps.v1 {
                 blockchain_network?: string;
                 transaction_hash?: string;
                 transaction_fee_usd?: number;
+                destination?: ReturnType<typeof PaymentRequestDestination.prototype.toObject>;
+                created_at?: string;
             } = {};
             if (this.sequence_id != null) {
                 data.sequence_id = this.sequence_id;
@@ -3997,6 +4014,12 @@ export namespace fiatramps.v1 {
             if (this.transaction_fee_usd != null) {
                 data.transaction_fee_usd = this.transaction_fee_usd;
             }
+            if (this.destination != null) {
+                data.destination = this.destination.toObject();
+            }
+            if (this.created_at != null) {
+                data.created_at = this.created_at;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -4025,6 +4048,10 @@ export namespace fiatramps.v1 {
                 writer.writeString(10, this.transaction_hash);
             if (this.transaction_fee_usd != 0)
                 writer.writeDouble(11, this.transaction_fee_usd);
+            if (this.has_destination)
+                writer.writeMessage(12, this.destination, () => this.destination.serialize(writer));
+            if (this.created_at.length)
+                writer.writeString(13, this.created_at);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -4066,6 +4093,12 @@ export namespace fiatramps.v1 {
                         break;
                     case 11:
                         message.transaction_fee_usd = reader.readDouble();
+                        break;
+                    case 12:
+                        reader.readMessage(message.destination, () => message.destination = PaymentRequestDestination.deserialize(reader));
+                        break;
+                    case 13:
+                        message.created_at = reader.readString();
                         break;
                     default: reader.skipField();
                 }

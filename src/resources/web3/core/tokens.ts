@@ -112,6 +112,11 @@ export enum TokenNames {
     TRX = 'TRX',
 }
 
+export const TokenIconURIs: Record<string, string> = {
+    USDT: 'https://cryptologos.cc/logos/tether-usdt-logo.svg',
+    USDC: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.svg',
+};
+
 export type AssetConfig = {
     tokenAddress: string;
     tokenName: TokenNames | string;

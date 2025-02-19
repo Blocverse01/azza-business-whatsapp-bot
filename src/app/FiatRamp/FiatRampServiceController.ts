@@ -2,6 +2,7 @@ import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
+import { generateOfframpToBankRecipientReceipt } from '@/app/receipts/generators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { OK } from '@/constants/status-codes';
@@ -12,6 +13,7 @@ import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Request, Response } from 'express';
+import { Buffer } from 'node:buffer';
 
 class FiatRampServiceController {
     public static receiveWebHookData(req: Request) {
@@ -77,6 +79,30 @@ class FiatRampServiceController {
 
             const user = await userServiceV2.getUserById(transaction.ownerId);
             const userPhoneNumber = user?.primaryWhatsappPhoneNumber;
+
+            if (newTransactionStatus === 'complete' && message && userPhoneNumber) {
+                const receiptBuffer = await generateOfframpToBankRecipientReceipt(transaction);
+                const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
+                    env.WA_PHONE_NUMBER_ID,
+                    Buffer.from(receiptBuffer).toString('base64')
+                );
+
+                if (uploadedMedia) {
+                    await WhatsAppBotService.sendMediaMessage(
+                        {
+                            userPhoneNumber,
+                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        },
+                        {
+                            mediaId: uploadedMedia.id,
+                            caption: message,
+                            type: 'image',
+                        }
+                    );
+
+                    return;
+                }
+            }
 
             if (message.trim() && userPhoneNumber) {
                 await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);

@@ -2,6 +2,7 @@ import {
     BankBeneficiary,
     CreateBeneficiaryParams,
     MobileMoneyBeneficiary,
+    OfframpTransactionRecordSchema,
     OnrampTransactionPayload,
     paymentMethodsResponseDataSchema,
     quoteSchema,
@@ -473,19 +474,7 @@ class FiatRampsRpcService {
 
         const responseObj = response.toObject();
 
-        return z
-            .object({
-                status: transactionStatusSchema,
-                blockchainNetwork: z.string(),
-                usdAmount: z.number(),
-                localAmount: z.number(),
-                localCurrencySymbol: z.string(),
-                tokenSymbol: z.string(),
-                ownerId: z.string(),
-                transactionHash: z.string(),
-                transactionFeeUsd: z.number(),
-            })
-            .parse(transformKeysToCamelCase(responseObj));
+        return OfframpTransactionRecordSchema.parse(transformKeysToCamelCase(responseObj));
     }
 
     public static async getHotWalletAddress(networkType: PlatformAddressIdNetworkTag) {

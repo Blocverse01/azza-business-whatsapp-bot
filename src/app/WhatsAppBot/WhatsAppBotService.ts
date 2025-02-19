@@ -156,6 +156,74 @@ class WhatsAppBotService {
         }
     }
 
+    public static async uploadImageToWhatsapp(businessPhoneNumberId: string, base64String: string) {
+        const endpoint = `${businessPhoneNumberId}/media`;
+
+        const payload = {
+            messaging_product: 'whatsapp',
+            file: base64String,
+            type: 'image/png',
+        };
+
+        try {
+            const requestOptions = this.getRequestConfig();
+            const compressedData = zlib.gzipSync(JSON.stringify(payload));
+
+            const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    ...requestOptions.headers,
+                    'Content-Encoding': 'gzip',
+                },
+                body: compressedData,
+            });
+
+            const responseData = await response.body.json();
+
+            if (response.statusCode !== OK) {
+                await logServiceError(
+                    new HttpException(response.statusCode, 'Error uploading media', {
+                        responseData,
+                        payload,
+                        businessPhoneNumberId,
+                    }),
+                    'Error uploading media'
+                );
+
+                return null;
+            }
+
+            return responseData as {
+                id: string;
+            };
+        } catch (error) {
+            await logServiceError(error, 'Error uploading media');
+            throw error;
+        }
+    }
+
+    public static async sendMediaMessage(
+        phoneParams: PhoneNumberParams,
+        message: {
+            mediaId: string;
+            caption?: string;
+            type: 'image';
+        }
+    ) {
+        const messageObject = {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: phoneParams.userPhoneNumber,
+            type: message.type,
+            image: {
+                id: message.mediaId,
+                caption: message.caption,
+            },
+        };
+
+        return await this.sendWhatsappMessage(phoneParams.businessPhoneNumberId, messageObject);
+    }
+
     public static async sendWhatsappMessage(businessPhoneNumberId: string, data: object) {
         if (this.USE_SENDER_SCRIPT) {
             return await this.sendMessageUsingGo(businessPhoneNumberId, data);
