@@ -111,7 +111,7 @@
                         >
                         <span class="flex items-center gap-1">
                             <img src="{{tokenIcon}}" class="w-5 h-5" alt="{{tokenSymbol}}" />
-                            <span class="text-[#1E1E1E] font-bold"
+                            <span class="text-[#1E1E1E] text-sm font-bold"
                                 >{{tokenAmount}} {{tokenSymbol}}</span
                             >
                         </span>
@@ -126,7 +126,7 @@
                                 class="w-5 h-5"
                                 alt="{{fiatCurrencySymbol}}"
                             />
-                            <span class="text-[#1E1E1E] font-bold"
+                            <span class="text-[#1E1E1E] text-sm font-bold"
                                 >{{fiatAmount}} {{fiatCurrencySymbol}}</span
                             >
                         </span>
@@ -135,19 +135,23 @@
                         <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
                             >Receiving Bank Name:</span
                         >
-                        <span class="text-[#1E1E1E] font-bold">{{recipientBankName}} </span>
+                        <span class="text-[#1E1E1E] font-bold text-sm">{{recipientBankName}}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
                             >Account Name:</span
                         >
-                        <span class="text-[#1E1E1E] font-bold">{{recipientAccountName}} </span>
+                        <span class="text-[#1E1E1E] font-bold text-sm"
+                        >{{recipientAccountName}}</span
+                        >
                     </div>
                     <div class="flex justify-between">
                         <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
                             >Account Number:</span
                         >
-                        <span class="text-[#1E1E1E] font-bold">{{recipientAccountNumber}} </span>
+                        <span class="text-[#1E1E1E] font-bold text-sm"
+                        >{{recipientAccountNumber}}</span
+                        >
                     </div>
                     <div class="flex justify-between">
                         <span class="font-normal text-sm leading-[24px] text-[#292929]"
@@ -155,7 +159,7 @@
                         >
                         <span class="flex items-center gap-1">
                             <img src="{{tokenIcon}}" class="w-5 h-5" alt="{{tokenSymbol}}" />
-                            <span class="text-[#1E1E1E] font-bold"
+                            <span class="text-[#1E1E1E] text-sm font-bold"
                                 >{{transactionFee}} {{tokenSymbol}}</span
                             >
                         </span>
@@ -164,7 +168,7 @@
                         <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
                             >Date:</span
                         >
-                        <span class="text-[#1E1E1E] font-bold">{{transactionDate}} </span>
+                        <span class="text-[#1E1E1E] text-sm font-bold">{{transactionDate}} </span>
                     </div>
                 </section>
             </section>
