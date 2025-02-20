@@ -18,8 +18,8 @@ export const generateOfframpToBankRecipientReceipt = async (
 
     // Increase resolution
     await page.setViewport({
-        width: 1080,
-        height: 1920,
+        width: 390,
+        height: 804,
         deviceScaleFactor: 3, // Higher resolution
     });
 

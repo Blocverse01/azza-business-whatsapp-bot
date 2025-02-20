@@ -80,34 +80,34 @@ class FiatRampServiceController {
             const user = await userServiceV2.getUserById(transaction.ownerId);
             const userPhoneNumber = user?.primaryWhatsappPhoneNumber;
 
-            if (newTransactionStatus === 'complete' && message && userPhoneNumber) {
-                const receiptBuffer = await generateOfframpToBankRecipientReceipt(transaction);
-                const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
-                    env.WA_PHONE_NUMBER_ID,
-                    new File([Buffer.from(receiptBuffer)], `receipt-${sequenceId}.png`, {
-                        type: 'image/png',
-                    })
-                );
-
-                if (uploadedMedia) {
-                    await WhatsAppBotService.sendMediaMessage(
-                        {
-                            userPhoneNumber,
-                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                        },
-                        {
-                            mediaId: uploadedMedia.id,
-                            caption: message,
-                            type: 'image',
-                        }
-                    );
-
-                    return;
-                }
-            }
-
             if (message.trim() && userPhoneNumber) {
                 await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
+
+                if (newTransactionStatus === 'complete') {
+                    const receiptBuffer = await generateOfframpToBankRecipientReceipt(transaction);
+                    const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
+                        env.WA_PHONE_NUMBER_ID,
+                        new File([Buffer.from(receiptBuffer)], `receipt-${sequenceId}.png`, {
+                            type: 'image/png',
+                        })
+                    );
+
+                    if (uploadedMedia) {
+                        await WhatsAppBotService.sendMediaMessage(
+                            {
+                                userPhoneNumber,
+                                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                            },
+                            {
+                                mediaId: uploadedMedia.id,
+                                caption: `🧾Transaction Receipt`,
+                                type: 'image',
+                            }
+                        );
+
+                        return;
+                    }
+                }
             }
 
             const supportedChain = azzaWalletManager
