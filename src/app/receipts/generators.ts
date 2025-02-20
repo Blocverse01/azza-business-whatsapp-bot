@@ -16,6 +16,13 @@ export const generateOfframpToBankRecipientReceipt = async (
         FiatRampService.getSupportedCurrencies(),
     ]);
 
+    // Increase resolution
+    await page.setViewport({
+        width: 1080,
+        height: 1920,
+        deviceScaleFactor: 3, // Higher resolution
+    });
+
     const country = countries.find(
         (c) => c.code.toLowerCase() === offrampTransaction.destination.country.toLowerCase()
     );
@@ -50,7 +57,7 @@ export const generateOfframpToBankRecipientReceipt = async (
     // Capture the receipt as an image
     const imageBinary = await page.screenshot({
         encoding: 'binary',
-        optimizeForSpeed: true,
+        omitBackground: false,
         type: 'png',
         fullPage: true,
     });

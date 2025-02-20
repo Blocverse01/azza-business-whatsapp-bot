@@ -58,7 +58,7 @@ import azzaWalletManager from '@/runtime/wallet';
 import axios from 'axios';
 import { CountryCode } from 'libphonenumber-js';
 import * as zlib from 'node:zlib';
-import { request } from 'undici';
+import { FormData, request } from 'undici';
 import {
     ASSET_ACTION_REGEX_PATTERN,
     AssetInteractiveButtonIds,
@@ -156,26 +156,24 @@ class WhatsAppBotService {
         }
     }
 
-    public static async uploadImageToWhatsapp(businessPhoneNumberId: string, base64String: string) {
+    public static async uploadImageToWhatsapp(businessPhoneNumberId: string, imageFile: File) {
         const endpoint = `${businessPhoneNumberId}/media`;
 
-        const payload = {
-            messaging_product: 'whatsapp',
-            file: base64String,
-            type: 'image/png',
-        };
+        const formData = new FormData();
+
+        formData.append('file', imageFile);
+        formData.append('messaging_product', 'whatsapp');
+        formData.append('type', 'image/png');
 
         try {
             const requestOptions = this.getRequestConfig();
-            const compressedData = zlib.gzipSync(JSON.stringify(payload));
 
             const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
                 method: 'POST',
                 headers: {
                     ...requestOptions.headers,
-                    'Content-Encoding': 'gzip',
                 },
-                body: compressedData,
+                body: formData,
             });
 
             const responseData = await response.body.json();
@@ -184,7 +182,7 @@ class WhatsAppBotService {
                 await logServiceError(
                     new HttpException(response.statusCode, 'Error uploading media', {
                         responseData,
-                        payload,
+                        payload: formData.values(),
                         businessPhoneNumberId,
                     }),
                     'Error uploading media'

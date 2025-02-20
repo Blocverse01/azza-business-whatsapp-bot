@@ -84,7 +84,7 @@ class FiatRampServiceController {
                 const receiptBuffer = await generateOfframpToBankRecipientReceipt(transaction);
                 const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
                     env.WA_PHONE_NUMBER_ID,
-                    Buffer.from(receiptBuffer).toString('base64')
+                    new File([Buffer.from(receiptBuffer)], `receipt-${sequenceId}.png`)
                 );
 
                 if (uploadedMedia) {
