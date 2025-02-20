@@ -1,7 +1,8 @@
 # BlocPal
-> Revolutionizing Crypto Transactions through SocialFi
+> Turning Chats to Cashouts!
+> Azza is your stablecoin bank on WhatsApp—seamlessly buy, save, earn, send, and cash out USD-pegged stablecoins across multiple 
+  blockchains, all through a simple chat. 
 
-![Group 12300](https://github.com/Blocverse01/whatsapp-social-fi-bot/assets/67528283/280aafb3-fbe9-463c-b7ef-2f74bef142e6)
 
 ## The Challenge
 1. Complexity in Using Blockchain Based Applications:
@@ -19,7 +20,7 @@
 ## The Solution
 1. Simple Crypto to Fiat Conversion Process:
    
-   On BlocPal moving funds onchain and offchain is as simple as sending an `hello` message.
+   On Azza moving funds onchain and offchain is as simple as sending an `hello` message.
    
 2. WhatsApp Chatbot Integration:
    
@@ -30,5 +31,5 @@
    Built with top-notch wallet infrastructures that utilizes MPC technologies to ensure safe and instant transactions.
 
 ## Link Tree
-- [BlocPal Documentation](https://victors-organization-24.gitbook.io/blocpal)
-- [Demo Video](https://drive.google.com/file/d/1BTnRV1TTeszQ5tKvA2RxdxWKPhf32xM8/view?usp=drive_link)
+- [Azza Documentation](hhttps://medium.com/azza-insights)
+- [Demo Video](https://www.loom.com/share/d74a937909c44bf69d0545ad939a1d9f?sid=c89f4f8a-7c00-4485-b7f2-c6426df875ff)
