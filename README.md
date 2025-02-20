@@ -1,7 +1,8 @@
-# BlocPal
+# Azza
 > Turning Chats to Cashouts!
 > Azza is your stablecoin bank on WhatsApp—seamlessly buy, save, earn, send, and cash out USD-pegged stablecoins across multiple 
   blockchains, all through a simple chat. 
+![Azza whatsapp Bot](https://github.com/user-attachments/assets/ea83b999-f938-43c7-8460-db6ee1d7f0d8)
 
 
 ## The Challenge
