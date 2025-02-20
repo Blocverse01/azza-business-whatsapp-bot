@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch --env-file=.env --clear-screen=false src/index.ts",
     "build": "rimraf build && tsc && echo 'BUILT SUCCESSFULLY 🚀'",
+    "build:render": "pnpm puppeteer browsers install && pnpm build",
     "start": "tsx src/index.ts",
     "crc": "tsx scripts/clear-redis-cache.ts",
     "broadcast": "tsx scripts/send-broadcast-message.ts"
