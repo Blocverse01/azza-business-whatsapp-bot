@@ -171,7 +171,7 @@ class WhatsAppBotService {
             const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
                 method: 'POST',
                 headers: {
-                    ...requestOptions.headers,
+                    Authorization: requestOptions.headers.Authorization,
                 },
                 body: formData,
             });
