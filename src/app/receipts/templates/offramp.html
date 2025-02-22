@@ -52,49 +52,46 @@
     <body class="bg-white py-10 px-5 rounded-xl min-w-[390px] w-fit mx-auto">
         <main class="flex flex-col gap-8">
             <svg
+              width="100"
                 class="w-fit mx-auto"
-                width="48"
-                height="48"
-                viewBox="0 0 48 48"
+              height="34"
+              viewBox="0 0 100 34"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
             >
+                <path d="M0 0H98.6064L100 33.6858L91.5685 32.1566H0V0Z" fill="#3430E9" />
                 <path
-                    d="M0.454102 0H46.0314L47.5456 48L38.3847 46.3385H0.454102V0Z"
-                    fill="#3430E9"
-                />
-                <path
-                    d="M31.5517 26.4815L30.0756 35.5884H33.0779L31.5517 26.4815ZM34.3539 42.5937L34.0536 40.6172H29.0999L28.7996 42.5937L21.1938 42.6187L25.0218 24.53H38.1067L41.9597 42.5937H34.3539Z"
+                  d="M75.697 7.51639L73.9797 18.1111H77.4725L75.697 7.51639ZM78.9569 26.2609L78.6076 23.9615H72.8446L72.4953 26.2609L63.647 26.29L68.1002 5.24609H83.3228L87.8052 26.2609H78.9569Z"
                     fill="white"
                 />
                 <path
-                    d="M5.64404 32.436L17.353 30.1342H5.89423V24.53H20.6054V34.7127L9.27181 37.0145H20.8556V42.6187H5.64404V32.436Z"
+                  d="M46.1372 14.4437L59.759 11.7659H46.4283V5.24609H63.5428V17.0924L50.3576 19.7701H63.8338V26.29H46.1372V14.4437Z"
                     fill="white"
                 />
                 <path
-                    d="M25.6665 11.6915L37.3754 9.38976H25.9167V3.78549H40.6279V13.9682L29.2943 16.27H40.8781V21.8743H25.6665V11.6915Z"
+                  d="M27.3496 14.4437L40.9714 11.7659H27.6407V5.24609H44.7552V17.0924L31.57 19.7701H45.0463V26.29H27.3496V14.4437Z"
                     fill="white"
                 />
                 <path
-                    d="M14.9009 5.73698L13.4247 14.8439H16.427L14.9009 5.73698ZM17.703 21.8492L17.4028 19.8727H12.449L12.1488 21.8492L4.54297 21.8743L8.37088 3.78549H21.4558L25.3088 21.8492H17.703Z"
+                  d="M15.4055 7.51645L13.6882 18.1111H17.181L15.4055 7.51645ZM18.6654 26.2609L18.3161 23.9615H12.5531L12.2038 26.2609L3.35547 26.29L7.80874 5.24615H23.0313L27.5137 26.2609H18.6654Z"
                     fill="white"
                 />
             </svg>
-            <h3
-                class="text-2xl font-subjectivity leading-[24px] text-[#3430E9] font-extrabold w-fit mx-auto uppercase"
-            >
-                FIAT WITHDRAWAL
-            </h3>
+            <div class="flex items-center h-fit w-fit mx-auto gap-2">
+                <img src="{{fiatCurrencyIcon}}" class="h-5" alt="{{fiatCurrencySymbol}}" />
+                <h3
+                  class="text-[24px] leading-[26px] w-fit h-[20px] font-subjectivity text-[#3430E9] font-extrabold uppercase"
+                >
+                    {{fiatCurrencySymbol}} WITHDRAWAL
+                </h3>
+            </div>
             <section
-                class="amount-card min-w-[350px] px-6 py-[27px] w-fit text-white min-h-[160px] h-fit gap-6 rounded-2xl flex flex-col justify-center items-center"
+              class="amount-card min-w-[350px] px-6 py-[23px] w-fit text-white min-h-[130px] h-fit gap-4 rounded-2xl flex flex-col justify-center items-center"
             >
-                <p class="font-inter text-xl leading-[28px]">You Sold:</p>
+                <p class="font-inter text-xl leading-[28px]">You withdrew:</p>
                 <section class="flex items-baseline gap-1">
-                    <p class="font-extrabold font-subjectivity text-[48px] leading-[54px]">
-                        {{tokenAmount}}
-                    </p>
-                    <p class="font-extrabold font-subjectivity text-2xl leading-[24px]">
-                        {{tokenSymbol}}
+                    <p class="font-extrabold font-subjectivity text-[32px] leading-[40px]">
+                        {{fiatCurrencySymbol}} {{fiatAmount}}
                     </p>
                 </section>
             </section>
@@ -104,7 +101,7 @@
                 >
                     Transaction Summary
                 </h3>
-                <section class="flex font-inter flex-col gap-6">
+                <section class="flex font-inter flex-col gap-4">
                     <div class="flex items-center justify-between">
                         <span class="font-normal text-sm leading-[24px] text-[#292929]"
                             >Amount (in crypto):</span
@@ -117,58 +114,60 @@
                         </span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
-                            >Amount (in fiat):</span
-                        >
-                        <span class="flex items-center gap-1">
-                            <img
-                                src="{{fiatCurrencyIcon}}"
-                                class="w-5 h-5"
-                                alt="{{fiatCurrencySymbol}}"
-                            />
-                            <span class="text-[#1E1E1E] text-sm font-bold"
-                                >{{fiatAmount}} {{fiatCurrencySymbol}}</span
-                            >
-                        </span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
-                            >Receiving Bank Name:</span
-                        >
-                        <span class="text-[#1E1E1E] font-bold text-sm">{{recipientBankName}}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
-                            >Account Name:</span
-                        >
-                        <span class="text-[#1E1E1E] font-bold text-sm"
-                            >{{recipientAccountName}}</span
-                        >
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
-                            >Account Number:</span
-                        >
-                        <span class="text-[#1E1E1E] font-bold text-sm"
-                            >{{recipientAccountNumber}}</span
-                        >
-                    </div>
-                    <div class="flex items-center justify-between">
                         <span class="font-normal text-sm leading-[24px] text-[#292929]"
-                            >Transaction Fee:</span
+                        >Transaction Fee:</span
                         >
                         <span class="flex items-center gap-1">
                             <img src="{{tokenIcon}}" class="w-5 h-5" alt="{{tokenSymbol}}" />
                             <span class="text-[#1E1E1E] text-sm font-bold"
-                                >{{transactionFee}} {{tokenSymbol}}</span
+                            >{{transactionFee}} {{tokenSymbol}}</span
                             >
                         </span>
                     </div>
+                    <section
+                      class="border-y border-[#292929]/20 border-opacity border-dashed py-4 flex flex-col gap-4"
+                    >
+                        <h4 class="text-[#1E1E1E] text-sm font-semibold leading-[24px]">
+                            Receiver’s Details
+                        </h4>
+                        <div class="flex items-center justify-between">
+                            <span
+                              class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
+                            >Bank Name:</span
+                            >
+                            <span class="text-[#1E1E1E] font-bold text-sm"
+                            >{{recipientBankName}}</span
+                            >
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span
+                              class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
+                            >Account Name:</span
+                            >
+                            <span class="text-[#1E1E1E] font-bold text-sm"
+                            >{{recipientAccountName}}</span
+                            >
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span
+                              class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
+                            >Account Number:</span
+                            >
+                            <span class="text-[#1E1E1E] font-bold text-sm"
+                            >{{recipientAccountNumber}}</span
+                            >
+                        </div>
+                    </section>
+
                     <div class="flex items-center justify-between">
                         <span class="font-inter font-normal text-sm leading-[24px] text-[#292929]"
                             >Date:</span
                         >
-                        <span class="text-[#1E1E1E] text-sm font-bold">{{transactionDate}} </span>
+                        <span class="text-[#1E1E1E] text-sm font-bold flex items-center gap-1.5">
+                            <span>{{transactionDate}}</span>
+                            <span class="bg-[#1E1E1E] h-1.5 w-1.5 rounded-full"></span>
+                            <span>{{transactionTime}}</span>
+                        </span>
                     </div>
                 </section>
             </section>

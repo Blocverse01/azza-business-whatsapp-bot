@@ -30,7 +30,8 @@ export const generateOfframpToBankRecipientReceipt = async (
     // Load the receipt template
     let template = fs.readFileSync(path.join(__dirname, 'templates/offramp.html'), 'utf8');
 
-    const createdAtString = formatDate(offrampTransaction.createdAt, 'dd/MM/yyyy HH:mm a');
+    const transactionDate = formatDate(offrampTransaction.createdAt, 'dd/MM/yyyy');
+    const transactionTime = formatDate(offrampTransaction.createdAt, 'HH:mm a');
     const tokenIconUrl = TokenIconURIs[offrampTransaction.tokenSymbol.toUpperCase()];
     const fontBase64 = encodeFontToBase64(
         path.join(__dirname, 'templates/fonts/Subjectivity.Extrabold.woff2')
@@ -49,7 +50,8 @@ export const generateOfframpToBankRecipientReceipt = async (
         .replaceAll('{{recipientAccountName}}', offrampTransaction.destination.accountName)
         .replaceAll('{{recipientAccountNumber}}', offrampTransaction.destination.accountNumber)
         .replaceAll('{{transactionFee}}', offrampTransaction.transactionFeeUsd.toString())
-        .replaceAll('{{transactionDate}}', createdAtString)
+        .replaceAll('{{transactionDate}}', transactionDate)
+        .replaceAll('{{transactionTime}}', transactionTime)
         .replaceAll('{{tokenIcon}}', tokenIconUrl);
 
     await page.setContent(template, { waitUntil: 'networkidle0' });
