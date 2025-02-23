@@ -108,7 +108,7 @@ export const generateOnrampReceipt = async (onrampTransaction: OnrampTransaction
         .replaceAll('{{fiatCurrencyIcon}}', country?.flag ?? '')
         .replaceAll('{{walletAddress}}', truncate(onrampTransaction.destinationWalletAddress, 16))
         .replaceAll('{{blockchainNetwork}}', onrampTransaction.blockchainNetwork)
-        .replaceAll('{{transactionFee}}', onrampTransaction.usdAmount.toString())
+        .replaceAll('{{transactionFee}}', onrampTransaction.transactionFeeUsd.toString())
         .replaceAll('{{transactionDate}}', transactionDate)
         .replaceAll('{{transactionTime}}', transactionTime)
         .replaceAll('{{tokenIcon}}', tokenIconUrl);
