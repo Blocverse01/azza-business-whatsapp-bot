@@ -18,3 +18,12 @@ export function transformKeysToCamelCase(obj: any): any {
 export const capitalize = (str: string): string => {
     return str.charAt(0).toUpperCase() + str.toLowerCase().slice(1);
 };
+
+export const truncate = (str: string, maxLength: number): string => {
+    // Truncate text in the middle
+    if (str.length > maxLength) {
+        const breakpoint = maxLength / 2;
+        return str.slice(0, breakpoint) + '...' + str.slice(str.length - breakpoint);
+    }
+    return str;
+};

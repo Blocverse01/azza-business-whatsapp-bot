@@ -2,7 +2,10 @@ import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
-import { generateOfframpToBankRecipientReceipt } from '@/app/receipts/generators';
+import {
+    generateOfframpToBankRecipientReceipt,
+    generateOnrampReceipt,
+} from '@/app/receipts/generators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { OK } from '@/constants/status-codes';
@@ -220,6 +223,30 @@ class FiatRampServiceController {
                         destinationWalletAddress: transaction.destinationWalletAddress,
                         payoutType: 'onramp-payment',
                     });
+                }
+
+                const receiptBuffer = await generateOnrampReceipt(transaction);
+                const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
+                    env.WA_PHONE_NUMBER_ID,
+                    new File([Buffer.from(receiptBuffer)], `receipt-${sequenceId}.png`, {
+                        type: 'image/png',
+                    })
+                );
+
+                if (uploadedMedia) {
+                    await WhatsAppBotService.sendMediaMessage(
+                        {
+                            userPhoneNumber: userPhoneNumber!,
+                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        },
+                        {
+                            mediaId: uploadedMedia.id,
+                            caption: `🧾Transaction Receipt`,
+                            type: 'image',
+                        }
+                    );
+
+                    return;
                 }
             }
         } catch (error) {

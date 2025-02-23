@@ -200,4 +200,20 @@ export const OfframpTransactionRecordSchema = z.object({
     createdAt: z.string().datetime(),
 });
 
+export const onrampTransactionRecordSchema = z.object({
+    status: transactionStatusSchema,
+    blockchainNetwork: z.string(),
+    usdAmount: z.number(),
+    localAmount: z.number(),
+    localCurrencySymbol: z.string(),
+    tokenSymbol: z.string(),
+    ownerId: z.string(),
+    sequenceId: z.string(),
+    destinationWalletAddress: z.string(),
+    transactionFeeUsd: z.number(),
+    collectionCountry: z.string(),
+    createdAt: z.string().datetime(),
+});
+
 export type OfframpTransactionRecord = z.infer<typeof OfframpTransactionRecordSchema>;
+export type OnrampTransactionRecord = z.infer<typeof onrampTransactionRecordSchema>;

@@ -297,6 +297,7 @@ message GetCollectionRequestResponse {
   string status = 17;
   string local_currency_symbol = 18;
   double transaction_fee_usd = 19;
+  string created_at = 20;
 }
 
 message UpdateCollectionTransactionStatusRequest {

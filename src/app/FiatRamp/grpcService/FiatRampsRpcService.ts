@@ -4,6 +4,7 @@ import {
     MobileMoneyBeneficiary,
     OfframpTransactionRecordSchema,
     OnrampTransactionPayload,
+    onrampTransactionRecordSchema,
     paymentMethodsResponseDataSchema,
     quoteSchema,
     ratesSchema,
@@ -12,7 +13,6 @@ import {
     sendOnrampTransactionResponseSchema,
     supportedCountry,
     supportedPaymentNetworkSchema,
-    transactionStatusSchema,
 } from '@/app/FiatRamp/fiatRampSchema';
 import redis from '@/cache/redis';
 import { HUNDRED } from '@/constants/numbers';
@@ -432,19 +432,7 @@ class FiatRampsRpcService {
 
         const responseObj = response.toObject();
 
-        return z
-            .object({
-                status: transactionStatusSchema,
-                blockchainNetwork: z.string(),
-                usdAmount: z.number(),
-                localAmount: z.number(),
-                localCurrencySymbol: z.string(),
-                tokenSymbol: z.string(),
-                ownerId: z.string(),
-                sequenceId: z.string(),
-                destinationWalletAddress: z.string(),
-            })
-            .parse(transformKeysToCamelCase(responseObj));
+        return onrampTransactionRecordSchema.parse(transformKeysToCamelCase(responseObj));
     }
 
     public static async forwardOnrampTransactionStatus(sequenceId: string, status: string) {

@@ -3888,23 +3888,18 @@ export namespace fiatramps.v1 {
         set transaction_fee_usd(value: number) {
             pb_1.Message.setField(this, 11, value);
         }
-
         get destination() {
             return pb_1.Message.getWrapperField(this, PaymentRequestDestination, 12) as PaymentRequestDestination;
         }
-
         set destination(value: PaymentRequestDestination) {
             pb_1.Message.setWrapperField(this, 12, value);
         }
-
         get has_destination() {
             return pb_1.Message.getField(this, 12) != null;
         }
-
         get created_at() {
             return pb_1.Message.getFieldWithDefault(this, 13, '') as string;
         }
-
         set created_at(value: string) {
             pb_1.Message.setField(this, 13, value);
         }
@@ -5216,6 +5211,7 @@ export namespace fiatramps.v1 {
             status?: string;
             local_currency_symbol?: string;
             transaction_fee_usd?: number;
+            created_at?: string;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -5276,6 +5272,9 @@ export namespace fiatramps.v1 {
                 }
                 if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
                     this.transaction_fee_usd = data.transaction_fee_usd;
+                }
+                if ('created_at' in data && data.created_at != undefined) {
+                    this.created_at = data.created_at;
                 }
             }
         }
@@ -5393,6 +5392,14 @@ export namespace fiatramps.v1 {
         set transaction_fee_usd(value: number) {
             pb_1.Message.setField(this, 19, value);
         }
+
+        get created_at() {
+            return pb_1.Message.getFieldWithDefault(this, 20, '') as string;
+        }
+
+        set created_at(value: string) {
+            pb_1.Message.setField(this, 20, value);
+        }
         static fromObject(data: {
             owner_id?: string;
             collection_country?: string;
@@ -5413,6 +5420,7 @@ export namespace fiatramps.v1 {
             status?: string;
             local_currency_symbol?: string;
             transaction_fee_usd?: number;
+            created_at?: string;
         }): GetCollectionRequestResponse {
             const message = new GetCollectionRequestResponse({});
             if (data.owner_id != null) {
@@ -5472,6 +5480,9 @@ export namespace fiatramps.v1 {
             if (data.transaction_fee_usd != null) {
                 message.transaction_fee_usd = data.transaction_fee_usd;
             }
+            if (data.created_at != null) {
+                message.created_at = data.created_at;
+            }
             return message;
         }
         toObject() {
@@ -5495,6 +5506,7 @@ export namespace fiatramps.v1 {
                 status?: string;
                 local_currency_symbol?: string;
                 transaction_fee_usd?: number;
+                created_at?: string;
             } = {};
             if (this.owner_id != null) {
                 data.owner_id = this.owner_id;
@@ -5553,6 +5565,9 @@ export namespace fiatramps.v1 {
             if (this.transaction_fee_usd != null) {
                 data.transaction_fee_usd = this.transaction_fee_usd;
             }
+            if (this.created_at != null) {
+                data.created_at = this.created_at;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -5597,6 +5612,8 @@ export namespace fiatramps.v1 {
                 writer.writeString(18, this.local_currency_symbol);
             if (this.transaction_fee_usd != 0)
                 writer.writeDouble(19, this.transaction_fee_usd);
+            if (this.created_at.length)
+                writer.writeString(20, this.created_at);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -5662,6 +5679,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 19:
                         message.transaction_fee_usd = reader.readDouble();
+                        break;
+                    case 20:
+                        message.created_at = reader.readString();
                         break;
                     default: reader.skipField();
                 }
