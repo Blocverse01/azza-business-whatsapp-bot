@@ -52,7 +52,7 @@ createBullBoard({
     serverAdapter: serverAdapter,
 });
 
-app.use('/bjs/ui', serverAdapter.getRouter());
+app.use('/bjs/ui', authenticateAdmin, serverAdapter.getRouter());
 
 app.use('/api', apiRoutes, async () => {
     // flush logs: ensure all logs are sent
