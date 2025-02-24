@@ -57,7 +57,7 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
     QueueNames.fiatPayout,
     async (job) => {
         const userId = convertBase64ToAsciiString(job.data.userId);
-        const userPhoneNumber = convertBase64ToAsciiString(job.data.whatsappParams.userPhoneNumber);
+        const userPhoneNumber = job.data.whatsappParams.userPhoneNumber;
         const businessPhoneNumberId = job.data.whatsappParams.businessPhoneNumberId;
 
         const childrenValues = await job.getChildrenValues<

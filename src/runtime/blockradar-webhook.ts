@@ -36,11 +36,12 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         }
 
         if (!userId || !platformAssetConfig) {
-            await logger.error(`Invalid deposit success data: ${transactionHash}`, {
-                data,
-                userId,
-                platformAssetConfig,
-            });
+            if (!data.data.address.name?.toLowerCase().includes('offramp'))
+                await logger.debug(`Invalid deposit success data: ${transactionHash}`, {
+                    data,
+                    userId,
+                    platformAssetConfig,
+                });
             return;
         }
 
