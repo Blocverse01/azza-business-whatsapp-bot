@@ -206,7 +206,7 @@ class UserServiceV2 {
         const updatedUser = await this.repository.user.updateUser(user, newInfo);
 
         if (updatedUser) {
-            await this.setUserCache(cacheKey, updatedUser);
+            await this.deleteUserCache(cacheKey);
         }
 
         return updatedUser;
@@ -263,7 +263,7 @@ class UserServiceV2 {
         });
 
         if (updatedRecord) {
-            await this.setUserCache(cacheKey, updatedRecord);
+            await this.deleteUserCache(cacheKey);
         }
 
         return updatedRecord;
@@ -277,7 +277,7 @@ class UserServiceV2 {
         });
 
         if (updatedRecord) {
-            await this.setUserCache(cacheKey, updatedRecord);
+            await this.deleteUserCache(cacheKey);
         }
 
         return updatedRecord;
@@ -457,6 +457,12 @@ class UserServiceV2 {
     private static async setUserCache(cacheId: string, user: UserV2Record) {
         if (this.cacheStore && this.env.enableCache) {
             return this.cacheStore.set(cacheId, JSON.stringify(user));
+        }
+    }
+
+    private static async deleteUserCache(cacheId: string) {
+        if (this.cacheStore && this.env.enableCache) {
+            return this.cacheStore.del(cacheId);
         }
     }
 }
