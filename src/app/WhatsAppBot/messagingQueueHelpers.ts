@@ -265,10 +265,11 @@ const handleIncomingWhatsappMessage = async (
                 case 'acknowledge-manual-offramp-settlement':
                     const sequenceId = interactiveButtonId.split(ACKNOWLEDGE_BUTTON_ID_PREFIX)[1];
 
-                    await ManualOfframpSettlementService.acknowledgeManualSettlement(
+                    await ManualOfframpSettlementService.acknowledgeManualSettlement({
+                        sequenceId,
                         businessPhoneNumberId,
-                        sequenceId
-                    );
+                        acknowledger: phoneParams.userPhoneNumber,
+                    });
 
                     return ActionExecuted.ACKNOWLEDGED_MANUAL_OFFRAMP_SETTLEMENT;
             }

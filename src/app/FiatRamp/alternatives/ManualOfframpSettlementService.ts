@@ -98,14 +98,22 @@ class ManualOfframpSettlementService {
         await Promise.all(messagePromises);
     }
 
-    public static async acknowledgeManualSettlement(
-        businessPhoneNumberId: string,
-        sequenceId: string
-    ) {
-        const settlement = await this.getManualOfframpSettlementBySequenceId(sequenceId);
+    public static async acknowledgeManualSettlement(params: {
+        businessPhoneNumberId: string;
+        sequenceId: string;
+        acknowledger: string;
+    }) {
+        const settlement = await this.getManualOfframpSettlementBySequenceId(params.sequenceId);
         if (!settlement) throw new Error('Transaction not found');
 
         if (settlement.processingStatus !== 'pending') {
+            await WhatsAppBotService.sendWhatsappMessage(
+                params.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    params.acknowledger,
+                    `Transaction already acknowledged.`
+                )
+            );
             return;
         }
 
@@ -128,8 +136,16 @@ class ManualOfframpSettlementService {
         });
 
         await WhatsAppBotService.sendWhatsappMessage(
-            businessPhoneNumberId,
+            params.businessPhoneNumberId,
             MessageGenerators.generateTextMessage(userPhoneNumber, message)
+        );
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            params.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.acknowledger,
+                `✅Transaction acknowledged.`
+            )
         );
     }
 
@@ -146,6 +162,13 @@ class ManualOfframpSettlementService {
         if (!settlement) throw new Error('Transaction not found');
 
         if (settlement.processingStatus === 'complete') {
+            await WhatsAppBotService.sendWhatsappMessage(
+                params.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    params.settledBy,
+                    `Transaction already marked as complete by +${params.settledBy}`
+                )
+            );
             return;
         }
 
@@ -211,6 +234,14 @@ class ManualOfframpSettlementService {
 
             return;
         }
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            params.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.settledBy,
+                `✅ Transaction marked as complete.`
+            )
+        );
     }
 
     private static getAcknowledgeSettlementInteractiveButtonId(sequenceId: string) {
