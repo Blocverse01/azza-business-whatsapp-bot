@@ -76,7 +76,7 @@ class ManualOfframpSettlementService {
         const messages = MANUAL_OFFRAMP_SETTLERS.map((settler) =>
             MessageGenerators.generateInteractiveButtonMessage({
                 bodyText: messageBodyText,
-                headerText: `*New pending manual offramp settlement*`,
+                headerText: `🔔New pending manual offramp settlement`,
                 replyButtons: [
                     {
                         title: 'Acknowledge',
