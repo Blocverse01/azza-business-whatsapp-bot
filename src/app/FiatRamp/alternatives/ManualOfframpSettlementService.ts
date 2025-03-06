@@ -40,6 +40,7 @@ class ManualOfframpSettlementService {
             tokenAddress: offrampTransaction.tokenAddress,
             tokenSymbol: offrampTransaction.tokenSymbol,
             localCurrencySymbol: offrampTransaction.localCurrencySymbol,
+            country: offrampTransaction.destination.country,
         });
     }
 
@@ -148,6 +149,7 @@ class ManualOfframpSettlementService {
 
         await settlement.update({
             settledBy: params.settledBy,
+            processingStatus: 'complete',
         });
 
         const transactionDetailsString = `💲Sell ${totalAmount} ${settlement.tokenSymbol} on ${settlement.blockchainNetwork} for ${settlement.localCurrencySymbol} ${prettifyNumber(settlement.localAmount!)}`;
