@@ -166,7 +166,7 @@ class ManualOfframpSettlementService {
                 params.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(
                     params.settledBy,
-                    `Transaction already marked as complete by +${params.settledBy}`
+                    `Transaction already marked as complete by +${settlement.settledBy}`
                 )
             );
             return;
