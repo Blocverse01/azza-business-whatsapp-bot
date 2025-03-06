@@ -76,7 +76,6 @@ class ManualOfframpSettlementService {
             MessageGenerators.generateInteractiveButtonMessage({
                 bodyText: messageBodyText,
                 headerText: `*New pending manual offramp settlement*`,
-                footerText: `Click on "Acknowledge" to notify the bot you'd handle this transaction`,
                 replyButtons: [
                     {
                         title: 'Acknowledge',
