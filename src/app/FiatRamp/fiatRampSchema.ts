@@ -130,7 +130,7 @@ export const mobileMoneyBeneficiarySchema = (countryCode: CountryCode) =>
 export type BankBeneficiary = z.infer<typeof bankBeneficiarySchema>;
 export type MobileMoneyBeneficiary = z.infer<ReturnType<typeof mobileMoneyBeneficiarySchema>>;
 
-type Beneficiary = BankBeneficiary | MobileMoneyBeneficiary;
+export type Beneficiary = BankBeneficiary | MobileMoneyBeneficiary;
 export type UsersBeneficiaries = Beneficiary[];
 
 export const createBeneficiaryParams = (
@@ -198,6 +198,12 @@ export const OfframpTransactionRecordSchema = z.object({
         accountType: z.enum(['bank', 'phone']),
     }),
     createdAt: z.string().datetime(),
+    rate: z.number(),
+    sequenceId: z.string(),
+    hotWalletAddress: z.string(),
+    platformFeePercentage: z.number(),
+    fromWalletAddress: z.string(),
+    tokenAddress: z.string(),
 });
 
 export const onrampTransactionRecordSchema = z.object({

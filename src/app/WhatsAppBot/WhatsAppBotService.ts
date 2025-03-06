@@ -1,5 +1,9 @@
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import {
+    ACKNOWLEDGE_BUTTON_ID_PREFIX,
+    MARK_AS_PAID_BUTTON_ID_PREFIX,
+} from '@/app/FiatRamp/alternatives/config';
+import {
     BankBeneficiary,
     MobileMoneyBeneficiary,
     UsersBeneficiaries,
@@ -617,6 +621,14 @@ class WhatsAppBotService {
 
         if (assetInteractiveButtonsIds.includes(interactiveButtonId as AssetInteractiveButtonIds)) {
             return 'explore-asset';
+        }
+
+        if (interactiveButtonId.startsWith(ACKNOWLEDGE_BUTTON_ID_PREFIX)) {
+            return 'acknowledge-manual-offramp-settlement';
+        }
+
+        if (interactiveButtonId.startsWith(MARK_AS_PAID_BUTTON_ID_PREFIX)) {
+            return 'mark-manual-offramp-settlement-as-paid';
         }
 
         throw new HttpException(

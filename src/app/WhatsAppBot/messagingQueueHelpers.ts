@@ -1,4 +1,9 @@
 import { createOrUpdateUserAgentThread, getUserAgentThread } from '@/app/aiAgent/agent.helpers';
+import {
+    ACKNOWLEDGE_BUTTON_ID_PREFIX,
+    MARK_AS_PAID_BUTTON_ID_PREFIX,
+} from '@/app/FiatRamp/alternatives/config';
+import ManualOfframpSettlementService from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
 import { getSessionId, textPromptHandler } from '@/app/WhatsAppBot/text/textPromptHandler';
@@ -243,6 +248,29 @@ const handleIncomingWhatsappMessage = async (
                     }
 
                     return ActionExecuted.SEND_SELL_ASSET_DESTINATION_CHOICE_MESSAGE;
+
+                case 'mark-manual-offramp-settlement-as-paid':
+                    const sequenceIdToUse = interactiveButtonId.split(
+                        MARK_AS_PAID_BUTTON_ID_PREFIX
+                    )[1];
+
+                    await ManualOfframpSettlementService.markManualSettlementAsPaid({
+                        businessPhoneNumberId: phoneParams.businessPhoneNumberId,
+                        settledBy: phoneParams.userPhoneNumber,
+                        sequenceId: sequenceIdToUse,
+                    });
+
+                    return ActionExecuted.MARK_MANUAL_OFFRAMP_SETTLEMENT_PAID;
+
+                case 'acknowledge-manual-offramp-settlement':
+                    const sequenceId = interactiveButtonId.split(ACKNOWLEDGE_BUTTON_ID_PREFIX)[1];
+
+                    await ManualOfframpSettlementService.acknowledgeManualSettlement(
+                        businessPhoneNumberId,
+                        sequenceId
+                    );
+
+                    return ActionExecuted.ACKNOWLEDGED_MANUAL_OFFRAMP_SETTLEMENT;
             }
         }
 

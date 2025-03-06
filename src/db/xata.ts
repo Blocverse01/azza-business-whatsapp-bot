@@ -35,7 +35,7 @@ const tables = [
       },
       { name: "additionalKycIdType", type: "text", defaultValue: "" },
       { name: "additionalKycIdNumber", type: "text", defaultValue: "" },
-      { name: 'migratedAt', type: 'datetime' },
+        { name: 'migratedAt', type: 'datetime' },
     ],
   },
   {
@@ -58,7 +58,7 @@ const tables = [
         notNull: true,
         defaultValue: "",
       },
-      { name: 'payoutType', type: 'text', notNull: true, defaultValue: '' },
+        { name: 'payoutType', type: 'text', notNull: true, defaultValue: '' },
     ],
   },
   {
@@ -66,73 +66,136 @@ const tables = [
     columns: [
       { name: "messages", type: "json", notNull: true, defaultValue: "[]" },
       { name: "lastSessionId", type: "text", notNull: true, defaultValue: "" },
-      { name: 'ownerId', type: 'text' },
+        { name: 'ownerId', type: 'text' },
     ],
   },
   {
-    name: 'bull_dashboard_access',
+      name: 'bull_dashboard_access',
     columns: [
-      { name: 'adminName', type: 'text' },
-      { name: 'accessLevel', type: 'text' },
-      { name: 'accessToken', type: 'text' },
-      { name: 'lastAccessed', type: 'text' },
-      { name: 'xatacreatedAt', type: 'text' },
-      { name: 'xataupdatedAt', type: 'text' },
-      { name: 'xataversion', type: 'int' },
+        { name: 'adminName', type: 'text' },
+        { name: 'accessLevel', type: 'text' },
+        { name: 'accessToken', type: 'text' },
+        { name: 'lastAccessed', type: 'text' },
+        { name: 'xatacreatedAt', type: 'text' },
+        { name: 'xataupdatedAt', type: 'text' },
+        { name: 'xataversion', type: 'int' },
     ],
   },
   {
-    name: 'user_v2',
+      name: 'user_v2',
     columns: [
-      { name: 'linkedWhatsappPhoneNumbers', type: 'multiple' },
-      { name: 'lastName', type: 'text' },
-      { name: 'firstName', type: 'text' },
-      { name: 'kycDateOfBirth', type: 'text' },
-      { name: 'kycIdType', type: 'text' },
-      { name: 'kycDocumentNumber', type: 'text' },
-      { name: 'kycStatus', type: 'text' },
-      { name: 'transactionPinHash', type: 'text' },
-      { name: 'securityQuestionsSetup', type: 'text' },
+        { name: 'linkedWhatsappPhoneNumbers', type: 'multiple' },
+        { name: 'lastName', type: 'text' },
+        { name: 'firstName', type: 'text' },
+        { name: 'kycDateOfBirth', type: 'text' },
+        { name: 'kycIdType', type: 'text' },
+        { name: 'kycDocumentNumber', type: 'text' },
+        { name: 'kycStatus', type: 'text' },
+        { name: 'transactionPinHash', type: 'text' },
+        { name: 'securityQuestionsSetup', type: 'text' },
       {
-        name: 'FEATURE_ACCESS_LEVEL',
-        type: 'text',
+          name: 'FEATURE_ACCESS_LEVEL',
+          type: 'text',
         notNull: true,
-        defaultValue: 'PRODUCTION',
+          defaultValue: 'PRODUCTION',
       },
-      { name: 'additionalKycIdType', type: 'text' },
-      { name: 'additionalKycIdNumber', type: 'text' },
-      { name: 'country', type: 'text' },
+        { name: 'additionalKycIdType', type: 'text' },
+        { name: 'additionalKycIdNumber', type: 'text' },
+        { name: 'country', type: 'text' },
       {
-        name: 'primaryWhatsappPhoneNumber',
+          name: 'primaryWhatsappPhoneNumber',
         type: "text",
         notNull: true,
         defaultValue: "",
       },
     ],
     revLinks: [
-      { column: 'user', table: 'user_blockradar_wallet_config' },
-      { column: 'user', table: 'user_blockradar_wallet' },
+        { column: 'user', table: 'user_blockradar_wallet_config' },
+        { column: 'user', table: 'user_blockradar_wallet' },
     ],
   },
   {
-    name: 'user_blockradar_wallet_config',
+      name: 'user_blockradar_wallet_config',
     columns: [
-      { name: 'user', type: 'link', link: { table: 'user_v2' }, unique: true },
-      { name: 'wallets', type: 'json', notNull: true, defaultValue: '[]' },
+        { name: 'user', type: 'link', link: { table: 'user_v2' }, unique: true },
+        { name: 'wallets', type: 'json', notNull: true, defaultValue: '[]' },
     ],
   },
   {
-    name: 'user_blockradar_wallet',
+      name: 'user_blockradar_wallet',
     columns: [
-      { name: 'addressId', type: 'text', notNull: true, defaultValue: '' },
-      { name: 'address', type: 'text', notNull: true, defaultValue: '' },
+        { name: 'addressId', type: 'text', notNull: true, defaultValue: '' },
+        { name: 'address', type: 'text', notNull: true, defaultValue: '' },
       {
-        name: 'blockchainNetwork',
-        type: 'text',
+          name: 'blockchainNetwork',
+          type: 'text',
         notNull: true,
-        defaultValue: '',
+          defaultValue: '',
       },
-      { name: 'user', type: 'link', link: { table: 'user_v2' } },
+        { name: 'user', type: 'link', link: { table: 'user_v2' } },
+    ],
+  },
+    {
+        name: 'manual_offramp_settlement_transaction',
+        columns: [
+            { name: 'blockchainNetwork', type: 'text' },
+            { name: 'conversionRate', type: 'int' },
+            { name: 'fromWalletAddress', type: 'text' },
+            { name: 'hotWalletAddress', type: 'text' },
+            { name: 'localAmount', type: 'float' },
+            { name: 'ownerId', type: 'text' },
+            { name: 'sequenceId', type: 'text' },
+            { name: 'tokenAddress', type: 'text' },
+            { name: 'tokenSymbol', type: 'text' },
+            { name: 'transactionFeeUsd', type: 'float' },
+            { name: 'transactionHash', type: 'text' },
+            { name: 'usdAmount', type: 'float' },
+            { name: 'processingStatus', type: 'text' },
+            {
+                name: 'destinationAccountName',
+                type: 'text',
+                notNull: true,
+                defaultValue: '',
+            },
+            {
+                name: 'destinationAccountNumber',
+                type: 'text',
+                notNull: true,
+                defaultValue: '',
+            },
+            {
+                name: 'destinationNetworkName',
+                type: 'text',
+                notNull: true,
+                defaultValue: '',
+            },
+            {
+                name: 'paymentCurrency',
+                type: 'text',
+                notNull: true,
+                defaultValue: '',
+            },
+            {
+                name: 'platformFeePercentage',
+                type: 'float',
+                notNull: true,
+                defaultValue: '0',
+            },
+            { name: 'settledBy', type: 'text' },
+            {
+                name: 'localCurrencySymbol',
+                type: 'text',
+                notNull: true,
+                defaultValue: '',
+      },
+            { name: 'country', type: 'text', notNull: true, defaultValue: '' },
+        ],
+    },
+    {
+        name: 'feature_flag',
+        columns: [
+            { name: 'key', type: 'text', notNull: true, defaultValue: '' },
+            { name: 'isEnabled', type: 'bool', notNull: true, defaultValue: 'true' },
     ],
   },
 ] as const;
@@ -163,6 +226,14 @@ export type UserBlockradarWalletConfigRecord = UserBlockradarWalletConfig &
 export type UserBlockradarWallet = InferredTypes['user_blockradar_wallet'];
 export type UserBlockradarWalletRecord = UserBlockradarWallet & XataRecord;
 
+export type ManualOfframpSettlementTransaction =
+    InferredTypes['manual_offramp_settlement_transaction'];
+export type ManualOfframpSettlementTransactionRecord =
+    ManualOfframpSettlementTransaction & XataRecord;
+
+export type FeatureFlag = InferredTypes['feature_flag'];
+export type FeatureFlagRecord = FeatureFlag & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -171,6 +242,8 @@ export type DatabaseSchema = {
   user_v2: UserV2Record;
   user_blockradar_wallet_config: UserBlockradarWalletConfigRecord;
   user_blockradar_wallet: UserBlockradarWalletRecord;
+    manual_offramp_settlement_transaction: ManualOfframpSettlementTransactionRecord;
+    feature_flag: FeatureFlagRecord;
 };
 
 const DatabaseClient = buildClient();

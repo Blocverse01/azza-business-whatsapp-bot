@@ -225,6 +225,10 @@ message GetPaymentRequestTransactionResponse {
   double transaction_fee_usd = 11;
   PaymentRequestDestination destination = 12;
   string created_at = 13;
+  double platform_fee_percentage = 14;
+  string from_wallet_address = 15;
+  string hot_wallet_address = 16;
+  string token_address = 17;
 }
 
 message GetHotWalletAddressRequest {

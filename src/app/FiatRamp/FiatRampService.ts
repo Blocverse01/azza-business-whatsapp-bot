@@ -1,11 +1,19 @@
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
+import ManualOfframpSettlementService, {
+    ManualOfframpSettlement,
+} from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 import {
+    Beneficiary,
     CreateBeneficiaryParams,
     OnrampTransactionPayload,
     SendOfframpRequestPayload,
+    sendOfframpRequestPayloadSchema,
     SendOnrampTransactionResponse,
     TransactionFees,
 } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService';
+import env from '@/constants/env';
 import { HUNDRED } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
 import { HttpException } from '@/resources/exceptions/HttpException';
@@ -110,6 +118,15 @@ class FiatRampService {
     }
 
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
+        const [beneficiary, ngnPayoutIsEnabled] = await Promise.all([
+            FiatRampService.getBeneficiary(params.beneficiaryId),
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS),
+        ]);
+
+        if (beneficiary.country.code === 'NG' && !ngnPayoutIsEnabled) {
+            return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
+        }
+
         return await FiatRampsRpcService.createBeneficiaryOfframpRequest(params);
     }
 
@@ -251,6 +268,64 @@ class FiatRampService {
             transactionFeeUsd: feeData.feeUsd,
             totalAmountUsd: math.add(usdAmountToProcess, feeData.feeUsd),
         };
+    }
+
+    public static async passOfframpTransactionToManualProcess(
+        beneficiary: Beneficiary,
+        params: SendOfframpRequestPayload
+    ) {
+        const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
+        const localCurrencySymbol = beneficiary.country.currencySymbol;
+
+        if (localCurrencySymbol !== 'NGN') {
+            throw new Error(`Feature not available for currency: ${localCurrencySymbol}`);
+        }
+
+        const offrampTransaction: ManualOfframpSettlement = {
+            localCurrencySymbol,
+            localAmount: validatedParams.localAmount,
+            usdAmount: validatedParams.usdAmount,
+            transactionHash: validatedParams.txHash,
+            transactionFeeUsd: validatedParams.transactionFeeUsd,
+            tokenSymbol: validatedParams.tokenName,
+            blockchainNetwork: validatedParams.chainName,
+            rate: validatedParams.conversionRate,
+            tokenAddress: validatedParams.tokenAddress,
+            ownerId: validatedParams.userId,
+            fromWalletAddress: validatedParams.userWalletAddress,
+            hotWalletAddress: validatedParams.hotWalletAddress,
+            sequenceId: ManualOfframpSettlementService.generateSequenceId(validatedParams.txHash),
+            platformFeePercentage: validatedParams.platformFeePercentage,
+            destination: {
+                accountType: 'mobileNumber' in beneficiary ? 'phone' : 'bank',
+                accountNumber:
+                    'mobileNumber' in beneficiary
+                        ? beneficiary.mobileNumber
+                        : beneficiary.accountNumber,
+                accountName:
+                    'accountName' in beneficiary
+                        ? beneficiary.accountName
+                        : beneficiary.firstName + ' ' + beneficiary.lastName,
+                networkName:
+                    'bankName' in beneficiary ? beneficiary.bankName : beneficiary.mobileProvider,
+                networkId: beneficiary.networkId,
+                country: beneficiary.country.code,
+            },
+        };
+
+        const manualSettlementRecord =
+            await ManualOfframpSettlementService.createManualOfframpSettlement(offrampTransaction);
+
+        if (!manualSettlementRecord.sequenceId) {
+            throw new Error('Failed to create manual settlement record');
+        }
+
+        await ManualOfframpSettlementService.sendManualSettleMessages(
+            env.WA_PHONE_NUMBER_ID,
+            offrampTransaction
+        );
+
+        return manualSettlementRecord.sequenceId;
     }
 }
 
