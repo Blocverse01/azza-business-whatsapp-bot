@@ -105,6 +105,10 @@ class ManualOfframpSettlementService {
         const settlement = await this.getManualOfframpSettlementBySequenceId(sequenceId);
         if (!settlement) throw new Error('Transaction not found');
 
+        if (settlement.processingStatus !== 'pending') {
+            return;
+        }
+
         const user = await userServiceV2.getUserById(settlement.ownerId!);
 
         if (!user) throw new Error('User not found');
@@ -118,6 +122,10 @@ class ManualOfframpSettlementService {
         const transactionDetailsString = `💲Sell ${totalAmount} ${settlement.tokenSymbol} on ${settlement.blockchainNetwork} for ${settlement.localCurrencySymbol} ${prettifyNumber(settlement.localAmount!)}`;
 
         const message = `⏳ Your transaction with the following details is being processed:\n\n${transactionDetailsString}\n\nPlease be patient`;
+
+        await settlement.update({
+            processingStatus: 'processing',
+        });
 
         await WhatsAppBotService.sendWhatsappMessage(
             businessPhoneNumberId,
@@ -136,6 +144,10 @@ class ManualOfframpSettlementService {
 
         const settlement = await this.getManualOfframpSettlementBySequenceId(params.sequenceId);
         if (!settlement) throw new Error('Transaction not found');
+
+        if (settlement.processingStatus === 'complete') {
+            return;
+        }
 
         const user = await userServiceV2.getUserById(settlement.ownerId!);
 
