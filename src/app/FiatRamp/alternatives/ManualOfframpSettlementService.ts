@@ -231,8 +231,6 @@ class ManualOfframpSettlementService {
                     type: 'image',
                 }
             );
-
-            return;
         }
 
         await WhatsAppBotService.sendWhatsappMessage(
