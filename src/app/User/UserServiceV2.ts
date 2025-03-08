@@ -97,7 +97,7 @@ class UserServiceV2 {
         });
 
         if (existingRecord) {
-            throw new Error('User already exists');
+            return existingRecord;
         }
 
         return await this.repository.user.createUser({
