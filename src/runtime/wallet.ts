@@ -20,7 +20,7 @@ const walletProvider = new BlockradarWalletProvider({
         blockradarAssetId: getBlockradarAssetId,
         blockradarMasterWalletClient: getMasterWalletClient,
         userAddressId: (userId: string, network: string) =>
-            userServiceV2.getUserBlockradarWalletAddressId(userId, network),
+            userServiceV2.getUserBlockradarWalletAddressId(userId, network, false),
         platformAssetId: getPlatformAssetId,
         syncUserAddress: (params) =>
             userServiceV2.createUserBlockradarWallet(params.userId, {
