@@ -27,6 +27,12 @@ type BlockradarWalletProviderParams = {
         ) => BlockradarMasterWalletApiClient;
         userAddressId: (userId: string, network: AllSupportedBlockchains) => Promise<string | null>;
         supportedNetworks: () => Array<AllSupportedBlockchains>;
+        syncUserAddress?: (params: {
+            userId: string;
+            network: AllSupportedBlockchains;
+            addressId: string;
+            address: string;
+        }) => Promise<unknown>;
     };
     networkUtils: {
         isEvmCompatibleBlockchain: (
@@ -52,7 +58,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         const blockradarAssetId = this.dataSources.blockradarAssetId(params.assetId);
 
         const walletClient = this.dataSources.blockradarMasterWalletClient(assetConfig.network);
-        const userAddressId = await this.dataSources.userAddressId(
+        const userAddressId = await this.gracefullyGetUserAddressId(
             params.userId,
             assetConfig.network
         );
@@ -81,7 +87,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         const allNetworkAssets = this.dataSources
             .platformAssetConfigs()
             .filter((config) => config.network === network);
-        const userAddressId = await this.dataSources.userAddressId(userId, network);
+        const userAddressId = await this.gracefullyGetUserAddressId(userId, network);
 
         if (!userAddressId) {
             throw new BlockradarWalletProviderError({
@@ -124,7 +130,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
     ): Promise<UserWallet> {
         const walletClient = this.dataSources.blockradarMasterWalletClient(network);
 
-        const addressId = await this.dataSources.userAddressId(userId, network);
+        const addressId = await this.gracefullyGetUserAddressId(userId, network);
         if (!addressId) {
             throw new BlockradarWalletProviderError({
                 data: {
@@ -235,7 +241,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         const blockradarAssetId = this.dataSources.blockradarAssetId(params.assetId);
         const walletClient = this.dataSources.blockradarMasterWalletClient(assetConfig.network);
 
-        const userAddressId = await this.dataSources.userAddressId(
+        const userAddressId = await this.gracefullyGetUserAddressId(
             params.userId,
             assetConfig.network
         );
@@ -272,7 +278,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
     }
 
     public async createUserWallet(params: CreateUserWalletParams): Promise<UserWallet> {
-        if (await this.dataSources.userAddressId(params.userId, params.network)) {
+        if (await this.gracefullyGetUserAddressId(params.userId, params.network)) {
             return this.getUserWallet(params.userId, params.network);
         }
 
@@ -392,6 +398,45 @@ class BlockradarWalletProvider implements BaseWalletProvider {
                 const typedKey = key as keyof Partial<Pick<AssetConfig, 'network' | 'tokenName'>>;
                 return asset[typedKey].toLowerCase() === value.toLowerCase();
             });
+        });
+    }
+
+    public async gracefullyGetUserAddressId(
+        userId: string,
+        blockchainNetwork: AllSupportedBlockchains
+    ): Promise<string> {
+        // Attempt to check our records
+        const addressId = await this.dataSources.userAddressId(userId, blockchainNetwork);
+        if (addressId) return addressId;
+
+        // Attempt to check on provider's side
+        const walletClient = this.dataSources.blockradarMasterWalletClient(blockchainNetwork);
+
+        const searchedAddress = await walletClient.searchAddressByMetadata({
+            userId,
+        });
+
+        if (searchedAddress) {
+            // Address was found on provider's end but failed to update on our end when created -- so sync with user records
+
+            if (this.dataSources.syncUserAddress) {
+                await this.dataSources.syncUserAddress({
+                    userId,
+                    network: blockchainNetwork,
+                    addressId: searchedAddress.id,
+                    address: searchedAddress.address,
+                });
+            }
+
+            return searchedAddress.id;
+        }
+
+        throw new BlockradarWalletProviderError({
+            data: {
+                userId,
+                blockchainNetwork,
+            },
+            message: `Address ID is most likely missing on provider's system and needs to be explicitly created`,
         });
     }
 }

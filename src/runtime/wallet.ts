@@ -22,6 +22,14 @@ const walletProvider = new BlockradarWalletProvider({
         userAddressId: (userId: string, network: string) =>
             userServiceV2.getUserBlockradarWalletAddressId(userId, network),
         platformAssetId: getPlatformAssetId,
+        syncUserAddress: (params) =>
+            userServiceV2.createUserBlockradarWalletConfig(params.userId, [
+                {
+                    addressId: params.addressId,
+                    address: params.address,
+                    blockchainNetwork: params.network,
+                },
+            ]),
     },
     networkUtils: {
         isEvmCompatibleBlockchain,

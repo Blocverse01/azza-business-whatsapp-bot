@@ -106,6 +106,40 @@ class BlockradarMasterWalletApiClient {
         return validatedData.data;
     }
 
+    public async searchAddressByMetadata(metadata: Record<string, unknown>) {
+        const addressResourceUrl = this.getResourceUrl(MasterWalletApiResources.ADDRESS);
+        const encodedMetadata = encodeURIComponent(JSON.stringify(metadata));
+        const url = `${addressResourceUrl}?metadata=${encodedMetadata}`;
+
+        const response = await this.fetch(url, {
+            headers: this.headers,
+            method: 'GET',
+        });
+
+        if (response.statusCode !== OK) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: response.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+            });
+        }
+
+        const validatedData = z.array(blockradarAddressSchema).safeParse(response.data);
+
+        if (!validatedData.success) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: validatedData.error.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+            });
+        }
+
+        const targetAddress = validatedData.data[0];
+        return targetAddress ?? null;
+    }
+
     public async getBalances(addressId: string) {
         const addressResourceUrl = this.getResourceUrl(MasterWalletApiResources.ADDRESS);
         const url = `${addressResourceUrl}/${addressId}/balances`;
@@ -312,7 +346,7 @@ class BlockradarMasterWalletApiClient {
     }
 
     private getResourceUrl(resource: MasterWalletApiResources) {
-        return `${this.baseUrl}/wallets/${this.masterWalletId}/${resource}`;
+        return `${this.baseUrl}/wallets/${this.masterWalletId}/${resource}` as const;
     }
 
     private get headers() {
