@@ -357,33 +357,18 @@ class UserServiceV2 {
         }));
     }
 
-    public static async getUserBlockradarWallets(userId: string, cache = true) {
-        const cacheKey = this.env.enableCache && cache ? this.cacheKeys(userId).wallets : null;
-        const cachedWallets = cacheKey ? await this.cacheStore.get(cacheKey) : null;
-
-        if (cachedWallets && cachedWallets !== '[]') {
-            return JSON.parse(cachedWallets) as Array<UserBlockRadarWallet>;
-        }
-
+    public static async getUserBlockradarWallets(userId: string) {
         const walletConfig = await this.repository.blockradarWallet.getWalletConfig(userId);
 
         if (!walletConfig) {
             return null;
         }
 
-        if (cacheKey && this.cacheStore) {
-            await this.cacheStore.set(cacheKey, JSON.stringify(walletConfig));
-        }
-
         return walletConfig satisfies Array<UserBlockRadarWallet>;
     }
 
-    public static async getUserBlockradarWalletAddressId(
-        userId: string,
-        network: string,
-        cache = true
-    ) {
-        const wallets = await this.getUserBlockradarWallets(userId, cache);
+    public static async getUserBlockradarWalletAddressId(userId: string, network: string) {
+        const wallets = await this.getUserBlockradarWallets(userId);
 
         const formattedNetwork = this.utils.isEvmNetwork(network as AllSupportedBlockchains)
             ? 'EVM'
@@ -437,8 +422,7 @@ class UserServiceV2 {
     public static async createUserBlockradarWallet(userId: string, wallet: UserBlockRadarWallet) {
         const existingAddressId = await this.getUserBlockradarWalletAddressId(
             userId,
-            wallet.blockchainNetwork,
-            false
+            wallet.blockchainNetwork
         );
 
         if (existingAddressId) return;
