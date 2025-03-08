@@ -357,8 +357,8 @@ class UserServiceV2 {
         }));
     }
 
-    public static async getUserBlockradarWallets(userId: string) {
-        const cacheKey = this.env.enableCache ? this.cacheKeys(userId).wallets : null;
+    public static async getUserBlockradarWallets(userId: string, cache = true) {
+        const cacheKey = this.env.enableCache && cache ? this.cacheKeys(userId).wallets : null;
         const cachedWallets = cacheKey ? await this.cacheStore.get(cacheKey) : null;
 
         if (cachedWallets && cachedWallets !== '[]') {
@@ -378,8 +378,12 @@ class UserServiceV2 {
         return walletConfig satisfies Array<UserBlockRadarWallet>;
     }
 
-    public static async getUserBlockradarWalletAddressId(userId: string, network: string) {
-        const wallets = await this.getUserBlockradarWallets(userId);
+    public static async getUserBlockradarWalletAddressId(
+        userId: string,
+        network: string,
+        cache = true
+    ) {
+        const wallets = await this.getUserBlockradarWallets(userId, cache);
 
         const formattedNetwork = this.utils.isEvmNetwork(network as AllSupportedBlockchains)
             ? 'EVM'
@@ -427,13 +431,19 @@ class UserServiceV2 {
             return null;
         }
 
-        const cacheKey = this.cacheKeys(userId).wallets;
-
-        if (this.cacheStore && this.env.enableCache) {
-            await this.cacheStore.set(cacheKey, JSON.stringify(walletConfig));
-        }
-
         return walletConfig as Array<UserBlockRadarWallet>;
+    }
+
+    public static async createUserBlockradarWallet(userId: string, wallet: UserBlockRadarWallet) {
+        const existingAddressId = await this.getUserBlockradarWalletAddressId(
+            userId,
+            wallet.blockchainNetwork,
+            false
+        );
+
+        if (existingAddressId) return;
+
+        return await this.createUserBlockradarWalletConfig(userId, [wallet]);
     }
 
     private static unmaskUserSecurityQuestions(encryptedSecuritySetup: string) {
