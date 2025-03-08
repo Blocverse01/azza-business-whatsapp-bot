@@ -5,6 +5,7 @@ import {
     BaseWalletProvider,
     type CreateUserWalletParams,
     type CreateUserWalletsParams,
+    type SearchAssetParams,
     type UserWallet,
     type WithdrawAssetParams,
 } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
@@ -70,9 +71,7 @@ class AzzaWalletManager implements BaseWalletProvider {
         return this.walletProvider.getSupportedNetworks();
     }
 
-    public searchAssets(
-        searchParams: Partial<Pick<AssetConfig, 'network' | 'tokenName' | 'tokenAddress'>>
-    ) {
+    public searchAssets(searchParams: SearchAssetParams) {
         return this.walletProvider.searchAssets(searchParams);
     }
 }

@@ -102,7 +102,7 @@ export const handleDepositRelatedPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: depositArguments.cryptoCurrencySymbol,
-        network: normalizeBlockchainInput(depositArguments.blockchainNetwork),
+        network: depositArguments.blockchainNetwork,
     })[0];
 
     if (!targetAsset) {
@@ -208,7 +208,7 @@ export const handleWithdrawRelatedPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: withdrawArguments.cryptoCurrencySymbol,
-        network: normalizeBlockchainInput(withdrawArguments.blockchainNetwork),
+        network: withdrawArguments.blockchainNetwork,
     })[0];
 
     if (!targetAsset) {
@@ -397,7 +397,7 @@ export const handleBalanceQueryPrompt = async (
         cryptoCurrencySymbol && blockchainNetwork
             ? azzaWalletManager.searchAssets({
                   tokenName: cryptoCurrencySymbol,
-                  network: normalizeBlockchainInput(blockchainNetwork),
+                  network: blockchainNetwork,
               })[ZERO]
             : undefined;
 
@@ -759,7 +759,7 @@ export const handleBuyCryptoWithFiatPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: buyArguments.cryptoCurrencySymbol,
-        network: normalizeBlockchainInput(buyArguments.blockchainNetwork),
+        network: buyArguments.blockchainNetwork,
     })[0];
 
     if (!targetAsset) {
@@ -866,7 +866,7 @@ export const handleSellCryptoForFiatPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: sellArguments.cryptoCurrencySymbol,
-        network: normalizeBlockchainInput(sellArguments.blockchainNetwork),
+        network: sellArguments.blockchainNetwork,
     })[0];
 
     if (!targetAsset) {
