@@ -279,7 +279,8 @@ class BlockradarWalletProvider implements BaseWalletProvider {
     }
 
     public async createUserWallet(params: CreateUserWalletParams): Promise<UserWallet> {
-        if (await this.gracefullyGetUserAddressId(params.userId, params.network)) {
+        const existingWallet = await this.getUserWallet(params.userId, params.network);
+        if (existingWallet) {
             return this.getUserWallet(params.userId, params.network);
         }
 
