@@ -190,3 +190,4 @@ export type GenerateAddressRequestBody = z.infer<typeof generateAddressRequestBo
 export type UpdateAddressRequestBody = z.infer<typeof updateAddressRequestBodySchema>;
 export type WithdrawAssetRequestBody = z.infer<typeof withdrawAssetRequestBodySchema>;
 export type BlockradarWebhookPayload = z.infer<typeof blockradarWebhookPayloadSchema>;
+export type BlockradarAddress = z.infer<typeof blockradarAddressSchema>;
