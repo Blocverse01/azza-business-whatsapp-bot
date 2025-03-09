@@ -41,7 +41,7 @@ class WhatsAppBotController {
             const { message, displayName, businessPhoneNumberId } = messageParts;
 
             if (message?.id) {
-                void WhatsAppBotService.markMassageAsRead(businessPhoneNumberId, message.id);
+                await WhatsAppBotService.markMassageAsRead(businessPhoneNumberId, message.id);
             }
 
             if (message && message.id && businessPhoneNumberId && displayName) {

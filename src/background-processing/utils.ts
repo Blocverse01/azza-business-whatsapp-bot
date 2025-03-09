@@ -112,7 +112,7 @@ export const createSyncUserWalletWorker = () => {
                 blockchainNetwork: network,
             });
         },
-        { connection: connectionConfig, concurrency: 10 }
+        { connection: connectionConfig, concurrency: 3 }
     );
 };
 

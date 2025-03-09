@@ -438,7 +438,7 @@ const userTxPinSecurityWorker = new Worker<
     },
     {
         connection: connectionConfig,
-        concurrency: 10,
+        concurrency: 5,
     }
 );
 

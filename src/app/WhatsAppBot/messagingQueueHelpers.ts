@@ -73,7 +73,7 @@ export const receiveIncomingWhatsappMessageTemp = async (
     displayName: string
 ) => {
     await queues.whatsappBotMessagingTemp.add(
-        'handle incoming whatsapp message -- maintainance mode',
+        'handle incoming whatsapp message -- maintenance mode',
         {
             message,
             businessPhoneNumberId,
