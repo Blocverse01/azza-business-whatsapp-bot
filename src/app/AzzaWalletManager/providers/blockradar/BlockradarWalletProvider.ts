@@ -10,7 +10,6 @@ import type {
 } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { BlockradarWalletProviderError } from '@/app/AzzaWalletManager/providers/blockradar/resources/errors';
 import type BlockradarMasterWalletApiClient from '@/app/Blockradar/BlockradarMasterWalletApiClient';
-import { delay } from '@/resources/utils/delay';
 import {
     AllSupportedBlockchains,
     EvmCompatibleBlockchain,
@@ -409,7 +408,6 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         retryCount: number = 0
     ): Promise<string | null> {
         const maxRetries = 5;
-        const baseDelay = 5000; // Start with 5s delay
 
         // Attempt to check our records
         const addressId = await this.dataSources.userAddressId(userId, blockchainNetwork);
@@ -441,9 +439,6 @@ class BlockradarWalletProvider implements BaseWalletProvider {
 
         // Stop retrying after max retries
         if (retryCount >= maxRetries) return null;
-
-        const delayTime = baseDelay * 2 ** retryCount; // Exponential backoff
-        await delay(delayTime);
 
         return this.gracefullyGetUserAddressId(userId, blockchainNetwork, retryCount + 1);
     }
