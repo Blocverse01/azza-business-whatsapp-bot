@@ -124,7 +124,7 @@ export async function syncUserAddressJob(data: {
 }) {
     return queues.syncUserWallet.add(`sync-${data.userId}-${data.network}`, data, {
         jobId: `sync-${data.userId}-${data.network}`, // Ensure job uniqueness
-        removeOnComplete: true,
+        removeOnComplete: false,
         removeOnFail: false,
     });
 }
