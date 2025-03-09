@@ -18,3 +18,12 @@ export const OFFRAMP_REQUEST_ERROR_MESSAGE =
 
 export const OFFRAMP_WITHDRAW_REFERENCE_PREFIX = 'offramp-';
 export const OFFRAMP = 'offramp';
+
+export const MAINTAINANCE_MESSAGE = [
+    'Hello amazing user💙',
+    'We’re currently performing maintenance on the AZZA bot, and during this time, transactions and conversations will be temporarily unavailable.\n',
+    'This maintenance is expected to last approximately 3 hours.',
+    'Stay connected with us by joining our early users’ community:',
+    'https://chat.whatsapp.com/IYCiFBgpNtM1rCPhtBpv2c\n',
+    'Thank you for your patience!⚡️',
+].join('\n');

@@ -1,4 +1,6 @@
 import { createOrUpdateUserAgentThread, getUserAgentThread } from '@/app/aiAgent/agent.helpers';
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import {
     ACKNOWLEDGE_BUTTON_ID_PREFIX,
     MARK_AS_PAID_BUTTON_ID_PREFIX,
@@ -6,6 +8,7 @@ import {
 import ManualOfframpSettlementService from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { getSessionId, textPromptHandler } from '@/app/WhatsAppBot/text/textPromptHandler';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -36,6 +39,7 @@ import {
     extractTradeAssetGroups,
 } from '@/constants/regex';
 import { BAD_REQUEST } from '@/constants/status-codes';
+import { MAINTAINANCE_MESSAGE } from '@/constants/strings';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import userServiceV2 from '@/runtime/user';
@@ -70,7 +74,20 @@ const handleIncomingWhatsappMessage = async (
 ): Promise<string> => {
     const { type, from, text, interactive } = message;
 
+    const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
+        FeatureFlagKey.CORE_MAINTAINANCE
+    );
+
     const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
+
+    if (coreMaintainanceIsEnabled) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(from, MAINTAINANCE_MESSAGE)
+        );
+
+        return ActionExecuted.SEND_MAINTAINANCE_MESSAGE;
+    }
 
     const [messageThread, userV2] = await Promise.all([
         getUserAgentThread(from),
