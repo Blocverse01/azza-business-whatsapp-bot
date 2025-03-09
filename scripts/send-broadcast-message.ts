@@ -1,7 +1,25 @@
-import MessageGenerators from '../src/app/WhatsAppBot/MessageGenerators';
+import { Buffer } from 'node:buffer';
+import * as fs from 'node:fs';
 import { sendWhatsappBroadcastMessage } from '../src/app/WhatsAppBot/messagingQueueHelpers';
+import WhatsAppBotService from '../src/app/WhatsAppBot/WhatsAppBotService';
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
+
+const ASSET_FOLDER = 'assets';
+const FILE_NAME = 'announcement_banner.png';
+const mediaId = '636062842503687';
+
+async function uploadMedia(path: string) {
+    const announcementInfo = fs.readFileSync(path.resolve(process.cwd(), ASSET_FOLDER, FILE_NAME));
+    const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
+        env.WA_PHONE_NUMBER_ID,
+        new File([Buffer.from(announcementInfo)], FILE_NAME, {
+            type: 'image/png',
+        })
+    );
+
+    console.log(uploadedMedia);
+}
 
 async function sendBroadcastMessage(message: string, onlyTo = []) {
     const allUsers =
@@ -20,13 +38,20 @@ async function sendBroadcastMessage(message: string, onlyTo = []) {
         (user) =>
             new Promise((resolve) => {
                 const phoneNumber = user.primaryWhatsappPhoneNumber!;
-                const messageObject = MessageGenerators.generateTextMessage(phoneNumber, message);
-                const businessPhoneNumberId = env.WA_PHONE_NUMBER_ID;
 
                 resolve(
                     sendWhatsappBroadcastMessage({
-                        message: messageObject,
-                        businessPhoneNumberId,
+                        message: {
+                            messaging_product: 'whatsapp',
+                            recipient_type: 'individual',
+                            to: phoneNumber,
+                            type: 'image',
+                            image: {
+                                id: mediaId,
+                                caption: message,
+                            },
+                        },
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                     })
                 );
             })
@@ -38,16 +63,18 @@ async function sendBroadcastMessage(message: string, onlyTo = []) {
 }
 
 async function runScript() {
+    const onlyToString = process.argv[2];
+
+    const onlyTo = onlyToString ? onlyToString.split(',') : [];
+
     const message = [
-        'Hello amazing user💙',
-        'We’re currently performing maintenance on the AZZA bot, and during this time, transactions will be temporarily unavailable.\n',
-        'This maintenance is expected to last approximately 3 hours.',
-        'Stay connected with us by joining our early users’ community:',
-        'https://chat.whatsapp.com/IYCiFBgpNtM1rCPhtBpv2c\n',
-        'Thank you for your patience!⚡️',
+        'Hello awesome user! 💙',
+        'Thank you for your patience during our maintenance. Transactions and all services are now back online! 🚀\n',
+        "If you haven't completed your KYC, use the /verify_me command to get started.",
+        "And if you're already verified, go ahead and experience the speed of Azza! ⚡️",
     ].join('\n');
 
-    await sendBroadcastMessage(message);
+    await sendBroadcastMessage(message, onlyTo);
 }
 
 void runScript();
