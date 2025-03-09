@@ -261,6 +261,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             address: params.recipient,
             assetId: blockradarAssetId,
             reference: params.reference,
+            metadata: params.metadata,
         });
 
         return {
@@ -404,7 +405,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
     public async gracefullyGetUserAddressId(
         userId: string,
         blockchainNetwork: AllSupportedBlockchains
-    ): Promise<string> {
+    ): Promise<string | null> {
         // Attempt to check our records
         const addressId = await this.dataSources.userAddressId(userId, blockchainNetwork);
         if (addressId) return addressId;
@@ -431,13 +432,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             return searchedAddress.id;
         }
 
-        throw new BlockradarWalletProviderError({
-            data: {
-                userId,
-                blockchainNetwork,
-            },
-            message: `Address ID is most likely missing on provider's system and needs to be explicitly created`,
-        });
+        return null;
     }
 }
 

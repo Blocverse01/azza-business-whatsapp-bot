@@ -45,6 +45,7 @@ export type WithdrawAssetParams = {
     amount: string;
     recipient: string;
     reference?: string;
+    metadata?: Record<string, unknown>;
 };
 export type SearchAssetParams = Partial<{
     network: string;
