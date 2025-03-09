@@ -80,7 +80,10 @@ export const receiveIncomingWhatsappMessageTemp = async (
             displayName,
         },
         {
-            removeOnComplete: true,
+            removeOnComplete: {
+                age: 2 * 3600, // keep up to 2 hours
+                count: 1000, // keep up to 1000 jobs
+            },
             attempts: 3,
             backoff: { type: 'exponential', delay: 5000 }, // Retry with a delay
         }
