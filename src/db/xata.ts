@@ -196,6 +196,24 @@ const tables = [
         columns: [
             { name: 'key', type: 'text', notNull: true, defaultValue: '' },
             { name: 'isEnabled', type: 'bool', notNull: true, defaultValue: 'true' },
+        ],
+    },
+    {
+        name: 'offramp_awaiting_crypto_debit',
+        columns: [
+            { name: 'assetId', type: 'text' },
+            { name: 'conversionRate', type: 'int' },
+            { name: 'fromWalletAddress', type: 'text' },
+            { name: 'hotWalletAddress', type: 'text' },
+            { name: 'localAmount', type: 'float' },
+            { name: 'ownerId', type: 'text' },
+            { name: 'transactionFeeUsd', type: 'float' },
+            { name: 'usdAmount', type: 'float' },
+            { name: 'beneficiaryId', type: 'text' },
+            { name: 'platformFeePercentage', type: 'int' },
+            { name: 'xatacreatedAt', type: 'text' },
+            { name: 'xataupdatedAt', type: 'text' },
+            { name: 'xataversion', type: 'int' },
     ],
   },
 ] as const;
@@ -234,6 +252,11 @@ export type ManualOfframpSettlementTransactionRecord =
 export type FeatureFlag = InferredTypes['feature_flag'];
 export type FeatureFlagRecord = FeatureFlag & XataRecord;
 
+export type OfframpAwaitingCryptoDebit =
+    InferredTypes['offramp_awaiting_crypto_debit'];
+export type OfframpAwaitingCryptoDebitRecord = OfframpAwaitingCryptoDebit &
+    XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -244,6 +267,7 @@ export type DatabaseSchema = {
   user_blockradar_wallet: UserBlockradarWalletRecord;
     manual_offramp_settlement_transaction: ManualOfframpSettlementTransactionRecord;
     feature_flag: FeatureFlagRecord;
+    offramp_awaiting_crypto_debit: OfframpAwaitingCryptoDebitRecord;
 };
 
 const DatabaseClient = buildClient();

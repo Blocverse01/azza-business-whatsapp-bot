@@ -1,8 +1,13 @@
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
+import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { OfframpQueueFlowSchemaV2 } from '@/background-processing/schema';
+import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
+import { OFFRAMP, OFFRAMP_WITHDRAW_REFERENCE_PREFIX } from '@/constants/strings';
+import { dbClient } from '@/db/dbClient';
 import logger from '@/resources/logger';
 import { generateReceivedTokenMessage } from '@/resources/utils/bot-message-utils';
 import { getTransactionExplorerUrl } from '@/resources/web3/core/explorerUrls';
@@ -87,6 +92,57 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             env.WA_PHONE_NUMBER_ID,
             assetInteractiveMessage
         );
+    },
+    handleWithdrawalSuccess: async (data, _) => {
+        const metadata = data.data.metadata;
+        const reference = data.data.reference;
+
+        const reason = metadata?.reason;
+
+        if (reason === OFFRAMP) {
+            const pendingOfframpId = reference.split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1];
+            const pendingOfframpRequest =
+                await dbClient.offramp_awaiting_crypto_debit.read(pendingOfframpId);
+
+            if (!pendingOfframpRequest) {
+                throw new Error('Pending request not found!');
+            }
+
+            const assetConfig = getAssetConfigOrThrow(pendingOfframpRequest.assetId!);
+            const user = await userServiceV2.getUserById(pendingOfframpRequest.ownerId!);
+
+            if (!user) throw new Error('Invalid transaction owner ID');
+
+            void WhatsAppBotService.sendWhatsappMessage(
+                env.WA_PHONE_NUMBER_ID,
+                MessageGenerators.generateTextMessage(
+                    user.primaryWhatsappPhoneNumber!,
+                    '✅ Crypto debit transaction confirmed!'
+                )
+            );
+
+            await addOfframpRequestToQueue(
+                OfframpQueueFlowSchemaV2.parse({
+                    userId: pendingOfframpRequest.ownerId!,
+                    conversionRate: pendingOfframpRequest.conversionRate!,
+                    localAmount: pendingOfframpRequest.localAmount!,
+                    hotWalletAddress: pendingOfframpRequest.hotWalletAddress!,
+                    transactionFeeUsd: pendingOfframpRequest.transactionFeeUsd!,
+                    beneficiaryId: pendingOfframpRequest.beneficiaryId!,
+                    usdAmount: pendingOfframpRequest.usdAmount!,
+                    platformFeePercentage: pendingOfframpRequest.platformFeePercentage!,
+                    userWalletAddress: pendingOfframpRequest.fromWalletAddress!,
+                    tokenAddress: assetConfig.tokenAddress,
+                    tokenName: assetConfig.tokenName,
+                    chainName: assetConfig.network.toUpperCase(),
+                    txHash: data.data.hash,
+                    whatsappParams: {
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        userPhoneNumber: user.primaryWhatsappPhoneNumber!,
+                    },
+                })
+            );
+        }
     },
 });
 

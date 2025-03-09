@@ -1,13 +1,15 @@
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
 import { connectionConfig } from '@/background-processing/redis-connection-config';
-import { OfframpQueueFlowParams } from '@/background-processing/schema';
+import { OfframpQueueFlowParams, OfframpQueueFlowParamsV2 } from '@/background-processing/schema';
 import {
     CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
     CryptoDebitQueueInput,
     CryptoDebitQueueResult,
     CryptoPayoutDebitConfirmationInput,
+    EventDrivenOfframpQueueInput,
+    EventDrivenOfframpQueueResult,
     FiatPayoutQueueResult,
     QueueNames,
     UserTxPinSecurityQueueInput,
@@ -24,6 +26,18 @@ export const queues = {
     fiatPayout: new Queue<OfframpQueueFlowParams, FiatPayoutQueueResult>(QueueNames.fiatPayout, {
         connection: connectionConfig,
     }),
+    fiatPayoutV2: new Queue<OfframpQueueFlowParamsV2, FiatPayoutQueueResult>(
+        QueueNames.fiatPayoutV2,
+        {
+            connection: connectionConfig,
+        }
+    ),
+    eventDrivenOfframp: new Queue<EventDrivenOfframpQueueInput, EventDrivenOfframpQueueResult>(
+        QueueNames.eventDrivenOfframp,
+        {
+            connection: connectionConfig,
+        }
+    ),
     cryptoDebit: new Queue<
         Required<TransferAssetTransactionDetails> | CryptoDebitQueueInput,
         CryptoDebitQueueResult,
@@ -69,10 +83,10 @@ export const queues = {
 
 export const defaultQueueRemoveOptions = {
     removeOnComplete: {
-        age: 24 * 3600, // keep up to 1 hour
+        age: 24 * 3600, // keep up to 1 day
         count: 1000, // keep up to 1000 jobs
     },
     removeOnFail: {
-        age: 24 * 3600, // keep up to 24 hours
+        age: 48 * 3600, // keep up to 2 days
     },
 } as const;

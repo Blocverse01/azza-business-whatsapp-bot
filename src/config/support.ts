@@ -1,0 +1,1 @@
+export const TECHNICAL_SUPPORT_NUMBERS = ['2348143100808', ''];

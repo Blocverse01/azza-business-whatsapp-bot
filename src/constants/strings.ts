@@ -12,3 +12,9 @@ export const FALLBACK_USE_AZZA_ADDRESS =
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
 export const USD_SYMBOL = '$';
+
+export const OFFRAMP_REQUEST_ERROR_MESSAGE =
+    "An issue occured processing your payout, we've spotted it and are resolving immediately.\n\nWe will send a message once it's resolved and auto-retry your payout in 5 - 10 mins.";
+
+export const OFFRAMP_WITHDRAW_REFERENCE_PREFIX = 'offramp-';
+export const OFFRAMP = 'offramp';

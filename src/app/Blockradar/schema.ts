@@ -164,7 +164,7 @@ export const withdrawAssetResponseDataSchema = commonTransactionFieldsSchema
 ////////////////////////
 // Webhook Payload
 ////////////////////////
-const webhookEvent = z.enum(['deposit.success'] as const);
+const webhookEvent = z.enum(['deposit.success', 'withdraw.success'] as const);
 export const blockradarWebhookPayloadSchema = z.object({
     event: webhookEvent,
     data: z.object({

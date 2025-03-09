@@ -31,6 +31,8 @@ export const transferAssetTransactionDetailsSchema = z.object({
     transactionFee: z.coerce.number().describe('The transaction fee for the transfer.'),
     userId: z.string().describe('The ID of the user initiating the transfer.'),
     transactionPin: transactionPinSchema.optional(),
+    metadata: z.record(z.unknown()).optional(),
+    reference: z.string().optional(),
 });
 
 export const transferProcessingModeSchema = z

@@ -19,4 +19,11 @@ export const OfframpQueueFlowSchema = z.object({
     }),
 });
 
+export const OfframpQueueFlowSchemaV2 = OfframpQueueFlowSchema.merge(
+    z.object({
+        txHash: z.string(),
+    })
+);
+
 export type OfframpQueueFlowParams = z.infer<typeof OfframpQueueFlowSchema>;
+export type OfframpQueueFlowParamsV2 = z.infer<typeof OfframpQueueFlowSchemaV2>;

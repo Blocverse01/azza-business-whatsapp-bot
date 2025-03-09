@@ -12,6 +12,7 @@ import {
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { createFiatPayoutV2Worker } from '@/app/FiatRamp/queue-helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     createWhatsappBroadcastWorker,
@@ -37,6 +38,7 @@ import {
     UserTxPinSecurityQueueInput,
     UserTxPinSecurityQueueResult,
 } from '@/background-processing/types';
+import { createEventDrivenOfframpWorker } from '@/background-processing/utils';
 import env from '@/constants/env';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { logServiceError, parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
@@ -432,11 +434,13 @@ const userTxPinSecurityWorker = new Worker<
     },
     {
         connection: connectionConfig,
-        concurrency: 50,
+        concurrency: 10,
     }
 );
 
 createWhatsappBroadcastWorker();
+createEventDrivenOfframpWorker();
+createFiatPayoutV2Worker();
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {
