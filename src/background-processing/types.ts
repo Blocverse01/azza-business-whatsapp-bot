@@ -5,6 +5,7 @@ import {
     PhoneNumberParams,
     WhatsAppTextMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { AssetConfig } from '@/resources/web3/core/tokens';
 
 export type FiatPayoutQueueResult =
@@ -48,6 +49,7 @@ export enum QueueNames {
     whatsappBotMessagingTemp = 'whatsapp-bot-messaging-temp',
     whatsappBroadcast = 'whatsapp-broadcast',
     eventDrivenOfframp = 'event-driven-offramp',
+    syncUserWallet = 'sync-user-wallet',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -116,4 +118,11 @@ export type EventDrivenOfframpQueueInput = {
 export type EventDrivenOfframpQueueResult = {
     offrampRequestId: string;
     debitTransactionId: string;
+};
+
+export type SyncUserWalletIdQueueInput = {
+    userId: string;
+    network: AllSupportedBlockchains;
+    addressId: string;
+    address: string;
 };

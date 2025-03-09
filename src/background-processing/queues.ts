@@ -12,6 +12,7 @@ import {
     EventDrivenOfframpQueueResult,
     FiatPayoutQueueResult,
     QueueNames,
+    SyncUserWalletIdQueueInput,
     UserTxPinSecurityQueueInput,
     UserTxPinSecurityQueueResult,
     UserWalletMigrationQueueInput,
@@ -83,6 +84,9 @@ export const queues = {
         connection: connectionConfig,
     }),
     whatsappBroadcast: new Queue<WhatsappBroadcastQueueInput>(QueueNames.whatsappBroadcast, {
+        connection: connectionConfig,
+    }),
+    syncUserWallet: new Queue<SyncUserWalletIdQueueInput>(QueueNames.syncUserWallet, {
         connection: connectionConfig,
     }),
 };

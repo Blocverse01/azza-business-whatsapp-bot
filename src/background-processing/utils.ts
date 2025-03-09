@@ -3,17 +3,21 @@ import { sendTransferAssetTransaction } from '@/app/azza/lib/azza.lib.transactio
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { EventDrivenOfframpWorkerError } from '@/background-processing/errors';
+import { queues } from '@/background-processing/queues';
 import { connectionConfig } from '@/background-processing/redis-connection-config';
 import {
     EventDrivenOfframpQueueInput,
     EventDrivenOfframpQueueResult,
     QueueNames,
+    SyncUserWalletIdQueueInput,
 } from '@/background-processing/types';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { OFFRAMP, OFFRAMP_WITHDRAW_REFERENCE_PREFIX } from '@/constants/strings';
 import { dbClient } from '@/db/dbClient';
 import { convertBase64ToAsciiString, decryptWithAES } from '@/resources/utils/encryption';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+import userServiceV2 from '@/runtime/user';
 import { Worker } from 'bullmq';
 import * as math from 'mathjs';
 
@@ -96,3 +100,31 @@ export const createEventDrivenOfframpWorker = () => {
         { connection: connectionConfig, concurrency: 100 }
     );
 };
+
+export const createSyncUserWalletWorker = () => {
+    return new Worker<SyncUserWalletIdQueueInput>(
+        QueueNames.syncUserWallet,
+        async (job) => {
+            const { userId, network, addressId, address } = job.data;
+            return await userServiceV2.createUserBlockradarWallet(userId, {
+                addressId,
+                address,
+                blockchainNetwork: network,
+            });
+        },
+        { connection: connectionConfig, concurrency: 10 }
+    );
+};
+
+export async function syncUserAddressJob(data: {
+    userId: string;
+    network: AllSupportedBlockchains;
+    addressId: string;
+    address: string;
+}) {
+    return queues.syncUserWallet.add(`sync-${data.userId}-${data.network}`, data, {
+        jobId: `sync-${data.userId}-${data.network}`, // Ensure job uniqueness
+        removeOnComplete: true,
+        removeOnFail: false,
+    });
+}

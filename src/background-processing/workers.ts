@@ -39,7 +39,10 @@ import {
     UserTxPinSecurityQueueInput,
     UserTxPinSecurityQueueResult,
 } from '@/background-processing/types';
-import { createEventDrivenOfframpWorker } from '@/background-processing/utils';
+import {
+    createEventDrivenOfframpWorker,
+    createSyncUserWalletWorker,
+} from '@/background-processing/utils';
 import env from '@/constants/env';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { logServiceError, parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
@@ -442,6 +445,7 @@ const userTxPinSecurityWorker = new Worker<
 createWhatsappBroadcastWorker();
 createEventDrivenOfframpWorker();
 createFiatPayoutV2Worker();
+createSyncUserWalletWorker();
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {
