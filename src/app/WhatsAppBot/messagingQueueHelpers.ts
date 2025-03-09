@@ -39,7 +39,7 @@ import {
     extractTradeAssetGroups,
 } from '@/constants/regex';
 import { BAD_REQUEST } from '@/constants/status-codes';
-import { getDynamicMaintainanceMessage, MAINTAINANCE_MESSAGE } from '@/constants/strings';
+import { getDynamicMaintainanceMessage } from '@/constants/strings';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import userServiceV2 from '@/runtime/user';
@@ -94,20 +94,7 @@ const handleIncomingWhatsappMessage = async (
 ): Promise<string> => {
     const { type, from, text, interactive } = message;
 
-    const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
-        FeatureFlagKey.CORE_MAINTAINANCE
-    );
-
     const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
-
-    if (coreMaintainanceIsEnabled) {
-        await WhatsAppBotService.sendWhatsappMessage(
-            businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(from, MAINTAINANCE_MESSAGE)
-        );
-
-        return ActionExecuted.SEND_MAINTAINANCE_MESSAGE;
-    }
 
     const [messageThread, userV2] = await Promise.all([
         getUserAgentThread(from),
