@@ -8,7 +8,7 @@ async function sendBroadcastMessage(message: string) {
         .select(['primaryWhatsappPhoneNumber'])
         .filter({
             primaryWhatsappPhoneNumber: {
-                $any: ['2348143100808', '2348146843432'],
+                $any: ['2348143100808', '2348115857771'],
             },
         })
         .getAll();
@@ -34,14 +34,15 @@ async function sendBroadcastMessage(message: string) {
 }
 
 async function runScript() {
-    const message =
-        'Gain access to all features like crypto-to-cash in just 1 minute by completing your KYC!\n' +
-        '\n' +
-        "Simply use your International Passport, driver's licence, or Voter’s Card to verify your identity.\n" +
-        '\n' +
-        '✅ Get started now with the */verify_me* command.\n' +
-        '\n' +
-        '❓ Need help? Join the Azza Community for support. https://chat.whatsapp.com/IYCiFBgpNtM1rCPhtBpv2c';
+    const message = [
+        'Hello amazing user💙',
+        'We’re currently performing maintenance on the AZZA bot, and during this time, transactions will be temporarily unavailable.',
+        'This maintenance is expected to last approximately 3 hours.',
+        'Stay connected with us by joining our early users’ community:',
+        'https://chat.whatsapp.com/IYCiFBgpNtM1rCPhtBpv2c',
+        'Thank you for your patience!⚡️',
+    ].join('\n');
+
     await sendBroadcastMessage(message);
 }
 
