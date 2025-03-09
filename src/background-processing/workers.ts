@@ -16,6 +16,7 @@ import { createFiatPayoutV2Worker } from '@/app/FiatRamp/queue-helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     createWhatsappBroadcastWorker,
+    createWhatsappMessagingTempWorker,
     createWhatsappMessagingWorker,
 } from '@/app/WhatsAppBot/messagingQueueHelpers';
 import {
@@ -445,6 +446,9 @@ createFiatPayoutV2Worker();
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {
     createWhatsappMessagingWorker();
+}
+for (let i = 0; i < 8; i++) {
+    createWhatsappMessagingTempWorker();
 }
 
 ///////////////////////

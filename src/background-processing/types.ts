@@ -45,6 +45,7 @@ export enum QueueNames {
     userTxPinSecurity = 'user-tx-pin-security',
     walletMigration = 'wallet-migration',
     whatsappBotMessaging = 'whatsapp-bot-messaging',
+    whatsappBotMessagingTemp = 'whatsapp-bot-messaging-temp',
     whatsappBroadcast = 'whatsapp-broadcast',
     eventDrivenOfframp = 'event-driven-offramp',
 }

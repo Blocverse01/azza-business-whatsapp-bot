@@ -76,6 +76,12 @@ export const queues = {
     >(QueueNames.whatsappBotMessaging, {
         connection: connectionConfig,
     }),
+    whatsappBotMessagingTemp: new Queue<
+        WhatsAppBotMessagingQueueInput,
+        WhatsAppBotMessagingQueueResult
+    >(QueueNames.whatsappBotMessagingTemp, {
+        connection: connectionConfig,
+    }),
     whatsappBroadcast: new Queue<WhatsappBroadcastQueueInput>(QueueNames.whatsappBroadcast, {
         connection: connectionConfig,
     }),

@@ -27,3 +27,20 @@ export const MAINTAINANCE_MESSAGE = [
     'https://chat.whatsapp.com/IYCiFBgpNtM1rCPhtBpv2c\n',
     'Thank you for your patience!⚡️',
 ].join('\n');
+
+export const getDynamicMaintainanceMessage = (
+    feature: string,
+    duration: {
+        length: number;
+        name: string;
+    }
+) => {
+    return [
+        'Hello amazing user💙',
+        `We’re currently performing maintenance on the AZZA bot and during this time, the ${feature} feature will be temporarily unavailable.\n`,
+        `This maintenance is expected to last approximately ${duration.length} ${duration.name}.`,
+        'Stay connected with us by joining our early users’ community:',
+        'https://chat.whatsapp.com/IYCiFBgpNtM1rCPhtBpv2c\n',
+        'Thank you for your patience!⚡️',
+    ].join('\n');
+};

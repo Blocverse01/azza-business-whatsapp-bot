@@ -1,3 +1,5 @@
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import SumSubService from '@/app/SumSub/SumSubService';
 import { UserAssetItem } from '@/app/User/userSchema';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -21,6 +23,7 @@ import {
     extractGroups,
     type TradeAssetBotCommandMatchGroups,
 } from '@/constants/regex';
+import { getDynamicMaintainanceMessage } from '@/constants/strings';
 import type { UserV2Record } from '@/db/xata';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { TokenNames } from '@/resources/web3/core/tokens';
@@ -234,6 +237,26 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         displayName: string
     ) {
+        const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.CORE_MAINTAINANCE
+        );
+
+        if (coreMaintainanceIsEnabled) {
+            const maintainanceMessage = getDynamicMaintainanceMessage('asset management', {
+                length: 3,
+                name: 'hours',
+            });
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    phoneParams.userPhoneNumber,
+                    maintainanceMessage
+                )
+            );
+
+            return;
+        }
+
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
         const supportedChains = azzaWalletManager.getSupportedNetworks();
@@ -294,6 +317,25 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
+        const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.CORE_MAINTAINANCE
+        );
+
+        if (coreMaintainanceIsEnabled) {
+            const maintainanceMessage = getDynamicMaintainanceMessage('withdrawal', {
+                length: 3,
+                name: 'hours',
+            });
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    phoneParams.userPhoneNumber,
+                    maintainanceMessage
+                )
+            );
+            return;
+        }
+
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
                 network: params.network as AllSupportedBlockchains,
@@ -332,6 +374,25 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
+        const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.CORE_MAINTAINANCE
+        );
+
+        if (coreMaintainanceIsEnabled) {
+            const maintainanceMessage = getDynamicMaintainanceMessage('deposit', {
+                length: 3,
+                name: 'hours',
+            });
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    phoneParams.userPhoneNumber,
+                    maintainanceMessage
+                )
+            );
+            return;
+        }
+
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
                 network: params.network as AllSupportedBlockchains,
@@ -370,6 +431,25 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params?: Partial<TradeAssetBotCommandMatchGroups>
     ) {
+        const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.CORE_MAINTAINANCE
+        );
+
+        if (coreMaintainanceIsEnabled) {
+            const maintainanceMessage = getDynamicMaintainanceMessage('balance', {
+                length: 3,
+                name: 'hours',
+            });
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    phoneParams.userPhoneNumber,
+                    maintainanceMessage
+                )
+            );
+            return;
+        }
+
         return await WhatsAppBotService.handleUserBalancesQuery(user, phoneParams, params);
     }
 
@@ -378,6 +458,25 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
+        const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.CORE_MAINTAINANCE
+        );
+
+        if (coreMaintainanceIsEnabled) {
+            const maintainanceMessage = getDynamicMaintainanceMessage('balance', {
+                length: 3,
+                name: 'hours',
+            });
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    phoneParams.userPhoneNumber,
+                    maintainanceMessage
+                )
+            );
+            return;
+        }
+
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
                 network: params.network as AllSupportedBlockchains,

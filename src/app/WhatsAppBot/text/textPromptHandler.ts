@@ -1,4 +1,6 @@
 import { handleUserPrompt } from '@/app/aiAgent/agent.prompter';
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import {
     Action,
     classifyAction,
@@ -20,6 +22,7 @@ import {
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import { getDynamicMaintainanceMessage } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import logger from '@/resources/logger';
 
@@ -66,6 +69,10 @@ export const textPromptHandler = async (
 
     let classifiedAction: Action | null = null;
 
+    const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
+        FeatureFlagKey.CORE_MAINTAINANCE
+    );
+
     try {
         // Step 1: Classify the action - LLM Usage 1
         classifiedAction = await classifyAction(runtimeMessages);
@@ -106,7 +113,7 @@ export const textPromptHandler = async (
         // const response = await handleUserPrompt({
         //     messages: runtimeMessages,
         //     user: user,
-        //     phoneParams: params.botParams,
+        //      params.botParams: params.botParams,
         // });
         //
         const promptResponse = getWelcomeBackMessageText();
@@ -138,6 +145,27 @@ export const textPromptHandler = async (
     switch (classifiedAction.class) {
         case 'DEPOSIT_CRYPTO_TO_WALLET':
         case 'SHOW_WALLET_ADDRESS':
+            if (coreMaintainanceIsEnabled) {
+                const maintainanceMessage = getDynamicMaintainanceMessage('deposit', {
+                    length: 3,
+                    name: 'hours',
+                });
+
+                await WhatsAppBotService.sendWhatsappMessage(
+                    params.botParams.businessPhoneNumberId,
+                    MessageGenerators.generateTextMessage(
+                        params.botParams.userPhoneNumber,
+                        maintainanceMessage
+                    )
+                );
+
+                responseMessage = {
+                    response: maintainanceMessage,
+                    resetSession: false,
+                };
+                break;
+            }
+
             responseMessage = await handleDepositRelatedPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
@@ -147,6 +175,26 @@ export const textPromptHandler = async (
 
         case 'TRANSFER_CRYPTO':
         case 'WITHDRAW_CRYPTO':
+            if (coreMaintainanceIsEnabled) {
+                const withdrawMaintainanceMessage = getDynamicMaintainanceMessage('withdrawal', {
+                    length: 3,
+                    name: 'hours',
+                });
+
+                await WhatsAppBotService.sendWhatsappMessage(
+                    params.botParams.businessPhoneNumberId,
+                    MessageGenerators.generateTextMessage(
+                        params.botParams.userPhoneNumber,
+                        withdrawMaintainanceMessage
+                    )
+                );
+
+                responseMessage = {
+                    response: withdrawMaintainanceMessage,
+                    resetSession: false,
+                };
+                break;
+            }
             responseMessage = await handleWithdrawRelatedPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
@@ -155,6 +203,27 @@ export const textPromptHandler = async (
             break;
 
         case 'QUERY_WALLET_BALANCE':
+            if (coreMaintainanceIsEnabled) {
+                const balanceMaintainanceMessage = getDynamicMaintainanceMessage('balance', {
+                    length: 3,
+                    name: 'hours',
+                });
+
+                await WhatsAppBotService.sendWhatsappMessage(
+                    params.botParams.businessPhoneNumberId,
+                    MessageGenerators.generateTextMessage(
+                        params.botParams.userPhoneNumber,
+                        balanceMaintainanceMessage
+                    )
+                );
+
+                responseMessage = {
+                    response: balanceMaintainanceMessage,
+                    resetSession: false,
+                };
+                break;
+            }
+
             responseMessage = await handleBalanceQueryPrompt({
                 extractedArguments: extractedArguments,
                 botParams: params.botParams,
