@@ -48,6 +48,8 @@ createBullBoard({
         new BullMQAdapter(queues.walletMigration),
         new BullMQAdapter(queues.whatsappBotMessaging),
         new BullMQAdapter(queues.whatsappBroadcast),
+        new BullMQAdapter(queues.eventDrivenOfframp),
+        new BullMQAdapter(queues.fiatPayoutV2),
     ],
     serverAdapter: serverAdapter,
 });
