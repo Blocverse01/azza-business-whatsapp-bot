@@ -149,7 +149,7 @@ export const withdrawAssetRequestBodySchema = z.object({
     amount: z.string(),
     assetId: z.string(),
     reference: z.string().optional(),
-    metadata: z.record(z.string()).optional(),
+    metadata: z.record(z.unknown()).optional(),
 });
 
 //////////////////////
