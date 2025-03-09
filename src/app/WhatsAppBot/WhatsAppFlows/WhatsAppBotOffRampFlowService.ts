@@ -29,7 +29,11 @@ import {
     getCountryFlagEmoji,
     prettifyNumber,
 } from '@/resources/utils/currency';
-import { convertAsciiStringToBase64, encryptWithAES, generateRandomHexString } from '@/resources/utils/encryption';
+import {
+    convertAsciiStringToBase64,
+    encryptWithAES,
+    generateRandomHexString,
+} from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { TokenNames } from '@/resources/web3/core/tokens';
@@ -662,7 +666,7 @@ class WhatsAppBotOffRampFlowService {
             return {
                 status: 'processing',
                 message:
-                    "'Your transaction is currently being processed, we\'d send updates on the status of your transaction in your DM'
+                    "Your transaction is currently being processed, we'd send updates on the status of your transaction in your DM",
             };
         } catch (error) {
             await logServiceError(error, 'Processing offramp transaction failed');
@@ -676,7 +680,7 @@ class WhatsAppBotOffRampFlowService {
 
     private static async processOffRampTransactionV2(
         params: ProcessOfframpTransactionParams
-,    ): Promise<ProcessOffRampTransactionResponse> {
+    ): Promise<ProcessOffRampTransactionResponse> {
         const {
             fiatAmount,
             userId,
@@ -718,7 +722,7 @@ class WhatsAppBotOffRampFlowService {
         try {
             const hotWalletAddress = await FiatRampService.getHotWalletForNetwork(
                 assetBalanceInfo.blockchainNetwork
-,            );
+            );
 
             // Process in background and return early processing response
             await queues.eventDrivenOfframp.add(
@@ -743,7 +747,7 @@ class WhatsAppBotOffRampFlowService {
                         transactionPin,
                         env.SECURITY_QUESTIONS_MASK_KEY,
                         env.SECURITY_QUESTIONS_MASK_IV
-,                    ),
+                    ),
                     whatsappParams: {
                         userPhoneNumber: user.primaryWhatsappPhoneNumber!,
                         businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
