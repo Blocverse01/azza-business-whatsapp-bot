@@ -53,10 +53,10 @@ const walletMigrationWorker = new Worker<
     },
     {
         connection: connectionConfig,
-        concurrency: 5,
+        concurrency: 2,
         limiter: {
-            max: 5,
-            duration: 60000,
+            max: 2,
+            duration: 65000,
         },
     }
 );
