@@ -7,6 +7,7 @@ import {
     UserWalletMigrationQueueInput,
     UserWalletMigrationQueueResult,
 } from '@/background-processing/types';
+import { syncUserAddressJob } from '@/background-processing/utils';
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
 import {
     AllSupportedBlockchains,
@@ -185,14 +186,16 @@ const walletMigrationWorker = new Worker<
             throw new Error('No wallets were created for the user');
         }
 
-        await userServiceV2.createUserBlockradarWalletConfig(
-            newUserId,
-            newWallets.map((wallet) => ({
-                blockchainNetwork: wallet.blockchainNetwork,
-                addressId: wallet.id,
-                address: wallet.address,
-            }))
+        const syncWalletsQueue = newWallets.map((newWallet) =>
+            syncUserAddressJob({
+                userId: newUserId,
+                network: newWallet.blockchainNetwork,
+                address: newWallet.address,
+                addressId: newWallet.id,
+            })
         );
+
+        await Promise.all(syncWalletsQueue);
 
         return {
             newUserId,
