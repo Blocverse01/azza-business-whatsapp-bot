@@ -3,15 +3,19 @@ import { sendWhatsappBroadcastMessage } from '../src/app/WhatsAppBot/messagingQu
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
 
-async function sendBroadcastMessage(message: string) {
-    const allUsers = await dbClient.user_v2
-        .select(['primaryWhatsappPhoneNumber'])
-        .filter({
-            primaryWhatsappPhoneNumber: {
-                $any: ['2348143100808', '2348115857771'],
-            },
-        })
-        .getAll();
+async function sendBroadcastMessage(message: string, onlyTo = []) {
+    const allUsers =
+        onlyTo.length > 0
+            ? await dbClient.user_v2
+                  .select(['primaryWhatsappPhoneNumber'])
+                  .filter({
+                      primaryWhatsappPhoneNumber: {
+                          $any: onlyTo,
+                      },
+                  })
+                  .getAll()
+            : await dbClient.user_v2.select(['primaryWhatsappPhoneNumber']).getAll();
+
     const sendSendMessagesPromises = allUsers.map(
         (user) =>
             new Promise((resolve) => {
@@ -36,10 +40,10 @@ async function sendBroadcastMessage(message: string) {
 async function runScript() {
     const message = [
         'Hello amazing user💙',
-        'We’re currently performing maintenance on the AZZA bot, and during this time, transactions will be temporarily unavailable.',
+        'We’re currently performing maintenance on the AZZA bot, and during this time, transactions will be temporarily unavailable.\n',
         'This maintenance is expected to last approximately 3 hours.',
         'Stay connected with us by joining our early users’ community:',
-        'https://chat.whatsapp.com/IYCiFBgpNtM1rCPhtBpv2c',
+        'https://chat.whatsapp.com/IYCiFBgpNtM1rCPhtBpv2c\n',
         'Thank you for your patience!⚡️',
     ].join('\n');
 
