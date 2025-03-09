@@ -15,7 +15,7 @@ import { OFFRAMP, OFFRAMP_WITHDRAW_REFERENCE_PREFIX } from '@/constants/strings'
 import { dbClient } from '@/db/dbClient';
 import { convertBase64ToAsciiString, decryptWithAES } from '@/resources/utils/encryption';
 import { Worker } from 'bullmq';
-import math from 'mathjs';
+import * as math from 'mathjs';
 
 export const createEventDrivenOfframpWorker = () => {
     return new Worker<EventDrivenOfframpQueueInput, EventDrivenOfframpQueueResult>(
