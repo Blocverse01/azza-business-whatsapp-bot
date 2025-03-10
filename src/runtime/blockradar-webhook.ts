@@ -1,5 +1,6 @@
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
+import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
@@ -116,7 +117,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             void WhatsAppBotService.sendWhatsappMessage(
                 env.WA_PHONE_NUMBER_ID,
                 MessageGenerators.generateTextMessage(
-                    user.primaryWhatsappPhoneNumber!,
+                    user.primaryWhatsappPhoneNumber,
                     '✅ Crypto debit transaction confirmed!'
                 )
             );
@@ -138,10 +139,66 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                     txHash: data.data.hash,
                     whatsappParams: {
                         businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                        userPhoneNumber: user.primaryWhatsappPhoneNumber!,
+                        userPhoneNumber: user.primaryWhatsappPhoneNumber,
                     },
                 })
             );
+
+            await pendingOfframpRequest.delete();
+        }
+    },
+    handleWithdrawalFailed: async (data, network) => {
+        const metadata = data.data.metadata;
+        const reference = data.data.reference;
+
+        const reason = metadata?.reason;
+
+        if (reason === OFFRAMP) {
+            const pendingOfframpId = reference.split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1];
+            const pendingOfframpRequest =
+                await dbClient.offramp_awaiting_crypto_debit.read(pendingOfframpId);
+
+            if (!pendingOfframpRequest) {
+                throw new Error('Pending request not found!');
+            }
+
+            const user = await userServiceV2.getUserById(pendingOfframpRequest.ownerId!);
+
+            if (!user) throw new Error('Invalid transaction owner ID');
+
+            const liveTransactionData = await azzaWalletManager.getTransactionByHash(
+                data.data.hash,
+                network
+            );
+
+            if (liveTransactionData.id.toLowerCase() !== data.data.id.toLowerCase()) {
+                const technicalSupportMessage = `Critical issue with mismatching transaction details (Webhook Tx !== Retrieved Tx).\n\nWebhook Transaction details:\nTransaction ID: ${data.data.id}\nBlockchain: ${network}\nHash: ${data.data.hash}\n\nRetrieved Transaction details:\nTransaction ID: ${liveTransactionData.id}\nBlockchain: ${network}\nHash: ${liveTransactionData.hash}\n\nPending Offramp ID: ${pendingOfframpId}`;
+
+                await sendTechnicalIssueAlert(technicalSupportMessage, env.WA_PHONE_NUMBER_ID);
+
+                return;
+            }
+
+            if (liveTransactionData.status === 'SUCCESS') {
+                const technicalSupportMessage = `Offramp debit transaction was successful, but a withdraw.failed webhook was sent.\n\nTransaction details:\nTransaction ID: ${data.data.id}\nBlockchain: ${network}\nHash: ${data.data.hash}\nPending Offramp ID: ${pendingOfframpId}`;
+
+                await sendTechnicalIssueAlert(technicalSupportMessage, env.WA_PHONE_NUMBER_ID);
+
+                return;
+            }
+
+            await WhatsAppBotService.sendWhatsappMessage(
+                env.WA_PHONE_NUMBER_ID,
+                MessageGenerators.generateTextMessage(
+                    user.primaryWhatsappPhoneNumber,
+                    '❌ Crypto debit transaction failed!'
+                )
+            );
+
+            await pendingOfframpRequest.update({
+                cryptoTransactionId: data.data.id,
+                cryptoTransactionStatus: liveTransactionData.status,
+            });
         }
     },
 });
