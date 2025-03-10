@@ -19,7 +19,6 @@ import { convertBase64ToAsciiString, decryptWithAES } from '@/resources/utils/en
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import userServiceV2 from '@/runtime/user';
 import { Worker } from 'bullmq';
-import * as math from 'mathjs';
 
 export const createEventDrivenOfframpWorker = () => {
     return new Worker<EventDrivenOfframpQueueInput, EventDrivenOfframpQueueResult>(
@@ -47,7 +46,8 @@ export const createEventDrivenOfframpWorker = () => {
                 platformFeePercentage: offrampParams.platformFeePercentage,
             });
 
-            const totalAmount = math.add(offrampParams.usdAmount, offrampParams.transactionFeeUsd);
+            const totalAmountUsd = job.data.offrampParams.totalAmountUsd;
+
             const reference = `${OFFRAMP_WITHDRAW_REFERENCE_PREFIX}${pendingOfframp.id}`;
 
             const [sendCryptoTxResponse, txError] = await sendTransferAssetTransaction(
@@ -58,7 +58,7 @@ export const createEventDrivenOfframpWorker = () => {
                     metadata: {
                         reason: OFFRAMP,
                     },
-                    amount: totalAmount,
+                    amount: totalAmountUsd,
                     transactionType: 'SEND',
                     recipient: offrampParams.hotWalletAddress,
                     recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
@@ -71,7 +71,7 @@ export const createEventDrivenOfframpWorker = () => {
 
             if (!sendCryptoTxResponse && txError !== null) {
                 const assetConfig = getAssetConfigOrThrow(offrampParams.assetId);
-                const userMessage = `Debiting ${totalAmount} ${assetConfig.tokenName} from your wallet failed.\nPlease reach out to support if you were debited.`;
+                const userMessage = `Debiting ${totalAmountUsd} ${assetConfig.tokenName} from your wallet failed.\nPlease reach out to support if you were debited.`;
 
                 await WhatsAppBotService.sendWhatsappMessage(
                     whatsappParams.businessPhoneNumberId,

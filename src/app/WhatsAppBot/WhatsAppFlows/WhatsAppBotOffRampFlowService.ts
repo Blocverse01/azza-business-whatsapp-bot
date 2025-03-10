@@ -742,6 +742,7 @@ class WhatsAppBotOffRampFlowService {
                         conversionRate,
                         transactionFeeUsd,
                         assetId,
+                        totalAmountUsd: tokenAmountToDebit,
                     },
                     transactionPin: encryptWithAES(
                         transactionPin,
@@ -749,7 +750,7 @@ class WhatsAppBotOffRampFlowService {
                         env.SECURITY_QUESTIONS_MASK_IV
                     ),
                     whatsappParams: {
-                        userPhoneNumber: user.primaryWhatsappPhoneNumber!,
+                        userPhoneNumber: user.primaryWhatsappPhoneNumber,
                         businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                     },
                 },

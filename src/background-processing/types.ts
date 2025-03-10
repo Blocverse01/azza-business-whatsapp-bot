@@ -111,6 +111,7 @@ export type EventDrivenOfframpQueueInput = {
         conversionRate: number;
         transactionFeeUsd: number;
         assetId: string;
+        totalAmountUsd: number;
     };
     whatsappParams: PhoneNumberParams;
     transactionPin: string;
