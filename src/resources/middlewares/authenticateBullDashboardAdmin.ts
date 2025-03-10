@@ -28,14 +28,6 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
             return res.status(UNAUTHORIZED).send('Unauthorized');
         }
 
-        await dbClient.bull_dashboard_access.update(
-            validToken.id,
-            {
-                lastAccessed: new Date().toISOString(),
-            },
-            ['lastAccessed']
-        );
-
         next();
     } catch (error) {
         await logger.error('Error authenticating admin', {
