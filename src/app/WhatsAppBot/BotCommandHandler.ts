@@ -50,6 +50,9 @@ class BotCommandHandler {
             case 'RATES':
                 await BotCommandHandler.getRates(phoneParams);
                 break;
+            case 'PERFORM_KYC':
+                await BotCommandHandler.handleKycVerificationRequest(user, phoneParams);
+                break;
             case 'SELL_ASSET':
                 await BotCommandHandler.sellAsset(user, phoneParams, botCommand.params);
                 break;

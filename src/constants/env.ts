@@ -100,6 +100,11 @@ const envSchema = z.object({
     SOLANA_MASTER_WALLET_API_KEY: notEmptyStringSchema('SOLANA_MASTER_WALLET_API_KEY'),
     ASSET_CHAIN_MASTER_WALLET_API_KEY: notEmptyStringSchema('ASSET_CHAIN_MASTER_WALLET_API_KEY'),
     ARBITRUM_MASTER_WALLET_API_KEY: notEmptyStringSchema('ARBITRUM_MASTER_WALLET_API_KEY'),
+    SMILE_ID_SANDBOX_API_KEY: notEmptyStringSchema('SMILE_ID_SANDBOX_API_KEY'),
+    SMILE_ID_PARTNER_ID: notEmptyStringSchema('SMILE_ID_PARTNER_ID'),
+    SMILE_ID_BASE_URL: notEmptyStringSchema('SMILE_ID_BASE_URL'),
+    SMILE_ID_WEBHOOK_URL: notEmptyStringSchema('SMILE_ID_WEBHOOK_URL'),
+    SMILE_ID_PROD_API_KEY: notEmptyStringSchema('SMILE_ID_PROD_API_KEY'),
 });
 
 const env = envSchema.parse(process.env);

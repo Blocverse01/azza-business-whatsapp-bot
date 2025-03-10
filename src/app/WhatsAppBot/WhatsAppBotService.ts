@@ -78,6 +78,7 @@ import {
     WhatsAppMessageType,
     WhatsAppTextMessage,
 } from './WhatsAppBotType';
+import SmileIdService from '../SmileID/SmileIdService';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -703,11 +704,12 @@ class WhatsAppBotService {
             getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber) === 'NG'
                 ? NG_KYC_LEVEL_NAME
                 : DEFAULT_KYC_LEVEL_NAME;
-        const kycUrl = await SumSubService.generateKycUrl({
-            userPhoneNumber,
-            levelName: kycLevelName,
-            userId: user.id,
-        });
+        // const kycUrl = await SumSubService.generateKycUrl({
+        //     userPhoneNumber,
+        //     levelName: kycLevelName,
+        //     userId: user.id,
+        // });
+        const kycUrl = await SmileIdService.generateKycLink(user.id);
 
         const message = MessageGenerators.generateInteractiveCtaUrlButtonMessage({
             recipient: userPhoneNumber,
@@ -981,6 +983,15 @@ class WhatsAppBotService {
         const messagePayload: WhatsAppTextMessage = MessageGenerators.generateTextMessage(
             userPhoneNumber,
             `Your KYC has been successfully verified🎉\nYou now have access to all functionalities`
+        );
+
+        await WhatsAppBotService.sendWhatsappMessage(this.WA_BUSINESS_PHONE_NUMBER, messagePayload);
+    }
+
+    public static async sendKycLinkGeneratingMessage(userPhoneNumber: string) {
+        const messagePayload: WhatsAppTextMessage = MessageGenerators.generateTextMessage(
+            userPhoneNumber,
+            `Your KYC link is being generated... Please wait while we process your request. This may take a few seconds.`
         );
 
         await WhatsAppBotService.sendWhatsappMessage(this.WA_BUSINESS_PHONE_NUMBER, messagePayload);
