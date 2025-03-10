@@ -1,3 +1,4 @@
+import redis from '@/cache/redis';
 import { FORBIDDEN, UNAUTHORIZED } from '@/constants/status-codes';
 import { dbClient } from '@/db/dbClient';
 import logger from '@/resources/logger';
@@ -14,6 +15,14 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
     }
 
     try {
+        const cacheKey = `bull_dashboard_access_${accessToken}`;
+        const cachedToken = await redis.get(cacheKey);
+
+        if (cachedToken) {
+            next();
+            return;
+        }
+
         const validToken = await dbClient.bull_dashboard_access
             .filter({
                 accessToken: accessToken as string,
@@ -27,6 +36,8 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
 
             return res.status(UNAUTHORIZED).send('Unauthorized');
         }
+
+        await redis.set(cacheKey, accessToken, 'EX', 60 * 60 * 24);
 
         next();
     } catch (error) {
