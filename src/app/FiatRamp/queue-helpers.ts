@@ -7,6 +7,7 @@ import { connectionConfig } from '@/background-processing/redis-connection-confi
 import { OfframpQueueFlowParamsV2 } from '@/background-processing/schema';
 import { FiatPayoutQueueResult, QueueNames } from '@/background-processing/types';
 import { OFFRAMP_REQUEST_ERROR_MESSAGE } from '@/constants/strings';
+import logger from '@/resources/logger';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import { normalizeBlockchainInput } from '@/resources/web3/core/blockchains';
 import azzaWalletManager from '@/runtime/wallet';
@@ -52,6 +53,10 @@ export const handleOfframpRequestInQueue = async (
     } catch (error) {
         const parsedError = parseUnknownError(error);
 
+        await logger.error(parsedError.message, {
+            error: parsedError,
+        });
+
         const technicalIssueAlert = [
             `Offramping with fiat ramps provider failed, with this reason:`,
             parsedError.message,
@@ -64,13 +69,13 @@ export const handleOfframpRequestInQueue = async (
             params.whatsappParams.businessPhoneNumberId
         );
 
-        await WhatsAppBotService.sendWhatsappMessage(
-            params.whatsappParams.businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(
-                params.whatsappParams.userPhoneNumber,
-                OFFRAMP_REQUEST_ERROR_MESSAGE
-            )
-        );
+        // await WhatsAppBotService.sendWhatsappMessage(
+        //     params.whatsappParams.businessPhoneNumberId,
+        //     MessageGenerators.generateTextMessage(
+        //         params.whatsappParams.userPhoneNumber,
+        //         OFFRAMP_REQUEST_ERROR_MESSAGE
+        //     )
+        // );
 
         throw new Error(parsedError.message);
     }

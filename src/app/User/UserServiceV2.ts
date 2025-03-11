@@ -216,11 +216,15 @@ class UserServiceV2 {
         console.log({ identifier });
         let user = await this.getUserById(identifier);
 
+        console.log({ user });
+
         if (!user) {
             user = await this.getWhatsappUserByPhoneNumber(identifier, {
                 omitCache: true,
             });
         }
+
+        console.log({ user2: user });
 
         if (!user) {
             throw new HttpException(BAD_REQUEST, 'User not found');
