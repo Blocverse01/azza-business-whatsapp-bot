@@ -23,8 +23,6 @@ import { getTransactionExplorerUrl } from '@/resources/web3/core/explorerUrls';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 
-const DEPOSIT_SILENT_MODE = false;
-
 const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
     // Todo: Move handler implementation to appropriate service
     handleDepositSuccess: async (data, network) => {
@@ -37,17 +35,6 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const amount = data.data.amount;
         const senderAddress = data.data.senderAddress;
         const transactionHash = data.data.hash;
-
-        if (DEPOSIT_SILENT_MODE) {
-            console.log(`Deposit success: ${transactionHash}`, {
-                platformAssetConfig,
-                amount,
-                userId,
-                blockradarAsset,
-            });
-
-            return;
-        }
 
         if (!userId || !platformAssetConfig) {
             if (!data.data.address.name?.toLowerCase().includes('offramp'))
@@ -91,18 +78,16 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 transactionHash,
                 'WITHDRAW'
             );
-            if (!blockradarWithdrawTransaction) {
-                return;
-            }
+            if (blockradarWithdrawTransaction) {
+                const reference = blockradarWithdrawTransaction.reference;
 
-            const reference = blockradarWithdrawTransaction.reference;
-
-            if (reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX)) {
-                await sendDepositMessageWithCashbackBanner(message, {
-                    userPhoneNumber,
-                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                });
-                return;
+                if (reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX)) {
+                    await sendDepositMessageWithCashbackBanner(message, {
+                        userPhoneNumber,
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                    });
+                    return;
+                }
             }
         } catch (error) {
             console.log(error);
