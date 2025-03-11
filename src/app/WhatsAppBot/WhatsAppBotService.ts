@@ -319,8 +319,6 @@ class WhatsAppBotService {
     ) {
         usersBeneficiaries.reverse();
 
-        console.log(usersBeneficiaries);
-
         if (usersBeneficiaries.length === 0) {
             await this.beginAddBeneficiaryFlowMessage({
                 assetId,
