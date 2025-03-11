@@ -317,6 +317,10 @@ class WhatsAppBotService {
         _sliceFrom = 0,
         _sliceTo = 9
     ) {
+        usersBeneficiaries.reverse();
+
+        console.log(usersBeneficiaries);
+
         if (usersBeneficiaries.length === 0) {
             await this.beginAddBeneficiaryFlowMessage({
                 assetId,
