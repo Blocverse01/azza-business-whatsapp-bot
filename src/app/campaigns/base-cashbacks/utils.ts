@@ -17,6 +17,8 @@ import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import ManualOfframpSettlementService from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
+import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
+import logger from '@/resources/logger';
 
 const CASHBACK_PAYOUT_WALLET_USER_ID = 'cashback-payout';
 const BASE_CASHBACK_BANNER_MEDIA_ID = '1103964578170380';
@@ -113,7 +115,16 @@ export const createBaseCashbackWorker = () => {
                 assetId: assetConfig.listItemId,
             };
 
-            return await processBaseCashback(cashbackParams);
+            try {
+                return await processBaseCashback(cashbackParams);
+            } catch (error) {
+                const parsedError = parseUnknownError(error);
+                await logger.error(parsedError.message, {
+                    error: parsedError,
+                });
+
+                throw error;
+            }
         },
         {
             connection: connectionConfig,

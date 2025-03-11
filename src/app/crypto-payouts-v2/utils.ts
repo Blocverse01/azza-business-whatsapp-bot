@@ -10,6 +10,8 @@ import { connectionConfig } from '@/background-processing/redis-connection-confi
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { dbClient } from '@/db/dbClient';
 import { CRYPTO_PAYOUT_REFERENCE_PREFIX } from '@/constants/strings';
+import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
+import logger from '@/resources/logger';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -161,7 +163,16 @@ export const createCryptoPayoutWorker = () => {
                 assetId: assetConfig.listItemId,
             };
 
-            return await processCryptoPayout(cashbackParams, transactionType);
+            try {
+                return await processCryptoPayout(cashbackParams, transactionType);
+            } catch (error) {
+                const parsedError = parseUnknownError(error);
+                await logger.error(parsedError.message, {
+                    error: parsedError,
+                });
+
+                throw error;
+            }
         },
         {
             connection: connectionConfig,
