@@ -1,27 +1,10 @@
-import { Buffer } from 'node:buffer';
-import * as fs from 'node:fs';
 import { sendWhatsappBroadcastMessage } from '../src/app/WhatsAppBot/messagingQueueHelpers';
-import WhatsAppBotService from '../src/app/WhatsAppBot/WhatsAppBotService';
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
 
-const ASSET_FOLDER = 'assets';
-const FILE_NAME = 'announcement_banner.png';
-const mediaId = '636062842503687';
+const announcementBannerMediaId = '636062842503687';
 
-async function uploadMedia(path: string) {
-    const announcementInfo = fs.readFileSync(path.resolve(process.cwd(), ASSET_FOLDER, FILE_NAME));
-    const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
-        env.WA_PHONE_NUMBER_ID,
-        new File([Buffer.from(announcementInfo)], FILE_NAME, {
-            type: 'image/png',
-        })
-    );
-
-    console.log(uploadedMedia);
-}
-
-async function sendBroadcastMessage(message: string, onlyTo = []) {
+async function sendBroadcastMessage(message: string, onlyTo: string[] = []) {
     const allUsers =
         onlyTo.length > 0
             ? await dbClient.user_v2
@@ -47,7 +30,7 @@ async function sendBroadcastMessage(message: string, onlyTo = []) {
                             to: phoneNumber,
                             type: 'image',
                             image: {
-                                id: mediaId,
+                                id: announcementBannerMediaId,
                                 caption: message,
                             },
                         },

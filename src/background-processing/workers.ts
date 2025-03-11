@@ -9,6 +9,7 @@ import {
     waitForTransactionReceipt,
     waitForTransactionReceiptV2,
 } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
+import { createBaseCashbackWorker } from '@/app/campaigns/base-cashbacks/utils';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
@@ -446,6 +447,7 @@ createWhatsappBroadcastWorker();
 createEventDrivenOfframpWorker();
 createFiatPayoutV2Worker();
 createSyncUserWalletWorker();
+createBaseCashbackWorker();
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

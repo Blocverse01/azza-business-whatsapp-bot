@@ -1,5 +1,6 @@
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
+import { PercentageCashbackQueueInput } from '@/app/campaigns/base-cashbacks/types';
 import { connectionConfig } from '@/background-processing/redis-connection-config';
 import { OfframpQueueFlowParams, OfframpQueueFlowParamsV2 } from '@/background-processing/schema';
 import {
@@ -87,6 +88,9 @@ export const queues = {
         connection: connectionConfig,
     }),
     syncUserWallet: new Queue<SyncUserWalletIdQueueInput>(QueueNames.syncUserWallet, {
+        connection: connectionConfig,
+    }),
+    baseCashback: new Queue<PercentageCashbackQueueInput>(QueueNames.baseCashback, {
         connection: connectionConfig,
     }),
 };

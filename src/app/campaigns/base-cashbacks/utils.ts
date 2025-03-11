@@ -1,0 +1,109 @@
+import { HUNDRED, ONE } from '@/constants/numbers';
+import { PercentageCashbackParams, PercentageCashbackQueueInput } from './types';
+import * as math from 'mathjs';
+import platformWalletManager from '@/runtime/platform-wallets';
+import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
+import { TokenNames } from '@/resources/web3/core/tokens';
+import crypto from 'node:crypto';
+import { BASE_CASHBACK_REASON, BASE_CASHBACK_REFERENCE_PREFIX } from '@/constants/strings';
+import { queues } from '@/background-processing/queues';
+import { QueueNames } from '@/background-processing/types';
+import { Worker } from 'bullmq';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { connectionConfig } from '@/background-processing/redis-connection-config';
+import azzaWalletManager from '@/runtime/wallet';
+import { PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+
+const CASHBACK_PAYOUT_WALLET_USER_ID = 'cashback-payout';
+const BASE_CASHBACK_BANNER_MEDIA_ID = '1103964578170380';
+
+const generateTransactionReferenceId = (targetTransactionHash: string) => {
+    const txHashSha256 = crypto.createHash('sha256').update(targetTransactionHash).digest('hex');
+    const relevantParts = txHashSha256.slice(0, 16) + txHashSha256.slice(-8);
+    return `${BASE_CASHBACK_REFERENCE_PREFIX}${relevantParts}`;
+};
+
+export const processBaseCashback = async (params: PercentageCashbackParams) => {
+    const convertedPercentage = math.divide(params.cashbackPercentage, HUNDRED);
+    const cashbackAmountUsd = math.multiply(params.tradeAmountUsd, convertedPercentage);
+    const asset = getAssetConfigOrThrow(params.assetId);
+
+    if (asset.network !== 'Base' && asset.tokenName !== TokenNames.USDC) {
+        throw new Error('This cashback is only supported for USDC on Base network');
+    }
+
+    return await platformWalletManager.withdrawAsset({
+        assetId: params.assetId,
+        userId: CASHBACK_PAYOUT_WALLET_USER_ID,
+        amount: cashbackAmountUsd.toString(),
+        recipient: params.userWalletAddress,
+        reference: generateTransactionReferenceId(params.targetTransactionHash),
+        metadata: {
+            reason: BASE_CASHBACK_REASON,
+        },
+    });
+};
+
+export const addCashbackJobToQueue = async (input: PercentageCashbackQueueInput) => {
+    const featureIsEnabled = await FeatureFlagService.isFeatureEnabled(
+        FeatureFlagKey.BASE_CASHBACK
+    );
+    if (!featureIsEnabled) {
+        return;
+    }
+    const jobId = `base-cashback-${input.transactionId}`;
+    return queues.baseCashback.add(jobId, input, {
+        jobId,
+        removeOnComplete: false,
+    });
+};
+
+export const createBaseCashbackWorker = () => {
+    return new Worker<PercentageCashbackQueueInput>(
+        QueueNames.baseCashback,
+        async (job) => {
+            const { transactionId, transactionType } = job.data;
+
+            const transaction =
+                transactionType === 'offramp'
+                    ? await FiatRampService.getOfframpTransaction(transactionId)
+                    : await FiatRampService.getOnrampTransaction(transactionId);
+
+            const transactionUsdAmount = transaction.usdAmount;
+            const assetConfig = azzaWalletManager.searchAssets({
+                tokenName: transaction.tokenSymbol,
+                network: transaction.blockchainNetwork,
+            })[0];
+
+            const cashbackParams: PercentageCashbackParams = {
+                tradeAmountUsd: transactionUsdAmount,
+                userWalletAddress:
+                    'fromWalletAddress' in transaction
+                        ? transaction.fromWalletAddress
+                        : transaction.destinationWalletAddress,
+                targetTransactionHash: transaction.sequenceId,
+                cashbackPercentage: ONE,
+                assetId: assetConfig.listItemId,
+            };
+
+            return await processBaseCashback(cashbackParams);
+        },
+        {
+            connection: connectionConfig,
+        }
+    );
+};
+
+export const sendDepositMessageWithCashbackBanner = async (
+    message: string,
+    phoneParams: PhoneNumberParams
+) => {
+    return await WhatsAppBotService.sendMediaMessage(phoneParams, {
+        mediaId: BASE_CASHBACK_BANNER_MEDIA_ID,
+        caption: message,
+        type: 'image',
+    });
+};

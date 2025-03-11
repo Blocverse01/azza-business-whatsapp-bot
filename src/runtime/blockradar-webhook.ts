@@ -1,4 +1,5 @@
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
+import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashbacks/utils';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -7,7 +8,11 @@ import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { OfframpQueueFlowSchemaV2 } from '@/background-processing/schema';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
-import { OFFRAMP, OFFRAMP_WITHDRAW_REFERENCE_PREFIX } from '@/constants/strings';
+import {
+    BASE_CASHBACK_REFERENCE_PREFIX,
+    OFFRAMP,
+    OFFRAMP_WITHDRAW_REFERENCE_PREFIX,
+} from '@/constants/strings';
 import { dbClient } from '@/db/dbClient';
 import logger from '@/resources/logger';
 import { generateReceivedTokenMessage } from '@/resources/utils/bot-message-utils';
@@ -21,6 +26,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
     // Todo: Move handler implementation to appropriate service
     handleDepositSuccess: async (data, network) => {
         const userId = data.data.metadata?.userId;
+        const reference = data.data.reference;
         const blockradarAsset = data.data.asset;
         const platformAssetConfig = azzaWalletManager.searchAssets({
             tokenName: blockradarAsset.symbol,
@@ -76,6 +82,14 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         });
 
         const userPhoneNumber = user.primaryWhatsappPhoneNumber;
+
+        if (reference.startsWith(BASE_CASHBACK_REFERENCE_PREFIX)) {
+            await sendDepositMessageWithCashbackBanner(message, {
+                userPhoneNumber,
+                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+            });
+            return;
+        }
 
         const assetInteractiveMessage = MessageGenerators.generateInteractiveListMessage({
             recipient: userPhoneNumber,

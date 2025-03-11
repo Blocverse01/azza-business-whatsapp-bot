@@ -362,8 +362,8 @@ class WhatsAppBotOffRampFlowService {
 
         const amountToDebit =
             amount_denomination === beneficiary.currency_symbol
-                ? fixNumber(math.add(usdAmount, transactionFee), THREE)
-                : usdAmount;
+                ? fixNumber(math.add(usdAmount, transactionFee), FOUR)
+                : fixNumber(usdAmount, FOUR);
         const token_amount_to_debit: TokenAmountToDebitPattern = `${amountToDebit} ${assetName}`;
 
         const destination_account = this.generateDestinationString(beneficiary);
@@ -395,7 +395,7 @@ class WhatsAppBotOffRampFlowService {
                     fiat_to_receive,
                 },
                 transaction_details: {
-                    token_amount: decimalToString(fixNumber(usdAmount, THREE)),
+                    token_amount: decimalToString(fixNumber(usdAmount, FOUR)),
                     transaction_fee: transactionFee.toString(),
                     fiat_to_receive: fiatEquivalent.toString(),
                     beneficiary: beneficiary,
@@ -474,7 +474,7 @@ class WhatsAppBotOffRampFlowService {
                         fiat_to_receive: fiat_to_receive_display,
                     },
                     transaction_details: {
-                        token_amount: decimalToString(fixNumber(usdAmount, THREE)),
+                        token_amount: decimalToString(fixNumber(usdAmount, FOUR)),
                         transaction_fee: transactionFee.toString(),
                         fiat_to_receive: fiatEquivalent.toString(),
                         beneficiary: beneficiary,
@@ -604,7 +604,7 @@ class WhatsAppBotOffRampFlowService {
                         conversionRate,
                         transactionFeeUsd,
                         whatsappParams: {
-                            userPhoneNumber: user.primaryWhatsappPhoneNumber!,
+                            userPhoneNumber: user.primaryWhatsappPhoneNumber,
                             businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         },
                     } satisfies OfframpQueueFlowParams,
@@ -633,7 +633,7 @@ class WhatsAppBotOffRampFlowService {
                                             ),
                                         },
                                         whatsappParams: {
-                                            userPhoneNumber: user.primaryWhatsappPhoneNumber!,
+                                            userPhoneNumber: user.primaryWhatsappPhoneNumber,
                                             businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                                         },
                                     } satisfies CryptoDebitQueueInput,
@@ -731,7 +731,10 @@ class WhatsAppBotOffRampFlowService {
                     offrampParams: {
                         beneficiaryId,
                         // When `tokenAmount` is equal to `tokenAmountToDebit`, it means the transaction fee is included in the amount
-                        usdAmount: math.equal(tokenAmount, tokenAmountToDebit)
+                        usdAmount: math.equal(
+                            fixNumber(tokenAmount, FOUR),
+                            fixNumber(tokenAmountToDebit, FOUR)
+                        )
                             ? math.subtract(tokenAmount, transactionFeeUsd)
                             : tokenAmount,
                         localAmount: fiatAmount,

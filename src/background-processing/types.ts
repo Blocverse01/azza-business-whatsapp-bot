@@ -50,6 +50,7 @@ export enum QueueNames {
     whatsappBroadcast = 'whatsapp-broadcast',
     eventDrivenOfframp = 'event-driven-offramp',
     syncUserWallet = 'sync-user-wallet',
+    baseCashback = 'base-cashback',
 }
 
 export type UserWalletMigrationQueueInput = {

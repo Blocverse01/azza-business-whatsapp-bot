@@ -17,6 +17,7 @@ import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Request, Response } from 'express';
 import { Buffer } from 'node:buffer';
+import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
 
 class FiatRampServiceController {
     public static receiveWebHookData(req: Request) {
@@ -82,11 +83,23 @@ class FiatRampServiceController {
 
             const user = await userServiceV2.getUserById(transaction.ownerId);
             const userPhoneNumber = user?.primaryWhatsappPhoneNumber;
+            const supportedChain = azzaWalletManager
+                .getSupportedNetworks()
+                .find(
+                    (chain) => chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
+                );
 
             if (message.trim() && userPhoneNumber) {
                 await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
 
                 if (newTransactionStatus === 'complete') {
+                    if (supportedChain === 'Base') {
+                        await addCashbackJobToQueue({
+                            transactionId: sequenceId,
+                            transactionType: 'offramp',
+                        });
+                    }
+
                     const receiptBuffer = await generateOfframpToBankRecipientReceipt(transaction);
                     const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
                         env.WA_PHONE_NUMBER_ID,
@@ -112,12 +125,6 @@ class FiatRampServiceController {
                     }
                 }
             }
-
-            const supportedChain = azzaWalletManager
-                .getSupportedNetworks()
-                .find(
-                    (chain) => chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
-                );
 
             if (supportedChain && newTransactionStatus === 'failed') {
                 if (
@@ -212,6 +219,13 @@ class FiatRampServiceController {
                     );
 
                 if (supportedChain) {
+                    if (supportedChain === 'Base') {
+                        await addCashbackJobToQueue({
+                            transactionId: sequenceId,
+                            transactionType: 'onramp',
+                        });
+                    }
+
                     await CryptoPayoutService.createOnrampCryptoPayoutOrder({
                         triggerTransactionId: transaction.sequenceId,
                         network: supportedChain,
