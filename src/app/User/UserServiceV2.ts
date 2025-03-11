@@ -213,9 +213,14 @@ class UserServiceV2 {
     }
 
     public static async getWhatsappUserIdentityInfo(identifier: string) {
-        const user =
-            (await this.getWhatsappUserByPhoneNumber(identifier)) ??
-            (await this.getUserById(identifier));
+        console.log({ identifier });
+        let user = await this.getUserById(identifier);
+
+        if (!user) {
+            user = await this.getWhatsappUserByPhoneNumber(identifier, {
+                omitCache: true,
+            });
+        }
 
         if (!user) {
             throw new HttpException(BAD_REQUEST, 'User not found');
