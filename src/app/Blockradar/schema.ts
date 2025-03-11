@@ -115,6 +115,7 @@ const commonTransactionFieldsSchema = z.object({
     status: blockradarTransactionStatusSchema,
     tokenAddress: z.string().nullable(),
     type: blockradarTransactionTypeSchema,
+    reference: z.string().optional().nullable(),
 });
 
 export const blockradarTransactionSchema = commonTransactionFieldsSchema

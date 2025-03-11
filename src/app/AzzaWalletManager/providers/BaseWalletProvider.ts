@@ -38,6 +38,7 @@ export type AssetTransaction = {
     recipientAddress: string;
     senderAddress: string;
     id: string;
+    reference?: string | null;
 };
 export type WithdrawAssetParams = {
     assetId: string;

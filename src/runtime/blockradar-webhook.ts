@@ -26,7 +26,6 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
     // Todo: Move handler implementation to appropriate service
     handleDepositSuccess: async (data, network) => {
         const userId = data.data.metadata?.userId;
-        const reference = data.data.reference;
         const blockradarAsset = data.data.asset;
         const platformAssetConfig = azzaWalletManager.searchAssets({
             tokenName: blockradarAsset.symbol,
@@ -83,16 +82,27 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
 
         const userPhoneNumber = user.primaryWhatsappPhoneNumber;
 
-        console.log(data.data, reference.startsWith(BASE_CASHBACK_REFERENCE_PREFIX));
+        try {
+            const blockradarTransaction = await azzaWalletManager.getTransactionByHash(
+                transactionHash,
+                network
+            );
+            if (!blockradarTransaction) {
+                return;
+            }
 
-        if (reference.startsWith(BASE_CASHBACK_REFERENCE_PREFIX)) {
-            console.log('Sending cashback message with banner');
-            await sendDepositMessageWithCashbackBanner(message, {
-                userPhoneNumber,
-                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-            });
-            return;
-        }
+            const reference = blockradarTransaction.reference;
+
+            console.log(data.data, reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX));
+            if (reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX)) {
+                console.log('Sending cashback message with banner');
+                await sendDepositMessageWithCashbackBanner(message, {
+                    userPhoneNumber,
+                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                });
+                return;
+            }
+        } catch (error) {}
 
         const assetInteractiveMessage = MessageGenerators.generateInteractiveListMessage({
             recipient: userPhoneNumber,

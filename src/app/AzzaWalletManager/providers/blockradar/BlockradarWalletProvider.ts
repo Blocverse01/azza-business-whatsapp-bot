@@ -187,6 +187,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             recipientAddress: blockradarTransaction.recipientAddress,
             senderAddress: blockradarTransaction.senderAddress,
             id: blockradarTransaction.id,
+            reference: blockradarTransaction.reference,
         };
     }
 
@@ -234,6 +235,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             recipientAddress: blockradarTransaction.recipientAddress,
             senderAddress: blockradarTransaction.senderAddress,
             id: blockradarTransaction.id,
+            reference: blockradarTransaction.reference,
         };
     }
 
