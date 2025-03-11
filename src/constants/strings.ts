@@ -47,3 +47,5 @@ export const getDynamicMaintainanceMessage = (
 
 export const BASE_CASHBACK_REFERENCE_PREFIX = 'base-cb-';
 export const BASE_CASHBACK_REASON = 'base-cashback';
+
+export const CRYPTO_PAYOUT_REFERENCE_PREFIX = 'azza-pay';

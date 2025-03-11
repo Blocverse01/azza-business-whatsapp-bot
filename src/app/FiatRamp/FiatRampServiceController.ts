@@ -1,4 +1,3 @@
-import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
@@ -11,13 +10,13 @@ import env from '@/constants/env';
 import { OK } from '@/constants/status-codes';
 import logger, { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
-import { fixNumber, prettifyNumber } from '@/resources/utils/currency';
-import { TokenNames } from '@/resources/web3/core/tokens';
+import { prettifyNumber } from '@/resources/utils/currency';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Request, Response } from 'express';
 import { Buffer } from 'node:buffer';
 import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
+import { addCryptoPayoutJobToQueue } from '../crypto-payouts-v2/utils';
 
 class FiatRampServiceController {
     public static receiveWebHookData(req: Request) {
@@ -127,37 +126,10 @@ class FiatRampServiceController {
             }
 
             if (supportedChain && newTransactionStatus === 'failed') {
-                if (
-                    transaction.tokenSymbol === TokenNames.USDC ||
-                    transaction.tokenSymbol === TokenNames.USDT
-                ) {
-                    const assetConfig = azzaWalletManager.searchAssets({
-                        tokenName: transaction.tokenSymbol,
-                        network: supportedChain,
-                    });
-
-                    if (!user) {
-                        return;
-                    }
-
-                    const userWalletInfo = await azzaWalletManager.getUserWallet(
-                        user.id,
-                        assetConfig[0].network
-                    );
-
-                    const totalAmount = fixNumber(
-                        transaction.usdAmount + transaction.transactionFeeUsd,
-                        3
-                    );
-                    await CryptoPayoutService.createOfframpCryptoRefundOrder({
-                        network: supportedChain,
-                        tokenSymbol: transaction.tokenSymbol,
-                        triggerTransactionId: transaction.transactionHash,
-                        amount: totalAmount,
-                        destinationWalletAddress: userWalletInfo.address,
-                        payoutType: 'offramp-refund',
-                    });
-                }
+                await addCryptoPayoutJobToQueue({
+                    transactionId: sequenceId,
+                    transactionType: 'offramp-refund',
+                });
             }
         } catch (error) {
             handleRequestError(error, res, true);
@@ -219,24 +191,17 @@ class FiatRampServiceController {
                     );
 
                 if (supportedChain) {
+                    await addCryptoPayoutJobToQueue({
+                        transactionId: sequenceId,
+                        transactionType: 'onramp-payout',
+                    });
+
                     if (supportedChain === 'Base') {
                         await addCashbackJobToQueue({
                             transactionId: sequenceId,
                             transactionType: 'onramp',
                         });
                     }
-
-                    await CryptoPayoutService.createOnrampCryptoPayoutOrder({
-                        triggerTransactionId: transaction.sequenceId,
-                        network: supportedChain,
-                        tokenSymbol: transaction.tokenSymbol as Extract<
-                            typeof TokenNames,
-                            'USDT' | 'USDC'
-                        >,
-                        amount: transaction.usdAmount,
-                        destinationWalletAddress: transaction.destinationWalletAddress,
-                        payoutType: 'onramp-payment',
-                    });
                 }
 
                 const receiptBuffer = await generateOnrampReceipt(transaction);

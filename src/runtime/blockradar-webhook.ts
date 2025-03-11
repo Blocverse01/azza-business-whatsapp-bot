@@ -1,6 +1,7 @@
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
 import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashbacks/utils';
+import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-payouts-v2/utils';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -11,6 +12,7 @@ import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import {
     BASE_CASHBACK_REFERENCE_PREFIX,
+    CRYPTO_PAYOUT_REFERENCE_PREFIX,
     OFFRAMP,
     OFFRAMP_WITHDRAW_REFERENCE_PREFIX,
 } from '@/constants/strings';
@@ -174,6 +176,18 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             );
 
             await pendingOfframpRequest.delete();
+            return;
+        }
+
+        if (reference.startsWith(CRYPTO_PAYOUT_REFERENCE_PREFIX)) {
+            const cryptoPayoutRecord = await getCryptoPayoutRecord(reference);
+
+            if (!cryptoPayoutRecord) return;
+
+            await updateCryptoPayoutRecord(reference, {
+                payoutTransactionHash: data.data.hash,
+                status: 'complete',
+            });
         }
     },
     handleWithdrawalFailed: async (data, network) => {
@@ -227,6 +241,18 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             await pendingOfframpRequest.update({
                 cryptoTransactionId: data.data.id,
                 cryptoTransactionStatus: liveTransactionData.status,
+            });
+
+            return;
+        }
+
+        if (reference.startsWith(CRYPTO_PAYOUT_REFERENCE_PREFIX)) {
+            const cryptoPayoutRecord = await getCryptoPayoutRecord(reference);
+            if (!cryptoPayoutRecord) return;
+
+            await updateCryptoPayoutRecord(reference, {
+                payoutTransactionHash: data.data.hash,
+                status: 'failed',
             });
         }
     },

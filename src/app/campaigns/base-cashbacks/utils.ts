@@ -117,6 +117,7 @@ export const createBaseCashbackWorker = () => {
         },
         {
             connection: connectionConfig,
+            concurrency: 5,
         }
     );
 };

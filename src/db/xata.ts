@@ -113,17 +113,7 @@ const tables = [
         defaultValue: "",
       },
     ],
-    revLinks: [
-      { column: "user", table: "user_blockradar_wallet_config" },
-      { column: "user", table: "user_blockradar_wallet" },
-    ],
-  },
-  {
-    name: "user_blockradar_wallet_config",
-    columns: [
-      { name: "user", type: "link", link: { table: "user_v2" }, unique: true },
-      { name: "wallets", type: "json", notNull: true, defaultValue: "[]" },
-    ],
+    revLinks: [{ column: "user", table: "user_blockradar_wallet" }],
   },
   {
     name: "user_blockradar_wallet",
@@ -222,6 +212,34 @@ const tables = [
       { name: "cryptoTransactionStatus", type: "text" },
     ],
   },
+  {
+    name: "crypto_payout_v2",
+    columns: [
+      { name: "payoutType", type: "text", notNull: true, defaultValue: "" },
+      { name: "payoutTransactionHash", type: "text" },
+      { name: "status", type: "text", notNull: true, defaultValue: "created" },
+      {
+        name: "triggerTransactionId",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      { name: "tokenSymbol", type: "text", notNull: true, defaultValue: "" },
+      {
+        name: "blockchainNetwork",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      { name: "usdAmount", type: "float", notNull: true, defaultValue: "0" },
+      {
+        name: "destinationWalletAddress",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -242,11 +260,6 @@ export type BullDashboardAccessRecord = BullDashboardAccess & XataRecord;
 export type UserV2 = InferredTypes["user_v2"];
 export type UserV2Record = UserV2 & XataRecord;
 
-export type UserBlockradarWalletConfig =
-  InferredTypes["user_blockradar_wallet_config"];
-export type UserBlockradarWalletConfigRecord = UserBlockradarWalletConfig &
-  XataRecord;
-
 export type UserBlockradarWallet = InferredTypes["user_blockradar_wallet"];
 export type UserBlockradarWalletRecord = UserBlockradarWallet & XataRecord;
 
@@ -263,17 +276,20 @@ export type OfframpAwaitingCryptoDebit =
 export type OfframpAwaitingCryptoDebitRecord = OfframpAwaitingCryptoDebit &
   XataRecord;
 
+export type CryptoPayoutV2 = InferredTypes["crypto_payout_v2"];
+export type CryptoPayoutV2Record = CryptoPayoutV2 & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
   user_agent_thread: UserAgentThreadRecord;
   bull_dashboard_access: BullDashboardAccessRecord;
   user_v2: UserV2Record;
-  user_blockradar_wallet_config: UserBlockradarWalletConfigRecord;
   user_blockradar_wallet: UserBlockradarWalletRecord;
   manual_offramp_settlement_transaction: ManualOfframpSettlementTransactionRecord;
   feature_flag: FeatureFlagRecord;
   offramp_awaiting_crypto_debit: OfframpAwaitingCryptoDebitRecord;
+  crypto_payout_v2: CryptoPayoutV2Record;
 };
 
 const DatabaseClient = buildClient();

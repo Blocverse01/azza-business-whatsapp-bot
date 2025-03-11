@@ -51,6 +51,7 @@ export enum QueueNames {
     eventDrivenOfframp = 'event-driven-offramp',
     syncUserWallet = 'sync-user-wallet',
     baseCashback = 'base-cashback',
+    cryptoPayout = 'crypto-payout',
 }
 
 export type UserWalletMigrationQueueInput = {
