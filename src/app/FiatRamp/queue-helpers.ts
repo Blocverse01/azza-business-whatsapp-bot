@@ -55,7 +55,7 @@ export const handleOfframpRequestInQueue = async (
         const technicalIssueAlert = [
             `Offramping with fiat ramps provider failed, with this reason:`,
             parsedError.message,
-            `\nPayload: ${JSON.stringify(parsedError.data)}`,
+            `\nPayload: ${JSON.stringify(params)}`,
             `\nIssue level: critical`,
         ].join('\n');
 
