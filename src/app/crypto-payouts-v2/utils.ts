@@ -12,6 +12,7 @@ import { dbClient } from '@/db/dbClient';
 import { CRYPTO_PAYOUT_REFERENCE_PREFIX } from '@/constants/strings';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import logger from '@/resources/logger';
+import * as math from 'mathjs';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -80,7 +81,7 @@ export const processCryptoPayout = async (
         assetId: params.assetId,
         userId:
             transactionType === 'onramp-payout' ? ONRAMP_WALLET_USER_ID : OFFRAMP_WALLET_USER_ID,
-        amount: params.usdAmount.toString(),
+        amount: math.fix(params.usdAmount, 6).toString(),
         recipient: params.userWalletAddress,
         reference,
         metadata: {

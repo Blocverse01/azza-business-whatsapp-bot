@@ -31,7 +31,10 @@ const generateTransactionReferenceId = (targetTransactionHash: string) => {
 
 export const processBaseCashback = async (params: PercentageCashbackParams) => {
     const convertedPercentage = math.divide(params.cashbackPercentage, HUNDRED);
-    const cashbackAmountUsd = math.multiply(params.tradeAmountUsd, convertedPercentage);
+    const cashbackAmountUsd = math.fix(
+        math.multiply(params.tradeAmountUsd, convertedPercentage),
+        6
+    );
     const asset = getAssetConfigOrThrow(params.assetId);
 
     if (asset.network !== 'Base' && asset.tokenName !== TokenNames.USDC) {
