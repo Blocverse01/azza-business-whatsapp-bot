@@ -359,8 +359,8 @@ class FiatRampsRpcService {
                 id_number: user.kycDocumentNumber.replace(/\s/g, ''),
                 id_type: user.kycIdType,
                 address: user.address ?? FALLBACK_USE_AZZA_ADDRESS,
-                additional_id_number: user.additionalKycIdNumber?.replace(/\s/g, ''),
-                additional_id_type: user.additionalKycIdType,
+                additional_id_number: user.additionalKycIdNumber?.replace(/\s/g, '') ?? undefined,
+                additional_id_type: user.additionalKycIdType ?? undefined,
             }),
             transaction_fee_usd: validatedParams.transactionFeeUsd,
         });
@@ -396,8 +396,9 @@ class FiatRampsRpcService {
                 dob: params.userDetails.kycDateOfBirth,
                 id_number: params.userDetails.kycDocumentNumber.replace(/\s/g, ''),
                 id_type: params.userDetails.kycIdType,
-                additional_id_number: params.userDetails.additionalKycIdNumber?.replace(/\s/g, ''),
-                additional_id_type: params.userDetails.additionalKycIdType,
+                additional_id_number:
+                    params.userDetails.additionalKycIdNumber?.replace(/\s/g, '') ?? undefined,
+                additional_id_type: params.userDetails.additionalKycIdType ?? undefined,
             }),
             token_symbol: params.tokenName,
             blockchain_network: params.chainName,
