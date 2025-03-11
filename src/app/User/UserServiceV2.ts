@@ -230,7 +230,7 @@ class UserServiceV2 {
         const validation = userIdentityInfoSchema.safeParse({
             ...user,
             kycStatus,
-            phoneNumber: user.primaryWhatsappPhoneNumber!,
+            phoneNumber: user.primaryWhatsappPhoneNumber,
         });
 
         if (!validation.success) {

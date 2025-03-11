@@ -55,6 +55,7 @@ import {
 } from '@/resources/utils/encryption';
 import { normalizeBlockchainInput } from '@/resources/web3/core/blockchains';
 import { TokenNames } from '@/resources/web3/core/tokens';
+import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
 
@@ -375,6 +376,14 @@ const userTxPinSecurityWorker = new Worker<
         let isSuccessful = false;
 
         const userId = convertBase64ToAsciiString(job.data.userId);
+        const user =
+            (await userServiceV2.getWhatsappUserByPhoneNumber(userId)) ??
+            (await userServiceV2.getUserById(userId));
+
+        if (!user) {
+            throw new Error(`User not found for ${userId}`);
+        }
+
         const businessPhoneNumberId = job.data.whatsappParams.businessPhoneNumberId;
         const userPhoneNumber = convertBase64ToAsciiString(job.data.whatsappParams.userPhoneNumber);
 
@@ -391,7 +400,7 @@ const userTxPinSecurityWorker = new Worker<
                     isSuccessful = (
                         await setTransactionPin({
                             newPinHash: job.data.newPinHash,
-                            userId: userId,
+                            userId: user.id,
                             encryptedSecurityQuestions: job.data.encryptedSecurityQuestions,
                         })
                     ).pinSet;
@@ -411,7 +420,7 @@ const userTxPinSecurityWorker = new Worker<
                 isSuccessful = (
                     await changeTransactionPin({
                         newPinHash: job.data.newPinHash,
-                        userId: userId,
+                        userId: user.id,
                     })
                 ).pinChanged;
 
