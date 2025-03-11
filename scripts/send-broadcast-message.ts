@@ -2,7 +2,7 @@ import { sendWhatsappBroadcastMessage } from '../src/app/WhatsAppBot/messagingQu
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
 
-const announcementBannerMediaId = '636062842503687';
+const mediaId = '1145583560637144';
 
 async function sendBroadcastMessage(message: string, onlyTo: string[] = []) {
     const allUsers =
@@ -30,7 +30,7 @@ async function sendBroadcastMessage(message: string, onlyTo: string[] = []) {
                             to: phoneNumber,
                             type: 'image',
                             image: {
-                                id: announcementBannerMediaId,
+                                id: mediaId,
                                 caption: message,
                             },
                         },
@@ -51,10 +51,8 @@ async function runScript() {
     const onlyTo = onlyToString ? onlyToString.split(',') : [];
 
     const message = [
-        'Hello awesome user! 💙',
-        'Thank you for your patience during our maintenance. Transactions and all services are now back online! 🚀\n',
-        "If you haven't completed your KYC, use the /verify_me command to get started.",
-        "And if you're already verified, go ahead and experience the speed of Azza! ⚡️",
+        'You are now qualified to earn *1%* *cashback* every time you buy or sell *USDC* on *BASE*.This offer is only available on *AZZA*\n',
+        'Start trading now and earn cashback on every transaction! 🚀',
     ].join('\n');
 
     await sendBroadcastMessage(message, onlyTo);
