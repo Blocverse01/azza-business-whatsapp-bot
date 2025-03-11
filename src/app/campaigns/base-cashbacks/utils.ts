@@ -16,6 +16,7 @@ import { PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+import ManualOfframpSettlementService from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 
 const CASHBACK_PAYOUT_WALLET_USER_ID = 'cashback-payout';
 const BASE_CASHBACK_BANNER_MEDIA_ID = '1103964578170380';
@@ -67,23 +68,46 @@ export const createBaseCashbackWorker = () => {
         async (job) => {
             const { transactionId, transactionType } = job.data;
 
-            const transaction =
-                transactionType === 'offramp'
-                    ? await FiatRampService.getOfframpTransaction(transactionId)
-                    : await FiatRampService.getOnrampTransaction(transactionId);
+            const transaction = await (async () => {
+                if (transactionType === 'manual-offramp') {
+                    return await ManualOfframpSettlementService.getManualOfframpSettlementBySequenceId(
+                        transactionId
+                    );
+                }
+                if (transactionType === 'offramp') {
+                    return await FiatRampService.getOfframpTransaction(transactionId);
+                }
+                if (transactionType === 'onramp') {
+                    return await FiatRampService.getOnrampTransaction(transactionId);
+                }
+                throw new Error(`Invalid transaction type: ${transactionType}`);
+            })();
 
-            const transactionUsdAmount = transaction.usdAmount;
+            if (!transaction) {
+                throw Error(`Transaction with ID ${transactionId} not found`);
+            }
+
+            const transactionUsdAmount = transaction.usdAmount!;
             const assetConfig = azzaWalletManager.searchAssets({
-                tokenName: transaction.tokenSymbol,
-                network: transaction.blockchainNetwork,
+                tokenName: transaction.tokenSymbol!,
+                network: transaction.blockchainNetwork!,
             })[0];
+            const destinationWalletAddress =
+                'fromWalletAddress' in transaction
+                    ? transaction.fromWalletAddress
+                    : transaction.destinationWalletAddress;
+
+            if (!destinationWalletAddress) {
+                throw Error(`Target transaction doesn't include a valid destination address`);
+            }
+
+            if (!transaction.sequenceId) {
+                throw Error('Missing sequenceId');
+            }
 
             const cashbackParams: PercentageCashbackParams = {
                 tradeAmountUsd: transactionUsdAmount,
-                userWalletAddress:
-                    'fromWalletAddress' in transaction
-                        ? transaction.fromWalletAddress
-                        : transaction.destinationWalletAddress,
+                userWalletAddress: destinationWalletAddress,
                 targetTransactionHash: transaction.sequenceId,
                 cashbackPercentage: ONE,
                 assetId: assetConfig.listItemId,

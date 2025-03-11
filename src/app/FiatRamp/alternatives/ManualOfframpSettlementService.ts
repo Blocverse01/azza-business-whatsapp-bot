@@ -1,3 +1,4 @@
+import { addCashbackJobToQueue } from '@/app/campaigns/base-cashbacks/utils';
 import {
     ACKNOWLEDGE_BUTTON_ID_PREFIX,
     MANUAL_OFFRAMP_SETTLERS,
@@ -195,6 +196,13 @@ class ManualOfframpSettlementService {
             params.businessPhoneNumberId,
             MessageGenerators.generateTextMessage(userPhoneNumber, message)
         );
+
+        if (settlement.blockchainNetwork?.toLowerCase() === 'base') {
+            await addCashbackJobToQueue({
+                transactionId: settlement.sequenceId!,
+                transactionType: 'manual-offramp',
+            });
+        }
 
         const receiptBuffer = await generateOfframpToBankRecipientReceipt(
             OfframpTransactionRecordSchema.parse({

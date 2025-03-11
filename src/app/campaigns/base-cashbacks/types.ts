@@ -8,5 +8,5 @@ export type PercentageCashbackParams = {
 
 export type PercentageCashbackQueueInput = {
     transactionId: string;
-    transactionType: 'offramp' | 'onramp';
+    transactionType: 'offramp' | 'onramp' | 'manual-offramp';
 };

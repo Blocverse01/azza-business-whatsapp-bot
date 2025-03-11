@@ -52,6 +52,7 @@ createBullBoard({
         new BullMQAdapter(queues.fiatPayoutV2),
         new BullMQAdapter(queues.whatsappBotMessagingTemp),
         new BullMQAdapter(queues.syncUserWallet),
+        new BullMQAdapter(queues.baseCashback),
     ],
     serverAdapter: serverAdapter,
 });
