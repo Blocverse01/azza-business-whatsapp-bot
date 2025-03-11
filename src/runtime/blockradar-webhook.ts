@@ -95,9 +95,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
 
             const reference = blockradarWithdrawTransaction.reference;
 
-            console.log(data.data, reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX));
             if (reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX)) {
-                console.log('Sending cashback message with banner');
                 await sendDepositMessageWithCashbackBanner(message, {
                     userPhoneNumber,
                     businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
