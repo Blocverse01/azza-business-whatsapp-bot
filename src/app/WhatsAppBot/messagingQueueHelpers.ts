@@ -41,6 +41,8 @@ import {
 import { BAD_REQUEST } from '@/constants/status-codes';
 import { getDynamicMaintainanceMessage } from '@/constants/strings';
 import { HttpException } from '@/resources/exceptions/HttpException';
+import logger from '@/resources/logger';
+import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
@@ -564,22 +566,29 @@ const handleIncomingWhatsappMessageTemp = async (
 
             const lastSessionId = result.promptHandlerResponse.resetSession ? '' : sessionId;
 
-            await createOrUpdateUserAgentThread({
-                ownerId: from,
-                newMessages: [
-                    {
-                        role: 'user',
-                        content: result.prompt,
-                        sessionId: sessionId,
-                    },
-                    {
-                        role: 'assistant',
-                        content: aiResponse,
-                        sessionId: sessionId,
-                    },
-                ],
-                lastSessionId,
-            });
+            try {
+                await createOrUpdateUserAgentThread({
+                    ownerId: from,
+                    newMessages: [
+                        {
+                            role: 'user',
+                            content: result.prompt,
+                            sessionId: sessionId,
+                        },
+                        {
+                            role: 'assistant',
+                            content: aiResponse,
+                            sessionId: sessionId,
+                        },
+                    ],
+                    lastSessionId,
+                });
+            } catch (error) {
+                const parsedError = parseUnknownError(error);
+                await logger.error(parsedError.message, {
+                    error: parsedError,
+                });
+            }
         }
 
         return result.classifiedAction.class;
