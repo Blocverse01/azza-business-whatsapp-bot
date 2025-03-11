@@ -192,3 +192,4 @@ export type UpdateAddressRequestBody = z.infer<typeof updateAddressRequestBodySc
 export type WithdrawAssetRequestBody = z.infer<typeof withdrawAssetRequestBodySchema>;
 export type BlockradarWebhookPayload = z.infer<typeof blockradarWebhookPayloadSchema>;
 export type BlockradarAddress = z.infer<typeof blockradarAddressSchema>;
+export type BlockradarTransactionType = z.infer<typeof blockradarTransactionTypeSchema>;

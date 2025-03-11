@@ -1,3 +1,4 @@
+import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
 import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashbacks/utils';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
@@ -83,15 +84,16 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const userPhoneNumber = user.primaryWhatsappPhoneNumber;
 
         try {
-            const blockradarTransaction = await azzaWalletManager.getTransactionByHash(
+            const walletClient = getMasterWalletClient(network);
+            const blockradarWithdrawTransaction = await walletClient.getTransactionByHash(
                 transactionHash,
-                network
+                'WITHDRAW'
             );
-            if (!blockradarTransaction) {
+            if (!blockradarWithdrawTransaction) {
                 return;
             }
 
-            const reference = blockradarTransaction.reference;
+            const reference = blockradarWithdrawTransaction.reference;
 
             console.log(data.data, reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX));
             if (reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX)) {
@@ -102,7 +104,9 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 });
                 return;
             }
-        } catch (error) {}
+        } catch (error) {
+            console.log(error);
+        }
 
         const assetInteractiveMessage = MessageGenerators.generateInteractiveListMessage({
             recipient: userPhoneNumber,

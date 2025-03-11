@@ -17,6 +17,7 @@ import {
 } from '@/resources/web3/core/blockchains';
 import type { AssetConfig } from '@/resources/web3/core/tokens';
 import type { Logtail } from '@logtail/node';
+import { BlockradarTransactionType } from '@/app/Blockradar/schema';
 
 type BlockradarWalletProviderParams = {
     dataSources: {
@@ -193,10 +194,14 @@ class BlockradarWalletProvider implements BaseWalletProvider {
 
     public async getTransactionByHash(
         transactionHash: string,
-        network: AllSupportedBlockchains
+        network: AllSupportedBlockchains,
+        targetTransactionType?: BlockradarTransactionType
     ): Promise<AssetTransaction> {
         const walletClient = this.dataSources.blockradarMasterWalletClient(network);
-        const blockradarTransaction = await walletClient.getTransactionByHash(transactionHash);
+        const blockradarTransaction = await walletClient.getTransactionByHash(
+            transactionHash,
+            targetTransactionType
+        );
 
         if (!blockradarTransaction) {
             throw new BlockradarWalletProviderError({

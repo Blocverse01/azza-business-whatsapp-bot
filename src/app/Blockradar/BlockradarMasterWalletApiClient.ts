@@ -12,6 +12,7 @@ import {
     WithdrawAssetRequestBody,
     withdrawAssetRequestBodySchema,
     withdrawAssetResponseDataSchema,
+    type BlockradarTransactionType,
 } from '@/app/Blockradar/schema';
 import { OK } from '@/constants/status-codes';
 import { z } from 'zod';
@@ -236,7 +237,10 @@ class BlockradarMasterWalletApiClient {
         return validatedData.data;
     }
 
-    public async getTransactionByHash(transactionHash: string) {
+    public async getTransactionByHash(
+        transactionHash: string,
+        targetTransactionType?: BlockradarTransactionType
+    ) {
         const transactionResourceUrl = this.getResourceUrl(MasterWalletApiResources.TRANSACTION);
         const url = transactionResourceUrl + `?hash=${transactionHash}`;
 
@@ -266,7 +270,9 @@ class BlockradarMasterWalletApiClient {
         }
 
         const targetTransaction = validatedData.data.find(
-            (transaction) => transaction.hash?.toLowerCase() === transactionHash.toLowerCase()
+            (transaction) =>
+                transaction.hash?.toLowerCase() === transactionHash.toLowerCase() &&
+                (targetTransactionType ? transaction.type === targetTransactionType : true)
         );
 
         return targetTransaction ?? null;
