@@ -232,6 +232,8 @@ class UserServiceV2 {
 
         const kycStatus = this.formatKycStatus(user.kycStatus);
 
+        console.log(`Got here, KYC status: ${kycStatus}`);
+
         if (kycStatus !== 'verified') {
             return null;
         }
@@ -241,6 +243,8 @@ class UserServiceV2 {
             kycStatus,
             phoneNumber: user.primaryWhatsappPhoneNumber,
         });
+
+        console.dir(validation, { depth: Infinity });
 
         if (!validation.success) {
             return null;
