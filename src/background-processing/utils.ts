@@ -119,10 +119,12 @@ export const createSyncUserWalletWorker = () => {
 export async function syncUserAddressJob(data: {
     userId: string;
     network: AllSupportedBlockchains;
+    isEvmCompatible: boolean;
     addressId: string;
     address: string;
 }) {
-    return queues.syncUserWallet.add(`sync-${data.userId}-${data.network}`, data, {
+    const networkIdentifier = data.isEvmCompatible ? 'EVM' : `${data.network}`;
+    return queues.syncUserWallet.add(`sync-${data.userId}-${networkIdentifier}`, data, {
         jobId: `sync-${data.userId}-${data.network}`, // Ensure job uniqueness
         removeOnComplete: false,
         removeOnFail: false,

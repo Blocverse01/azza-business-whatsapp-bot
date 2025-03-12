@@ -186,12 +186,24 @@ const walletMigrationWorker = new Worker<
             throw new Error('No wallets were created for the user');
         }
 
-        const syncWalletsQueue = newWallets.map((newWallet) =>
+        const newWalletsWithoutEvmWallets = newWallets.filter(
+            (wallet) => !isEvmCompatibleBlockchain(wallet.blockchainNetwork)
+        );
+        const randomEvmWallet = newWallets.find((wallet) =>
+            isEvmCompatibleBlockchain(wallet.blockchainNetwork)
+        );
+
+        if (randomEvmWallet) {
+            newWalletsWithoutEvmWallets.push(randomEvmWallet);
+        }
+
+        const syncWalletsQueue = newWalletsWithoutEvmWallets.map((newWallet) =>
             syncUserAddressJob({
                 userId: newUserId,
                 network: newWallet.blockchainNetwork,
                 address: newWallet.address,
                 addressId: newWallet.id,
+                isEvmCompatible: isEvmCompatibleBlockchain(newWallet.blockchainNetwork),
             })
         );
 
@@ -199,7 +211,7 @@ const walletMigrationWorker = new Worker<
 
         return {
             newUserId,
-            walletIds: newWallets.map((wallet) => wallet.id),
+            walletIds: newWalletsWithoutEvmWallets.map((wallet) => wallet.id),
         };
     },
     {

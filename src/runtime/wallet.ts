@@ -29,6 +29,7 @@ const walletProvider = new BlockradarWalletProvider({
                 network: params.network,
                 address: params.address,
                 addressId: params.addressId,
+                isEvmCompatible: isEvmCompatibleBlockchain(params.network),
             });
         },
     },
