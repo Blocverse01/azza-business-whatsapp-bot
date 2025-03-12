@@ -1,3 +1,7 @@
+import {
+    createCleanupOldMessagesWorker,
+    prepareSchedulerQueue,
+} from '@/app/aiAgent/conversation-manager';
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import {
     sendTransferAssetTransaction,
@@ -453,12 +457,15 @@ const userTxPinSecurityWorker = new Worker<
     }
 );
 
+prepareSchedulerQueue();
+
 createWhatsappBroadcastWorker();
 createEventDrivenOfframpWorker();
 createFiatPayoutV2Worker();
 createSyncUserWalletWorker();
 createBaseCashbackWorker();
 createCryptoPayoutWorker();
+createCleanupOldMessagesWorker();
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

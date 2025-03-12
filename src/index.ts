@@ -54,6 +54,7 @@ createBullBoard({
         new BullMQAdapter(queues.syncUserWallet),
         new BullMQAdapter(queues.baseCashback),
         new BullMQAdapter(queues.cryptoPayout),
+        new BullMQAdapter(queues.cleanupMessages),
     ],
     serverAdapter: serverAdapter,
 });

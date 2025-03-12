@@ -1,7 +1,11 @@
+import { queues } from '@/background-processing/queues';
+import { connectionConfig } from '@/background-processing/redis-connection-config';
+import { QueueNames } from '@/background-processing/types';
 import { dbClient, sqlClient } from '@/db/dbClient';
 import { UserMessage } from '@/db/xata';
 import { openai } from '@ai-sdk/openai';
 import { generateText, embed } from 'ai';
+import { Worker } from 'bullmq';
 
 export const storeUserMessage = async (params: {
     ownerId: string;
@@ -19,24 +23,50 @@ export const storeUserMessage = async (params: {
             lastSessionId: sessionId,
         });
     } else {
-        await dbClient.user_agent_thread.update(thread.id, {
-            lastSessionId: shouldResetLastSessionId ? '' : sessionId,
-        });
+        if (shouldResetLastSessionId) {
+            // Summarize messages before soft deleting them
+            const messages = (
+                await sqlClient<UserMessage>({
+                    statement: `
+                    SELECT id, content 
+                    FROM user_message 
+                    WHERE "threadId" = $1 AND "softDeleted" = FALSE
+                    ORDER BY "xata.createdAt" DESC;`,
+                    params: [thread.id],
+                })
+            ).records;
+
+            console.log(messages);
+
+            if (messages.length > 0) {
+                await generateAndStoreSummary(thread.id);
+
+                // Soft delete the old messages
+                await sqlClient({
+                    statement: `
+                    UPDATE user_message 
+                    SET "softDeleted" = TRUE 
+                    WHERE "threadId" = $1 AND "softDeleted" = FALSE;`,
+                    params: [thread.id],
+                });
+            }
+
+            await dbClient.user_agent_thread.update(thread.id, {
+                lastSessionId: '',
+            });
+        } else {
+            await dbClient.user_agent_thread.update(thread.id, {
+                lastSessionId: sessionId,
+            });
+        }
     }
 
+    // Store the new message
     await dbClient.user_message.create({
         threadId: thread.id,
         content,
         sessionId: sessionId,
     });
-
-    // Check if it's time to summarize
-    // const messageCount = (await dbClient.user_message.filter({ threadId: thread.id }).getAll())
-    //     .length;
-
-    // if (messageCount % 5 === 0) {
-    //     await generateAndStoreSummary(thread.id);
-    // }
 
     return thread.id;
 };
@@ -47,9 +77,8 @@ export const generateAndStoreSummary = async (threadId: string) => {
             statement: `
             SELECT content 
             FROM user_message 
-            WHERE "threadId" = $1 
-            ORDER BY "xata.createdAt" DESC 
-            LIMIT 10;`,
+            WHERE "threadId" = $1
+            ORDER BY "xata.createdAt" DESC;`,
             params: [threadId],
         })
     ).records;
@@ -141,4 +170,42 @@ export const getRelevantSummary = async (query: string, threadId: string) => {
     }
 
     return relevantSummaries.map((s) => s.summary);
+};
+
+export const cleanupOldMessages = async () => {
+    try {
+        await sqlClient({
+            statement: `
+            DELETE FROM user_message 
+            WHERE "softDeleted" = TRUE 
+            AND "xata.createdAt" < NOW() - INTERVAL '24 hours';`,
+        });
+
+        console.log(`Cleanup completed. Deleted old messages.`);
+    } catch (error) {
+        console.error('Error during message cleanup:', error);
+    }
+};
+
+export const prepareSchedulerQueue = async () => {
+    await queues.cleanupMessages.upsertJobScheduler(
+        'cleanup-every-24-hours',
+        {
+            every: 86_400_000, // Job will repeat every 24 hours
+        },
+        {
+            name: 'Cleanup Old Messages',
+        }
+    );
+};
+export const createCleanupOldMessagesWorker = () => {
+    return new Worker(
+        QueueNames.cleanupMessages,
+        async () => {
+            await cleanupOldMessages();
+        },
+        {
+            connection: connectionConfig,
+        }
+    );
 };

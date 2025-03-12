@@ -68,9 +68,9 @@ const tables = [
   {
     name: "user_agent_thread",
     columns: [
-      { name: "messages", type: "json", notNull: true, defaultValue: "[]" },
       { name: "lastSessionId", type: "text", notNull: true, defaultValue: "" },
       { name: "ownerId", type: "text" },
+      { name: "messages", type: "json", notNull: true, defaultValue: "[]" },
     ],
   },
   {
@@ -246,6 +246,12 @@ const tables = [
       { name: "content", type: "text", notNull: true, defaultValue: "" },
       { name: "sessionId", type: "text", notNull: true, defaultValue: "" },
       { name: "threadId", type: "text", notNull: true, defaultValue: "" },
+      {
+        name: "softDeleted",
+        type: "bool",
+        notNull: true,
+        defaultValue: "false",
+      },
     ],
   },
   {

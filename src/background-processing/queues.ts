@@ -97,6 +97,9 @@ export const queues = {
     cryptoPayout: new Queue<CryptoPayoutQueueInput>(QueueNames.cryptoPayout, {
         connection: connectionConfig,
     }),
+    cleanupMessages: new Queue(QueueNames.cleanupMessages, {
+        connection: connectionConfig,
+    }),
 };
 
 export const defaultQueueRemoveOptions = {

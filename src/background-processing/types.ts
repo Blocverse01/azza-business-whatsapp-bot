@@ -52,6 +52,7 @@ export enum QueueNames {
     syncUserWallet = 'sync-user-wallet',
     baseCashback = 'base-cashback',
     cryptoPayout = 'crypto-payout',
+    cleanupMessages = 'cleanup-messages',
 }
 
 export type UserWalletMigrationQueueInput = {
