@@ -59,6 +59,7 @@ export const handleUserMessage = async (params: {
                 ownerId: user.id,
                 content: result.prompt,
                 sessionId: sessionId,
+                shouldResetLastSessionId: result.promptHandlerResponse.resetSession,
             });
         } catch (error) {
             const parsedError = parseUnknownError(error);

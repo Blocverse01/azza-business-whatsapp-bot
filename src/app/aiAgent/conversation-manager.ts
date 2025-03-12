@@ -7,8 +7,9 @@ export const storeUserMessage = async (params: {
     ownerId: string;
     content: string;
     sessionId: string;
+    shouldResetLastSessionId?: boolean;
 }) => {
-    const { ownerId, content, sessionId } = params;
+    const { ownerId, content, sessionId, shouldResetLastSessionId } = params;
 
     let thread = await dbClient.user_agent_thread.filter({ ownerId }).getFirst();
 
@@ -19,7 +20,7 @@ export const storeUserMessage = async (params: {
         });
     } else {
         await dbClient.user_agent_thread.update(thread.id, {
-            lastSessionId: sessionId,
+            lastSessionId: shouldResetLastSessionId ? '' : sessionId,
         });
     }
 
