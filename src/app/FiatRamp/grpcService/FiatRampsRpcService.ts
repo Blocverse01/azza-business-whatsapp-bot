@@ -324,8 +324,6 @@ class FiatRampsRpcService {
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
         const user = await userServiceV2.getWhatsappUserIdentityInfo(params.userId);
 
-        console.log({ userReturnedHere: user });
-
         if (!user) throw new Error('User not found');
 
         const standardizedUserPhoneNumber = `+${user.phoneNumber}`;

@@ -76,7 +76,8 @@ export const textPromptHandler = async (
     const runtimeMessages = storedMessages
         .filter((message) => lastSessionId === '' || message.sessionId === lastSessionId)
         .slice(-10)
-        .map((message) => ({ role: message.role, content: message.content }));
+        .map((message) => ({ role: message.role, content: message.content }))
+        .reverse();
 
     console.log({ runtimeMessages });
 
