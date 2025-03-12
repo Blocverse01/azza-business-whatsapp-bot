@@ -78,6 +78,8 @@ export const textPromptHandler = async (
         .slice(-10)
         .map((message) => ({ role: message.role, content: message.content }));
 
+    console.log({ runtimeMessages });
+
     runtimeMessages.push({ role: 'user', content: prompt.trim() });
 
     let classifiedAction: Action;
