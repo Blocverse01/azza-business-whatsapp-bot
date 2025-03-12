@@ -74,14 +74,18 @@ export const textPromptHandler = async (
     const { storedMessages, lastSessionId, user, prompt, botParams } = params;
 
     const runtimeMessages = storedMessages
-        .filter((message) => lastSessionId === '' || message.sessionId === lastSessionId)
+        .filter((message) => message.sessionId === lastSessionId)
         .slice(-10)
-        .map((message) => ({ role: message.role, content: message.content }))
+        .map((message) => ({
+            role: message.role,
+            content: message.content,
+            sessionId: message.sessionId,
+        }))
         .reverse();
 
-    console.log({ runtimeMessages });
+    console.log({ runtimeMessages, prompt, lastSessionId });
 
-    runtimeMessages.push({ role: 'user', content: prompt.trim() });
+    runtimeMessages.push({ role: 'user', content: prompt.trim(), sessionId: '' });
 
     let classifiedAction: Action;
     try {
