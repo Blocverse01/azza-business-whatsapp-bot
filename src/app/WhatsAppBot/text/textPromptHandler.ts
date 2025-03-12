@@ -83,8 +83,6 @@ export const textPromptHandler = async (
         }))
         .reverse();
 
-    console.log({ runtimeMessages, prompt, lastSessionId });
-
     runtimeMessages.push({ role: 'user', content: prompt.trim(), sessionId: '' });
 
     let classifiedAction: Action;
