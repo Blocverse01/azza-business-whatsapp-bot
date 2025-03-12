@@ -36,8 +36,6 @@ export const storeUserMessage = async (params: {
                 })
             ).records;
 
-            console.log(messages);
-
             if (messages.length > 0) {
                 await generateAndStoreSummary(thread.id);
 
