@@ -34,14 +34,15 @@ export const handleUserMessage = async (params: {
         ),
     ];
 
+    console.log({ summary: conversationHistory.latestSummary });
     // Add latest summary as a system message if available
-    if (conversationHistory.latestSummary) {
-        storedMessages.unshift({
-            role: 'system',
-            content: `Summary of previous messages: ${conversationHistory.latestSummary}`,
-            sessionId: 'summary',
-        });
-    }
+    // if (conversationHistory.latestSummary) {
+    //     storedMessages.unshift({
+    //         role: 'system',
+    //         content: `Summary of previous messages: ${conversationHistory.latestSummary}`,
+    //         sessionId: 'summary',
+    //     });
+    // }
 
     const result = await textPromptHandler({
         storedMessages,
