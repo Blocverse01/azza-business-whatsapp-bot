@@ -31,12 +31,12 @@ export const storeUserMessage = async (params: {
     });
 
     // Check if it's time to summarize
-    const messageCount = (await dbClient.user_message.filter({ threadId: thread.id }).getAll())
-        .length;
+    // const messageCount = (await dbClient.user_message.filter({ threadId: thread.id }).getAll())
+    //     .length;
 
-    if (messageCount % 5 === 0) {
-        await generateAndStoreSummary(thread.id);
-    }
+    // if (messageCount % 5 === 0) {
+    //     await generateAndStoreSummary(thread.id);
+    // }
 
     return thread.id;
 };

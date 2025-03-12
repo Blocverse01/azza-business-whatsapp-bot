@@ -34,7 +34,7 @@ export const handleUserMessage = async (params: {
         ),
     ];
 
-    console.log({ summary: conversationHistory.latestSummary });
+    console.log({ storedMessages });
     // Add latest summary as a system message if available
     // if (conversationHistory.latestSummary) {
     //     storedMessages.unshift({
