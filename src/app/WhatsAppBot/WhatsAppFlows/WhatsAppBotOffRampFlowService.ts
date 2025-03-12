@@ -259,7 +259,7 @@ class WhatsAppBotOffRampFlowService {
                           rampType: 'offramp',
                       });
 
-                      return fixNumber(usdLimit + feeForUsdLimit.feeUsd, TWO);
+                      return fixNumber(usdLimit + feeForUsdLimit.feeUsd + 0.1, TWO);
                   })(),
             amount_denomination === beneficiary.currency_symbol
                 ? countryLimits.max

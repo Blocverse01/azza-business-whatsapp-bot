@@ -213,10 +213,7 @@ class UserServiceV2 {
     }
 
     public static async getWhatsappUserIdentityInfo(identifier: string) {
-        console.log({ identifier });
         let user = await this.getUserById(identifier);
-
-        console.log({ user });
 
         if (!user) {
             user = await this.getWhatsappUserByPhoneNumber(identifier, {
@@ -224,15 +221,11 @@ class UserServiceV2 {
             });
         }
 
-        console.log({ user2: user });
-
         if (!user) {
             throw new HttpException(BAD_REQUEST, 'User not found');
         }
 
         const kycStatus = this.formatKycStatus(user.kycStatus);
-
-        console.log(`Got here, KYC status: ${kycStatus}`);
 
         if (kycStatus !== 'verified') {
             return null;
@@ -243,8 +236,6 @@ class UserServiceV2 {
             kycStatus,
             phoneNumber: user.primaryWhatsappPhoneNumber,
         });
-
-        console.dir(validation, { depth: Infinity });
 
         if (!validation.success) {
             return null;

@@ -240,6 +240,22 @@ const tables = [
       },
     ],
   },
+  {
+    name: "user_message",
+    columns: [
+      { name: "content", type: "text", notNull: true, defaultValue: "" },
+      { name: "sessionId", type: "text", notNull: true, defaultValue: "" },
+      { name: "threadId", type: "text", notNull: true, defaultValue: "" },
+    ],
+  },
+  {
+    name: "conversation_summary",
+    columns: [
+      { name: "threadId", type: "text", notNull: true, defaultValue: "" },
+      { name: "summary", type: "text", notNull: true, defaultValue: "" },
+      { name: "embedding", type: "vector", vector: { dimension: 1536 } },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -279,6 +295,12 @@ export type OfframpAwaitingCryptoDebitRecord = OfframpAwaitingCryptoDebit &
 export type CryptoPayoutV2 = InferredTypes["crypto_payout_v2"];
 export type CryptoPayoutV2Record = CryptoPayoutV2 & XataRecord;
 
+export type UserMessage = InferredTypes["user_message"];
+export type UserMessageRecord = UserMessage & XataRecord;
+
+export type ConversationSummary = InferredTypes["conversation_summary"];
+export type ConversationSummaryRecord = ConversationSummary & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -290,6 +312,8 @@ export type DatabaseSchema = {
   feature_flag: FeatureFlagRecord;
   offramp_awaiting_crypto_debit: OfframpAwaitingCryptoDebitRecord;
   crypto_payout_v2: CryptoPayoutV2Record;
+  user_message: UserMessageRecord;
+  conversation_summary: ConversationSummaryRecord;
 };
 
 const DatabaseClient = buildClient();

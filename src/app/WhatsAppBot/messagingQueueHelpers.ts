@@ -9,7 +9,11 @@ import ManualOfframpSettlementService from '@/app/FiatRamp/alternatives/ManualOf
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import { getSessionId, textPromptHandler } from '@/app/WhatsAppBot/text/textPromptHandler';
+import {
+    getSessionId,
+    textPromptHandler,
+    type StoredMessage,
+} from '@/app/WhatsAppBot/text/textPromptHandler';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     ActionExecuted,
@@ -48,6 +52,8 @@ import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
 import type { CountryCode } from 'libphonenumber-js';
+import { getConversationHistory, storeUserMessage } from '../aiAgent/conversation-manager';
+import { handleUserMessage } from './text/handleUserMessage';
 
 export const receiveIncomingWhatsappMessage = async (
     message: IncomingWhatsappMessage,
@@ -484,8 +490,8 @@ const handleIncomingWhatsappMessageTemp = async (
         FeatureFlagKey.CORE_MAINTAINANCE
     );
 
-    const [messageThread, userV2] = await Promise.all([
-        getUserAgentThread(from),
+    const [userV2] = await Promise.all([
+        //getUserAgentThread(from),
         userServiceV2.getWhatsappUserByPhoneNumber(from),
     ]);
 
@@ -548,49 +554,11 @@ const handleIncomingWhatsappMessageTemp = async (
         // Handle any other text message
         const normalizedPrompt = text.body.startsWith('/') ? text.body.replace('/', '') : text.body;
 
-        const result = await textPromptHandler({
-            storedMessages: messageThread.messages,
-            lastSessionId: messageThread.lastSessionId,
-            prompt: normalizedPrompt,
-            botParams: phoneParams,
+        const result = await handleUserMessage({
+            message: normalizedPrompt,
             user: userV2,
+            phoneParams,
         });
-
-        if (result.handledTextPrompt) {
-            const aiResponse = result.promptHandlerResponse.response;
-
-            const sessionId = getSessionId(
-                phoneParams.userPhoneNumber,
-                result.classifiedAction.class
-            );
-
-            const lastSessionId = result.promptHandlerResponse.resetSession ? '' : sessionId;
-
-            try {
-                await createOrUpdateUserAgentThread({
-                    ownerId: from,
-                    newMessages: [
-                        {
-                            role: 'user',
-                            content: result.prompt,
-                            sessionId: sessionId,
-                        },
-                        {
-                            role: 'assistant',
-                            content: aiResponse,
-                            sessionId: sessionId,
-                        },
-                    ],
-                    lastSessionId,
-                });
-            } catch (error) {
-                const parsedError = parseUnknownError(error);
-                await logger.error(parsedError.message, {
-                    error: parsedError,
-                });
-            }
-        }
-
         return result.classifiedAction.class;
     }
     // ============== END OF HANDLING TEXT MESSAGES ============== //
