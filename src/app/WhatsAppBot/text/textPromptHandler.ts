@@ -80,8 +80,6 @@ export const textPromptHandler = async (
 
     runtimeMessages.push({ role: 'user', content: prompt.trim() });
 
-    console.log(runtimeMessages);
-
     let classifiedAction: Action;
     try {
         classifiedAction = await classifyAction(runtimeMessages);
