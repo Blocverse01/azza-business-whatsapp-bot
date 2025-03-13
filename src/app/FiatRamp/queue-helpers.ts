@@ -16,7 +16,9 @@ import * as math from 'mathjs';
 import * as assert from 'node:assert';
 
 export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2) => {
-    return await queues.fiatPayoutV2.add('fiat-payout', params);
+    return await queues.fiatPayoutV2.add(`fiat-payout-${params.txHash}`, params, {
+        jobId: `fiat-payout-${params.txHash}`,
+    });
 };
 
 export const handleOfframpRequestInQueue = async (
@@ -69,13 +71,13 @@ export const handleOfframpRequestInQueue = async (
             params.whatsappParams.businessPhoneNumberId
         );
 
-        // await WhatsAppBotService.sendWhatsappMessage(
-        //     params.whatsappParams.businessPhoneNumberId,
-        //     MessageGenerators.generateTextMessage(
-        //         params.whatsappParams.userPhoneNumber,
-        //         OFFRAMP_REQUEST_ERROR_MESSAGE
-        //     )
-        // );
+        await WhatsAppBotService.sendWhatsappMessage(
+            params.whatsappParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.whatsappParams.userPhoneNumber,
+                OFFRAMP_REQUEST_ERROR_MESSAGE
+            )
+        );
 
         throw new Error(parsedError.message);
     }
