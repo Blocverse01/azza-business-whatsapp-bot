@@ -472,7 +472,9 @@ for (let i = 0; i < 10; i++) {
     createWhatsappMessagingWorker();
 }
 for (let i = 0; i < 8; i++) {
-    createWhatsappMessagingTempWorker();
+    createWhatsappMessagingTempWorker().on('error', async (error) => {
+        await logServiceError(error, 'Whatsapp Messaging Worker Error');
+    });
 }
 
 ///////////////////////
