@@ -31,7 +31,6 @@ import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import {
-    AllSupportedBlockchains,
     isValidBlockchain,
     normalizeBlockchainInput,
     SUPPORTED_BLOCKCHAINS,
@@ -423,7 +422,7 @@ export const handleBalanceQueryPrompt = async (
 
     const supportedAssets = azzaWalletManager.getSupportedAssets();
     switch (balanceQueryMode.type) {
-        case 'asset on specific network':
+        case 'asset on specific network': {
             if (!targetAsset) {
                 const assetNotFoundResponse = `${cryptoCurrencySymbol} on the network ${blockchainNetwork} is not supported at the moment. Please try again with a supported asset and network.`;
 
@@ -469,8 +468,9 @@ export const handleBalanceQueryPrompt = async (
                 response: balanceMessage,
                 resetSession: true,
             };
+        }
 
-        case 'asset on any network':
+        case 'asset on any network': {
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(
@@ -531,8 +531,9 @@ export const handleBalanceQueryPrompt = async (
                 response: response,
                 resetSession: true,
             };
+        }
 
-        case 'network':
+        case 'network': {
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(
@@ -540,21 +541,12 @@ export const handleBalanceQueryPrompt = async (
                     `*Checking balance on ${balanceQueryMode.entity}...*`
                 )
             );
-            const targetAssetIds = supportedAssets
-                .filter((asset) => {
-                    // filter for assetName | network or assetName && network
-                    return asset.network.toLowerCase() === balanceQueryMode.entity.toLowerCase();
-                })
-                .map((asset) => asset.listItemId);
 
-            const promises = targetAssetIds.map((assetId) =>
-                azzaWalletManager.getAssetBalance({
-                    userId: user.id,
-                    assetId,
-                })
+            const assetsInfo = await azzaWalletManager.getNetworkBalances(
+                user.id,
+                balanceQueryMode.entity
             );
 
-            const assetsInfo = await Promise.all(promises);
             const balances = Object.fromEntries(
                 assetsInfo.map((assetInfo) => {
                     return [assetInfo.asset.tokenName, assetInfo];
@@ -571,7 +563,7 @@ export const handleBalanceQueryPrompt = async (
                 return `- ${assetName}: ${tokenBalanceDisplay}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}`;
             });
 
-            const networkBalanceMessage = `*Your balances on ${getNetworkEmoji(balanceQueryMode.entity as AllSupportedBlockchains)} ${balanceQueryMode.entity}:*\n\n${networkBalances.join('\n\n')}`;
+            const networkBalanceMessage = `*Your balances on ${getNetworkEmoji(balanceQueryMode.entity)} ${balanceQueryMode.entity}:*\n\n${networkBalances.join('\n\n')}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
@@ -585,8 +577,9 @@ export const handleBalanceQueryPrompt = async (
                 response: networkBalanceMessage,
                 resetSession: true,
             };
+        }
 
-        case 'all':
+        case 'all': {
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(
@@ -637,6 +630,7 @@ export const handleBalanceQueryPrompt = async (
                 response: allBalancesMessage,
                 resetSession: true,
             };
+        }
     }
 };
 
