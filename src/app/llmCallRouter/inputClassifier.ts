@@ -52,8 +52,8 @@ export const extractActionArgumentsFromMessages = async <T extends ZodSchema>(
     schema: T
 ) => {
     const result = await generateObject({
-        model: openai('gpt-4o-mini'),
-        system: `Given the action class ${actionClass}, extract the arguments required to perform the action from the given messages. If an argument doesn't exist, return null. Never assume any argument that is not explicitly mentioned in the messages. When extracting arguments from the message, check all the messages passed and find the most recent compatible information for the arguments. This is very useful when the user sends a new message updating their previous request`,
+        model: openai('gpt-4o'),
+        system: `Given the action class ${actionClass}, extract the arguments required to perform the action from the given messages. If an argument doesn't exist, return null. Never assume any argument that is not explicitly mentioned in the messages. When extracting arguments from the message, ALWAYS check all the messages passed and find the most recent compatible information for the arguments. This is very useful when the user sends a new message updating their previous request`,
         messages: messages,
         schema: z.object({
             args: schema

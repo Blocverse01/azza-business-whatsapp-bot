@@ -124,7 +124,7 @@ export const getConversationHistory = async (ownerId: string) => {
             statement: `
             SELECT "content","sessionId" 
             FROM user_message 
-            WHERE "threadId" = $1 
+            WHERE "threadId" = $1 AND "softDeleted" = FALSE
             ORDER BY "xata.createdAt" DESC 
             LIMIT 20;`,
             params: [thread.id],
