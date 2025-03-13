@@ -3,9 +3,8 @@
  * compiler version: 5.29.3
  * source: fiatramps/v1/service.proto
  * git: https://github.com/thesayyn/protoc-gen-ts */
-import * as grpc_1 from '@grpc/grpc-js';
-import * as pb_1 from 'google-protobuf';
-
+import * as pb_1 from "google-protobuf";
+import * as grpc_1 from "@grpc/grpc-js";
 export namespace fiatramps.v1 {
     export class GetSupportedCountriesRequest extends pb_1.Message {
         #one_of_decls: number[][] = [];
@@ -733,23 +732,23 @@ export namespace fiatramps.v1 {
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
-            if (!Array.isArray(data) && typeof data == 'object') {
-                if ('rule' in data && data.rule != undefined) {
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("rule" in data && data.rule != undefined) {
                     this.rule = data.rule;
                 }
-                if ('fee_percentage' in data && data.fee_percentage != undefined) {
+                if ("fee_percentage" in data && data.fee_percentage != undefined) {
                     this.fee_percentage = data.fee_percentage;
                 }
-                if ('trigger_amount' in data && data.trigger_amount != undefined) {
+                if ("trigger_amount" in data && data.trigger_amount != undefined) {
                     this.trigger_amount = data.trigger_amount;
                 }
-                if ('ramp_type' in data && data.ramp_type != undefined) {
+                if ("ramp_type" in data && data.ramp_type != undefined) {
                     this.ramp_type = data.ramp_type;
                 }
             }
         }
         get rule() {
-            return pb_1.Message.getFieldWithDefault(this, 1, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
         }
         set rule(value: string) {
             pb_1.Message.setField(this, 1, value);
@@ -767,7 +766,7 @@ export namespace fiatramps.v1 {
             pb_1.Message.setField(this, 3, value);
         }
         get ramp_type() {
-            return pb_1.Message.getFieldWithDefault(this, 4, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 4, "") as string;
         }
         set ramp_type(value: string) {
             pb_1.Message.setField(this, 4, value);
@@ -830,8 +829,7 @@ export namespace fiatramps.v1 {
                 return writer.getResultBuffer();
         }
         static deserialize(bytes: Uint8Array | pb_1.BinaryReader): ConditionalFeePercentConfig {
-            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
-                message = new ConditionalFeePercentConfig();
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new ConditionalFeePercentConfig();
             while (reader.nextField()) {
                 if (reader.isEndGroup())
                     break;
@@ -848,8 +846,7 @@ export namespace fiatramps.v1 {
                     case 4:
                         message.ramp_type = reader.readString();
                         break;
-                    default:
-                        reader.skipField();
+                    default: reader.skipField();
                 }
             }
             return message;
@@ -878,10 +875,10 @@ export namespace fiatramps.v1 {
                 if ("offramp_fee_percentage" in data && data.offramp_fee_percentage != undefined) {
                     this.offramp_fee_percentage = data.offramp_fee_percentage;
                 }
-                if ('offramp_min_fee_usd' in data && data.offramp_min_fee_usd != undefined) {
+                if ("offramp_min_fee_usd" in data && data.offramp_min_fee_usd != undefined) {
                     this.offramp_min_fee_usd = data.offramp_min_fee_usd;
                 }
-                if ('conditional_fee_percent_configs' in data && data.conditional_fee_percent_configs != undefined) {
+                if ("conditional_fee_percent_configs" in data && data.conditional_fee_percent_configs != undefined) {
                     this.conditional_fee_percent_configs = data.conditional_fee_percent_configs;
                 }
             }
@@ -3059,7 +3056,7 @@ export namespace fiatramps.v1 {
                 if ("usd_amount" in data && data.usd_amount != undefined) {
                     this.usd_amount = data.usd_amount;
                 }
-                if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
+                if ("transaction_fee_usd" in data && data.transaction_fee_usd != undefined) {
                     this.transaction_fee_usd = data.transaction_fee_usd;
                 }
             }
@@ -3815,25 +3812,25 @@ export namespace fiatramps.v1 {
                 if ("transaction_hash" in data && data.transaction_hash != undefined) {
                     this.transaction_hash = data.transaction_hash;
                 }
-                if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
+                if ("transaction_fee_usd" in data && data.transaction_fee_usd != undefined) {
                     this.transaction_fee_usd = data.transaction_fee_usd;
                 }
-                if ('destination' in data && data.destination != undefined) {
+                if ("destination" in data && data.destination != undefined) {
                     this.destination = data.destination;
                 }
-                if ('created_at' in data && data.created_at != undefined) {
+                if ("created_at" in data && data.created_at != undefined) {
                     this.created_at = data.created_at;
                 }
-                if ('platform_fee_percentage' in data && data.platform_fee_percentage != undefined) {
+                if ("platform_fee_percentage" in data && data.platform_fee_percentage != undefined) {
                     this.platform_fee_percentage = data.platform_fee_percentage;
                 }
-                if ('from_wallet_address' in data && data.from_wallet_address != undefined) {
+                if ("from_wallet_address" in data && data.from_wallet_address != undefined) {
                     this.from_wallet_address = data.from_wallet_address;
                 }
-                if ('hot_wallet_address' in data && data.hot_wallet_address != undefined) {
+                if ("hot_wallet_address" in data && data.hot_wallet_address != undefined) {
                     this.hot_wallet_address = data.hot_wallet_address;
                 }
-                if ('token_address' in data && data.token_address != undefined) {
+                if ("token_address" in data && data.token_address != undefined) {
                     this.token_address = data.token_address;
                 }
             }
@@ -3914,40 +3911,32 @@ export namespace fiatramps.v1 {
             return pb_1.Message.getField(this, 12) != null;
         }
         get created_at() {
-            return pb_1.Message.getFieldWithDefault(this, 13, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 13, "") as string;
         }
         set created_at(value: string) {
             pb_1.Message.setField(this, 13, value);
         }
-
         get platform_fee_percentage() {
             return pb_1.Message.getFieldWithDefault(this, 14, 0) as number;
         }
-
         set platform_fee_percentage(value: number) {
             pb_1.Message.setField(this, 14, value);
         }
-
         get from_wallet_address() {
-            return pb_1.Message.getFieldWithDefault(this, 15, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 15, "") as string;
         }
-
         set from_wallet_address(value: string) {
             pb_1.Message.setField(this, 15, value);
         }
-
         get hot_wallet_address() {
-            return pb_1.Message.getFieldWithDefault(this, 16, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 16, "") as string;
         }
-
         set hot_wallet_address(value: string) {
             pb_1.Message.setField(this, 16, value);
         }
-
         get token_address() {
-            return pb_1.Message.getFieldWithDefault(this, 17, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 17, "") as string;
         }
-
         set token_address(value: string) {
             pb_1.Message.setField(this, 17, value);
         }
@@ -4469,6 +4458,7 @@ export namespace fiatramps.v1 {
             local_amount?: number;
             channel_id?: string;
             transaction_fee_usd?: number;
+            collection_country_code?: string;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -4506,8 +4496,11 @@ export namespace fiatramps.v1 {
                 if ("channel_id" in data && data.channel_id != undefined) {
                     this.channel_id = data.channel_id;
                 }
-                if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
+                if ("transaction_fee_usd" in data && data.transaction_fee_usd != undefined) {
                     this.transaction_fee_usd = data.transaction_fee_usd;
+                }
+                if ("collection_country_code" in data && data.collection_country_code != undefined) {
+                    this.collection_country_code = data.collection_country_code;
                 }
             }
         }
@@ -4589,6 +4582,12 @@ export namespace fiatramps.v1 {
         set transaction_fee_usd(value: number) {
             pb_1.Message.setField(this, 12, value);
         }
+        get collection_country_code() {
+            return pb_1.Message.getFieldWithDefault(this, 13, "") as string;
+        }
+        set collection_country_code(value: string) {
+            pb_1.Message.setField(this, 13, value);
+        }
         static fromObject(data: {
             owner_id?: string;
             source?: ReturnType<typeof CollectionSource.prototype.toObject>;
@@ -4602,6 +4601,7 @@ export namespace fiatramps.v1 {
             local_amount?: number;
             channel_id?: string;
             transaction_fee_usd?: number;
+            collection_country_code?: string;
         }): CreatePlatformCollectionRequestInput {
             const message = new CreatePlatformCollectionRequestInput({});
             if (data.owner_id != null) {
@@ -4640,6 +4640,9 @@ export namespace fiatramps.v1 {
             if (data.transaction_fee_usd != null) {
                 message.transaction_fee_usd = data.transaction_fee_usd;
             }
+            if (data.collection_country_code != null) {
+                message.collection_country_code = data.collection_country_code;
+            }
             return message;
         }
         toObject() {
@@ -4656,6 +4659,7 @@ export namespace fiatramps.v1 {
                 local_amount?: number;
                 channel_id?: string;
                 transaction_fee_usd?: number;
+                collection_country_code?: string;
             } = {};
             if (this.owner_id != null) {
                 data.owner_id = this.owner_id;
@@ -4693,6 +4697,9 @@ export namespace fiatramps.v1 {
             if (this.transaction_fee_usd != null) {
                 data.transaction_fee_usd = this.transaction_fee_usd;
             }
+            if (this.collection_country_code != null) {
+                data.collection_country_code = this.collection_country_code;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -4723,6 +4730,8 @@ export namespace fiatramps.v1 {
                 writer.writeString(11, this.channel_id);
             if (this.transaction_fee_usd != 0)
                 writer.writeDouble(12, this.transaction_fee_usd);
+            if (this.collection_country_code.length)
+                writer.writeString(13, this.collection_country_code);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -4767,6 +4776,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 12:
                         message.transaction_fee_usd = reader.readDouble();
+                        break;
+                    case 13:
+                        message.collection_country_code = reader.readString();
                         break;
                     default: reader.skipField();
                 }
@@ -5370,10 +5382,10 @@ export namespace fiatramps.v1 {
                 if ("local_currency_symbol" in data && data.local_currency_symbol != undefined) {
                     this.local_currency_symbol = data.local_currency_symbol;
                 }
-                if ('transaction_fee_usd' in data && data.transaction_fee_usd != undefined) {
+                if ("transaction_fee_usd" in data && data.transaction_fee_usd != undefined) {
                     this.transaction_fee_usd = data.transaction_fee_usd;
                 }
-                if ('created_at' in data && data.created_at != undefined) {
+                if ("created_at" in data && data.created_at != undefined) {
                     this.created_at = data.created_at;
                 }
             }
@@ -5493,7 +5505,7 @@ export namespace fiatramps.v1 {
             pb_1.Message.setField(this, 19, value);
         }
         get created_at() {
-            return pb_1.Message.getFieldWithDefault(this, 20, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 20, "") as string;
         }
         set created_at(value: string) {
             pb_1.Message.setField(this, 20, value);
@@ -6207,23 +6219,23 @@ export namespace fiatramps.v1 {
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
-            if (!Array.isArray(data) && typeof data == 'object') {
-                if ('sequence_id' in data && data.sequence_id != undefined) {
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("sequence_id" in data && data.sequence_id != undefined) {
                     this.sequence_id = data.sequence_id;
                 }
-                if ('status' in data && data.status != undefined) {
+                if ("status" in data && data.status != undefined) {
                     this.status = data.status;
                 }
             }
         }
         get sequence_id() {
-            return pb_1.Message.getFieldWithDefault(this, 1, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
         }
         set sequence_id(value: string) {
             pb_1.Message.setField(this, 1, value);
         }
         get status() {
-            return pb_1.Message.getFieldWithDefault(this, 2, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
         }
         set status(value: string) {
             pb_1.Message.setField(this, 2, value);
@@ -6266,8 +6278,7 @@ export namespace fiatramps.v1 {
                 return writer.getResultBuffer();
         }
         static deserialize(bytes: Uint8Array | pb_1.BinaryReader): UpdatePaymentTransactionStatusRequest {
-            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
-                message = new UpdatePaymentTransactionStatusRequest();
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new UpdatePaymentTransactionStatusRequest();
             while (reader.nextField()) {
                 if (reader.isEndGroup())
                     break;
@@ -6278,8 +6289,7 @@ export namespace fiatramps.v1 {
                     case 2:
                         message.status = reader.readString();
                         break;
-                    default:
-                        reader.skipField();
+                    default: reader.skipField();
                 }
             }
             return message;
@@ -6300,26 +6310,26 @@ export namespace fiatramps.v1 {
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
-            if (!Array.isArray(data) && typeof data == 'object') {
-                if ('sequence_id' in data && data.sequence_id != undefined) {
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("sequence_id" in data && data.sequence_id != undefined) {
                     this.sequence_id = data.sequence_id;
                 }
-                if ('status' in data && data.status != undefined) {
+                if ("status" in data && data.status != undefined) {
                     this.status = data.status;
                 }
-                if ('success' in data && data.success != undefined) {
+                if ("success" in data && data.success != undefined) {
                     this.success = data.success;
                 }
             }
         }
         get sequence_id() {
-            return pb_1.Message.getFieldWithDefault(this, 1, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
         }
         set sequence_id(value: string) {
             pb_1.Message.setField(this, 1, value);
         }
         get status() {
-            return pb_1.Message.getFieldWithDefault(this, 2, '') as string;
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
         }
         set status(value: string) {
             pb_1.Message.setField(this, 2, value);
@@ -6378,8 +6388,7 @@ export namespace fiatramps.v1 {
                 return writer.getResultBuffer();
         }
         static deserialize(bytes: Uint8Array | pb_1.BinaryReader): UpdatePaymentTransactionStatusResponse {
-            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes),
-                message = new UpdatePaymentTransactionStatusResponse();
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new UpdatePaymentTransactionStatusResponse();
             while (reader.nextField()) {
                 if (reader.isEndGroup())
                     break;
@@ -6393,8 +6402,7 @@ export namespace fiatramps.v1 {
                     case 3:
                         message.success = reader.readBool();
                         break;
-                    default:
-                        reader.skipField();
+                    default: reader.skipField();
                 }
             }
             return message;

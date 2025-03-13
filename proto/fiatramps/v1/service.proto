@@ -256,6 +256,7 @@ message CreatePlatformCollectionRequestInput {
   double local_amount = 10;
   string channel_id = 11;
   double transaction_fee_usd = 12;
+  string collection_country_code = 13;
 }
 message BankInfo {
   string name = 1;
