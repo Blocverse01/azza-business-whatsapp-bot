@@ -69,4 +69,5 @@ export const actionArgumentsSchema = {
         hasConfirmedSwap: z.boolean().nullable(),
     }),
     SHOW_FIAT_RATES: z.object({}),
+    KYC_VERIFICATION: z.object({}),
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

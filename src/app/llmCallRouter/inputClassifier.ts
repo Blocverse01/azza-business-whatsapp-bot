@@ -16,6 +16,7 @@ const actions = [
     'GET_FIAT_WITH_CRYPTO',
     'GET_CRYPTO_WITH_FIAT',
     'SHOW_FIAT_RATES',
+    'KYC_VERIFICATION',
 ] as const;
 const actionClassSchema = z.enum(actions);
 

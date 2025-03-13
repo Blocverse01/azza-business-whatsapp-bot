@@ -44,6 +44,7 @@ import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { formatUnits, getAddress, parseUnits } from 'viem';
 import { z, ZodSchema } from 'zod';
 import { getSupportedAssetAndNetworksText } from '../utils';
+import SumSubService from '@/app/SumSub/SumSubService';
 
 type ActionHandlerParams = {
     extractedArguments:
@@ -1290,7 +1291,64 @@ export const handleRatesPrompt = async (
     );
 
     return {
-        response: 'Handled rates command',
+        response: 'Handled rates prompt',
+        resetSession: true,
+    };
+};
+
+/////////////////////////////////////////////////////////
+//       KYC Related Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleKycPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const { botParams, user } = params;
+
+    const userKycStatus = userServiceV2.formatKycStatus(user.kycStatus);
+
+    if (userKycStatus === 'verified') {
+        const responseMessage = `Your KYC is already verified.`;
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+        );
+
+        return {
+            response: 'Handled KYC prompt',
+            resetSession: true,
+        };
+    }
+
+    if (SumSubService.SERVICE_IS_ACTIVE) {
+        if (
+            userKycStatus === 'unverified' ||
+            userKycStatus === 'rejected' ||
+            userKycStatus === 'pending'
+        ) {
+            await WhatsAppBotService.sendKycVerificationUrlMessage(user, botParams);
+            return {
+                response: 'Handled KYC prompt',
+                resetSession: true,
+            };
+        }
+
+        if (userKycStatus === 'in_review') {
+            await WhatsAppBotService.sendKycInReviewMessage(botParams);
+            return {
+                response: 'Handled KYC prompt',
+                resetSession: true,
+            };
+        }
+    }
+
+    const responseMessage = `KYC verification is not available at the moment.`;
+    await WhatsAppBotService.sendWhatsappMessage(
+        botParams.businessPhoneNumberId,
+        MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+    );
+
+    return {
+        response: 'Handled KYC prompt',
         resetSession: true,
     };
 };
