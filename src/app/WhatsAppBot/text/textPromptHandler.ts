@@ -12,6 +12,7 @@ import {
     handleBuyCryptoWithFiatPrompt,
     handleChangeTransactionPinPrompt,
     handleDepositRelatedPrompt,
+    handleKycPrompt,
     handleRatesPrompt,
     handleResetTransactionPinPrompt,
     handleSellCryptoForFiatPrompt,
@@ -193,6 +194,13 @@ export const textPromptHandler = async (
                 break;
             case 'SHOW_FIAT_RATES':
                 responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
+                break;
+            case 'KYC_VERIFICATION':
+                responseMessage = await handleKycPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
                 break;
             default:
                 throw new Error('Action not supported');
