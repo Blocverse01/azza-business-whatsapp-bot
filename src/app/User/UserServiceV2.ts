@@ -26,6 +26,8 @@ type UpdatableInfo = Pick<
     | 'securityQuestionsSetup'
     | 'additionalKycIdType'
     | 'additionalKycIdNumber'
+    | 'gender'
+    | 'email'
 >;
 
 type UserBlockRadarWallet = {
@@ -230,7 +232,7 @@ class UserServiceV2 {
         const validation = userIdentityInfoSchema.safeParse({
             ...user,
             kycStatus,
-            phoneNumber: user.primaryWhatsappPhoneNumber!,
+            phoneNumber: user.primaryWhatsappPhoneNumber,
         });
 
         if (!validation.success) {

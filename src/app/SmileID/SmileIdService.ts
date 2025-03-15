@@ -10,10 +10,21 @@ export interface SmileIdWebhookData {
     job_id: string;
     user_id: string;
     job_type: string;
-    job_status: 'COMPLETED' | 'PENDING' | 'FAILED';
-    job_success: boolean;
     signature: string;
     timestamp: string;
+    full_name: string;
+    verification_data?: BvnVerificationDataType;
+}
+
+interface GenerateSmileLinkResponse {
+    link: string;
+    ref_id: string;
+}
+
+interface VerifyBvnResponse {
+    job_id: string;
+    job_status: string;
+    job_type: string;
     result: {
         ResultCode: string;
         ResultText: string;
@@ -30,9 +41,14 @@ export interface SmileIdWebhookData {
     };
 }
 
-interface GenerateSmileLinkResponse {
-    link: string;
-    ref_id: string;
+export interface BvnVerificationDataType {
+    dob: string;
+    first_name: string;
+    gender: string;
+    last_name: string;
+    phone_number: string;
+    id_number: string;
+    middle_name?: string;
 }
 
 class SmileIdService {
@@ -40,6 +56,10 @@ class SmileIdService {
     private static readonly PARTNER_ID = env.SMILE_ID_PARTNER_ID;
     private static readonly API_KEY = env.SMILE_ID_PROD_API_KEY;
     private static readonly CALLBACK_URL = env.SMILE_ID_WEBHOOK_URL;
+    private static readonly JOB_TYPES = {
+        KYC: 5,
+        BVN_VERIFICATION: 1,
+    };
 
     private static getSignature() {
         return new Signature(this.PARTNER_ID, this.API_KEY);
@@ -58,6 +78,75 @@ class SmileIdService {
             return null;
         }
         return user;
+    }
+
+    public static async verifyBvnAsync(
+        userId: string,
+        verificationData: BvnVerificationDataType
+    ): Promise<VerifyBvnResponse> {
+        try {
+            const signature = this.getSignature();
+            const timestamp = new Date().toISOString();
+            const signatureResponse = signature.generate_signature(timestamp);
+
+            const payload = {
+                callback_url: this.CALLBACK_URL,
+                partner_id: this.PARTNER_ID,
+                timestamp,
+                signature: signatureResponse.signature,
+                source_sdk: 'rest_api',
+                source_sdk_version: '1.0.0',
+                country: 'NG',
+                id_type: 'BVN',
+                id_number: verificationData.id_number,
+                dob: verificationData.dob,
+                first_name: verificationData.first_name,
+                gender: verificationData.gender,
+                last_name: verificationData.last_name,
+                phone_number: verificationData.phone_number,
+                middle_name: verificationData.middle_name,
+                partner_params: {
+                    job_type: this.JOB_TYPES.BVN_VERIFICATION.toString(), // BVN verification job type
+                    job_id: `bvn_verify_${Date.now()}`,
+                    user_id: userId,
+                },
+            };
+
+            console.log('🔄 Initiating async BVN verification with payload:', {
+                ...payload,
+                signature: `${signatureResponse.signature.substring(0, 10)}...`,
+                id_number: `${verificationData.id_number.substring(0, 4)}...`,
+                first_name: verificationData.first_name,
+                last_name: `${verificationData.last_name.charAt(0)}...`,
+                phone_number: `${verificationData.phone_number.substring(0, 4)}...`,
+            });
+
+            const response = await axios.post<VerifyBvnResponse>(
+                `${this.API_URL}/v1/async_id_verification`,
+                payload,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            console.log('✅ BVN verification request submitted:', {
+                userId,
+                jobId: response.data.job_id,
+                jobStatus: response.data.job_status,
+            });
+
+            return response.data;
+        } catch (error: any) {
+            console.error('❌ Error initiating BVN verification:', {
+                message: error.message,
+                // status: error.response?.status,
+                // statusText: error.response?.statusText,
+                // reason: error.response?.data?.error,
+            });
+            throw error;
+        }
     }
 
     public static async generateKycLink(userId: string): Promise<string> {
@@ -138,6 +227,21 @@ class SmileIdService {
         }
     }
 
+    private static async handleBvnVerificationWebhook(webhookData: SmileIdWebhookData) {
+        // Log the entire webhook body
+        console.log('📝 BVN Verification Webhook Response:', {
+            // Basic job info
+            partner_id: webhookData.partner_id,
+            job_id: webhookData.job_id,
+            job_type: webhookData.job_type,
+            timestamp: webhookData.timestamp,
+
+            // User info
+            user_id: webhookData.user_id,
+            full_name: webhookData.full_name,
+        });
+    }
+
     public static async handleWebhookEvent(webhookData: SmileIdWebhookData) {
         try {
             const signature = this.getSignature();
@@ -152,68 +256,45 @@ class SmileIdService {
                 throw new Error('Invalid webhook signature');
             }
 
-            const { user_id, job_status, result } = webhookData;
+            // Convert job_type to number for comparison
+            const jobType = Number(webhookData.job_type);
 
-            console.log('📝 Processing Smile ID webhook:', {
-                userId: user_id,
-                jobStatus: job_status,
-                resultCode: result.ResultCode,
-                resultText: result.ResultText,
-                isFinalResult: result.IsFinalResult,
-            });
+            console.log(jobType, webhookData);
 
-            // Get user from database
-            const user = await this.validateAndGetUser(user_id, false);
-            if (!user) return;
-
-            if (job_status === 'COMPLETED') {
-                const verificationStatus = result.Actions.Verify_ID_Number.Status;
-
-                console.log('🔍 Verification details:', {
-                    status: verificationStatus,
-                    type: result.Actions.Verify_ID_Number.ResultType,
-                    text: result.Actions.Verify_ID_Number.ResultText,
-                    code: result.Actions.Verify_ID_Number.ResultCode,
-                });
-
-                if (verificationStatus === 'VERIFIED') {
-                    console.log('✅ User verified successfully:', user_id);
-                    await WhatsAppBotService.sendKycVerifiedMessage(
-                        user.primaryWhatsappPhoneNumber
-                    );
-
-                    // Update user KYC status
-                    // await userServiceV2.updateUserInfo(user, {
-                    //     kycStatus: 'VERIFIED',
-                    // });
-                } else {
-                    console.log('❌ User verification failed:', user_id);
-                    await WhatsAppBotService.sendKycRejectedMessage(
-                        user.primaryWhatsappPhoneNumber
-                    );
-
-                    // Update user KYC status
-                    // await userServiceV2.updateUserInfo(user, {
-                    //     kycStatus: 'REJECTED',
-                    // });
-                }
-            } else if (job_status === 'FAILED') {
-                console.log('❌ Verification job failed:', user_id);
-                await WhatsAppBotService.sendKycRejectedMessage(user.primaryWhatsappPhoneNumber);
-
-                // Update user KYC status
-                // await userServiceV2.updateUserInfo(user, {
-                //     kycStatus: 'REJECTED',
-                // });
+            // Route webhook to appropriate handler based on job type
+            if (jobType === this.JOB_TYPES.KYC) {
+                // KYC webhook (job type 5)
+                await this.handleKycWebhook(webhookData);
+            } else if (jobType === this.JOB_TYPES.BVN_VERIFICATION) {
+                // BVN verification webhook (job type 1)
+                await this.handleBvnVerificationWebhook(webhookData);
             } else {
-                console.log('⏳ Verification pending:', user_id);
-                // Update user KYC status
-                // await userServiceV2.updateUserInfo(user, {
-                //     kycStatus: 'IN_REVIEW',
-                // });
+                console.log('⚠️ Unknown job type:', jobType);
             }
         } catch (error) {
             console.error('❌ Error processing Smile ID webhook:', error);
+            throw error;
+        }
+    }
+
+    private static async handleKycWebhook(webhookData: SmileIdWebhookData) {
+        const { user_id, verification_data } = webhookData;
+
+        console.log('📝 Processing KYC webhook:', {
+            userId: user_id,
+        });
+
+        try {
+            if (verification_data) {
+                // Initiate BVN verification
+                console.log('🔄 Initiating BVN verification after KYC webhook for user:', user_id);
+                await this.verifyBvnAsync(user_id, verification_data);
+                console.log('✅ BVN verification initiated successfully for user:', user_id);
+            } else {
+                console.log('⚠️ No verification data available for BVN verification');
+            }
+        } catch (error) {
+            console.error('❌ Error initiating BVN verification after KYC:', error);
             throw error;
         }
     }

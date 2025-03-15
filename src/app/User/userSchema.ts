@@ -40,11 +40,13 @@ export const userIdentityInfoSchema = z.object({
     kycDateOfBirth: z.string(),
     firstName: z.string(),
     lastName: z.string(),
-    address: z.string().optional(),
+    address: z.string().nullable().optional(),
     country: z.string(),
     kycStatus: kycStatus,
     additionalKycIdType: z.string().optional(),
     additionalKycIdNumber: z.string().optional(),
+    gender: z.string().nullable().optional(),
+    email: z.string().nullable().optional(),
 });
 
 export type UserIdentityInfo = z.infer<typeof userIdentityInfoSchema>;

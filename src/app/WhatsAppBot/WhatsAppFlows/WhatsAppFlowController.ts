@@ -10,6 +10,7 @@ import WhatsAppBotTransferToWalletFlowService from '@/app/WhatsAppBot/WhatsAppFl
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import { requestDecryptedDataFlowExchange } from '@/resources/requestHelpers/requestPropsGuard';
 import type { Request, Response } from 'express';
+import BvnKycVerificationFlow from './BvnKycVerificationFlow';
 
 export default class WhatsAppFlowController {
     public static async offrampFlowDataExchange(req: Request, res: Response) {
@@ -152,6 +153,25 @@ export default class WhatsAppFlowController {
 
             const response =
                 await WhatsAppBotResetTransactionPinFlowService.receiveDataExchange(decryptedBody);
+
+            return res.send(
+                WhatsAppBotService.encryptFlowResponse(response, {
+                    initialVectorBuffer,
+                    aesKeyBuffer,
+                })
+            );
+        } catch (error) {
+            handleRequestError(error, res);
+        }
+    }
+
+    public static async bvnKycVerificationFlowDataExchange(req: Request, res: Response) {
+        try {
+            const { decryptedBody, initialVectorBuffer, aesKeyBuffer } =
+                requestDecryptedDataFlowExchange(req);
+
+            const response =
+                await BvnKycVerificationFlow.receiveDataExchange(decryptedBody);
 
             return res.send(
                 WhatsAppBotService.encryptFlowResponse(response, {

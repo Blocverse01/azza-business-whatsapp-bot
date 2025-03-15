@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
-import SmileIdService from './SmileIdService';
 import { BAD_REQUEST } from '@/constants/status-codes';
-import { SmileIdWebhookData } from './SmileIdService';
+import SmileIdService, { BvnVerificationDataType, SmileIdWebhookData } from './SmileIdService';
 
 class SmileIdController {
     public static async receiveWebhook(request: Request, response: Response) {
@@ -13,8 +12,15 @@ class SmileIdController {
                 headers: request.headers,
             });
 
+            const { ImageLinks, Document, Photo, FullData, ...rest} = request.body;
+
+            const { photo, slip, ...fullData} = FullData;
+
             // Log raw body first
-            console.log('📦 Raw Webhook Body:', request.body);
+            console.log('📦 Raw Webhook Body:', {
+                ...rest, 
+                FullData: fullData
+            });
 
             // Basic validation
             if (!request.body) {
@@ -25,31 +31,25 @@ class SmileIdController {
             }
 
             // Send immediate 200 response as recommended by Smile ID
-            response.sendStatus(200);
+            return response.sendStatus(200);
 
             // Transform webhook data to match our expected format
             const webhookData: SmileIdWebhookData = {
                 partner_id: request.body.partner_id,
-                job_id: request.body.job_id,
-                user_id: request.body.partner_params?.user_id,
-                job_type: request.body.job_type,
-                job_status: request.body.job_status,
-                job_success: request.body.job_success,
+                job_id: request.body.PartnerParams?.job_id,
+                user_id: request.body.PartnerParams?.user_id,
+                job_type: request.body.PartnerParams?.job_type?.toString(),
                 signature: request.body.signature,
                 timestamp: request.body.timestamp,
-                result: {
-                    ResultCode: request.body.result?.ResultCode || request.body.ResultCode,
-                    ResultText: request.body.result?.ResultText || request.body.ResultText,
-                    IsFinalResult: request.body.result?.IsFinalResult || true,
-                    Actions: {
-                        Verify_ID_Number: {
-                            ResultType: request.body.result?.ResultType || 'ID Verification',
-                            ResultText: request.body.result?.ResultText || request.body.ResultText,
-                            ResultCode: request.body.result?.ResultCode || request.body.ResultCode,
-                            IsFinalResult: request.body.result?.IsFinalResult || true,
-                            Status: request.body.job_success ? 'VERIFIED' : 'UNVERIFIED',
-                        },
-                    },
+                full_name: request.body.FullName,
+                verification_data: {
+                    dob: request.body.DOB,
+                    first_name: request.body.FullData?.firstName,
+                    gender: request.body.FullData?.gender,
+                    last_name: request.body.FullData?.lastName,
+                    phone_number: request.body.FullData?.PhoneNumber1,
+                    id_number: request.body.IDNumber,
+                    middle_name: request.body.FullData?.MiddleName,
                 },
             };
 
@@ -57,9 +57,10 @@ class SmileIdController {
             console.log('🚀 Processing verification for:', {
                 userId: webhookData.user_id,
                 jobId: webhookData.job_id,
-                jobStatus: webhookData.job_status,
                 jobType: webhookData.job_type,
                 timestamp: webhookData.timestamp,
+                fullName: webhookData.full_name,
+                bvnVerificationData: webhookData.verification_data,
             });
 
             // Process webhook
