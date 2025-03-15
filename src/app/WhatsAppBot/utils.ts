@@ -49,11 +49,11 @@ export function getTransactionPinSetMessageText() {
 }
 
 const majorActionLines = [
-    `✅ Buy crypto – Say “I want to buy crypto” or type /buy`,
-    `✅ Sell crypto – Say “I want to sell crypto” or type /sell`,
-    `✅ Deposit crypto – Say “I want to deposit crypto” or type /deposit`,
-    `✅ Withdraw crypto – Say “I want to withdraw crypto” or type /withdraw`,
-    `✅ Swap crypto – Say “I want to swap crypto” or type /swap`,
+    '✅ Buy crypto – Say "I want to buy crypto" or type /buy',
+    '✅ Sell crypto – Say "I want to sell crypto" or type /sell',
+    '✅ Deposit crypto – Say "I want to deposit crypto" or type /deposit',
+    '✅ Withdraw crypto – Say "I want to withdraw crypto" or type /withdraw',
+    '✅ Swap crypto – Say "I want to swap crypto" or type /swap',
 ];
 
 export function getPossibleBotActionsMessageText() {

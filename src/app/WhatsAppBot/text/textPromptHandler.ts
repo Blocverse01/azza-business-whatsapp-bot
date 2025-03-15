@@ -1,4 +1,6 @@
 import { handleUserPrompt } from '@/app/aiAgent/agent.prompter';
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import {
     Action,
     classifyAction,
@@ -10,6 +12,7 @@ import {
     handleBuyCryptoWithFiatPrompt,
     handleChangeTransactionPinPrompt,
     handleDepositRelatedPrompt,
+    handleKycPrompt,
     handleRatesPrompt,
     handleResetTransactionPinPrompt,
     handleSellCryptoForFiatPrompt,
@@ -20,15 +23,18 @@ import {
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import { getDynamicMaintainanceMessage } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import logger from '@/resources/logger';
 
+export type StoredMessage = {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    sessionId: string;
+};
+
 type TextPromptHandlerParams = {
-    storedMessages: Array<{
-        role: 'user' | 'assistant' | 'system';
-        content: string;
-        sessionId: string;
-    }>;
+    storedMessages: Array<StoredMessage>;
     lastSessionId: string;
     prompt: string;
     botParams: {
@@ -45,185 +51,168 @@ type TextPromptHandlerResponse = {
     promptHandlerResponse: PromptHandlerResponse;
 };
 
+const checkAndHandleMaintenance = async (
+    actionType: string,
+    phoneParams: TextPromptHandlerParams['botParams']
+) => {
+    const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
+        FeatureFlagKey.CORE_MAINTAINANCE
+    );
+    if (coreMaintainanceIsEnabled) {
+        const message = getDynamicMaintainanceMessage(actionType, { length: 3, name: 'hours' });
+        await WhatsAppBotService.sendWhatsappMessage(
+            phoneParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, message)
+        );
+        return { response: message, resetSession: false };
+    }
+    return null;
+};
+
 export const textPromptHandler = async (
     params: TextPromptHandlerParams
 ): Promise<TextPromptHandlerResponse> => {
-    const { storedMessages, lastSessionId, user } = params;
+    const { storedMessages, lastSessionId, user, prompt, botParams } = params;
 
-    const runtimeMessages = (
-        lastSessionId !== ''
-            ? storedMessages.filter((message) => message.sessionId === lastSessionId)
-            : []
-    ).map((message) => ({
-        role: message.role,
-        content: message.content,
-    }));
+    const runtimeMessages = storedMessages
+        .filter((message) => message.sessionId === lastSessionId)
+        .slice(-10)
+        .map((message) => ({
+            role: message.role,
+            content: message.content,
+            sessionId: message.sessionId,
+        }))
+        .reverse();
 
-    runtimeMessages.push({
-        role: 'user',
-        content: params.prompt.trim(),
-    });
+    runtimeMessages.push({ role: 'user', content: prompt.trim(), sessionId: '' });
 
-    let classifiedAction: Action | null = null;
-
+    let classifiedAction: Action;
     try {
-        // Step 1: Classify the action - LLM Usage 1
         classifiedAction = await classifyAction(runtimeMessages);
     } catch (error) {
         const response = await handleUserPrompt({
             messages: runtimeMessages,
-            user: user,
-            phoneParams: params.botParams,
+            user,
+            phoneParams: botParams,
         });
-
         const promptResponse = response.assistantMessage.content;
         await WhatsAppBotService.sendWhatsappMessage(
-            params.botParams.businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, promptResponse)
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, promptResponse)
         );
-
-        await logger.error('Error in classifying action', {
-            error,
-            messages: runtimeMessages,
-        });
-
+        await logger.error('Error in classifying action', { error, messages: runtimeMessages });
         return {
             handledTextPrompt: true,
-            classifiedAction: {
-                class: 'NO_PREDEFINED_ACTION',
-                confidence: 1,
-            },
-            prompt: params.prompt,
-            promptHandlerResponse: {
-                response: promptResponse,
-                resetSession: false,
-            },
+            classifiedAction: { class: 'NO_PREDEFINED_ACTION', confidence: 1 },
+            prompt,
+            promptHandlerResponse: { response: promptResponse, resetSession: false },
         };
     }
 
     if (classifiedAction.class === 'NO_PREDEFINED_ACTION') {
-        // Branch 1 [No identified action]: LLM Usage 2
-        // const response = await handleUserPrompt({
-        //     messages: runtimeMessages,
-        //     user: user,
-        //     phoneParams: params.botParams,
-        // });
-        //
         const promptResponse = getWelcomeBackMessageText();
         await WhatsAppBotService.sendWhatsappMessage(
-            params.botParams.businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, promptResponse)
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, promptResponse)
         );
-
         return {
             handledTextPrompt: true,
-            classifiedAction: classifiedAction,
-            prompt: params.prompt,
-            promptHandlerResponse: {
-                response: promptResponse,
-                resetSession: false,
-            },
+            classifiedAction,
+            prompt,
+            promptHandlerResponse: { response: promptResponse, resetSession: false },
         };
     }
 
-    // Step 2: Extract the action arguments - LLM Usage 3
     const extractedArguments = await extractActionArgumentsFromMessages(
         classifiedAction.class,
         runtimeMessages,
         actionArgumentsSchema[classifiedAction.class]
     );
 
-    let responseMessage: PromptHandlerResponse | null = null;
-
-    switch (classifiedAction.class) {
-        case 'DEPOSIT_CRYPTO_TO_WALLET':
-        case 'SHOW_WALLET_ADDRESS':
-            responseMessage = await handleDepositRelatedPrompt({
-                extractedArguments: extractedArguments,
-                botParams: params.botParams,
-                user,
-            });
-            break;
-
-        case 'TRANSFER_CRYPTO':
-        case 'WITHDRAW_CRYPTO':
-            responseMessage = await handleWithdrawRelatedPrompt({
-                extractedArguments: extractedArguments,
-                botParams: params.botParams,
-                user,
-            });
-            break;
-
-        case 'QUERY_WALLET_BALANCE':
-            responseMessage = await handleBalanceQueryPrompt({
-                extractedArguments: extractedArguments,
-                botParams: params.botParams,
-                user,
-            });
-            break;
-
-        case 'RESET_TRANSACTION_PIN':
-            responseMessage = await handleResetTransactionPinPrompt({
-                extractedArguments: extractedArguments,
-                botParams: params.botParams,
-                user,
-            });
-            break;
-
-        case 'CHANGE_TRANSACTION_PIN':
-            responseMessage = await handleChangeTransactionPinPrompt({
-                extractedArguments: extractedArguments,
-                botParams: params.botParams,
-                user,
-            });
-            break;
-
-        case 'BUY_CRYPTO_WITH_FIAT':
-        case 'GET_CRYPTO_WITH_FIAT':
-            responseMessage = await handleBuyCryptoWithFiatPrompt({
-                extractedArguments: extractedArguments,
-                botParams: params.botParams,
-                user,
-            });
-            break;
-
-        case 'SELL_CRYPTO_FOR_FIAT':
-        case 'GET_FIAT_WITH_CRYPTO':
-            responseMessage = await handleSellCryptoForFiatPrompt({
-                extractedArguments: extractedArguments,
-                botParams: params.botParams,
-                user,
-            });
-            break;
-
-        case 'SWAP_CRYPTO':
-            responseMessage = await handleSwapCryptoPrompt({
-                extractedArguments: extractedArguments,
-                botParams: params.botParams,
-                user,
-            });
-            break;
-        case 'SHOW_FIAT_RATES':
-            responseMessage = await handleRatesPrompt({
-                extractedArguments: extractedArguments,
-                botParams: params.botParams,
-                user,
-            });
-            break;
+    let responseMessage = await checkAndHandleMaintenance(classifiedAction.class, botParams);
+    if (!responseMessage) {
+        switch (classifiedAction.class) {
+            case 'DEPOSIT_CRYPTO_TO_WALLET':
+            case 'SHOW_WALLET_ADDRESS':
+                responseMessage = await handleDepositRelatedPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'TRANSFER_CRYPTO':
+            case 'WITHDRAW_CRYPTO':
+                responseMessage = await handleWithdrawRelatedPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'QUERY_WALLET_BALANCE':
+                responseMessage = await handleBalanceQueryPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'RESET_TRANSACTION_PIN':
+                responseMessage = await handleResetTransactionPinPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'CHANGE_TRANSACTION_PIN':
+                responseMessage = await handleChangeTransactionPinPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'BUY_CRYPTO_WITH_FIAT':
+            case 'GET_CRYPTO_WITH_FIAT':
+                responseMessage = await handleBuyCryptoWithFiatPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'SELL_CRYPTO_FOR_FIAT':
+            case 'GET_FIAT_WITH_CRYPTO':
+                responseMessage = await handleSellCryptoForFiatPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'SWAP_CRYPTO':
+                responseMessage = await handleSwapCryptoPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'SHOW_FIAT_RATES':
+                responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
+                break;
+            case 'KYC_VERIFICATION':
+                responseMessage = await handleKycPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            default:
+                throw new Error('Action not supported');
+        }
     }
 
-    if (responseMessage) {
-        return {
-            handledTextPrompt: true,
-            classifiedAction: classifiedAction,
-            prompt: params.prompt,
-            promptHandlerResponse: responseMessage,
-        };
-    }
-
-    throw new Error('Action not supported');
+    return {
+        handledTextPrompt: true,
+        classifiedAction,
+        prompt,
+        promptHandlerResponse: responseMessage,
+    };
 };
 
-export const getSessionId = (userId: string, action: string) => {
-    return `${userId}-${action}`;
-};
+export const getSessionId = (userId: string, action: string) => `${userId}-${action}`;

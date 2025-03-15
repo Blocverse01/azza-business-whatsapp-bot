@@ -206,12 +206,17 @@ const tables = [
       { name: "transactionFeeUsd", type: "float" },
       { name: "usdAmount", type: "float" },
       { name: "beneficiaryId", type: "text" },
-      { name: "platformFeePercentage", type: "int" },
       { name: "xatacreatedAt", type: "text" },
       { name: "xataupdatedAt", type: "text" },
       { name: "xataversion", type: "int" },
       { name: "cryptoTransactionId", type: "text" },
       { name: "cryptoTransactionStatus", type: "text" },
+      {
+        name: "platformFeePercentage",
+        type: "float",
+        notNull: true,
+        defaultValue: "0",
+      },
     ],
   },
   {

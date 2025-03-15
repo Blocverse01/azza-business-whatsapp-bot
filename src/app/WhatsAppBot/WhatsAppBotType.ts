@@ -192,7 +192,9 @@ export const manageAssetActions: Array<AssetAction> = [
 export type InteractiveButtonReplyTypes =
     | 'create-wallet'
     | 'explore-asset'
-    | 'sell-asset-destination-choice';
+    | 'sell-asset-destination-choice'
+    | 'acknowledge-manual-offramp-settlement'
+    | 'mark-manual-offramp-settlement-as-paid';
 export type InteractiveListReplyTypes =
     | 'explore-asset-action'
     | 'trade-asset-with-currency'
@@ -274,6 +276,9 @@ export enum ActionExecuted {
     SEND_BUY_ASSET_MESSAGE = 'SEND_BUY_ASSET_MESSAGE',
     SEND_DEPOSIT_ASSET_MESSAGE = 'SEND_DEPOSIT_ASSET_MESSAGE',
     SEND_WITHDRAW_ASSET_MESSAGE = 'SEND_WITHDRAW_ASSET_MESSAGE',
+    ACKNOWLEDGED_MANUAL_OFFRAMP_SETTLEMENT = 'ACKNOWLEDGED_MANUAL_OFFRAMP_SETTLEMENT',
+    MARK_MANUAL_OFFRAMP_SETTLEMENT_PAID = 'MARK_MANUAL_OFFRAMP_SETTLEMENT_PAID',
+    SEND_MAINTAINANCE_MESSAGE = 'SEND_MAINTAINANCE_MESSAGE',
 }
 
 export type IncomingWhatsappMessage = {

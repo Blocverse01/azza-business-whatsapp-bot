@@ -23,6 +23,8 @@ type GenerateInteractiveButtonMessageParams = {
         id: string;
         title: string;
     }>;
+    headerText?: string;
+    footerText?: string;
 };
 
 type GenerateInteractiveCtaUrlButtonMessageParams = {
@@ -109,7 +111,10 @@ class MessageGenerators {
     }
 
     public static generateInteractiveButtonMessage(params: GenerateInteractiveButtonMessageParams) {
-        const { recipient, replyButtons, bodyText } = params;
+        const { recipient, replyButtons, bodyText, headerText, footerText } = params;
+
+        const headerObject = headerText ? { header: { type: 'text', text: headerText } } : {};
+        const footerObject = footerText ? { footer: { text: footerText } } : {};
 
         return {
             type: 'interactive',
@@ -118,6 +123,8 @@ class MessageGenerators {
                 body: {
                     text: bodyText,
                 },
+                ...headerObject,
+                ...footerObject,
                 action: {
                     buttons: replyButtons.map((replyButton) => ({
                         type: 'reply',

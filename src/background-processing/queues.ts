@@ -1,15 +1,20 @@
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
+import { PercentageCashbackQueueInput } from '@/app/campaigns/base-cashbacks/types';
+import { CryptoPayoutQueueInput } from '@/app/crypto-payouts-v2/types';
 import { connectionConfig } from '@/background-processing/redis-connection-config';
-import { OfframpQueueFlowParams } from '@/background-processing/schema';
+import { OfframpQueueFlowParams, OfframpQueueFlowParamsV2 } from '@/background-processing/schema';
 import {
     CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
     CryptoDebitQueueInput,
     CryptoDebitQueueResult,
     CryptoPayoutDebitConfirmationInput,
+    EventDrivenOfframpQueueInput,
+    EventDrivenOfframpQueueResult,
     FiatPayoutQueueResult,
     QueueNames,
+    SyncUserWalletIdQueueInput,
     UserTxPinSecurityQueueInput,
     UserTxPinSecurityQueueResult,
     UserWalletMigrationQueueInput,
@@ -24,6 +29,18 @@ export const queues = {
     fiatPayout: new Queue<OfframpQueueFlowParams, FiatPayoutQueueResult>(QueueNames.fiatPayout, {
         connection: connectionConfig,
     }),
+    fiatPayoutV2: new Queue<OfframpQueueFlowParamsV2, FiatPayoutQueueResult>(
+        QueueNames.fiatPayoutV2,
+        {
+            connection: connectionConfig,
+        }
+    ),
+    eventDrivenOfframp: new Queue<EventDrivenOfframpQueueInput, EventDrivenOfframpQueueResult>(
+        QueueNames.eventDrivenOfframp,
+        {
+            connection: connectionConfig,
+        }
+    ),
     cryptoDebit: new Queue<
         Required<TransferAssetTransactionDetails> | CryptoDebitQueueInput,
         CryptoDebitQueueResult,
@@ -62,17 +79,35 @@ export const queues = {
     >(QueueNames.whatsappBotMessaging, {
         connection: connectionConfig,
     }),
+    whatsappBotMessagingTemp: new Queue<
+        WhatsAppBotMessagingQueueInput,
+        WhatsAppBotMessagingQueueResult
+    >(QueueNames.whatsappBotMessagingTemp, {
+        connection: connectionConfig,
+    }),
     whatsappBroadcast: new Queue<WhatsappBroadcastQueueInput>(QueueNames.whatsappBroadcast, {
+        connection: connectionConfig,
+    }),
+    syncUserWallet: new Queue<SyncUserWalletIdQueueInput>(QueueNames.syncUserWallet, {
+        connection: connectionConfig,
+    }),
+    baseCashback: new Queue<PercentageCashbackQueueInput>(QueueNames.baseCashback, {
+        connection: connectionConfig,
+    }),
+    cryptoPayout: new Queue<CryptoPayoutQueueInput>(QueueNames.cryptoPayout, {
+        connection: connectionConfig,
+    }),
+    cleanupMessages: new Queue(QueueNames.cleanupMessages, {
         connection: connectionConfig,
     }),
 };
 
 export const defaultQueueRemoveOptions = {
     removeOnComplete: {
-        age: 24 * 3600, // keep up to 1 hour
+        age: 24 * 3600, // keep up to 1 day
         count: 1000, // keep up to 1000 jobs
     },
     removeOnFail: {
-        age: 24 * 3600, // keep up to 24 hours
+        age: 48 * 3600, // keep up to 2 days
     },
 } as const;

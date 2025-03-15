@@ -31,7 +31,6 @@ import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import {
-    AllSupportedBlockchains,
     isValidBlockchain,
     normalizeBlockchainInput,
     SUPPORTED_BLOCKCHAINS,
@@ -44,6 +43,7 @@ import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { formatUnits, getAddress, parseUnits } from 'viem';
 import { z, ZodSchema } from 'zod';
 import { getSupportedAssetAndNetworksText } from '../utils';
+import SumSubService from '@/app/SumSub/SumSubService';
 
 type ActionHandlerParams = {
     extractedArguments:
@@ -102,7 +102,7 @@ export const handleDepositRelatedPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: depositArguments.cryptoCurrencySymbol,
-        network: normalizeBlockchainInput(depositArguments.blockchainNetwork),
+        network: depositArguments.blockchainNetwork,
     })[0];
 
     if (!targetAsset) {
@@ -208,7 +208,7 @@ export const handleWithdrawRelatedPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: withdrawArguments.cryptoCurrencySymbol,
-        network: normalizeBlockchainInput(withdrawArguments.blockchainNetwork),
+        network: withdrawArguments.blockchainNetwork,
     })[0];
 
     if (!targetAsset) {
@@ -397,7 +397,7 @@ export const handleBalanceQueryPrompt = async (
         cryptoCurrencySymbol && blockchainNetwork
             ? azzaWalletManager.searchAssets({
                   tokenName: cryptoCurrencySymbol,
-                  network: normalizeBlockchainInput(blockchainNetwork),
+                  network: blockchainNetwork,
               })[ZERO]
             : undefined;
 
@@ -422,7 +422,7 @@ export const handleBalanceQueryPrompt = async (
 
     const supportedAssets = azzaWalletManager.getSupportedAssets();
     switch (balanceQueryMode.type) {
-        case 'asset on specific network':
+        case 'asset on specific network': {
             if (!targetAsset) {
                 const assetNotFoundResponse = `${cryptoCurrencySymbol} on the network ${blockchainNetwork} is not supported at the moment. Please try again with a supported asset and network.`;
 
@@ -468,8 +468,9 @@ export const handleBalanceQueryPrompt = async (
                 response: balanceMessage,
                 resetSession: true,
             };
+        }
 
-        case 'asset on any network':
+        case 'asset on any network': {
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(
@@ -530,8 +531,9 @@ export const handleBalanceQueryPrompt = async (
                 response: response,
                 resetSession: true,
             };
+        }
 
-        case 'network':
+        case 'network': {
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(
@@ -539,21 +541,12 @@ export const handleBalanceQueryPrompt = async (
                     `*Checking balance on ${balanceQueryMode.entity}...*`
                 )
             );
-            const targetAssetIds = supportedAssets
-                .filter((asset) => {
-                    // filter for assetName | network or assetName && network
-                    return asset.network.toLowerCase() === balanceQueryMode.entity.toLowerCase();
-                })
-                .map((asset) => asset.listItemId);
 
-            const promises = targetAssetIds.map((assetId) =>
-                azzaWalletManager.getAssetBalance({
-                    userId: user.id,
-                    assetId,
-                })
+            const assetsInfo = await azzaWalletManager.getNetworkBalances(
+                user.id,
+                balanceQueryMode.entity
             );
 
-            const assetsInfo = await Promise.all(promises);
             const balances = Object.fromEntries(
                 assetsInfo.map((assetInfo) => {
                     return [assetInfo.asset.tokenName, assetInfo];
@@ -570,7 +563,7 @@ export const handleBalanceQueryPrompt = async (
                 return `- ${assetName}: ${tokenBalanceDisplay}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}`;
             });
 
-            const networkBalanceMessage = `*Your balances on ${getNetworkEmoji(balanceQueryMode.entity as AllSupportedBlockchains)} ${balanceQueryMode.entity}:*\n\n${networkBalances.join('\n\n')}`;
+            const networkBalanceMessage = `*Your balances on ${getNetworkEmoji(balanceQueryMode.entity)} ${balanceQueryMode.entity}:*\n\n${networkBalances.join('\n\n')}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
@@ -584,8 +577,9 @@ export const handleBalanceQueryPrompt = async (
                 response: networkBalanceMessage,
                 resetSession: true,
             };
+        }
 
-        case 'all':
+        case 'all': {
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(
@@ -636,6 +630,7 @@ export const handleBalanceQueryPrompt = async (
                 response: allBalancesMessage,
                 resetSession: true,
             };
+        }
     }
 };
 
@@ -759,7 +754,7 @@ export const handleBuyCryptoWithFiatPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: buyArguments.cryptoCurrencySymbol,
-        network: normalizeBlockchainInput(buyArguments.blockchainNetwork),
+        network: buyArguments.blockchainNetwork,
     })[0];
 
     if (!targetAsset) {
@@ -866,7 +861,7 @@ export const handleSellCryptoForFiatPrompt = async (
 
     const targetAsset = azzaWalletManager.searchAssets({
         tokenName: sellArguments.cryptoCurrencySymbol,
-        network: normalizeBlockchainInput(sellArguments.blockchainNetwork),
+        network: sellArguments.blockchainNetwork,
     })[0];
 
     if (!targetAsset) {
@@ -1290,7 +1285,64 @@ export const handleRatesPrompt = async (
     );
 
     return {
-        response: 'Handled rates command',
+        response: 'Handled rates prompt',
+        resetSession: true,
+    };
+};
+
+/////////////////////////////////////////////////////////
+//       KYC Related Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleKycPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const { botParams, user } = params;
+
+    const userKycStatus = userServiceV2.formatKycStatus(user.kycStatus);
+
+    if (userKycStatus === 'verified') {
+        const responseMessage = `Your KYC is already verified.`;
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+        );
+
+        return {
+            response: 'Handled KYC prompt',
+            resetSession: true,
+        };
+    }
+
+    if (SumSubService.SERVICE_IS_ACTIVE) {
+        if (
+            userKycStatus === 'unverified' ||
+            userKycStatus === 'rejected' ||
+            userKycStatus === 'pending'
+        ) {
+            await WhatsAppBotService.sendKycVerificationUrlMessage(user, botParams);
+            return {
+                response: 'Handled KYC prompt',
+                resetSession: true,
+            };
+        }
+
+        if (userKycStatus === 'in_review') {
+            await WhatsAppBotService.sendKycInReviewMessage(botParams);
+            return {
+                response: 'Handled KYC prompt',
+                resetSession: true,
+            };
+        }
+    }
+
+    const responseMessage = `KYC verification is not available at the moment.`;
+    await WhatsAppBotService.sendWhatsappMessage(
+        botParams.businessPhoneNumberId,
+        MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+    );
+
+    return {
+        response: 'Handled KYC prompt',
         resetSession: true,
     };
 };

@@ -1,5 +1,9 @@
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import {
+    ACKNOWLEDGE_BUTTON_ID_PREFIX,
+    MARK_AS_PAID_BUTTON_ID_PREFIX,
+} from '@/app/FiatRamp/alternatives/config';
+import {
     BankBeneficiary,
     MobileMoneyBeneficiary,
     UsersBeneficiaries,
@@ -314,6 +318,8 @@ class WhatsAppBotService {
         _sliceFrom = 0,
         _sliceTo = 9
     ) {
+        usersBeneficiaries.reverse();
+
         if (usersBeneficiaries.length === 0) {
             await this.beginAddBeneficiaryFlowMessage({
                 assetId,
@@ -618,6 +624,14 @@ class WhatsAppBotService {
 
         if (assetInteractiveButtonsIds.includes(interactiveButtonId as AssetInteractiveButtonIds)) {
             return 'explore-asset';
+        }
+
+        if (interactiveButtonId.startsWith(ACKNOWLEDGE_BUTTON_ID_PREFIX)) {
+            return 'acknowledge-manual-offramp-settlement';
+        }
+
+        if (interactiveButtonId.startsWith(MARK_AS_PAID_BUTTON_ID_PREFIX)) {
+            return 'mark-manual-offramp-settlement-as-paid';
         }
 
         throw new HttpException(
@@ -1097,30 +1111,34 @@ class WhatsAppBotService {
             )
         );
 
-        const supportedAssetIds = azzaWalletManager
-            .getSupportedAssets()
-            .filter((asset) => {
-                // filter for assetName | network or assetName && network
+        const supportedAssets = azzaWalletManager.getSupportedAssets().filter((asset) => {
+            if (tokenName && network) {
                 return (
-                    (tokenName
-                        ? asset.tokenName.toLowerCase() === tokenName.toLowerCase()
-                        : true) &&
-                    (network ? asset.network.toLowerCase() === network.toLowerCase() : true)
+                    asset.tokenName.toLowerCase() === tokenName.toLowerCase() &&
+                    asset.network.toLowerCase() === network.toLowerCase()
                 );
-            })
-            .map((asset) => asset.listItemId);
+            }
+            if (tokenName) {
+                return asset.tokenName.toLowerCase() === tokenName.toLowerCase();
+            }
+            if (network) {
+                return asset.network.toLowerCase() === network.toLowerCase();
+            }
 
-        const promises = supportedAssetIds.map((assetId) =>
-            azzaWalletManager.getAssetBalance({
-                userId: user.id,
-                assetId: assetId,
-            })
+            return true;
+        });
+
+        const uniqueNetworks = [...new Set(supportedAssets.map((asset) => asset.network))];
+        const allPromises = uniqueNetworks.map((network) =>
+            azzaWalletManager.getNetworkBalances(user.id, network)
         );
 
-        const [userCountry, ...userAssetsInfo] = await Promise.all([
+        const [userCountry, ...userAssetsInfoEntries] = await Promise.all([
             this.getUserCountryFromPhoneNumber(phoneParams.userPhoneNumber),
-            ...promises,
+            ...allPromises,
         ]);
+
+        const userAssetsInfo = userAssetsInfoEntries.flat();
 
         if (!userCountry) {
             return await this.sendUserBalancesMessage(phoneParams, userAssetsInfo);

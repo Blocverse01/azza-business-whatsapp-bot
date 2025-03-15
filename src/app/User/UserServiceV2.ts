@@ -99,7 +99,7 @@ class UserServiceV2 {
         });
 
         if (existingRecord) {
-            throw new Error('User already exists');
+            return existingRecord;
         }
 
         return await this.repository.user.createUser({
@@ -215,9 +215,13 @@ class UserServiceV2 {
     }
 
     public static async getWhatsappUserIdentityInfo(identifier: string) {
-        const user =
-            (await this.getWhatsappUserByPhoneNumber(identifier)) ??
-            (await this.getUserById(identifier));
+        let user = await this.getUserById(identifier);
+
+        if (!user) {
+            user = await this.getWhatsappUserByPhoneNumber(identifier, {
+                omitCache: true,
+            });
+        }
 
         if (!user) {
             throw new HttpException(BAD_REQUEST, 'User not found');
@@ -360,21 +364,10 @@ class UserServiceV2 {
     }
 
     public static async getUserBlockradarWallets(userId: string) {
-        const cacheKey = this.env.enableCache ? this.cacheKeys(userId).wallets : null;
-        const cachedWallets = cacheKey ? await this.cacheStore.get(cacheKey) : null;
-
-        if (cachedWallets && cachedWallets !== '[]') {
-            return JSON.parse(cachedWallets) as Array<UserBlockRadarWallet>;
-        }
-
         const walletConfig = await this.repository.blockradarWallet.getWalletConfig(userId);
 
         if (!walletConfig) {
             return null;
-        }
-
-        if (cacheKey && this.cacheStore) {
-            await this.cacheStore.set(cacheKey, JSON.stringify(walletConfig));
         }
 
         return walletConfig satisfies Array<UserBlockRadarWallet>;
@@ -429,13 +422,18 @@ class UserServiceV2 {
             return null;
         }
 
-        const cacheKey = this.cacheKeys(userId).wallets;
-
-        if (this.cacheStore && this.env.enableCache) {
-            await this.cacheStore.set(cacheKey, JSON.stringify(walletConfig));
-        }
-
         return walletConfig as Array<UserBlockRadarWallet>;
+    }
+
+    public static async createUserBlockradarWallet(userId: string, wallet: UserBlockRadarWallet) {
+        const existingAddressId = await this.getUserBlockradarWalletAddressId(
+            userId,
+            wallet.blockchainNetwork
+        );
+
+        if (existingAddressId) return;
+
+        return await this.createUserBlockradarWalletConfig(userId, [wallet]);
     }
 
     private static unmaskUserSecurityQuestions(encryptedSecuritySetup: string) {

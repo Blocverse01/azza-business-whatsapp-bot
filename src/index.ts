@@ -41,13 +41,20 @@ serverAdapter.setBasePath('/bjs/ui');
 
 createBullBoard({
     queues: [
-        new BullMQAdapter(queues.fiatPayout),
+        // new BullMQAdapter(queues.fiatPayout),
         new BullMQAdapter(queues.cryptoDebit),
         new BullMQAdapter(queues.cryptoDebitConfirmation),
         new BullMQAdapter(queues.userTxPinSecurity),
         new BullMQAdapter(queues.walletMigration),
-        new BullMQAdapter(queues.whatsappBotMessaging),
+        //new BullMQAdapter(queues.whatsappBotMessaging),
         new BullMQAdapter(queues.whatsappBroadcast),
+        new BullMQAdapter(queues.eventDrivenOfframp),
+        new BullMQAdapter(queues.fiatPayoutV2),
+        new BullMQAdapter(queues.whatsappBotMessagingTemp),
+        new BullMQAdapter(queues.syncUserWallet),
+        new BullMQAdapter(queues.baseCashback),
+        new BullMQAdapter(queues.cryptoPayout),
+        new BullMQAdapter(queues.cleanupMessages),
     ],
     serverAdapter: serverAdapter,
 });
@@ -66,5 +73,5 @@ app.listen(env.PORT, () => {
 });
 
 if (env.SHOULD_EXECUTE_CRYPTO_PAYOUTS) {
-    CronHandler.scheduleCryptoPayoutExecution(CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION);
+    //CronHandler.scheduleCryptoPayoutExecution(CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION);
 }

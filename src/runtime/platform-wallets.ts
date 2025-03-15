@@ -17,7 +17,7 @@ import {
 } from '@/runtime/blockradar';
 
 export type PlatformAddressIdNetworkTag = 'evm' | 'solana' | 'tron';
-type PlatformAddressUserIdPrefix = 'onramp-payout' | 'offramp-hot-wallet';
+type PlatformAddressUserIdPrefix = 'onramp-payout' | 'offramp-hot-wallet' | 'cashback-payout';
 
 export type PlatformAddressIdKey = `${PlatformAddressUserIdPrefix}-${PlatformAddressIdNetworkTag}`;
 
@@ -28,6 +28,9 @@ const mainnet__PlatformAddressIdRecords: Record<PlatformAddressIdKey, string> = 
     'offramp-hot-wallet-evm': '959eea66-6849-4971-901f-8f9903f2bd3f',
     'offramp-hot-wallet-solana': '47750a08-2641-43de-bca3-02533b58b653',
     'offramp-hot-wallet-tron': 'a4c1445d-31d8-4a1a-a539-108f6b1f9bfb',
+    'cashback-payout-evm': '0a4bfcc7-083a-433f-bf72-e8e915abbbdb',
+    'cashback-payout-tron': '', // Added to respect the type rule, not needed at the moment
+    'cashback-payout-solana': '', // Added to respect the type rule, not needed at the moment
 };
 const testnet__PlatformAddressIdRecords: Record<PlatformAddressIdKey, string> = {
     'onramp-payout-evm': 'f44866a3-6881-4089-afbb-ae83996cd9b8',
@@ -36,6 +39,9 @@ const testnet__PlatformAddressIdRecords: Record<PlatformAddressIdKey, string> = 
     'offramp-hot-wallet-evm': '76729de7-1425-47de-9baf-7e91897e404c',
     'offramp-hot-wallet-solana': '3a3ec592-f95d-4918-a18c-2e27900234e3',
     'offramp-hot-wallet-tron': 'ef0bb6ea-1dc6-4b1e-ac36-aa23fb80d7f5',
+    'cashback-payout-evm': '', // not created yet
+    'cashback-payout-tron': '', // Added to respect the type rule, not needed at the moment
+    'cashback-payout-solana': '', // Added to respect the type rule, not needed at the moment
 };
 
 export const getNetworkTag = (network: AllSupportedBlockchains) => {
@@ -50,7 +56,7 @@ export const composePlatformAddressIdKey = (
 ) => {
     const networkTag = getNetworkTag(network);
 
-    return `${platformUserIdPrefix}-${networkTag}` as PlatformAddressIdKey;
+    return `${platformUserIdPrefix}-${networkTag}` satisfies PlatformAddressIdKey;
 };
 
 export const getPlatformAddressId = (

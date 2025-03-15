@@ -115,6 +115,7 @@ const commonTransactionFieldsSchema = z.object({
     status: blockradarTransactionStatusSchema,
     tokenAddress: z.string().nullable(),
     type: blockradarTransactionTypeSchema,
+    reference: z.string().optional().nullable(),
 });
 
 export const blockradarTransactionSchema = commonTransactionFieldsSchema
@@ -149,7 +150,7 @@ export const withdrawAssetRequestBodySchema = z.object({
     amount: z.string(),
     assetId: z.string(),
     reference: z.string().optional(),
-    metadata: z.record(z.string()).optional(),
+    metadata: z.record(z.unknown()).optional(),
 });
 
 //////////////////////
@@ -164,7 +165,7 @@ export const withdrawAssetResponseDataSchema = commonTransactionFieldsSchema
 ////////////////////////
 // Webhook Payload
 ////////////////////////
-const webhookEvent = z.enum(['deposit.success'] as const);
+const webhookEvent = z.enum(['deposit.success', 'withdraw.success', 'withdraw.failed'] as const);
 export const blockradarWebhookPayloadSchema = z.object({
     event: webhookEvent,
     data: z.object({
@@ -190,3 +191,5 @@ export type GenerateAddressRequestBody = z.infer<typeof generateAddressRequestBo
 export type UpdateAddressRequestBody = z.infer<typeof updateAddressRequestBodySchema>;
 export type WithdrawAssetRequestBody = z.infer<typeof withdrawAssetRequestBodySchema>;
 export type BlockradarWebhookPayload = z.infer<typeof blockradarWebhookPayloadSchema>;
+export type BlockradarAddress = z.infer<typeof blockradarAddressSchema>;
+export type BlockradarTransactionType = z.infer<typeof blockradarTransactionTypeSchema>;

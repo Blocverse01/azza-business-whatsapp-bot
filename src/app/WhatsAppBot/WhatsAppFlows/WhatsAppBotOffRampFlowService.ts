@@ -11,7 +11,7 @@ import {
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { DropdownOption, type FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { offrampFlowProducer } from '@/background-processing/flow-producers';
-import { defaultQueueRemoveOptions } from '@/background-processing/queues';
+import { defaultQueueRemoveOptions, queues } from '@/background-processing/queues';
 import { OfframpQueueFlowParams } from '@/background-processing/schema';
 import { CryptoDebitQueueInput, QueueNames } from '@/background-processing/types';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
@@ -116,6 +116,18 @@ type FiatToReceivePattern =
 
 const SECTION_SEPARATOR = '\n---------------------------------\n' as const;
 
+type ProcessOfframpTransactionParams = {
+    fiatAmount: number;
+    userId: string;
+    assetId: string;
+    tokenAmount: number;
+    tokenAmountToDebit: number;
+    beneficiaryId: string;
+    platformFeePercentage: number;
+    conversionRate: number;
+    transactionPin: string;
+    transactionFeeUsd: number;
+};
 type ProcessOffRampTransactionResponse = {
     status: 'processing' | 'complete' | 'failed' | 'pending';
     message: string;
@@ -247,7 +259,7 @@ class WhatsAppBotOffRampFlowService {
                           rampType: 'offramp',
                       });
 
-                      return fixNumber(usdLimit + feeForUsdLimit.feeUsd, TWO);
+                      return fixNumber(usdLimit + feeForUsdLimit.feeUsd + 0.1, TWO);
                   })(),
             amount_denomination === beneficiary.currency_symbol
                 ? countryLimits.max
@@ -350,8 +362,8 @@ class WhatsAppBotOffRampFlowService {
 
         const amountToDebit =
             amount_denomination === beneficiary.currency_symbol
-                ? fixNumber(math.add(usdAmount, transactionFee), THREE)
-                : usdAmount;
+                ? fixNumber(math.add(usdAmount, transactionFee), FOUR)
+                : fixNumber(usdAmount, FOUR);
         const token_amount_to_debit: TokenAmountToDebitPattern = `${amountToDebit} ${assetName}`;
 
         const destination_account = this.generateDestinationString(beneficiary);
@@ -383,7 +395,7 @@ class WhatsAppBotOffRampFlowService {
                     fiat_to_receive,
                 },
                 transaction_details: {
-                    token_amount: decimalToString(fixNumber(usdAmount, THREE)),
+                    token_amount: decimalToString(fixNumber(usdAmount, FOUR)),
                     transaction_fee: transactionFee.toString(),
                     fiat_to_receive: fiatEquivalent.toString(),
                     beneficiary: beneficiary,
@@ -462,7 +474,7 @@ class WhatsAppBotOffRampFlowService {
                         fiat_to_receive: fiat_to_receive_display,
                     },
                     transaction_details: {
-                        token_amount: decimalToString(fixNumber(usdAmount, THREE)),
+                        token_amount: decimalToString(fixNumber(usdAmount, FOUR)),
                         transaction_fee: transactionFee.toString(),
                         fiat_to_receive: fiatEquivalent.toString(),
                         beneficiary: beneficiary,
@@ -482,7 +494,7 @@ class WhatsAppBotOffRampFlowService {
             };
         }
 
-        const response = await this.processOffRampTransaction({
+        const response = await this.processOffRampTransactionV2({
             assetId: asset_id,
             fiatAmount: parseFloat(fiat_to_receive),
             tokenAmount: parseFloat(token_amount),
@@ -524,18 +536,9 @@ class WhatsAppBotOffRampFlowService {
         };
     }
 
-    private static async processOffRampTransaction(params: {
-        fiatAmount: number;
-        userId: string;
-        assetId: string;
-        tokenAmount: number;
-        tokenAmountToDebit: number;
-        beneficiaryId: string;
-        platformFeePercentage: number;
-        conversionRate: number;
-        transactionPin: string;
-        transactionFeeUsd: number;
-    }): Promise<ProcessOffRampTransactionResponse> {
+    private static async processOffRampTransaction(
+        params: ProcessOfframpTransactionParams
+    ): Promise<ProcessOffRampTransactionResponse> {
         const {
             fiatAmount,
             userId,
@@ -601,7 +604,7 @@ class WhatsAppBotOffRampFlowService {
                         conversionRate,
                         transactionFeeUsd,
                         whatsappParams: {
-                            userPhoneNumber: user.primaryWhatsappPhoneNumber!,
+                            userPhoneNumber: user.primaryWhatsappPhoneNumber,
                             businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         },
                     } satisfies OfframpQueueFlowParams,
@@ -630,7 +633,7 @@ class WhatsAppBotOffRampFlowService {
                                             ),
                                         },
                                         whatsappParams: {
-                                            userPhoneNumber: user.primaryWhatsappPhoneNumber!,
+                                            userPhoneNumber: user.primaryWhatsappPhoneNumber,
                                             businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                                         },
                                     } satisfies CryptoDebitQueueInput,
@@ -657,6 +660,105 @@ class WhatsAppBotOffRampFlowService {
                             },
                         },
                     },
+                }
+            );
+
+            return {
+                status: 'processing',
+                message:
+                    "Your transaction is currently being processed, we'd send updates on the status of your transaction in your DM",
+            };
+        } catch (error) {
+            await logServiceError(error, 'Processing offramp transaction failed');
+
+            return {
+                status: 'failed',
+                message: 'Transaction failed',
+            };
+        }
+    }
+
+    private static async processOffRampTransactionV2(
+        params: ProcessOfframpTransactionParams
+    ): Promise<ProcessOffRampTransactionResponse> {
+        const {
+            fiatAmount,
+            userId,
+            assetId,
+            tokenAmountToDebit,
+            beneficiaryId,
+            platformFeePercentage,
+            conversionRate,
+            transactionPin,
+            transactionFeeUsd,
+            tokenAmount,
+        } = params;
+
+        const assetConfig = getAssetConfigOrThrow(assetId);
+        const [assetBalanceInfo, assetWallet, user] = await Promise.all([
+            azzaWalletManager.getAssetBalance({
+                userId,
+                assetId,
+            }),
+            azzaWalletManager.getUserWallet(userId, assetConfig.network),
+            userServiceV2.getUserById(userId),
+        ]);
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        const assetBalance = assetBalanceInfo.balance;
+
+        if (assetBalance < tokenAmountToDebit) {
+            const insufficientBalanceMessage = `You're trying to pay: ${tokenAmountToDebit} ${assetConfig.tokenName}\nYou have only: ${assetBalance} ${assetConfig.tokenName}`;
+
+            return {
+                status: 'failed',
+                message: insufficientBalanceMessage,
+            };
+        }
+
+        try {
+            const hotWalletAddress = await FiatRampService.getHotWalletForNetwork(
+                assetBalanceInfo.blockchainNetwork
+            );
+
+            // Process in background and return early processing response
+            await queues.eventDrivenOfframp.add(
+                'initiate offramp request',
+                {
+                    offrampParams: {
+                        beneficiaryId,
+                        // When `tokenAmount` is equal to `tokenAmountToDebit`, it means the transaction fee is included in the amount
+                        usdAmount: math.equal(
+                            fixNumber(tokenAmount, FOUR),
+                            fixNumber(tokenAmountToDebit, FOUR)
+                        )
+                            ? math.subtract(tokenAmount, transactionFeeUsd)
+                            : tokenAmount,
+                        localAmount: fiatAmount,
+                        userWalletAddress: assetWallet.address,
+                        hotWalletAddress,
+                        userId: convertAsciiStringToBase64(userId),
+                        platformFeePercentage,
+                        conversionRate,
+                        transactionFeeUsd,
+                        assetId,
+                        totalAmountUsd: tokenAmountToDebit,
+                    },
+                    transactionPin: encryptWithAES(
+                        transactionPin,
+                        env.SECURITY_QUESTIONS_MASK_KEY,
+                        env.SECURITY_QUESTIONS_MASK_IV
+                    ),
+                    whatsappParams: {
+                        userPhoneNumber: user.primaryWhatsappPhoneNumber,
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                    },
+                },
+                {
+                    ...defaultQueueRemoveOptions,
                 }
             );
 

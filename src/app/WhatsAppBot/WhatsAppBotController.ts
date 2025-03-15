@@ -1,4 +1,4 @@
-import { receiveIncomingWhatsappMessage } from '@/app/WhatsAppBot/messagingQueueHelpers';
+import { receiveIncomingWhatsappMessageTemp } from '@/app/WhatsAppBot/messagingQueueHelpers';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { type IncomingWhatsappMessage } from '@/app/WhatsAppBot/WhatsAppBotType';
 import env from '@/constants/env';
@@ -41,11 +41,15 @@ class WhatsAppBotController {
             const { message, displayName, businessPhoneNumberId } = messageParts;
 
             if (message?.id) {
-                void WhatsAppBotService.markMassageAsRead(businessPhoneNumberId, message.id);
+                await WhatsAppBotService.markMassageAsRead(businessPhoneNumberId, message.id);
             }
 
             if (message && message.id && businessPhoneNumberId && displayName) {
-                await receiveIncomingWhatsappMessage(message, businessPhoneNumberId, displayName);
+                await receiveIncomingWhatsappMessageTemp(
+                    message,
+                    businessPhoneNumberId,
+                    displayName
+                );
             } else {
                 return;
             }

@@ -5,6 +5,7 @@ import {
     getPlatformAssetId,
 } from '@/app/AzzaWalletManager/providers/blockradar/resources/assets';
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
+import { syncUserAddressJob } from '@/background-processing/utils';
 import logger from '@/resources/logger';
 import { isEvmCompatibleBlockchain } from '@/resources/web3/core/blockchains';
 import {
@@ -22,6 +23,15 @@ const walletProvider = new BlockradarWalletProvider({
         userAddressId: (userId: string, network: string) =>
             userServiceV2.getUserBlockradarWalletAddressId(userId, network),
         platformAssetId: getPlatformAssetId,
+        syncUserAddress: (params) => {
+            return syncUserAddressJob({
+                userId: params.userId,
+                network: params.network,
+                address: params.address,
+                addressId: params.addressId,
+                isEvmCompatible: isEvmCompatibleBlockchain(params.network),
+            });
+        },
     },
     networkUtils: {
         isEvmCompatibleBlockchain,

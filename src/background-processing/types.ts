@@ -5,6 +5,7 @@ import {
     PhoneNumberParams,
     WhatsAppTextMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { AssetConfig } from '@/resources/web3/core/tokens';
 
 export type FiatPayoutQueueResult =
@@ -39,12 +40,19 @@ export type UserTxPinSecurityQueueResult = {
 
 export enum QueueNames {
     fiatPayout = 'fiat-payout',
+    fiatPayoutV2 = 'fiat-payout-v2',
     cryptoDebit = 'crypto-debit',
     cryptoDebitConfirmation = 'crypto-debit-confirmation',
     userTxPinSecurity = 'user-tx-pin-security',
     walletMigration = 'wallet-migration',
     whatsappBotMessaging = 'whatsapp-bot-messaging',
+    whatsappBotMessagingTemp = 'whatsapp-bot-messaging-temp',
     whatsappBroadcast = 'whatsapp-broadcast',
+    eventDrivenOfframp = 'event-driven-offramp',
+    syncUserWallet = 'sync-user-wallet',
+    baseCashback = 'base-cashback',
+    cryptoPayout = 'crypto-payout',
+    cleanupMessages = 'cleanup-messages',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -57,7 +65,9 @@ export type UserWalletMigrationQueueResult = {
 };
 
 export type CryptoDebitQueueInput = {
-    transferDetails: Required<TransferAssetTransactionDetails>;
+    transferDetails: TransferAssetTransactionDetails & {
+        transactionPin: string;
+    };
     whatsappParams: PhoneNumberParams;
 };
 
@@ -90,4 +100,33 @@ export type WhatsAppBotMessagingQueueResult = {
 export type WhatsappBroadcastQueueInput = {
     message: WhatsAppTextMessage;
     businessPhoneNumberId: string;
+};
+
+export type EventDrivenOfframpQueueInput = {
+    offrampParams: {
+        beneficiaryId: string;
+        usdAmount: number;
+        localAmount: number;
+        userWalletAddress: string;
+        hotWalletAddress: string;
+        userId: string;
+        platformFeePercentage: number;
+        conversionRate: number;
+        transactionFeeUsd: number;
+        assetId: string;
+        totalAmountUsd: number;
+    };
+    whatsappParams: PhoneNumberParams;
+    transactionPin: string;
+};
+export type EventDrivenOfframpQueueResult = {
+    offrampRequestId: string;
+    debitTransactionId: string;
+};
+
+export type SyncUserWalletIdQueueInput = {
+    userId: string;
+    network: AllSupportedBlockchains;
+    addressId: string;
+    address: string;
 };

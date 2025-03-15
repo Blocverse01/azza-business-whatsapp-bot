@@ -1,3 +1,7 @@
+import {
+    createCleanupOldMessagesWorker,
+    prepareSchedulerQueue,
+} from '@/app/aiAgent/conversation-manager';
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import {
     sendTransferAssetTransaction,
@@ -9,12 +13,16 @@ import {
     waitForTransactionReceipt,
     waitForTransactionReceiptV2,
 } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
+import { createBaseCashbackWorker } from '@/app/campaigns/base-cashbacks/utils';
+import { createCryptoPayoutWorker } from '@/app/crypto-payouts-v2/utils';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { createFiatPayoutV2Worker } from '@/app/FiatRamp/queue-helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     createWhatsappBroadcastWorker,
+    createWhatsappMessagingTempWorker,
     createWhatsappMessagingWorker,
 } from '@/app/WhatsAppBot/messagingQueueHelpers';
 import {
@@ -37,6 +45,10 @@ import {
     UserTxPinSecurityQueueInput,
     UserTxPinSecurityQueueResult,
 } from '@/background-processing/types';
+import {
+    createEventDrivenOfframpWorker,
+    createSyncUserWalletWorker,
+} from '@/background-processing/utils';
 import env from '@/constants/env';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { logServiceError, parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
@@ -47,6 +59,7 @@ import {
 } from '@/resources/utils/encryption';
 import { normalizeBlockchainInput } from '@/resources/web3/core/blockchains';
 import { TokenNames } from '@/resources/web3/core/tokens';
+import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
 
@@ -367,6 +380,14 @@ const userTxPinSecurityWorker = new Worker<
         let isSuccessful = false;
 
         const userId = convertBase64ToAsciiString(job.data.userId);
+        const user =
+            (await userServiceV2.getWhatsappUserByPhoneNumber(userId)) ??
+            (await userServiceV2.getUserById(userId));
+
+        if (!user) {
+            throw new Error(`User not found for ${userId}`);
+        }
+
         const businessPhoneNumberId = job.data.whatsappParams.businessPhoneNumberId;
         const userPhoneNumber = convertBase64ToAsciiString(job.data.whatsappParams.userPhoneNumber);
 
@@ -383,7 +404,7 @@ const userTxPinSecurityWorker = new Worker<
                     isSuccessful = (
                         await setTransactionPin({
                             newPinHash: job.data.newPinHash,
-                            userId: userId,
+                            userId: user.id,
                             encryptedSecurityQuestions: job.data.encryptedSecurityQuestions,
                         })
                     ).pinSet;
@@ -403,7 +424,7 @@ const userTxPinSecurityWorker = new Worker<
                 isSuccessful = (
                     await changeTransactionPin({
                         newPinHash: job.data.newPinHash,
-                        userId: userId,
+                        userId: user.id,
                     })
                 ).pinChanged;
 
@@ -432,15 +453,28 @@ const userTxPinSecurityWorker = new Worker<
     },
     {
         connection: connectionConfig,
-        concurrency: 50,
+        concurrency: 5,
     }
 );
 
+prepareSchedulerQueue();
+
 createWhatsappBroadcastWorker();
+createEventDrivenOfframpWorker();
+createFiatPayoutV2Worker();
+createSyncUserWalletWorker();
+createBaseCashbackWorker();
+createCryptoPayoutWorker();
+createCleanupOldMessagesWorker();
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {
     createWhatsappMessagingWorker();
+}
+for (let i = 0; i < 8; i++) {
+    createWhatsappMessagingTempWorker().on('error', async (error) => {
+        await logServiceError(error, 'Whatsapp Messaging Worker Error');
+    });
 }
 
 ///////////////////////

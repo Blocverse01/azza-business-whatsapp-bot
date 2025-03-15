@@ -38,6 +38,7 @@ export type AssetTransaction = {
     recipientAddress: string;
     senderAddress: string;
     id: string;
+    reference?: string | null;
 };
 export type WithdrawAssetParams = {
     assetId: string;
@@ -45,7 +46,13 @@ export type WithdrawAssetParams = {
     amount: string;
     recipient: string;
     reference?: string;
+    metadata?: Record<string, unknown>;
 };
+export type SearchAssetParams = Partial<{
+    network: string;
+    tokenName: string;
+    tokenAddress: string;
+}>;
 
 export abstract class BaseWalletProvider {
     public abstract getAssetBalance(params: BalanceQueryParams): Promise<AssetBalance>;
@@ -80,7 +87,5 @@ export abstract class BaseWalletProvider {
 
     public abstract withdrawAsset(params: WithdrawAssetParams): Promise<AssetTransaction>;
 
-    public abstract searchAssets(
-        searchParams: Partial<Pick<AssetConfig, 'network' | 'tokenName'>>
-    ): Array<AssetConfig>;
+    public abstract searchAssets(searchParams: SearchAssetParams): Array<AssetConfig>;
 }

@@ -10,12 +10,14 @@ import type {
 } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { BlockradarWalletProviderError } from '@/app/AzzaWalletManager/providers/blockradar/resources/errors';
 import type BlockradarMasterWalletApiClient from '@/app/Blockradar/BlockradarMasterWalletApiClient';
+import { delay } from '@/resources/utils/delay';
 import {
     AllSupportedBlockchains,
     EvmCompatibleBlockchain,
 } from '@/resources/web3/core/blockchains';
 import type { AssetConfig } from '@/resources/web3/core/tokens';
 import type { Logtail } from '@logtail/node';
+import { BlockradarTransactionType } from '@/app/Blockradar/schema';
 
 type BlockradarWalletProviderParams = {
     dataSources: {
@@ -27,6 +29,12 @@ type BlockradarWalletProviderParams = {
         ) => BlockradarMasterWalletApiClient;
         userAddressId: (userId: string, network: AllSupportedBlockchains) => Promise<string | null>;
         supportedNetworks: () => Array<AllSupportedBlockchains>;
+        syncUserAddress?: (params: {
+            userId: string;
+            network: AllSupportedBlockchains;
+            addressId: string;
+            address: string;
+        }) => Promise<unknown>;
     };
     networkUtils: {
         isEvmCompatibleBlockchain: (
@@ -52,7 +60,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         const blockradarAssetId = this.dataSources.blockradarAssetId(params.assetId);
 
         const walletClient = this.dataSources.blockradarMasterWalletClient(assetConfig.network);
-        const userAddressId = await this.dataSources.userAddressId(
+        const userAddressId = await this.gracefullyGetUserAddressId(
             params.userId,
             assetConfig.network
         );
@@ -81,7 +89,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         const allNetworkAssets = this.dataSources
             .platformAssetConfigs()
             .filter((config) => config.network === network);
-        const userAddressId = await this.dataSources.userAddressId(userId, network);
+        const userAddressId = await this.gracefullyGetUserAddressId(userId, network);
 
         if (!userAddressId) {
             throw new BlockradarWalletProviderError({
@@ -124,7 +132,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
     ): Promise<UserWallet> {
         const walletClient = this.dataSources.blockradarMasterWalletClient(network);
 
-        const addressId = await this.dataSources.userAddressId(userId, network);
+        const addressId = await this.gracefullyGetUserAddressId(userId, network);
         if (!addressId) {
             throw new BlockradarWalletProviderError({
                 data: {
@@ -180,15 +188,20 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             recipientAddress: blockradarTransaction.recipientAddress,
             senderAddress: blockradarTransaction.senderAddress,
             id: blockradarTransaction.id,
+            reference: blockradarTransaction.reference,
         };
     }
 
     public async getTransactionByHash(
         transactionHash: string,
-        network: AllSupportedBlockchains
+        network: AllSupportedBlockchains,
+        targetTransactionType?: BlockradarTransactionType
     ): Promise<AssetTransaction> {
         const walletClient = this.dataSources.blockradarMasterWalletClient(network);
-        const blockradarTransaction = await walletClient.getTransactionByHash(transactionHash);
+        const blockradarTransaction = await walletClient.getTransactionByHash(
+            transactionHash,
+            targetTransactionType
+        );
 
         if (!blockradarTransaction) {
             throw new BlockradarWalletProviderError({
@@ -227,6 +240,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             recipientAddress: blockradarTransaction.recipientAddress,
             senderAddress: blockradarTransaction.senderAddress,
             id: blockradarTransaction.id,
+            reference: blockradarTransaction.reference,
         };
     }
 
@@ -235,7 +249,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         const blockradarAssetId = this.dataSources.blockradarAssetId(params.assetId);
         const walletClient = this.dataSources.blockradarMasterWalletClient(assetConfig.network);
 
-        const userAddressId = await this.dataSources.userAddressId(
+        const userAddressId = await this.gracefullyGetUserAddressId(
             params.userId,
             assetConfig.network
         );
@@ -255,6 +269,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             address: params.recipient,
             assetId: blockradarAssetId,
             reference: params.reference,
+            metadata: params.metadata,
         });
 
         return {
@@ -272,10 +287,6 @@ class BlockradarWalletProvider implements BaseWalletProvider {
     }
 
     public async createUserWallet(params: CreateUserWalletParams): Promise<UserWallet> {
-        if (await this.dataSources.userAddressId(params.userId, params.network)) {
-            return this.getUserWallet(params.userId, params.network);
-        }
-
         const walletClient = this.dataSources.blockradarMasterWalletClient(params.network);
 
         const address = await walletClient.generateAddress({
@@ -393,6 +404,51 @@ class BlockradarWalletProvider implements BaseWalletProvider {
                 return asset[typedKey].toLowerCase() === value.toLowerCase();
             });
         });
+    }
+
+    public async gracefullyGetUserAddressId(
+        userId: string,
+        blockchainNetwork: AllSupportedBlockchains,
+        retryCount: number = 0
+    ): Promise<string | null> {
+        const maxRetries = 5;
+        const baseDelay = 5000; // Start with 5s delay
+
+        // Attempt to check our records
+        const addressId = await this.dataSources.userAddressId(userId, blockchainNetwork);
+        if (addressId) return addressId;
+
+        // Attempt to check on provider's side
+        const walletClient = this.dataSources.blockradarMasterWalletClient(blockchainNetwork);
+
+        const searchedAddress = await walletClient.searchAddressByMetadata({ userId });
+
+        if (searchedAddress) {
+            if (this.dataSources.syncUserAddress) {
+                await this.dataSources.syncUserAddress({
+                    userId,
+                    network: blockchainNetwork,
+                    addressId: searchedAddress.id,
+                    address: searchedAddress.address,
+                });
+            }
+            return searchedAddress.id;
+        }
+
+        // Try to create the user wallet
+        try {
+            await this.createUserWallet({ userId, network: blockchainNetwork });
+        } catch (error) {
+            // Handle error
+        }
+
+        // Stop retrying after max retries
+        if (retryCount >= maxRetries) return null;
+
+        const delayTime = baseDelay * 2 ** retryCount; // Exponential backoff
+        await delay(delayTime);
+
+        return this.gracefullyGetUserAddressId(userId, blockchainNetwork, retryCount + 1);
     }
 }
 

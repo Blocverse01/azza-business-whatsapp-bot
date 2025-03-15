@@ -141,7 +141,7 @@ export const usdcPolygonConfig = {
     listItemId: AssetInteractiveButtonIds.USDC_POLYGON,
     network: 'Polygon' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
-    showOnAssetsMenu: false,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtPolygonConfig = {
@@ -153,7 +153,7 @@ export const usdtPolygonConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_POLYGON,
     network: 'Polygon' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
-    showOnAssetsMenu: false,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== MATIC ==============
 export const polConfig = {
@@ -192,7 +192,7 @@ export const ethBaseConfig = {
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
     ] as ExploreAssetActions[],
-    showOnAssetsMenu: true,
+    showOnAssetsMenu: false,
     isNative: true,
 } satisfies AssetConfig;
 
@@ -211,7 +211,7 @@ export const usdcEthConfig = {
         ExploreAssetActions.DEPOSIT,
         ExploreAssetActions.SELL_ASSET,
     ] as ExploreAssetActions[],
-    showOnAssetsMenu: true,
+    showOnAssetsMenu: false,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtEthConfig = {
@@ -256,7 +256,7 @@ export const usdcOptimismConfig = {
     listItemId: AssetInteractiveButtonIds.USDC_OPTIMISM,
     network: 'Optimism' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
-    showOnAssetsMenu: false,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== USDT ==============
 export const usdtOptimismConfig = {
@@ -268,7 +268,7 @@ export const usdtOptimismConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_OPTIMISM,
     network: 'Optimism' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
-    showOnAssetsMenu: false,
+    showOnAssetsMenu: true,
 } satisfies AssetConfig;
 /// ============== ETH ==============
 export const ethOptimismConfig = {
@@ -310,7 +310,7 @@ export const usdtTronConfig = {
     listItemId: AssetInteractiveButtonIds.USDT_TRON,
     network: 'Tron' as const,
     supportedAssetActions: ALL_ASSET_ACTIONS,
-    showOnAssetsMenu: true,
+    showOnAssetsMenu: false,
 } satisfies AssetConfig;
 /// ============== TRX ==============
 export const trxTronConfig = {
@@ -322,7 +322,7 @@ export const trxTronConfig = {
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
     ] as ExploreAssetActions[],
-    showOnAssetsMenu: true,
+    showOnAssetsMenu: false,
     isNative: true,
 } satisfies AssetConfig;
 
@@ -337,7 +337,7 @@ export const solConfig = {
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
     ] as ExploreAssetActions[],
-    showOnAssetsMenu: true,
+    showOnAssetsMenu: false,
     isNative: true,
 } satisfies AssetConfig;
 /// ============== USDC ==============

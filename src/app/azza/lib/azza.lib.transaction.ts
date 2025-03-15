@@ -106,6 +106,8 @@ export const sendTransferAssetTransaction = async (
         recipient: transferProcessingConfig.resolvedRecipient,
         assetId: assetId,
         userId: userId,
+        reference: params.reference,
+        metadata: params.metadata,
     });
 
     const transactionResponse = {

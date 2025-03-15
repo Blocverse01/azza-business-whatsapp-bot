@@ -1,0 +1,14 @@
+import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
+import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import { TECHNICAL_SUPPORT_NUMBERS } from '@/config/support';
+
+export const sendTechnicalIssueAlert = async (message: string, businessPhoneNumberId: string) => {
+    const messageObjects = TECHNICAL_SUPPORT_NUMBERS.map((pNumber) => {
+        return MessageGenerators.generateTextMessage(pNumber, message);
+    });
+    const promises = messageObjects.map((mObject) =>
+        WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, mObject)
+    );
+
+    await Promise.all(promises);
+};

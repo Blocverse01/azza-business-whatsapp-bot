@@ -12,6 +12,7 @@ import {
     WithdrawAssetRequestBody,
     withdrawAssetRequestBodySchema,
     withdrawAssetResponseDataSchema,
+    type BlockradarTransactionType,
 } from '@/app/Blockradar/schema';
 import { OK } from '@/constants/status-codes';
 import { z } from 'zod';
@@ -104,6 +105,40 @@ class BlockradarMasterWalletApiClient {
         }
 
         return validatedData.data;
+    }
+
+    public async searchAddressByMetadata(metadata: Record<string, unknown>) {
+        const addressResourceUrl = this.getResourceUrl(MasterWalletApiResources.ADDRESS);
+        const encodedMetadata = encodeURIComponent(JSON.stringify(metadata));
+        const url = `${addressResourceUrl}?metadata=${encodedMetadata}`;
+
+        const response = await this.fetch(url, {
+            headers: this.headers,
+            method: 'GET',
+        });
+
+        if (response.statusCode !== OK) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: response.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+            });
+        }
+
+        const validatedData = z.array(blockradarAddressSchema).safeParse(response.data);
+
+        if (!validatedData.success) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: validatedData.error.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+            });
+        }
+
+        const targetAddress = validatedData.data[0];
+        return targetAddress ?? null;
     }
 
     public async getBalances(addressId: string) {
@@ -202,7 +237,10 @@ class BlockradarMasterWalletApiClient {
         return validatedData.data;
     }
 
-    public async getTransactionByHash(transactionHash: string) {
+    public async getTransactionByHash(
+        transactionHash: string,
+        targetTransactionType?: BlockradarTransactionType
+    ) {
         const transactionResourceUrl = this.getResourceUrl(MasterWalletApiResources.TRANSACTION);
         const url = transactionResourceUrl + `?hash=${transactionHash}`;
 
@@ -232,7 +270,9 @@ class BlockradarMasterWalletApiClient {
         }
 
         const targetTransaction = validatedData.data.find(
-            (transaction) => transaction.hash?.toLowerCase() === transactionHash.toLowerCase()
+            (transaction) =>
+                transaction.hash?.toLowerCase() === transactionHash.toLowerCase() &&
+                (targetTransactionType ? transaction.type === targetTransactionType : true)
         );
 
         return targetTransaction ?? null;
@@ -312,7 +352,7 @@ class BlockradarMasterWalletApiClient {
     }
 
     private getResourceUrl(resource: MasterWalletApiResources) {
-        return `${this.baseUrl}/wallets/${this.masterWalletId}/${resource}`;
+        return `${this.baseUrl}/wallets/${this.masterWalletId}/${resource}` as const;
     }
 
     private get headers() {
