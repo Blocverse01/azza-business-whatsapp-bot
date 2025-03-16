@@ -86,7 +86,12 @@ const isBvnPayload = (
 };
 
 const compareUserDataWithBvnData = (
-    user: UserIdentityInfo,
+    user: {
+        firstName: string;
+        lastName: string;
+        kycDateOfBirth: string;
+        country: string;
+    },
     bvnData: BvnKycVerificationWebhookBody
 ) => {
     const bvnFirstName = bvnData.FullData?.FirstName;
@@ -132,21 +137,22 @@ export const createKycEventJobWorker = () => {
             if (isBvnPayload(webhookData)) {
                 if (webhookData.ResultCode === KycWebhookResultCode.ID_VALIDATED) {
                     if (user.kycStatus?.toLowerCase() === 'in_review') {
-                        const userKycInfo = await userServiceV2.getWhatsappUserIdentityInfo(
-                            user.id
-                        );
-
-                        if (!userKycInfo) {
+                        if (!user.firstName || !user.lastName || !user.kycDateOfBirth || !user.country) {
                             throw new Error('Expected user info to contain basic KYC info');
                         }
 
-                        const isTheSameUser = compareUserDataWithBvnData(userKycInfo, webhookData);
+                        const isTheSameUser = compareUserDataWithBvnData({
+                            firstName: user.firstName,
+                            lastName: user.lastName,
+                            kycDateOfBirth: user.kycDateOfBirth,
+                            country: user.country,
+                        }, webhookData);
 
                         if (!isTheSameUser) {
                             const message = BvnKycVerificationFlow.withPhoneNumberId(
                                 env.WA_PHONE_NUMBER_ID
                             ).createBvnVerificationFlowMessage(user, {
-                                messageBody: `BVN verification failed\n\nReason: mismatched data between NIN and BVN info.\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`,
+                                messageBody: `BVN verification failed.\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`,
                                 messageRecipient: user.primaryWhatsappPhoneNumber,
                                 flowCTA: 'Retry BVN verification',
                                 initialValues: {
@@ -185,7 +191,7 @@ export const createKycEventJobWorker = () => {
                     const message = BvnKycVerificationFlow.withPhoneNumberId(
                         env.WA_PHONE_NUMBER_ID
                     ).createBvnVerificationFlowMessage(user, {
-                        messageBody: `BVN verification failed\n\nReason: ${webhookData.ResultText}.\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`,
+                        messageBody: `BVN verification failed.\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`,
                         messageRecipient: user.primaryWhatsappPhoneNumber,
                         flowCTA: 'Retry BVN verification',
                         initialValues: {
