@@ -133,7 +133,6 @@ export const createKycEventJobWorker = () => {
                         messageRecipient: user.primaryWhatsappPhoneNumber,
                         flowCTA: 'Retry BVN verification',
                         initialValues: {
-                            bvn: webhookData.IDNumber,
                             email: user.email ?? undefined,
                         },
                     });
