@@ -23,7 +23,7 @@ class SmileIdController {
 
             if (!bodyDataValidation.success) {
                 await logger.debug(`Invalid webhook payload`, {
-                    body: request.body,
+                    errors: bodyDataValidation.error.formErrors,
                 });
                 return;
             }

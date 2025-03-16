@@ -714,16 +714,24 @@ class WhatsAppBotService {
         phoneParams: PhoneNumberParams
     ) {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
-        const kycLevelName =
-            getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber) === 'NG'
-                ? NG_KYC_LEVEL_NAME
-                : DEFAULT_KYC_LEVEL_NAME;
-        // const kycUrl = await SumSubService.generateKycUrl({
-        //     userPhoneNumber,
-        //     levelName: kycLevelName,
-        //     userId: user.id,
-        // });
-        const kycUrl = await SmileIdService.generateKycLink(user.id);
+
+        await this.sendKycLinkGeneratingMessage(userPhoneNumber);
+
+        const kycUrl = await (async (useSumsub: boolean) => {
+            if (useSumsub) {
+                const kycLevelName =
+                    getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber) === 'NG'
+                        ? NG_KYC_LEVEL_NAME
+                        : DEFAULT_KYC_LEVEL_NAME;
+                return await SumSubService.generateKycUrl({
+                    userPhoneNumber,
+                    levelName: kycLevelName,
+                    userId: user.id,
+                });
+            }
+
+            return await SmileIdService.generateKycLink(user.id);
+        })(false);
 
         const message = MessageGenerators.generateInteractiveCtaUrlButtonMessage({
             recipient: userPhoneNumber,
