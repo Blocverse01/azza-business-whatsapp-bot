@@ -19,6 +19,7 @@ import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { createFiatPayoutV2Worker } from '@/app/FiatRamp/queue-helpers';
+import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     createWhatsappBroadcastWorker,
@@ -466,6 +467,9 @@ createSyncUserWalletWorker();
 createBaseCashbackWorker();
 createCryptoPayoutWorker();
 createCleanupOldMessagesWorker();
+createKycEventJobWorker().on('error', async (error) => {
+    await logServiceError(error, 'SmileID Kyc Webhook Worker Error');
+});
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

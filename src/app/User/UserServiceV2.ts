@@ -9,9 +9,9 @@ import {
     EvmCompatibleBlockchain,
 } from '@/resources/web3/core/blockchains';
 import type Redis from 'ioredis';
-import type { PhoneNumber } from 'libphonenumber-js/types';
+import type { PhoneNumber } from 'libphonenumber-js';
 
-type UpdatableInfo = Pick<
+export type UpdatableInfo = Pick<
     UserV2Record,
     | 'country'
     | 'firstName'
@@ -26,6 +26,9 @@ type UpdatableInfo = Pick<
     | 'securityQuestionsSetup'
     | 'additionalKycIdType'
     | 'additionalKycIdNumber'
+    | 'gender'
+    | 'email'
+    | 'address'
 >;
 
 type UserBlockRadarWallet = {
@@ -292,7 +295,9 @@ class UserServiceV2 {
             return 'unverified';
         }
 
-        switch (kycStatus.trim()) {
+        const formattedStatus = kycStatus.trim().toUpperCase();
+
+        switch (formattedStatus) {
             case 'VERIFIED':
                 return 'verified';
             case 'IN_REVIEW':

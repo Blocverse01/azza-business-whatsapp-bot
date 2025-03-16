@@ -47,6 +47,11 @@ whatsappBotRoutes
         '/flows/reset-transaction-pin',
         decryptFlowDataExchange,
         WhatsAppFlowController.resetTransactionPinFlowDataExchange
+    )
+    .post(
+        '/flows/bvn-kyc-verification',
+        decryptFlowDataExchange,
+        WhatsAppFlowController.bvnKycVerificationFlowDataExchange
     );
 
 export default whatsappBotRoutes;

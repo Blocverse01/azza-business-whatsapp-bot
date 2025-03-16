@@ -55,6 +55,7 @@ createBullBoard({
         new BullMQAdapter(queues.baseCashback),
         new BullMQAdapter(queues.cryptoPayout),
         new BullMQAdapter(queues.cleanupMessages),
+        new BullMQAdapter(queues.handleSmileKycWebhook),
     ],
     serverAdapter: serverAdapter,
 });
