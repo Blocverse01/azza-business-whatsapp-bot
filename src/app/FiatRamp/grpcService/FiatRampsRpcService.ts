@@ -301,7 +301,10 @@ class FiatRampsRpcService {
                   }))();
 
         const request = new AddBeneficiaryRequest({
-            account_name: beneficiaryDetails.accountName.trim(),
+            account_name: beneficiaryDetails.accountName
+                .trim()
+                .replaceAll(',', '')
+                .replaceAll('/', '-'),
             account_number: beneficiaryDetails.accountNumber.replace(/\s/g, ''),
             account_type: beneficiaryDetails.accountType,
             network_id: params.beneficiary.networkId,
