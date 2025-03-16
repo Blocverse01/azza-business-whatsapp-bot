@@ -103,7 +103,9 @@ export const createKycEventJobWorker = () => {
                 return kycResult;
             }
 
-            if (webhookData.Country == NG) {
+            const jobStatus = await SmileIdService.getJobStatus(user.id, webhookData.SmileJobID);
+
+            if (user.country === NG) {
                 const message = BvnKycVerificationFlow.withPhoneNumberId(
                     env.WA_PHONE_NUMBER_ID
                 ).createBvnVerificationFlowMessage(user, {
@@ -115,15 +117,19 @@ export const createKycEventJobWorker = () => {
 
                 await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
                 return message;
+            } else {
+                await WhatsAppBotService.sendWhatsappMessage(
+                    env.WA_PHONE_NUMBER_ID,
+                    MessageGenerators.generateTextMessage(
+                        user.primaryWhatsappPhoneNumber,
+                        '🎉 Your KYC has been successfully verified!'
+                    )
+                );
+                return {
+                    userCountry: user.country,
+                    kycResult,
+                };
             }
-
-            await WhatsAppBotService.sendWhatsappMessage(
-                user.primaryWhatsappPhoneNumber,
-                MessageGenerators.generateTextMessage(
-                    user.primaryWhatsappPhoneNumber,
-                    '🎉 Your KYC has been successfully verified!'
-                )
-            );
         },
         {
             connection: connectionConfig,

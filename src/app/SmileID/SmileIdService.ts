@@ -1,17 +1,17 @@
-import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import userServiceV2 from '@/runtime/user';
-import { Signature } from 'smile-identity-core';
+import { Signature, Utilities } from 'smile-identity-core';
 import axios from 'axios';
 import { UserV2Record } from '@/db/xata';
 import { KycWebhookResultCode, SmileIdWebhookData } from './smile-id-schema';
 import { getIdList } from './country-id-types';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import logger from '@/resources/logger';
-import { KycStatus, UserIdentityInfo } from '../User/userSchema';
+import { KycStatus } from '../User/userSchema';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import { addKycEventJobToQueue } from './queue-utils';
+import { generateRandomHexString } from '@/resources/utils/encryption';
 
 interface GenerateSmileLinkResponse {
     link: string;
@@ -48,6 +48,7 @@ export interface BvnVerificationDataType {
     middle_name?: string;
 }
 
+const PRODUCTION_SID = '1';
 class SmileIdService {
     private static readonly API_URL = env.SMILE_ID_BASE_URL;
     private static readonly PARTNER_ID = env.SMILE_ID_PARTNER_ID;
@@ -62,18 +63,8 @@ class SmileIdService {
         return new Signature(this.PARTNER_ID, this.API_KEY);
     }
 
-    private static async validateAndGetUser(
-        userId: string,
-        shouldThrow = true
-    ): Promise<UserV2Record | null> {
-        const user = await userServiceV2.getUserById(userId);
-        if (!user?.primaryWhatsappPhoneNumber) {
-            if (shouldThrow) {
-                throw new Error(`User not found or no phone number: ${userId}`);
-            }
-            return null;
-        }
-        return user;
+    private static getUtilities() {
+        return new Utilities(this.PARTNER_ID, this.API_KEY, PRODUCTION_SID);
     }
 
     public static async verifyBvnAsync(
@@ -103,7 +94,7 @@ class SmileIdService {
                 middle_name: verificationData.middle_name,
                 partner_params: {
                     job_type: this.JOB_TYPES.BVN_VERIFICATION.toString(), // BVN verification job type
-                    job_id: `bvn_verify_${Date.now()}`,
+                    job_id: `bvn_verify_${generateRandomHexString(8)}`,
                     user_id: userId,
                 },
             };
@@ -186,6 +177,12 @@ class SmileIdService {
 
             throw error;
         }
+    }
+
+    public static async getJobStatus(userId: string, jobId: string) {
+        const response = await this.getUtilities().get_job_status(userId, jobId);
+
+        console.dir(response, { depth: Infinity });
     }
 
     public static gradeKycActions(
