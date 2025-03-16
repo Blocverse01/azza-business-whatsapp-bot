@@ -114,6 +114,7 @@ const tables = [
       },
       { name: "gender", type: "text" },
       { name: "email", type: "text" },
+      { name: "address", type: "text" },
     ],
     revLinks: [{ column: "user", table: "user_blockradar_wallet" }],
   },
