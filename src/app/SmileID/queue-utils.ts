@@ -105,14 +105,22 @@ export const createKycEventJobWorker = () => {
 
             const jobStatus = await SmileIdService.getJobStatus(user.id, webhookData.SmileJobID);
 
-            if (user.country === NG) {
+            const targetHistoryItem = jobStatus.history.find(
+                (item) => item.ResultCode === KycWebhookResultCode.ID_VALIDATED
+            );
+
+            if (!targetHistoryItem) {
+                throw new Error('ID validation history not found!');
+            }
+
+            if (targetHistoryItem.Country === NG) {
                 const message = BvnKycVerificationFlow.withPhoneNumberId(
                     env.WA_PHONE_NUMBER_ID
                 ).createBvnVerificationFlowMessage(user, {
                     messageBody:
                         'One last step to complete your KYC verification. Please verify your BVN.',
                     messageRecipient: user.primaryWhatsappPhoneNumber,
-                    flowCTA: '🔒 Verify BVN',
+                    flowCTA: 'Verify BVN',
                 });
 
                 await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
