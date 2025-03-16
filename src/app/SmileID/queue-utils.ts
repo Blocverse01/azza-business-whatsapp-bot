@@ -2,7 +2,7 @@ import { queues } from '@/background-processing/queues';
 import { KycWebhookResultCode, SmileIdWebhookData } from './smile-id-schema';
 import { Worker } from 'bullmq';
 import { QueueNames } from '@/background-processing/types';
-import SmileIdService from './SmileIdService';
+import SmileIdService, { BVN_VERIFICATION_JOB_ID_PREFIX } from './SmileIdService';
 import { UserIdentityInfo } from '../User/userSchema';
 import MessageGenerators from '../WhatsAppBot/MessageGenerators';
 import userServiceV2 from '@/runtime/user';
@@ -83,6 +83,40 @@ export const createKycEventJobWorker = () => {
                 throw new Error('User not found');
             }
 
+            if (webhookData.PartnerParams.job_id.startsWith(BVN_VERIFICATION_JOB_ID_PREFIX)) {
+                if (webhookData.ResultCode === KycWebhookResultCode.ID_VALIDATED) {
+                    if (user.kycStatus?.toLowerCase() === 'in_review') {
+                        await userServiceV2.updateUserInfo(user, {
+                            kycStatus: 'VERIFIED',
+                            additionalKycIdNumber: webhookData.IDNumber,
+                            additionalKycIdType: webhookData.IDType,
+                        });
+
+                        await WhatsAppBotService.sendKycVerifiedMessage(
+                            user.primaryWhatsappPhoneNumber
+                        );
+                    }
+
+                    return;
+                } else {
+                    if (user.kycStatus?.toLowerCase() !== 'in_review') {
+                        return;
+                    }
+
+                    const message = BvnKycVerificationFlow.withPhoneNumberId(
+                        env.WA_PHONE_NUMBER_ID
+                    ).createBvnVerificationFlowMessage(user, {
+                        messageBody: `BVN verification failed\n\nReason: ${webhookData.ResultText}.\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`,
+                        messageRecipient: user.primaryWhatsappPhoneNumber,
+                        flowCTA: 'Retry BVN verification',
+                    });
+
+                    await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
+                }
+
+                return;
+            }
+
             const kycResult = SmileIdService.gradeKycActions(webhookData.ResultCode);
 
             if (kycResult.status !== 'verified') {
@@ -113,8 +147,10 @@ export const createKycEventJobWorker = () => {
                 throw new Error('ID validation history not found!');
             }
 
-            const userInfoToUpdate = extractUserInfoToUpdate(targetHistoryItem, kycResult.status);
-            await userServiceV2.updateUserInfo(user, userInfoToUpdate);
+            await userServiceV2.updateUserInfo(
+                user,
+                extractUserInfoToUpdate(targetHistoryItem, kycResult.status)
+            );
 
             if (targetHistoryItem.Country === NG) {
                 const message = BvnKycVerificationFlow.withPhoneNumberId(

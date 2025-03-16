@@ -7,7 +7,7 @@ import {
 import { FlowConfig, PhoneNumberId, getFlowConfig } from './config';
 import { bvnKycVerificationSchema } from './schema';
 import SmileIdService from '@/app/SmileID/SmileIdService';
-import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { userIdentityInfoSchema } from '@/app/User/userSchema';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
@@ -178,7 +178,7 @@ class BvnKycVerificationFlow {
 
         const [firstName, middleName] = userData.firstName.split(' ') ?? [];
 
-        const bvnData = await SmileIdService.verifyBvnAsync(user_id, {
+        const response = await SmileIdService.verifyBvnAsync(user_id, {
             dob: userData.kycDateOfBirth,
             first_name: firstName,
             gender: userData.gender ?? '',
@@ -188,21 +188,11 @@ class BvnKycVerificationFlow {
             middle_name: middleName,
         });
 
-        const bvnVerificationStatus = bvnData.result.Actions.Verify_ID_Number.Status;
+        if (response.success) {
+            await userServiceV2.updateUserInfo(user, {
+                email: email,
+            });
 
-        if (bvnVerificationStatus === 'UNVERIFIED') {
-            return {
-                action: 'data_exchange',
-                screen: BvnKycVerificationFlowScreens.SUBMIT_KYC,
-                data: {
-                    user_id,
-                    error_messages: { bvn: 'Invalid BVN' },
-                    initial_values: formData,
-                } satisfies ScreenDataPayload['SUBMIT_KYC'],
-            };
-        }
-
-        if (bvnVerificationStatus === 'PENDING') {
             return {
                 action: 'data_exchange',
                 screen: BvnKycVerificationFlowScreens.PROCESSING_FEEDBACK,
@@ -212,35 +202,19 @@ class BvnKycVerificationFlow {
                     status: 'Processing',
                 } satisfies ScreenDataPayload['PROCESSING_FEEDBACK'],
             };
-        }
-
-        if (bvnVerificationStatus === 'VERIFIED') {
-            await userServiceV2.updateUserInfo(user, {
-                kycStatus: 'VERIFIED',
-                email: email,
-                additionalKycIdNumber: bvn,
-                additionalKycIdType: 'BVN',
-            });
-
-            await WhatsAppBotService.sendArbitraryTextMessage(
-                userData.phoneNumber,
-                KYC_STATUS_MESSAGES.VERIFIED
-            );
-
+        } else {
             return {
                 action: 'data_exchange',
-                screen: BvnKycVerificationFlowScreens.PROCESSING_FEEDBACK,
+                screen: BvnKycVerificationFlowScreens.SUBMIT_KYC,
                 data: {
-                    icon_src: SUCCESS_FEEDBACK_ICON,
-                    message: KYC_STATUS_MESSAGES.VERIFIED,
-                    status: 'Verified',
-                } satisfies ScreenDataPayload['PROCESSING_FEEDBACK'],
+                    user_id,
+                    error_messages: {
+                        bvn: 'An error occurred while submitting BVN data, please retry',
+                    },
+                    initial_values: formData,
+                } satisfies ScreenDataPayload['SUBMIT_KYC'],
             };
         }
-
-        throw new HttpException(INTERNAL_SERVER_ERROR, 'Unknown bvn verification status', {
-            bvnData,
-        });
     }
 }
 

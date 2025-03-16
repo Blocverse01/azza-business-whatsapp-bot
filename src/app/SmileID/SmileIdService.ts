@@ -1,8 +1,6 @@
 import env from '@/constants/env';
-import userServiceV2 from '@/runtime/user';
 import { Signature, Utilities } from 'smile-identity-core';
 import axios from 'axios';
-import { UserV2Record } from '@/db/xata';
 import {
     IN_REVIEW_RESULT_CODES,
     KycWebhookResultCode,
@@ -24,26 +22,7 @@ interface GenerateSmileLinkResponse {
     ref_id: string;
 }
 
-interface VerifyBvnResponse {
-    job_id: string;
-    job_status: string;
-    job_type: string;
-    result: {
-        ResultCode: string;
-        ResultText: string;
-        IsFinalResult: boolean;
-        Actions: {
-            Verify_ID_Number: {
-                ResultType: string;
-                ResultText: string;
-                ResultCode: string;
-                IsFinalResult: boolean;
-                Status: 'VERIFIED' | 'UNVERIFIED' | 'PENDING';
-            };
-        };
-    };
-}
-
+export const BVN_VERIFICATION_JOB_ID_PREFIX = 'bvn_verify_';
 export interface BvnVerificationDataType {
     dob: string;
     first_name: string;
@@ -76,7 +55,7 @@ class SmileIdService {
     public static async verifyBvnAsync(
         userId: string,
         verificationData: BvnVerificationDataType
-    ): Promise<VerifyBvnResponse> {
+    ): Promise<{ success: boolean }> {
         try {
             const signature = this.getSignature();
             const timestamp = new Date().toISOString();
@@ -100,20 +79,18 @@ class SmileIdService {
                 middle_name: verificationData.middle_name,
                 partner_params: {
                     job_type: this.JOB_TYPES.BVN_VERIFICATION.toString(), // BVN verification job type
-                    job_id: `bvn_verify_${generateRandomHexString(8)}`,
+                    job_id: `${BVN_VERIFICATION_JOB_ID_PREFIX}${generateRandomHexString(8)}`,
                     user_id: userId,
                 },
             };
 
-            const response = await axios.post<VerifyBvnResponse>(
-                `${this.API_URL}/v1/async_id_verification`,
-                payload,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
+            const response = await axios.post<{
+                success: boolean;
+            }>(`${this.API_URL}/v1/async_id_verification`, payload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
             return response.data;
         } catch (error: any) {
