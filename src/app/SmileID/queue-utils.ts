@@ -190,7 +190,7 @@ export const createKycEventJobWorker = () => {
                                 .map((error) => `- ${error.message}`)
                                 .join('\n');
 
-                            const shouldRetry = errorMessages.length >= 2;
+                            const shouldRetry = errors.length >= 2;
 
                             const messageBody = shouldRetry
                                 ? `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`
