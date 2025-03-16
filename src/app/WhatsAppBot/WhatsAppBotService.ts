@@ -715,7 +715,6 @@ class WhatsAppBotService {
     ) {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
-        await this.sendKycLinkGeneratingMessage(userPhoneNumber);
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
 
         const shouldUseSumsub = userCountryCode !== 'NG';
