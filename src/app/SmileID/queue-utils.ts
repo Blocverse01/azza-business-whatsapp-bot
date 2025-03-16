@@ -83,10 +83,7 @@ export const createKycEventJobWorker = () => {
                 throw new Error('User not found');
             }
 
-            const kycResult = SmileIdService.gradeKycActions(
-                webhookData.ResultCode,
-                KycWebhookResultCode.SELFIE_TO_ID_CHECK_PASSED
-            );
+            const kycResult = SmileIdService.gradeKycActions(webhookData.ResultCode);
 
             if (kycResult.status !== 'verified') {
                 const message = MessageGenerators.generateTextMessage(

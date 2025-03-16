@@ -3,7 +3,13 @@ import userServiceV2 from '@/runtime/user';
 import { Signature, Utilities } from 'smile-identity-core';
 import axios from 'axios';
 import { UserV2Record } from '@/db/xata';
-import { KycWebhookResultCode, SmileIdWebhookData } from './smile-id-schema';
+import {
+    IN_REVIEW_RESULT_CODES,
+    KycWebhookResultCode,
+    REJECTED_RESULT_CODES,
+    SmileIdWebhookData,
+    VERIFIED_RESULT_CODES,
+} from './smile-id-schema';
 import { getIdList } from './country-id-types';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import logger from '@/resources/logger';
@@ -182,47 +188,30 @@ class SmileIdService {
     public static async getJobStatus(userId: string, jobId: string) {
         const response = await this.getUtilities().get_job_status(userId, jobId);
 
-        return  response as {
+        return response as {
             history: Array<SmileIdWebhookData>;
-        }
+        };
     }
 
-    public static gradeKycActions(
-        resultCode: string,
-        expectedResultForVerifiedKyc: KycWebhookResultCode
-    ): {
+    public static gradeKycActions(resultCode: string): {
         status: KycStatus;
         message: string;
     } {
-        if (
-            resultCode === KycWebhookResultCode.ID_INVALID ||
-            resultCode === KycWebhookResultCode.ID_NOT_FOUND
-        ) {
+        if (REJECTED_RESULT_CODES.includes(resultCode as KycWebhookResultCode)) {
             return {
                 status: 'rejected',
-                message: '❌ Invalid ID number',
+                message: '❌ Invalid ID number/unclear selfie photo',
             };
         }
 
-        if (
-            resultCode === KycWebhookResultCode.SELFIE_TO_ID_CHECK_AWAITING ||
-            resultCode === KycWebhookResultCode.ID_VALIDATED
-        ) {
+        if (IN_REVIEW_RESULT_CODES.includes(resultCode as KycWebhookResultCode)) {
             return {
                 status: 'in_review',
                 message: '⏺️ Your biometric info is being reviewed',
             };
         }
 
-        if (resultCode === KycWebhookResultCode.SELFIE_TO_ID_CHECK_FAILED) {
-            return {
-                status: 'rejected',
-                message:
-                    "❌ We could not verify your biometric info, ensure you own the ID you're trying to use.",
-            };
-        }
-
-        if (resultCode === expectedResultForVerifiedKyc) {
+        if (VERIFIED_RESULT_CODES.includes(resultCode as KycWebhookResultCode)) {
             return {
                 status: 'verified',
                 message: '✅ KYC verification complete',
@@ -231,7 +220,6 @@ class SmileIdService {
 
         throw new HttpException(INTERNAL_SERVER_ERROR, 'Unhandled KYC action results state', {
             resultCode: resultCode,
-            expectedResultForVerifiedKyc,
         });
     }
 }
