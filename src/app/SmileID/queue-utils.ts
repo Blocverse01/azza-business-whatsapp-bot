@@ -100,7 +100,10 @@ export const createKycEventJobWorker = () => {
                 return kycResult;
             }
 
-            const jobStatus = await SmileIdService.getJobStatus(user.id, webhookData.SmileJobID);
+            const jobStatus = await SmileIdService.getJobStatus(
+                webhookData.PartnerParams.user_id,
+                webhookData.PartnerParams.job_id
+            );
 
             const targetHistoryItem = jobStatus.history.find(
                 (item) => item.ResultCode === KycWebhookResultCode.ID_VALIDATED
