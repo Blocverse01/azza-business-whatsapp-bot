@@ -85,7 +85,33 @@ const isBvnPayload = (
     return payload.PartnerParams.job_id.startsWith(BVN_VERIFICATION_JOB_ID_PREFIX);
 };
 
-const isValidAddress = (address: string): address is string => {
+const compareUserDataWithBvnData = (
+    user: UserIdentityInfo,
+    bvnData: BvnKycVerificationWebhookBody
+) => {
+    const bvnFirstName = bvnData.FullData?.FirstName;
+    const bvnLastName = bvnData.FullData?.LastName;
+    const bvnMiddleName = bvnData.FullData?.MiddleName;
+    let bvnFullName = bvnData.FullName ?? '';
+
+    if (!isValidStringData(bvnFullName ?? '')) {
+        if (isValidStringData(bvnFirstName ?? '')) {
+            bvnFullName += bvnFirstName + (bvnMiddleName ? ` ${bvnMiddleName}` : '');
+        }
+        if (isValidStringData(bvnLastName ?? '')) {
+            bvnFullName += ` ${bvnLastName}`;
+        }
+    }
+
+    const nameCheck =
+        bvnFullName?.toLowerCase() === `${user.firstName} ${user.lastName}`.toLowerCase();
+    const dobCheck = bvnData.DOB === user.kycDateOfBirth;
+    const countryCheck = bvnData.Country?.toLowerCase() === user.country.toLowerCase();
+
+    return nameCheck && dobCheck && countryCheck;
+};
+
+const isValidStringData = (address: string): address is string => {
     if (address.trim() === '') return false;
     if (address.toLowerCase() === NOT_AVAILABLE.toLowerCase()) return false;
 
@@ -106,13 +132,43 @@ export const createKycEventJobWorker = () => {
             if (isBvnPayload(webhookData)) {
                 if (webhookData.ResultCode === KycWebhookResultCode.ID_VALIDATED) {
                     if (user.kycStatus?.toLowerCase() === 'in_review') {
+                        const userKycInfo = await userServiceV2.getWhatsappUserIdentityInfo(
+                            user.id
+                        );
+
+                        if (!userKycInfo) {
+                            throw new Error('Expected user info to contain basic KYC info');
+                        }
+
+                        const isTheSameUser = compareUserDataWithBvnData(userKycInfo, webhookData);
+
+                        if (!isTheSameUser) {
+                            const message = BvnKycVerificationFlow.withPhoneNumberId(
+                                env.WA_PHONE_NUMBER_ID
+                            ).createBvnVerificationFlowMessage(user, {
+                                messageBody: `BVN verification failed\n\nReason: mismatched data between NIN and BVN info.\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`,
+                                messageRecipient: user.primaryWhatsappPhoneNumber,
+                                flowCTA: 'Retry BVN verification',
+                                initialValues: {
+                                    email: user.email ?? undefined,
+                                },
+                            });
+
+                            await WhatsAppBotService.sendWhatsappMessage(
+                                env.WA_PHONE_NUMBER_ID,
+                                message
+                            );
+
+                            return;
+                        }
+
                         const address = webhookData.Address;
 
                         await userServiceV2.updateUserInfo(user, {
                             kycStatus: 'VERIFIED',
                             additionalKycIdNumber: webhookData.IDNumber,
                             additionalKycIdType: webhookData.IDType,
-                            address: isValidAddress(address ?? '') ? address?.trim() : undefined,
+                            address: isValidStringData(address ?? '') ? address?.trim() : undefined,
                         });
 
                         await WhatsAppBotService.sendKycVerifiedMessage(
