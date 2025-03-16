@@ -116,6 +116,7 @@ class SmileIdService {
                 data_privacy_policy_url: 'https://www.useazza.com/UseAzza-Data-Privacy-Policy.pdf',
                 logo_url: 'https://www.useazza.com/_next/static/media/logo.f40d592a.svg',
                 is_single_use: true,
+                redirect_url: 'https://wa.me/13025016052',
                 user_id: userId,
                 partner_params: {
                     user_id: userId,
