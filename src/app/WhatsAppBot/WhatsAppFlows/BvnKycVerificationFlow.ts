@@ -93,9 +93,13 @@ class BvnKycVerificationFlow {
             messageRecipient: string;
             messageBody: string;
             flowCTA: string;
+            initialValues?: {
+                bvn?: string;
+                email?: string;
+            };
         }
     ) {
-        const { messageRecipient, messageBody, flowCTA } = params;
+        const { messageRecipient, messageBody, flowCTA, initialValues } = params;
 
         const flowMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
@@ -117,6 +121,7 @@ class BvnKycVerificationFlow {
                             screen: this.INITIAL_SCREEN,
                             data: {
                                 user_id: convertAsciiStringToBase64(user.id),
+                                initial_values: initialValues,
                             } satisfies ScreenDataPayload['SUBMIT_KYC'],
                         },
                     },

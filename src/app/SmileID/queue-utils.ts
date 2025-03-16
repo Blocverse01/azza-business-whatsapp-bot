@@ -85,7 +85,7 @@ const isBvnPayload = (
     return payload.PartnerParams.job_id.startsWith(BVN_VERIFICATION_JOB_ID_PREFIX);
 };
 
-const isValidAddress = (address: string) => {
+const isValidAddress = (address: string): address is string => {
     if (address.trim() === '') return false;
     if (address.toLowerCase() === NOT_AVAILABLE.toLowerCase()) return false;
 
@@ -112,7 +112,7 @@ export const createKycEventJobWorker = () => {
                             kycStatus: 'VERIFIED',
                             additionalKycIdNumber: webhookData.IDNumber,
                             additionalKycIdType: webhookData.IDType,
-                            address: isValidAddress(address) ? address.trim() : undefined,
+                            address: isValidAddress(address ?? '') ? address?.trim() : undefined,
                         });
 
                         await WhatsAppBotService.sendKycVerifiedMessage(
@@ -132,6 +132,10 @@ export const createKycEventJobWorker = () => {
                         messageBody: `BVN verification failed\n\nReason: ${webhookData.ResultText}.\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`,
                         messageRecipient: user.primaryWhatsappPhoneNumber,
                         flowCTA: 'Retry BVN verification',
+                        initialValues: {
+                            bvn: webhookData.IDNumber,
+                            email: user.email ?? undefined,
+                        },
                     });
 
                     await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
