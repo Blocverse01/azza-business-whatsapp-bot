@@ -186,7 +186,9 @@ class SmileIdService {
     }
 
     public static async getJobStatus(userId: string, jobId: string) {
-        const response = await this.getUtilities().get_job_status(userId, jobId);
+        const response = await this.getUtilities().get_job_status(userId, jobId, {
+            return_history: true,
+        });
 
         return response as {
             history: Array<SmileIdWebhookData>;
