@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 export const VerificationWebhookBodySchema = z.object({
     Actions: z.object({
-        Return_Personal_Info: z.enum(['Returned']),
-        Verify_ID_Number: z.enum(['Verified']),
+        Return_Personal_Info: z.string().optional(),
+        Verify_ID_Number: z.string().optional(),
     }),
     Address: z.string().optional(),
     Country: z.string().optional(),
@@ -27,7 +27,7 @@ export const VerificationWebhookBodySchema = z.object({
     Secondary_ID_Number: z.string().optional(),
     signature: z.string(),
     SmileJobID: z.string(),
-    Source: z.string(),
+    Source: z.string().optional(),
     timestamp: z.string(),
     FullData: z
         .object({
