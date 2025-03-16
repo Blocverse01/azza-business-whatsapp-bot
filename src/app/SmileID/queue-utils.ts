@@ -113,7 +113,36 @@ const compareUserDataWithBvnData = (
     const dobCheck = bvnData.DOB === user.kycDateOfBirth;
     const countryCheck = bvnData.Country?.toLowerCase() === user.country.toLowerCase();
 
-    return nameCheck && dobCheck && countryCheck;
+    const errors: Array<{
+        path: 'name' | 'dob' | 'country';
+        message: string;
+    }> = [];
+
+    if (!nameCheck) {
+        errors.push({
+            path: 'name',
+            message: `Name mismatch: "${bvnFullName}" !== "${user.firstName} ${user.lastName}"`,
+        });
+    }
+
+    if (!dobCheck) {
+        errors.push({
+            path: 'dob',
+            message: `Date of birth mismatch: "${bvnData.DOB}" !== "${user.kycDateOfBirth}"`,
+        });
+    }
+
+    if (!countryCheck) {
+        errors.push({
+            path: 'country',
+            message: `Country mismatch: "${bvnData.Country}" !== "${user.country}"`,
+        });
+    }
+
+    return {
+        isTheSameUser: nameCheck && dobCheck && countryCheck,
+        errors,
+    };
 };
 
 const isValidStringData = (address: string): address is string => {
@@ -146,7 +175,7 @@ export const createKycEventJobWorker = () => {
                             throw new Error('Expected user info to contain basic KYC info');
                         }
 
-                        const isTheSameUser = compareUserDataWithBvnData(
+                        const { isTheSameUser, errors } = compareUserDataWithBvnData(
                             {
                                 firstName: user.firstName,
                                 lastName: user.lastName,
@@ -157,23 +186,38 @@ export const createKycEventJobWorker = () => {
                         );
 
                         if (!isTheSameUser) {
-                            const message = BvnKycVerificationFlow.withPhoneNumberId(
-                                env.WA_PHONE_NUMBER_ID
-                            ).createBvnVerificationFlowMessage(user, {
-                                messageBody: `BVN verification failed.\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`,
-                                messageRecipient: user.primaryWhatsappPhoneNumber,
-                                flowCTA: 'Retry BVN verification',
-                                initialValues: {
-                                    email: user.email ?? undefined,
-                                },
-                            });
+                            const errorMessages = errors
+                                .map((error) => `- ${error.message}`)
+                                .join('\n');
+
+                            const shouldRetry = errorMessages.length >= 2;
+
+                            const messageBody = shouldRetry
+                                ? `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`
+                                : `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease contact support using the /support command.`;
+
+                            const message = shouldRetry
+                                ? BvnKycVerificationFlow.withPhoneNumberId(
+                                      env.WA_PHONE_NUMBER_ID
+                                  ).createBvnVerificationFlowMessage(user, {
+                                      messageBody: messageBody,
+                                      messageRecipient: user.primaryWhatsappPhoneNumber,
+                                      flowCTA: 'Retry BVN verification',
+                                      initialValues: {
+                                          email: user.email ?? undefined,
+                                      },
+                                  })
+                                : MessageGenerators.generateTextMessage(
+                                      user.primaryWhatsappPhoneNumber,
+                                      messageBody
+                                  );
 
                             await WhatsAppBotService.sendWhatsappMessage(
                                 env.WA_PHONE_NUMBER_ID,
                                 message
                             );
 
-                            return;
+                            throw new Error(errorMessages);
                         }
 
                         const address = webhookData.Address;
