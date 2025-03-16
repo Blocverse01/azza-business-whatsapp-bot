@@ -9,7 +9,7 @@ import {
     EvmCompatibleBlockchain,
 } from '@/resources/web3/core/blockchains';
 import type Redis from 'ioredis';
-import type { PhoneNumber } from 'libphonenumber-js/types';
+import type { PhoneNumber } from 'libphonenumber-js';
 
 type UpdatableInfo = Pick<
     UserV2Record,
@@ -294,7 +294,9 @@ class UserServiceV2 {
             return 'unverified';
         }
 
-        switch (kycStatus.trim()) {
+        const formattedStatus = kycStatus.trim().toUpperCase();
+
+        switch (formattedStatus) {
             case 'VERIFIED':
                 return 'verified';
             case 'IN_REVIEW':

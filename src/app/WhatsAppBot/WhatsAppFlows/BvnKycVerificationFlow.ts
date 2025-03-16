@@ -1,5 +1,9 @@
 import userServiceV2 from '@/runtime/user';
-import { DecryptedFlowDataExchange, DataExchangeResponse, WhatsAppInteractiveMessage } from '../WhatsAppBotType';
+import {
+    DecryptedFlowDataExchange,
+    DataExchangeResponse,
+    WhatsAppInteractiveMessage,
+} from '../WhatsAppBotType';
 import { FlowConfig, PhoneNumberId, getFlowConfig } from './config';
 import { bvnKycVerificationSchema } from './schema';
 import SmileIdService from '@/app/SmileID/SmileIdService';
@@ -9,7 +13,11 @@ import { HttpException } from '@/resources/exceptions/HttpException';
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import WhatsAppBotService from '../WhatsAppBotService';
 import { UserV2Record } from '@/db/xata';
-import { convertAsciiStringToBase64, convertBase64ToAsciiString, generateRandomHexString } from '@/resources/utils/encryption';
+import {
+    convertAsciiStringToBase64,
+    convertBase64ToAsciiString,
+    generateRandomHexString,
+} from '@/resources/utils/encryption';
 import { SIXTEEN } from '@/constants/numbers';
 
 enum BvnKycVerificationFlowScreens {
@@ -119,7 +127,7 @@ class BvnKycVerificationFlow {
             to: messageRecipient,
         };
 
-        return flowMessage; 
+        return flowMessage;
     }
 
     private static async completeBvnKycVerificationFlow(data: DataExchangePayload['SUBMIT_KYC']) {
@@ -207,17 +215,17 @@ class BvnKycVerificationFlow {
         }
 
         if (bvnVerificationStatus === 'VERIFIED') {
-            await WhatsAppBotService.sendArbitraryTextMessage(
-                userData.phoneNumber,
-                KYC_STATUS_MESSAGES.VERIFIED
-            );
-
             await userServiceV2.updateUserInfo(user, {
                 kycStatus: 'VERIFIED',
                 email: email,
                 additionalKycIdNumber: bvn,
                 additionalKycIdType: 'BVN',
             });
+
+            await WhatsAppBotService.sendArbitraryTextMessage(
+                userData.phoneNumber,
+                KYC_STATUS_MESSAGES.VERIFIED
+            );
 
             return {
                 action: 'data_exchange',

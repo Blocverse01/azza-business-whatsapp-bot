@@ -4,17 +4,14 @@ import userServiceV2 from '@/runtime/user';
 import { Signature } from 'smile-identity-core';
 import axios from 'axios';
 import { UserV2Record } from '@/db/xata';
-
-export interface SmileIdWebhookData {
-    partner_id: string;
-    job_id: string;
-    user_id: string;
-    job_type: string;
-    signature: string;
-    timestamp: string;
-    full_name: string;
-    verification_data?: BvnVerificationDataType;
-}
+import { KycWebhookResultCode, SmileIdWebhookData } from './smile-id-schema';
+import { getIdList } from './country-id-types';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
+import logger from '@/resources/logger';
+import { KycStatus, UserIdentityInfo } from '../User/userSchema';
+import { HttpException } from '@/resources/exceptions/HttpException';
+import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
+import { addKycEventJobToQueue } from './queue-utils';
 
 interface GenerateSmileLinkResponse {
     link: string;
@@ -71,7 +68,6 @@ class SmileIdService {
     ): Promise<UserV2Record | null> {
         const user = await userServiceV2.getUserById(userId);
         if (!user?.primaryWhatsappPhoneNumber) {
-            console.error('❌ User not found or no phone number:', userId);
             if (shouldThrow) {
                 throw new Error(`User not found or no phone number: ${userId}`);
             }
@@ -112,15 +108,6 @@ class SmileIdService {
                 },
             };
 
-            console.log('🔄 Initiating async BVN verification with payload:', {
-                ...payload,
-                signature: `${signatureResponse.signature.substring(0, 10)}...`,
-                id_number: `${verificationData.id_number.substring(0, 4)}...`,
-                first_name: verificationData.first_name,
-                last_name: `${verificationData.last_name.charAt(0)}...`,
-                phone_number: `${verificationData.phone_number.substring(0, 4)}...`,
-            });
-
             const response = await axios.post<VerifyBvnResponse>(
                 `${this.API_URL}/v1/async_id_verification`,
                 payload,
@@ -131,20 +118,8 @@ class SmileIdService {
                 }
             );
 
-            console.log('✅ BVN verification request submitted:', {
-                userId,
-                jobId: response.data.job_id,
-                jobStatus: response.data.job_status,
-            });
-
             return response.data;
         } catch (error: any) {
-            console.error('❌ Error initiating BVN verification:', {
-                message: error.message,
-                // status: error.response?.status,
-                // statusText: error.response?.statusText,
-                // reason: error.response?.data?.error,
-            });
             throw error;
         }
     }
@@ -154,7 +129,6 @@ class SmileIdService {
             const signature = this.getSignature();
             const timestamp = new Date().toISOString();
             const signatureResponse = signature.generate_signature(timestamp);
-            const user = await this.validateAndGetUser(userId);
 
             const payload = {
                 partner_id: this.PARTNER_ID,
@@ -162,23 +136,7 @@ class SmileIdService {
                 signature: signatureResponse.signature,
                 name: `KYC Verification for ${userId}`,
                 company_name: 'UseAzza LTD',
-                id_types: [
-                    {
-                        country: 'NG',
-                        id_type: 'BVN',
-                        verification_method: 'enhanced_kyc',
-                    },
-                    {
-                        country: 'NG',
-                        id_type: 'NIN_SLIP',
-                        verification_method: 'enhanced_kyc',
-                    },
-                    {
-                        country: 'NG',
-                        id_type: 'PASSPORT',
-                        verification_method: 'doc_verification',
-                    },
-                ],
+                id_types: getIdList(),
                 callback_url: this.CALLBACK_URL,
                 data_privacy_policy_url: 'https://www.useazza.com/UseAzza-Data-Privacy-Policy.pdf',
                 logo_url: 'https://www.useazza.com/_next/static/media/logo.f40d592a.svg',
@@ -189,15 +147,6 @@ class SmileIdService {
                 },
                 expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 minutes from now
             };
-            if (user) {
-                await WhatsAppBotService.sendKycLinkGeneratingMessage(
-                    user.primaryWhatsappPhoneNumber
-                );
-            }
-            console.log('🔄 Generating Smile Link with payload:', {
-                ...payload,
-                signature: `${signatureResponse.signature}`,
-            });
 
             const response = await axios.post<GenerateSmileLinkResponse>(
                 `${this.API_URL}/v1/smile_links`,
@@ -209,37 +158,11 @@ class SmileIdService {
                 }
             );
 
-            console.log('✅ Smile Link generated successfully:', {
-                userId,
-                refId: response.data.ref_id,
-                link: response.data.link,
-            });
-
             return response.data.link;
-        } catch (error: any) {
-            console.error('❌ Error generating Smile Link:', {
-                message: error.message,
-                status: error.response?.status,
-                statusText: error.response?.statusText,
-                reason: error.response?.data.error,
-            });
+        } catch (error) {
+            await logServiceError(error, 'Error generating KYC link');
             throw error;
         }
-    }
-
-    private static async handleBvnVerificationWebhook(webhookData: SmileIdWebhookData) {
-        // Log the entire webhook body
-        console.log('📝 BVN Verification Webhook Response:', {
-            // Basic job info
-            partner_id: webhookData.partner_id,
-            job_id: webhookData.job_id,
-            job_type: webhookData.job_type,
-            timestamp: webhookData.timestamp,
-
-            // User info
-            user_id: webhookData.user_id,
-            full_name: webhookData.full_name,
-        });
     }
 
     public static async handleWebhookEvent(webhookData: SmileIdWebhookData) {
@@ -252,51 +175,67 @@ class SmileIdService {
                 webhookData.signature
             );
             if (!isValidSignature) {
-                console.error('❌ Invalid webhook signature');
                 throw new Error('Invalid webhook signature');
             }
 
-            // Convert job_type to number for comparison
-            const jobType = Number(webhookData.job_type);
-
-            console.log(jobType, webhookData);
-
-            // Route webhook to appropriate handler based on job type
-            if (jobType === this.JOB_TYPES.KYC) {
-                // KYC webhook (job type 5)
-                await this.handleKycWebhook(webhookData);
-            } else if (jobType === this.JOB_TYPES.BVN_VERIFICATION) {
-                // BVN verification webhook (job type 1)
-                await this.handleBvnVerificationWebhook(webhookData);
-            } else {
-                console.log('⚠️ Unknown job type:', jobType);
-            }
+            await addKycEventJobToQueue(webhookData);
         } catch (error) {
-            console.error('❌ Error processing Smile ID webhook:', error);
+            logger.error('❌ Error processing Smile ID webhook:', {
+                error,
+            });
+
             throw error;
         }
     }
 
-    private static async handleKycWebhook(webhookData: SmileIdWebhookData) {
-        const { user_id, verification_data } = webhookData;
+    public static gradeKycActions(
+        resultCode: number,
+        expectedResultForVerifiedKyc: KycWebhookResultCode
+    ): {
+        status: KycStatus;
+        message: string;
+    } {
+        const resultCodeString = resultCode.toString();
 
-        console.log('📝 Processing KYC webhook:', {
-            userId: user_id,
-        });
-
-        try {
-            if (verification_data) {
-                // Initiate BVN verification
-                console.log('🔄 Initiating BVN verification after KYC webhook for user:', user_id);
-                await this.verifyBvnAsync(user_id, verification_data);
-                console.log('✅ BVN verification initiated successfully for user:', user_id);
-            } else {
-                console.log('⚠️ No verification data available for BVN verification');
-            }
-        } catch (error) {
-            console.error('❌ Error initiating BVN verification after KYC:', error);
-            throw error;
+        if (
+            resultCodeString === KycWebhookResultCode.ID_INVALID ||
+            resultCodeString === KycWebhookResultCode.ID_NOT_FOUND
+        ) {
+            return {
+                status: 'rejected',
+                message: '❌ Invalid ID number',
+            };
         }
+
+        if (
+            resultCodeString === KycWebhookResultCode.SELFIE_TO_ID_CHECK_AWAITING ||
+            resultCodeString === KycWebhookResultCode.ID_VALIDATED
+        ) {
+            return {
+                status: 'in_review',
+                message: '⏺️ Your biometric info is being reviewed',
+            };
+        }
+
+        if (resultCodeString === KycWebhookResultCode.SELFIE_TO_ID_CHECK_FAILED) {
+            return {
+                status: 'rejected',
+                message:
+                    "❌ We could not verify your biometric info, ensure you own the ID you're trying to use.",
+            };
+        }
+
+        if (resultCodeString === expectedResultForVerifiedKyc) {
+            return {
+                status: 'verified',
+                message: '✅ KYC verification complete',
+            };
+        }
+
+        throw new HttpException(INTERNAL_SERVER_ERROR, 'Unhandled KYC action results state', {
+            resultCode: resultCodeString,
+            expectedResultForVerifiedKyc,
+        });
     }
 }
 

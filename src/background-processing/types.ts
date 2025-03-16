@@ -53,6 +53,7 @@ export enum QueueNames {
     baseCashback = 'base-cashback',
     cryptoPayout = 'crypto-payout',
     cleanupMessages = 'cleanup-messages',
+    handleSmileKycWebhook = 'handle-smile-kyc-webhook',
 }
 
 export type UserWalletMigrationQueueInput = {
