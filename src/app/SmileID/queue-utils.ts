@@ -121,21 +121,21 @@ const compareUserDataWithBvnData = (
     if (!nameCheck) {
         errors.push({
             path: 'name',
-            message: `Name mismatch: "${bvnFullName}" !== "${user.firstName} ${user.lastName}"`,
+            message: `Name mismatch: "${bvnFullName}"(BVN data) doesn't match "${user.firstName} ${user.lastName}"(NIN data)`,
         });
     }
 
     if (!dobCheck) {
         errors.push({
             path: 'dob',
-            message: `Date of birth mismatch: "${bvnData.DOB}" !== "${user.kycDateOfBirth}"`,
+            message: `Date of birth mismatch: "${bvnData.DOB}"(BVN data) doesn't match "${user.kycDateOfBirth}"(NIN data)`,
         });
     }
 
     if (!countryCheck) {
         errors.push({
             path: 'country',
-            message: `Country mismatch: "${bvnData.Country}" !== "${user.country}"`,
+            message: `Country mismatch: "${bvnData.Country}" doesn't match "${user.country}"`,
         });
     }
 
