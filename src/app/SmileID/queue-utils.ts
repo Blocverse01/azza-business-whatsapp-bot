@@ -32,6 +32,7 @@ const extractUserInfoToUpdate = (
         kycDocumentNumber: webhookData.IDNumber,
         kycIdType: webhookData.IDType,
         address: '',
+        gender: webhookData.Gender,
         kycStatus: webhookData.Country === NG ? 'in_review' : 'verified',
     };
 
@@ -50,6 +51,9 @@ const extractUserInfoToUpdate = (
     }
     if (userInfoToUpdate.lastName?.trim() === '' && lastName) {
         userInfoToUpdate.lastName = lastName;
+    }
+    if (userInfoToUpdate.gender?.trim() === '' && webhookData.FullData?.gender) {
+        userInfoToUpdate.gender = webhookData.FullData?.gender;
     }
 
     return userInfoToUpdate;
@@ -80,7 +84,7 @@ export const createKycEventJobWorker = () => {
             }
 
             const kycResult = SmileIdService.gradeKycActions(
-                Number(webhookData.ResultCode),
+                webhookData.ResultCode,
                 KycWebhookResultCode.SELFIE_TO_ID_CHECK_PASSED
             );
 

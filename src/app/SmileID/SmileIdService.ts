@@ -189,17 +189,15 @@ class SmileIdService {
     }
 
     public static gradeKycActions(
-        resultCode: number,
+        resultCode: string,
         expectedResultForVerifiedKyc: KycWebhookResultCode
     ): {
         status: KycStatus;
         message: string;
     } {
-        const resultCodeString = resultCode.toString();
-
         if (
-            resultCodeString === KycWebhookResultCode.ID_INVALID ||
-            resultCodeString === KycWebhookResultCode.ID_NOT_FOUND
+            resultCode === KycWebhookResultCode.ID_INVALID ||
+            resultCode === KycWebhookResultCode.ID_NOT_FOUND
         ) {
             return {
                 status: 'rejected',
@@ -208,8 +206,8 @@ class SmileIdService {
         }
 
         if (
-            resultCodeString === KycWebhookResultCode.SELFIE_TO_ID_CHECK_AWAITING ||
-            resultCodeString === KycWebhookResultCode.ID_VALIDATED
+            resultCode === KycWebhookResultCode.SELFIE_TO_ID_CHECK_AWAITING ||
+            resultCode === KycWebhookResultCode.ID_VALIDATED
         ) {
             return {
                 status: 'in_review',
@@ -217,7 +215,7 @@ class SmileIdService {
             };
         }
 
-        if (resultCodeString === KycWebhookResultCode.SELFIE_TO_ID_CHECK_FAILED) {
+        if (resultCode === KycWebhookResultCode.SELFIE_TO_ID_CHECK_FAILED) {
             return {
                 status: 'rejected',
                 message:
@@ -225,7 +223,7 @@ class SmileIdService {
             };
         }
 
-        if (resultCodeString === expectedResultForVerifiedKyc) {
+        if (resultCode === expectedResultForVerifiedKyc) {
             return {
                 status: 'verified',
                 message: '✅ KYC verification complete',
@@ -233,7 +231,7 @@ class SmileIdService {
         }
 
         throw new HttpException(INTERNAL_SERVER_ERROR, 'Unhandled KYC action results state', {
-            resultCode: resultCodeString,
+            resultCode: resultCode,
             expectedResultForVerifiedKyc,
         });
     }
