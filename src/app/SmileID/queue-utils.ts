@@ -18,7 +18,7 @@ const extractUserInfoToUpdate = (
     webhookData: SmileIdWebhookData,
     kycStatus: UserIdentityInfo['kycStatus']
 ): Partial<UserIdentityInfo> => {
-    if (kycStatus !== 'in_review') {
+    if (kycStatus !== 'verified') {
         return {
             kycStatus,
         };
@@ -112,6 +112,9 @@ export const createKycEventJobWorker = () => {
             if (!targetHistoryItem) {
                 throw new Error('ID validation history not found!');
             }
+
+            const userInfoToUpdate = extractUserInfoToUpdate(targetHistoryItem, kycResult.status);
+            await userServiceV2.updateUserInfo(user, userInfoToUpdate);
 
             if (targetHistoryItem.Country === NG) {
                 const message = BvnKycVerificationFlow.withPhoneNumberId(
