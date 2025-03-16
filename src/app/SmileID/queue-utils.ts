@@ -1,9 +1,14 @@
 import { queues } from '@/background-processing/queues';
-import { KycWebhookResultCode, SmileIdWebhookData } from './smile-id-schema';
+import {
+    BvnKycVerificationWebhookBody,
+    KycWebhookResultCode,
+    SmileIdWebhookData,
+} from './smile-id-schema';
 import { Worker } from 'bullmq';
 import { QueueNames } from '@/background-processing/types';
 import SmileIdService, { BVN_VERIFICATION_JOB_ID_PREFIX } from './SmileIdService';
 import { UserIdentityInfo } from '../User/userSchema';
+import { UpdatableInfo } from '../User/UserServiceV2';
 import MessageGenerators from '../WhatsAppBot/MessageGenerators';
 import userServiceV2 from '@/runtime/user';
 import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
@@ -17,14 +22,14 @@ const NG = 'NG';
 const extractUserInfoToUpdate = (
     webhookData: SmileIdWebhookData,
     kycStatus: UserIdentityInfo['kycStatus']
-): Partial<UserIdentityInfo> => {
+): Partial<UpdatableInfo> => {
     if (kycStatus !== 'verified') {
         return {
             kycStatus,
         };
     }
 
-    const userInfoToUpdate: Partial<UserIdentityInfo> = {
+    const userInfoToUpdate: Partial<UpdatableInfo> = {
         firstName: webhookData.FullData?.firstname,
         lastName: webhookData.FullData?.surname,
         country: webhookData.Country,
@@ -59,7 +64,9 @@ const extractUserInfoToUpdate = (
     return userInfoToUpdate;
 };
 
-export const addKycEventJobToQueue = async (data: SmileIdWebhookData) => {
+export const addKycEventJobToQueue = async (
+    data: SmileIdWebhookData | BvnKycVerificationWebhookBody
+) => {
     return await queues.handleSmileKycWebhook.add(
         `kyc-webhook-${data.PartnerParams.user_id}`,
         data,
@@ -72,8 +79,21 @@ export const addKycEventJobToQueue = async (data: SmileIdWebhookData) => {
     );
 };
 
+const isBvnPayload = (
+    payload: SmileIdWebhookData | BvnKycVerificationWebhookBody
+): payload is BvnKycVerificationWebhookBody => {
+    return payload.PartnerParams.job_id.startsWith(BVN_VERIFICATION_JOB_ID_PREFIX);
+};
+
+const isValidAddress = (address: string) => {
+    if (address.trim() === '') return false;
+    if (address.toLowerCase() === NOT_AVAILABLE.toLowerCase()) return false;
+
+    return true;
+};
+
 export const createKycEventJobWorker = () => {
-    return new Worker<SmileIdWebhookData>(
+    return new Worker<SmileIdWebhookData | BvnKycVerificationWebhookBody>(
         QueueNames.handleSmileKycWebhook,
         async (job) => {
             const webhookData = job.data;
@@ -83,13 +103,16 @@ export const createKycEventJobWorker = () => {
                 throw new Error('User not found');
             }
 
-            if (webhookData.PartnerParams.job_id.startsWith(BVN_VERIFICATION_JOB_ID_PREFIX)) {
+            if (isBvnPayload(webhookData)) {
                 if (webhookData.ResultCode === KycWebhookResultCode.ID_VALIDATED) {
                     if (user.kycStatus?.toLowerCase() === 'in_review') {
+                        const address = webhookData.Address;
+
                         await userServiceV2.updateUserInfo(user, {
                             kycStatus: 'VERIFIED',
                             additionalKycIdNumber: webhookData.IDNumber,
                             additionalKycIdType: webhookData.IDType,
+                            address: isValidAddress(address) ? address.trim() : undefined,
                         });
 
                         await WhatsAppBotService.sendKycVerifiedMessage(

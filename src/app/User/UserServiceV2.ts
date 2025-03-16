@@ -11,7 +11,7 @@ import {
 import type Redis from 'ioredis';
 import type { PhoneNumber } from 'libphonenumber-js';
 
-type UpdatableInfo = Pick<
+export type UpdatableInfo = Pick<
     UserV2Record,
     | 'country'
     | 'firstName'
@@ -28,6 +28,7 @@ type UpdatableInfo = Pick<
     | 'additionalKycIdNumber'
     | 'gender'
     | 'email'
+    | 'address'
 >;
 
 type UserBlockRadarWallet = {

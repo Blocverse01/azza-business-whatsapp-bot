@@ -2,6 +2,7 @@ import env from '@/constants/env';
 import { Signature, Utilities } from 'smile-identity-core';
 import axios from 'axios';
 import {
+    BvnKycVerificationWebhookBody,
     IN_REVIEW_RESULT_CODES,
     KycWebhookResultCode,
     REJECTED_RESULT_CODES,
@@ -139,7 +140,9 @@ class SmileIdService {
         }
     }
 
-    public static async handleWebhookEvent(webhookData: SmileIdWebhookData) {
+    public static async handleWebhookEvent(
+        webhookData: SmileIdWebhookData | BvnKycVerificationWebhookBody
+    ) {
         try {
             const signature = this.getSignature();
 

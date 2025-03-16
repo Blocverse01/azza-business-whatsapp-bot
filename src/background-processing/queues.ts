@@ -1,10 +1,16 @@
-import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
-import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
-import { PercentageCashbackQueueInput } from '@/app/campaigns/base-cashbacks/types';
-import { CryptoPayoutQueueInput } from '@/app/crypto-payouts-v2/types';
-import { SmileIdWebhookData } from '@/app/SmileID/smile-id-schema';
+import type { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
+import type { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
+import type { PercentageCashbackQueueInput } from '@/app/campaigns/base-cashbacks/types';
+import type { CryptoPayoutQueueInput } from '@/app/crypto-payouts-v2/types';
+import type {
+    SmileIdWebhookData,
+    BvnKycVerificationWebhookBody,
+} from '@/app/SmileID/smile-id-schema';
 import { connectionConfig } from '@/background-processing/redis-connection-config';
-import { OfframpQueueFlowParams, OfframpQueueFlowParamsV2 } from '@/background-processing/schema';
+import type {
+    OfframpQueueFlowParams,
+    OfframpQueueFlowParamsV2,
+} from '@/background-processing/schema';
 import {
     CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
@@ -101,9 +107,12 @@ export const queues = {
     cleanupMessages: new Queue(QueueNames.cleanupMessages, {
         connection: connectionConfig,
     }),
-    handleSmileKycWebhook: new Queue<SmileIdWebhookData>(QueueNames.handleSmileKycWebhook, {
-        connection: connectionConfig,
-    }),
+    handleSmileKycWebhook: new Queue<SmileIdWebhookData | BvnKycVerificationWebhookBody>(
+        QueueNames.handleSmileKycWebhook,
+        {
+            connection: connectionConfig,
+        }
+    ),
 };
 
 export const defaultQueueRemoveOptions = {

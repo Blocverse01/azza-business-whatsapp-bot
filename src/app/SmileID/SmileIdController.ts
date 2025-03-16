@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import { BAD_REQUEST } from '@/constants/status-codes';
 import SmileIdService from './SmileIdService';
-import { VerificationWebhookBodySchema } from './smile-id-schema';
+import { BvnVerificationWebhookBodySchema, VerificationWebhookBodySchema } from './smile-id-schema';
 import logger from '@/resources/logger';
 
 class SmileIdController {
@@ -19,7 +19,9 @@ class SmileIdController {
             // Send immediate 200 response as recommended by Smile ID
             response.sendStatus(200);
 
-            const bodyDataValidation = VerificationWebhookBodySchema.safeParse(request.body);
+            const bodyDataValidation = VerificationWebhookBodySchema.or(
+                BvnVerificationWebhookBodySchema
+            ).safeParse(request.body);
 
             if (!bodyDataValidation.success) {
                 await logger.debug(`Invalid webhook payload`, {

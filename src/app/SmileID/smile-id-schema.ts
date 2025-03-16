@@ -84,7 +84,70 @@ export const VerificationWebhookBodySchema = z.object({
         .optional(),
 });
 
+export const BvnVerificationWebhookBodySchema = z.object({
+    Actions: z.object({
+        Return_Personal_Info: z.string(),
+        Verify_ID_Number: z.string(),
+    }),
+    Address: z.string(),
+    Country: z.string(),
+    DOB: z.string(),
+    Document: z.string(),
+    ExpirationDate: z.string(),
+    FullData: z.object({
+        BVN: z.string(),
+        DateOfBirth: z.string(),
+        email: z.string(),
+        enrollmentBank: z.string(),
+        enrollmentBranch: z.string(),
+        FirstName: z.string(),
+        Gender: z.string(),
+        ImageBase64: z.string(),
+        LastName: z.string(),
+        LevelOfAccount: z.string(),
+        lgaOfOrigin: z.string(),
+        lgaOfResidence: z.string(),
+        maritalStatus: z.string(),
+        message: z.string(),
+        MiddleName: z.string(),
+        nameOnCard: z.string(),
+        nationality: z.string(),
+        nin: z.string(),
+        PhoneNumber1: z.string(),
+        PhoneNumber2: z.string(),
+        registrationDate: z.string(),
+        residentialAddress: z.string(),
+        stateOfOrigin: z.string(),
+        stateOfResidence: z.string(),
+        success: z.boolean(),
+        title: z.string(),
+        watchListed: z.string(),
+    }),
+    FullName: z.string(),
+    Gender: z.string(),
+    IDNumber: z.string(),
+    IDType: z.string(),
+    ImageLinks: z.object({ id_photo_image: z.string() }),
+    IssuanceDate: z.string(),
+    PartnerParams: z.object({
+        job_id: z.custom<`bvn_verify_${string}`>(),
+        job_type: z.number(),
+        user_id: z.string(),
+    }),
+    PhoneNumber: z.string(),
+    PhoneNumber2: z.string(),
+    Photo: z.string(),
+    ResultCode: z.string(),
+    ResultText: z.string(),
+    Secondary_ID_Number: z.string(),
+    signature: z.string(),
+    SmileJobID: z.string(),
+    Source: z.string(),
+    timestamp: z.string(),
+});
+
 export type SmileIdWebhookData = z.infer<typeof VerificationWebhookBodySchema>;
+export type BvnKycVerificationWebhookBody = z.infer<typeof BvnVerificationWebhookBodySchema>;
 
 export enum KycWebhookResultCode {
     ID_INVALID = '1013', // REJECTED
