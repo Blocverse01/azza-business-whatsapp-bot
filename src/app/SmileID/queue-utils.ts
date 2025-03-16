@@ -9,6 +9,7 @@ import userServiceV2 from '@/runtime/user';
 import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import BvnKycVerificationFlow from '../WhatsAppBot/WhatsAppFlows/BvnKycVerificationFlow';
+import { connectionConfig } from '@/background-processing/redis-connection-config';
 
 const NOT_AVAILABLE = 'Not Available';
 const NG = 'NG';
@@ -68,54 +69,61 @@ export const addKycEventJobToQueue = async (data: SmileIdWebhookData) => {
 };
 
 export const createKycEventJobWorker = () => {
-    return new Worker<SmileIdWebhookData>(QueueNames.handleSmileKycWebhook, async (job) => {
-        const webhookData = job.data;
-        const user = await userServiceV2.getUserById(webhookData.PartnerParams.user_id);
+    return new Worker<SmileIdWebhookData>(
+        QueueNames.handleSmileKycWebhook,
+        async (job) => {
+            const webhookData = job.data;
+            const user = await userServiceV2.getUserById(webhookData.PartnerParams.user_id);
 
-        if (!user) {
-            throw new Error('User not found');
-        }
+            if (!user) {
+                throw new Error('User not found');
+            }
 
-        const kycResult = SmileIdService.gradeKycActions(
-            Number(webhookData.ResultCode),
-            KycWebhookResultCode.SELFIE_TO_ID_CHECK_PASSED
-        );
-
-        if (kycResult.status !== 'verified') {
-            const message = MessageGenerators.generateTextMessage(
-                user.primaryWhatsappPhoneNumber,
-                kycResult.message
+            const kycResult = SmileIdService.gradeKycActions(
+                Number(webhookData.ResultCode),
+                KycWebhookResultCode.SELFIE_TO_ID_CHECK_PASSED
             );
 
-            const userInfoToUpdate = extractUserInfoToUpdate(webhookData, kycResult.status);
+            if (kycResult.status !== 'verified') {
+                const message = MessageGenerators.generateTextMessage(
+                    user.primaryWhatsappPhoneNumber,
+                    kycResult.message
+                );
 
-            await userServiceV2.updateUserInfo(user, userInfoToUpdate);
+                const userInfoToUpdate = extractUserInfoToUpdate(webhookData, kycResult.status);
 
-            await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
+                await userServiceV2.updateUserInfo(user, userInfoToUpdate);
 
-            return kycResult;
-        }
+                await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
 
-        if (webhookData.Country == NG) {
-            const message = BvnKycVerificationFlow.withPhoneNumberId(
-                env.WA_PHONE_NUMBER_ID
-            ).createBvnVerificationFlowMessage(user, {
-                messageBody:
-                    'One last step to complete your KYC verification. Please verify your BVN.',
-                messageRecipient: user.primaryWhatsappPhoneNumber,
-                flowCTA: '🔒 Verify BVN',
-            });
+                return kycResult;
+            }
 
-            await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
-            return message;
-        }
+            if (webhookData.Country == NG) {
+                const message = BvnKycVerificationFlow.withPhoneNumberId(
+                    env.WA_PHONE_NUMBER_ID
+                ).createBvnVerificationFlowMessage(user, {
+                    messageBody:
+                        'One last step to complete your KYC verification. Please verify your BVN.',
+                    messageRecipient: user.primaryWhatsappPhoneNumber,
+                    flowCTA: '🔒 Verify BVN',
+                });
 
-        await WhatsAppBotService.sendWhatsappMessage(
-            user.primaryWhatsappPhoneNumber,
-            MessageGenerators.generateTextMessage(
+                await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
+                return message;
+            }
+
+            await WhatsAppBotService.sendWhatsappMessage(
                 user.primaryWhatsappPhoneNumber,
-                '🎉 Your KYC has been successfully verified!'
-            )
-        );
-    });
+                MessageGenerators.generateTextMessage(
+                    user.primaryWhatsappPhoneNumber,
+                    '🎉 Your KYC has been successfully verified!'
+                )
+            );
+        },
+        {
+            connection: connectionConfig,
+            concurrency: 30,
+        }
+    );
 };
