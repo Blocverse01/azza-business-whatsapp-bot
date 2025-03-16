@@ -178,7 +178,7 @@ class BvnKycVerificationFlow {
 
         const [firstName, middleName] = userData.firstName.split(' ') ?? [];
 
-        const response = await SmileIdService.verifyBvnAsync(user_id, {
+        const response = await SmileIdService.verifyBvnAsync(decodedUserId, {
             dob: userData.kycDateOfBirth,
             first_name: firstName,
             gender: userData.gender ?? '',
