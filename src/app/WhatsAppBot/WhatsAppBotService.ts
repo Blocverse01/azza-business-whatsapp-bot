@@ -716,7 +716,9 @@ class WhatsAppBotService {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
         await this.sendKycLinkGeneratingMessage(userPhoneNumber);
+        const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
 
+        const shouldUseSumsub = userCountryCode !== 'NG';
         const kycUrl = await (async (useSumsub: boolean) => {
             if (useSumsub) {
                 const kycLevelName =
@@ -731,11 +733,13 @@ class WhatsAppBotService {
             }
 
             return await SmileIdService.generateKycLink(user.id);
-        })(false);
+        })(shouldUseSumsub);
 
         const message = MessageGenerators.generateInteractiveCtaUrlButtonMessage({
             recipient: userPhoneNumber,
-            bodyText: `Please click on the link to verify your identity.\n\nYou will need a valid ID handy to complete the KYC step`,
+            bodyText: shouldUseSumsub
+                ? `Please click on the link to verify your identity.\n\nYou will need a valid ID handy to complete the KYC step`
+                : `🚀 Get your KYC done in 2 minutes.\n\nYou will need the following:\n\n- NIN (11-digit number)\n- BVN\n\nClick on the link below to continue.`,
             headerText: `Submit KYC details`,
             ctaUrl: kycUrl,
             ctaText: 'Submit KYC details',

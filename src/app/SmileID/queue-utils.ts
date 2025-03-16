@@ -137,16 +137,24 @@ export const createKycEventJobWorker = () => {
             if (isBvnPayload(webhookData)) {
                 if (webhookData.ResultCode === KycWebhookResultCode.ID_VALIDATED) {
                     if (user.kycStatus?.toLowerCase() === 'in_review') {
-                        if (!user.firstName || !user.lastName || !user.kycDateOfBirth || !user.country) {
+                        if (
+                            !user.firstName ||
+                            !user.lastName ||
+                            !user.kycDateOfBirth ||
+                            !user.country
+                        ) {
                             throw new Error('Expected user info to contain basic KYC info');
                         }
 
-                        const isTheSameUser = compareUserDataWithBvnData({
-                            firstName: user.firstName,
-                            lastName: user.lastName,
-                            kycDateOfBirth: user.kycDateOfBirth,
-                            country: user.country,
-                        }, webhookData);
+                        const isTheSameUser = compareUserDataWithBvnData(
+                            {
+                                firstName: user.firstName,
+                                lastName: user.lastName,
+                                kycDateOfBirth: user.kycDateOfBirth,
+                                country: user.country,
+                            },
+                            webhookData
+                        );
 
                         if (!isTheSameUser) {
                             const message = BvnKycVerificationFlow.withPhoneNumberId(
@@ -208,10 +216,19 @@ export const createKycEventJobWorker = () => {
             const kycResult = SmileIdService.gradeKycActions(webhookData.ResultCode);
 
             if (kycResult.status !== 'verified') {
-                const message = MessageGenerators.generateTextMessage(
-                    user.primaryWhatsappPhoneNumber,
-                    kycResult.message
-                );
+                const message =
+                    kycResult.status === 'rejected'
+                        ? MessageGenerators.generateInteractiveCtaUrlButtonMessage({
+                              recipient: user.primaryWhatsappPhoneNumber,
+                              bodyText: `${kycResult.message}\n\nPlease click on the link below to retry.`,
+                              headerText: `Submit KYC details`,
+                              ctaUrl: await SmileIdService.generateKycLink(user.id),
+                              ctaText: 'Retry KYC Verification',
+                          })
+                        : MessageGenerators.generateTextMessage(
+                              user.primaryWhatsappPhoneNumber,
+                              kycResult.message
+                          );
 
                 const userInfoToUpdate = extractUserInfoToUpdate(webhookData, kycResult.status);
 
