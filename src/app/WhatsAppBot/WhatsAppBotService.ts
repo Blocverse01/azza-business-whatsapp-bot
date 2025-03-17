@@ -83,6 +83,8 @@ import {
     WhatsAppTextMessage,
 } from './WhatsAppBotType';
 import SmileIdService from '../SmileID/SmileIdService';
+import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
+import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -717,7 +719,9 @@ class WhatsAppBotService {
 
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
 
-        const shouldUseSumsub = userCountryCode !== 'NG';
+        const smileIdIsEnabled = await FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SMILE_ID_KYC);
+        const shouldUseSumsub = !smileIdIsEnabled ? true : userCountryCode !== 'NG';
+        
         const kycUrl = await (async (useSumsub: boolean) => {
             if (useSumsub) {
                 const kycLevelName =
