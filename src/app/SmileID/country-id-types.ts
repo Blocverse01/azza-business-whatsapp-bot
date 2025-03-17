@@ -14,7 +14,7 @@ const COUNTRY_ID_LIST: Array<SmileIdType> = [
     // },
     {
         country: 'NG',
-        id_type: 'NIN_SLIP',
+        id_type: 'NIN_V2',
         verification_method: 'biometric_kyc',
     },
     // {
