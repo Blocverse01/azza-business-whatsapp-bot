@@ -116,7 +116,10 @@ const tables = [
       { name: "email", type: "text" },
       { name: "address", type: "text" },
     ],
-    revLinks: [{ column: "user", table: "user_blockradar_wallet" }],
+    revLinks: [
+      { column: "user", table: "user_blockradar_wallet" },
+      { column: "user", table: "fallback_regional_phone_number" },
+    ],
   },
   {
     name: "user_blockradar_wallet",
@@ -270,6 +273,14 @@ const tables = [
       { name: "embedding", type: "vector", vector: { dimension: 1536 } },
     ],
   },
+  {
+    name: "fallback_regional_phone_number",
+    columns: [
+      { name: "user", type: "link", link: { table: "user_v2" } },
+      { name: "phoneNumber", type: "text", notNull: true, defaultValue: "" },
+      { name: "countryCode", type: "text", notNull: true, defaultValue: "" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -315,6 +326,11 @@ export type UserMessageRecord = UserMessage & XataRecord;
 export type ConversationSummary = InferredTypes["conversation_summary"];
 export type ConversationSummaryRecord = ConversationSummary & XataRecord;
 
+export type FallbackRegionalPhoneNumber =
+  InferredTypes["fallback_regional_phone_number"];
+export type FallbackRegionalPhoneNumberRecord = FallbackRegionalPhoneNumber &
+  XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -328,6 +344,7 @@ export type DatabaseSchema = {
   crypto_payout_v2: CryptoPayoutV2Record;
   user_message: UserMessageRecord;
   conversation_summary: ConversationSummaryRecord;
+  fallback_regional_phone_number: FallbackRegionalPhoneNumberRecord;
 };
 
 const DatabaseClient = buildClient();

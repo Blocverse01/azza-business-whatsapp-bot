@@ -1,5 +1,6 @@
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { getFallBackRegionalPhoneNumber } from '@/app/FiatRamp/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     DataExchangeResponse,
@@ -496,12 +497,13 @@ class WhatsAppBotOnRampFlowService {
                 }
 
                 const assetConfig = getAssetConfigOrThrow(asset_id);
-                const [assetWallet, verifiedUserDetails] = await Promise.all([
+                const [assetWallet, verifiedUserDetails, fallbackRegionalPhoneNumber] = await Promise.all([
                     azzaWalletManager.getUserWallet(
                         user_id,
-                        getAssetConfigOrThrow(asset_id).network
+                        assetConfig.network
                     ),
                     userServiceV2.getWhatsappUserIdentityInfo(user_id),
+                    getFallBackRegionalPhoneNumber(user_id, country_code)
                 ]);
 
                 if (!verifiedUserDetails) {
@@ -515,6 +517,10 @@ class WhatsAppBotOnRampFlowService {
                             icon_src: ERROR_FEEDBACK_ICON,
                         } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                     };
+                }
+
+                if(fallbackRegionalPhoneNumber) {
+                    verifiedUserDetails.phoneNumber = fallbackRegionalPhoneNumber;
                 }
 
                 const onrampResponse = await FiatRampService.postOnRampTransaction({
