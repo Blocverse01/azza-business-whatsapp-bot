@@ -85,6 +85,9 @@ import {
 import SmileIdService from '../SmileID/SmileIdService';
 import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
+import { generateRatesReceipt } from '../rate-card/generators';
+import * as fs from 'fs';
+import * as path from 'path';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -566,19 +569,39 @@ class WhatsAppBotService {
             rates.unshift(userCountry);
         }
 
-        const messagePayload: WhatsAppTextMessage = {
-            type: WhatsAppMessageType.TEXT,
-            text: {
-                body: `_*Conversion Rates*_\n\n${rates.map((rate) => `${getCountryFlagEmoji(rate.locale)} ${rate.code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`).join('\n')}`,
-                preview_url: false,
-            },
-            messaging_product: 'whatsapp',
-            recipient_type: 'individual',
-            to: userPhoneNumber,
-        };
+        // Step 1: Generate the rates image
+    const imageBinary = await generateRatesReceipt(rates);
 
-        await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, messagePayload);
+    // Step 2: Save the image temporarily
+    const tempImagePath = path.join(__dirname, 'temp_rates_image.png');
+    fs.writeFileSync(tempImagePath, imageBinary);
+
+       // Step 3: Create a File object for uploading
+    const imageFile = new File([imageBinary], 'rates_image.png', { type: 'image/png' });
+
+    // Step 4: Upload the image to WhatsApp
+    const mediaResponse = await this.uploadImageToWhatsapp(businessPhoneNumberId, imageFile);
+
+    if (!mediaResponse || !mediaResponse.id) {
+        throw new HttpException(
+            INTERNAL_SERVER_ERROR,
+            'Failed to upload rates image to WhatsApp'
+        );
     }
+
+    // Step 5: Send the image as a media message
+    await this.sendMediaMessage(
+        { userPhoneNumber, businessPhoneNumberId },
+        {
+            mediaId: mediaResponse.id,
+            caption: 'Here are the latest conversion rates!',
+            type: 'image',
+        }
+    );
+
+    // Step 6: Clean up the temporary file
+    fs.unlinkSync(tempImagePath);
+}
 
     public static async depositAssetCommandHandler(
         user: UserV2Record,
