@@ -219,7 +219,7 @@ const walletMigrationWorker = new Worker<
         concurrency: 1,
         limiter: {
             max: 1,
-            duration: 180_000,
+            duration: 15_000,
         },
     }
 );
