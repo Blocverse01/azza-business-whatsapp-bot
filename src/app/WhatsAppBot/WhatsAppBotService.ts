@@ -574,22 +574,27 @@ class WhatsAppBotService {
             MessageGenerators.generateTextMessage(userPhoneNumber, ratesText)
         );
 
-        const imageBinary = await generateRatesCard(rates);
-        const imageFile = new File([imageBinary], 'rates_card.png', { type: 'image/png' });
-        const mediaResponse = await this.uploadImageToWhatsapp(businessPhoneNumberId, imageFile);
+        try {
+            const imageBinary = await generateRatesCard(rates);
+            const imageFile = new File([imageBinary], 'rates_card.png', { type: 'image/png' });
+            const mediaResponse = await this.uploadImageToWhatsapp(
+                businessPhoneNumberId,
+                imageFile
+            );
 
-        if (!mediaResponse?.id) {
-            return;
-        }
-
-        await this.sendMediaMessage(
-            { userPhoneNumber, businessPhoneNumberId },
-            {
-                mediaId: mediaResponse.id,
-                caption: "Here's a beautiful rate card you can share 💙",
-                type: 'image',
+            if (!mediaResponse?.id) {
+                return;
             }
-        );
+
+            await this.sendMediaMessage(
+                { userPhoneNumber, businessPhoneNumberId },
+                {
+                    mediaId: mediaResponse.id,
+                    caption: "Here's a beautiful rate card you can share 💙",
+                    type: 'image',
+                }
+            );
+        } catch (error) {}
     }
 
     public static async depositAssetCommandHandler(
