@@ -4,6 +4,7 @@ import fiatRampRoutes from './fiatRampRoutes';
 import sumSubRoutes from './sumSubRoutes';
 import whatsappBotRoutes from './whatsappBotRoutes';
 import smileIdRoutes from './smileIdRoutes';
+import testRoutes from './testRoutes';
 
 const apiRoutes = express
     .Router()
@@ -11,6 +12,7 @@ const apiRoutes = express
     .use('/smile-id', smileIdRoutes)
     .use('/sum-sub', sumSubRoutes)
     .use('/fiat-ramp', fiatRampRoutes)
-    .use('/blockradar', blockradarRoutes);
+    .use('/blockradar', blockradarRoutes)
+    .use('/rate', testRoutes);
 
 export default apiRoutes;

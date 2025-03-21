@@ -85,6 +85,7 @@ import {
 import SmileIdService from '../SmileID/SmileIdService';
 import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
+import { generateRatesCard } from '../rate-card/generators';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -566,18 +567,32 @@ class WhatsAppBotService {
             rates.unshift(userCountry);
         }
 
-        const messagePayload: WhatsAppTextMessage = {
-            type: WhatsAppMessageType.TEXT,
-            text: {
-                body: `_*Conversion Rates*_\n\n${rates.map((rate) => `${getCountryFlagEmoji(rate.locale)} ${rate.code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`).join('\n')}`,
-                preview_url: false,
-            },
-            messaging_product: 'whatsapp',
-            recipient_type: 'individual',
-            to: userPhoneNumber,
-        };
+        const ratesText = `_*Conversion Rates*_\n\n${rates.map((rate) => `${getCountryFlagEmoji(rate.locale)} ${rate.code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`).join('\n')}`;
 
-        await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, messagePayload);
+        const imageBinary = await generateRatesCard(rates);
+
+        const imageFile = new File([imageBinary], 'rates_card.png', { type: 'image/png' });
+
+        const mediaResponse = await this.uploadImageToWhatsapp(businessPhoneNumberId, imageFile);
+
+        if (!mediaResponse?.id) {
+            // Fallback to text message
+            await this.sendWhatsappMessage(
+                businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(userPhoneNumber, ratesText)
+            );
+
+            return;
+        }
+
+        await this.sendMediaMessage(
+            { userPhoneNumber, businessPhoneNumberId },
+            {
+                mediaId: mediaResponse.id,
+                caption: ratesText,
+                type: 'image',
+            }
+        );
     }
 
     public static async depositAssetCommandHandler(
@@ -719,9 +734,11 @@ class WhatsAppBotService {
 
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
 
-        const smileIdIsEnabled = await FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SMILE_ID_KYC);
+        const smileIdIsEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.SMILE_ID_KYC
+        );
         const shouldUseSumsub = !smileIdIsEnabled ? true : userCountryCode !== 'NG';
-        
+
         const kycUrl = await (async (useSumsub: boolean) => {
             if (useSumsub) {
                 const kycLevelName =
