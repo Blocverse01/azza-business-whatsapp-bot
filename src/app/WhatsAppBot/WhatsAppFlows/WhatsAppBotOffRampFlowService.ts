@@ -1,5 +1,6 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
 import { BankBeneficiary, MobileMoneyBeneficiary } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -276,10 +277,20 @@ class WhatsAppBotOffRampFlowService {
             errorMessages.amount = 'Amount must be greater than 0';
         }
 
+        const hardCappedMinUsdLimit = getMinimumOfframpUsdAmount(assetNetwork);
+        const minLimitToUse = hardCappedMinUsdLimit
+            ? (() => {
+                  if (amount_denomination === beneficiary.currency_symbol) {
+                      return math.multiply(hardCappedMinUsdLimit, conversionRate);
+                  }
+                  return hardCappedMinUsdLimit;
+              })()
+            : minLimit;
+
         const amountLessThanLimit =
             amount_denomination === beneficiary.currency_symbol
-                ? amountAsNumber < minLimit
-                : usdAmount < minLimit;
+                ? amountAsNumber < minLimitToUse
+                : usdAmount < minLimitToUse;
         const amountGreaterThanLimit =
             amount_denomination === beneficiary.currency_symbol
                 ? maxLimit > ZERO && amountAsNumber > maxLimit
@@ -288,8 +299,8 @@ class WhatsAppBotOffRampFlowService {
         if (amountLessThanLimit) {
             errorMessages.amount =
                 amount_denomination === beneficiary.currency_symbol
-                    ? `Amount must be at least ${formatNumberAsCurrency(fixNumber(minLimit, TWO), beneficiary.currency_symbol)}`
-                    : `Amount must be at least ${prettifyNumber(minLimit, TWO)} ${assetName}`;
+                    ? `Amount must be at least ${formatNumberAsCurrency(fixNumber(minLimitToUse, TWO), beneficiary.currency_symbol)}`
+                    : `Amount must be at least ${prettifyNumber(minLimitToUse, TWO)} ${assetName}`;
         }
         if (amountGreaterThanLimit) {
             errorMessages.amount =

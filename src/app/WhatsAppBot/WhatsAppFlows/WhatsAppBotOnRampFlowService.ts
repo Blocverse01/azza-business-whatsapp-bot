@@ -1,3 +1,4 @@
+import { getMinimumOnrampUsdAmount, ONRAMP_MINIMUM_BY_CHAIN } from '@/app/FiatRamp/config';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { getFallBackRegionalPhoneNumber } from '@/app/FiatRamp/utils';
@@ -342,8 +343,11 @@ class WhatsAppBotOnRampFlowService {
             countryLimits.max / conversionRate,
         ];
 
-        if (amountAsNumber < minLimit) {
-            errorMessages.amount = `Amount must be greater than ${prettifyNumber(minLimit, TWO)} ${assetConfig.tokenName}`;
+        const hardUsdLimit = getMinimumOnrampUsdAmount(assetConfig.network);
+        const minLimitUsed = hardUsdLimit ?? minLimit;
+
+        if (amountAsNumber < minLimitUsed) {
+            errorMessages.amount = `Amount must be greater than ${prettifyNumber(minLimitUsed, TWO)} ${assetConfig.tokenName}`;
         }
         if (maxLimit > 0 && amountAsNumber > maxLimit) {
             errorMessages.amount = `Amount must be less than ${prettifyNumber(maxLimit, TWO)} ${assetConfig.tokenName}`;
@@ -407,7 +411,7 @@ class WhatsAppBotOnRampFlowService {
                     token_amount: amount,
                     transaction_fee: transactionFee.toString(),
                     fiat_to_pay: fiatEquivalent.toString(),
-                    external_wallet_address: wallet_address || '',
+                    external_wallet_address: wallet_address ?? '',
                     conversion_rate: conversionRate.toString(),
                     platform_fee_percentage: rawFeePercentage.toString(),
                 },
@@ -497,14 +501,12 @@ class WhatsAppBotOnRampFlowService {
                 }
 
                 const assetConfig = getAssetConfigOrThrow(asset_id);
-                const [assetWallet, verifiedUserDetails, fallbackRegionalPhoneNumber] = await Promise.all([
-                    azzaWalletManager.getUserWallet(
-                        user_id,
-                        assetConfig.network
-                    ),
-                    userServiceV2.getWhatsappUserIdentityInfo(user_id),
-                    getFallBackRegionalPhoneNumber(user_id, country_code)
-                ]);
+                const [assetWallet, verifiedUserDetails, fallbackRegionalPhoneNumber] =
+                    await Promise.all([
+                        azzaWalletManager.getUserWallet(user_id, assetConfig.network),
+                        userServiceV2.getWhatsappUserIdentityInfo(user_id),
+                        getFallBackRegionalPhoneNumber(user_id, country_code),
+                    ]);
 
                 if (!verifiedUserDetails) {
                     return {
@@ -519,7 +521,7 @@ class WhatsAppBotOnRampFlowService {
                     };
                 }
 
-                if(fallbackRegionalPhoneNumber) {
+                if (fallbackRegionalPhoneNumber) {
                     verifiedUserDetails.phoneNumber = fallbackRegionalPhoneNumber;
                 }
 
