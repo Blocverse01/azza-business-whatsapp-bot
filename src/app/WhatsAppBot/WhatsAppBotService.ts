@@ -569,19 +569,16 @@ class WhatsAppBotService {
 
         const ratesText = `_*Conversion Rates*_\n\n${rates.map((rate) => `${getCountryFlagEmoji(rate.locale)} ${rate.code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`).join('\n')}`;
 
+        await this.sendWhatsappMessage(
+            businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(userPhoneNumber, ratesText)
+        );
+
         const imageBinary = await generateRatesCard(rates);
-
         const imageFile = new File([imageBinary], 'rates_card.png', { type: 'image/png' });
-
         const mediaResponse = await this.uploadImageToWhatsapp(businessPhoneNumberId, imageFile);
 
         if (!mediaResponse?.id) {
-            // Fallback to text message
-            await this.sendWhatsappMessage(
-                businessPhoneNumberId,
-                MessageGenerators.generateTextMessage(userPhoneNumber, ratesText)
-            );
-
             return;
         }
 
@@ -589,7 +586,7 @@ class WhatsAppBotService {
             { userPhoneNumber, businessPhoneNumberId },
             {
                 mediaId: mediaResponse.id,
-                caption: ratesText,
+                caption: "Here's a beautiful rate card you can share 💙",
                 type: 'image',
             }
         );

@@ -70,7 +70,7 @@ export const generateRatesCard = async (
             return `
                 <div class="flex flex-col gap-[0.88px] pl-[35.07px]">
                     <div class="flex items-baseline gap-2">
-                        <img src="${country?.flag}" class="h-[35px] rounded-full" />
+                        <img src="${country?.flag}" class="h-[35px] w-[35px] rounded-full" />
                         <span class="font-subjectivity font-[800] text-[35.12px] leading-[46.83px] tracking-[-2.93px]">${rate.code}/USD</span>
                     </div>
                     <div class="font-subjectivity font-[800] text-[35.12px] leading-[46.83px] tracking-[-2.93px]">
