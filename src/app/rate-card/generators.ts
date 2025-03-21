@@ -4,7 +4,6 @@ import path from 'path';
 import { formatDate } from 'date-fns';
 import { prettifyNumber } from '@/resources/utils/currency';
 import FiatRampService from '../FiatRamp/FiatRampService';
-import { client } from '../FiatRamp/grpcService/config';
 
 function encodeFontToBase64(filePath: string) {
     try {
@@ -24,7 +23,7 @@ function encodeToBase64(filePath: string) {
     }
 }
 
-export const generateRatesReceipt = async (
+export const generateRatesCard = async (
     rates: Array<{ locale: string; code: string; buy: number; sell: number }>
 ) => {
     const browser = await puppeteer.launch();
@@ -37,32 +36,29 @@ export const generateRatesReceipt = async (
     await page.setViewport({
         width: 1080,
         height: 884,
-        deviceScaleFactor: 2, // Higher resolution
+        deviceScaleFactor: 4, // Higher resolution
     });
 
     // Load the rates template
     let template = fs.readFileSync(path.join(__dirname, 'templates/rates.html'), 'utf8');
 
     // Prepare data for the template
-    const transactionDate = formatDate(new Date(), 'do MMMM, yyyy'); // e.g., "19th March, 2025"
+    const transactionDate = formatDate(new Date(), 'do MMMM, yyyy');
     const fontBase64 = encodeFontToBase64(
         path.join(__dirname, 'templates/fonts/Subjectivity.Extrabold.woff2')
+    );
+    const font2Base64 = encodeFontToBase64(
+        path.join(__dirname, 'templates/fonts/Subjectivity-Super.woff2')
     );
     const patternBgBase64 = encodeToBase64(
         path.join(__dirname, 'templates/images/pattern-bg1.png')
     );
-    const coinLeftBase64 = encodeToBase64(
-        path.join(__dirname, 'templates/images/coin-left.png')
-    );
-    const coinRightBase64 = encodeToBase64(
-        path.join(__dirname, 'templates/images/coin-right.png')
-    );
+    const coinLeftBase64 = encodeToBase64(path.join(__dirname, 'templates/images/coin-left.png'));
+    const coinRightBase64 = encodeToBase64(path.join(__dirname, 'templates/images/coin-right.png'));
     const instagramIconBase64 = encodeToBase64(
         path.join(__dirname, 'templates/images/instagram-icon.png')
     );
-    const xIconBase64 = encodeToBase64(
-        path.join(__dirname, 'templates/images/x-icon.png')
-    );
+    const xIconBase64 = encodeToBase64(path.join(__dirname, 'templates/images/x-icon.png'));
 
     // Generate the HTML for the rates table
     const ratesHtml = rates
@@ -70,16 +66,18 @@ export const generateRatesReceipt = async (
             const country = countries.find(
                 (c) => c.code.toLowerCase() === rate.locale.toLowerCase()
             );
+
             return `
-                <div class="rate-column">
-                    <div class="currency">${country?.flag ?? ''} ${rate.code}/USD</div>
-                    <div class="buy-sell">
-                        <span class="buy-sell-label">BUY:</span>
-                        <span class="buy-sell-value">${prettifyNumber(rate.buy, 2)}</span>
+                <div class="flex flex-col gap-[0.88px] pl-[35.07px]">
+                    <div class="flex items-baseline gap-2">
+                        <img src="${country?.flag}" class="h-[35px] rounded-full" />
+                        <span class="font-subjectivity font-[800] text-[35.12px] leading-[46.83px] tracking-[-2.93px]">${rate.code}/USD</span>
                     </div>
-                    <div class="buy-sell">
-                        <span class="buy-sell-label">SELL:</span>
-                        <span class="buy-sell-value">${prettifyNumber(rate.sell, 2)}</span>
+                    <div class="font-subjectivity font-[800] text-[35.12px] leading-[46.83px] tracking-[-2.93px]">
+                        ${prettifyNumber(rate.buy, 2)}
+                    </div>
+                    <div class="font-subjectivity font-[800] text-[35.12px] leading-[46.83px] tracking-[-2.93px]">
+                        ${prettifyNumber(rate.sell, 2)}
                     </div>
                 </div>
             `;
@@ -89,6 +87,7 @@ export const generateRatesReceipt = async (
     // Replace placeholders in the template
     template = template
         .replace('url(./fonts/Subjectivity.Extrabold.woff2)', `url(${fontBase64})`)
+        .replace('url(./fonts/Subjectivity-Super.woff2)', `url(${font2Base64})`)
         .replace('url(./images/pattern-bg1.png)', `url(${patternBgBase64})`)
         .replace('./images/coin-left.png', `${coinLeftBase64}`)
         .replace('./images/coin-right.png', `${coinRightBase64}`)

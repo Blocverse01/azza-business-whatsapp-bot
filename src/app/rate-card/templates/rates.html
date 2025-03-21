@@ -4,12 +4,22 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Rates Receipt</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+            rel="stylesheet"
+        />
         <style>
             @font-face {
                 font-family: 'Subjectivity';
                 src: url(./fonts/Subjectivity.Extrabold.woff2) format('woff2');
-                font-weight: 800;
-                font-style: normal;
+            }
+            @font-face {
+                font-family: 'Subjectivity-Super';
+                src: url(./fonts/Subjectivity-Super.woff2) format('woff2');
+                font-weight: 950;
             }
 
             body {
@@ -17,21 +27,16 @@
                 padding: 0;
                 font-family: 'Arial', sans-serif;
                 background-color: #3430e9;
-                background-image: url(./images/pattern-bg1.png);
                 color: #ffffff;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
                 position: relative;
-                height: 100%;
-                width: 100%;
             }
 
             body::before {
-                background-image: url(./images/pattern-bg1.png); /* Diamond pattern */
+                background-image: url(./images/pattern-bg1.png);
                 background-size: cover;
-                mix-blend-mode: overlay;
+                background-position: center;
+                background-repeat: no-repeat;
+                opacity: 0.45;
                 content: '';
                 position: absolute;
                 top: 0;
@@ -39,172 +44,29 @@
                 bottom: 0;
                 right: 0;
                 width: 100%;
+                z-index: -1;
                 height: 100%;
             }
 
-            .container {
-                text-align: center;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                padding: 20px;
-                box-sizing: border-box;
+            .font-subjectivity {
+                font-family: 'Subjectivity', sans-serif;
             }
 
-            .logo {
-                margin-bottom: 10px;
+            .font-subjectivity-super {
+                font-family: 'Subjectivity-Super', sans-serif;
             }
 
-            .header {
-                font-family: 'Subjectivity', Arial, sans-serif;
-                font-weight: 950;
-                font-size: 72px;
-                line-height: 88px;
-                letter-spacing: -4%;
-                text-align: center;
-                vertical-align: center;
-                text-transform: uppercase;
-                margin-bottom: 10px;
-                letter-spacing: -2.88px;
-            }
-
-            .date {
-                background-color: #d4f4a3; /* Light green background */
-                color: #000000;
-                font-size: 20px;
-                padding: 5px 15px;
-                border-radius: 5px;
-                display: inline-block;
-                margin-bottom: 20px;
-            }
-
-            .rates-table {
-                position: relative;
-                width: 600px;
-                height: 150px;
-                margin: 0 auto;
-            }
-
-            .rates-table-background {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 996px;
-                height: 305px;
-                z-index: 1;
-            }
-
-            .rates-table-content {
-                position: relative;
-                z-index: 2;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                justify-content: space-around;
-                align-items: center;
-                padding: 20px;
-                box-sizing: border-box;
-            }
-
-            .rate-column {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-                flex: 1;
-            }
-
-            .currency {
-                text-align: center;
-                font-family: Subjectivity;
-                font-size: 35.124px;
+            .font-inter {
+                font-family: 'Inter', sans-serif;
+                font-optical-sizing: auto;
                 font-style: normal;
-                font-weight: 800;
-                line-height: 46.832px; /* 133.333% */
-                letter-spacing: -2.927px;
-            }
-
-            .buy-sell {
-                font-size: 32px;
-                margin: 5px 0;
-                font-family: Subjectivity;
-                font-size: 32px;
-                font-style: normal;
-                font-weight: 800;
-                line-height: 48.748px; /* 152.338% */
-                letter-spacing: -2px;
-                text-transform: uppercase;
-            }
-
-            .buy-sell-label {
-                color: #d4f4a3; /* Light green for "BUY" and "SELL" labels */
-            }
-
-            .buy-sell-value {
-                color: #ffffff;
-            }
-
-            .footer {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                width: 100%;
-                padding: 0 20px;
-                position: absolute;
-                bottom: 20px;
-            }
-
-            .branding {
-                position: absolute;
-                bottom: 20px;
-                left: 20px;
-                font-size: 16px;
-                color: #ffffff;
-            }
-
-            .socials {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                justify-content: center;
-                width: 427px;
-            }
-
-            .social-icon {
-                width: 24px;
-                height: 24px;
-            }
-
-            .social-handle {
-                font-size: 16px;
-                color: #ffffff;
-            }
-
-            .coin-left,
-            .coin-right {
-                position: absolute;
-                width: 80px;
-                height: 80px;
-            }
-
-            .coin-left {
-                left: 20px;
-                top: 50%;
-                transform: translateY(-50%);
-            }
-
-            .coin-right {
-                right: 20px;
-                bottom: 20px;
             }
         </style>
     </head>
     <body>
-        <div class="container">
+        <div class="flex flex-col pt-[81.62px] pb-[64px]">
             <div>
-                <div class="logo">
+                <div class="w-fit mx-auto mb-[112.23px]">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="140"
@@ -234,11 +96,19 @@
                         />
                     </svg>
                 </div>
-                <div class="header">AZZA RATES UPDATE</div>
-                <div class="date">{{transactionDate}}</div>
+                <div
+                    class="font-subjectivity-super font-[950] text-[72px] leading-[88px] tracking-tighter w-fit mx-auto text-center mb-4"
+                >
+                    AZZA RATES UPDATE
+                </div>
+                <div
+                    class="w-fit mx-auto bg-[#D3FEB6] px-[47px] py-[11px] font-inter text-[#1E1E1E] font-bold text-[25.18px] leading-[44px] tracking-[-6%] text-center capitalize"
+                >
+                    {{transactionDate}}
+                </div>
             </div>
-            <div class="rates-table">
-                <div class="rates-table-background">
+            <div class="relative">
+                <div class="absolute top-[-16px] z-[-1] left-[53px]">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="996"
@@ -252,19 +122,48 @@
                         />
                     </svg>
                 </div>
-                <div class="rates-table-content">{{ratesHtml}}</div>
-                <img src="./images/coin-left.png" class="coin-left" alt="Coin Left" />
-            </div>
-            <div class="footer">
-                
-                <div class="socials">
-                    <img src="./images/instagram-icon.png" class="social-icon" alt="Instagram" />
-                    <span class="social-handle">useazza</span>
-                    <img src="./images/x-icon.png" class="social-icon" alt="X" />
-                    <span class="social-handle">useazza</span>
+                <div
+                    class="flex pt-[69.93px] w-fit mx-auto pb-[92.32px] items-end divide-x divide-white divide-dashed"
+                >
+                    <section
+                        class="flex flex-col text-[#D3FEB6] font-subjectivity font-[800] text-[32px] leading-[48.75px] justify-end pr-[23px] tracking-[-2px] gap-[2px]"
+                    >
+                        <span>BUY:</span>
+                        <span>SELL:</span>
+                    </section>
+                    <div class="flex divide-x divide-white divide-dashed gap-[35.07px]">
+                        {{ratesHtml}}
+                    </div>
                 </div>
-                <img src="./images/coin-right.png" class="coin-right" alt="Coin Right" />
-            
+                <img
+                    src="./images/coin-left.png"
+                    class="absolute w-[131.1px] top-[-123.12px] object-scale-down left-[-28px] h-[149.12px]"
+                    alt="Coin Left"
+                />
+                <img
+                    src="./images/coin-right.png"
+                    class="absolute w-[164.58px] bottom-[-100.2px] object-scale-down right-[80.96px] h-[187.2px]"
+                    alt="Coin Right"
+                />
+            </div>
+            <div class="pt-[70px]">
+                <div class="flex items-center justify-center gap-[65px]">
+                    <span class="flex items-center gap-1.5">
+                        <img src="./images/instagram-icon.png" class="w-8 h-8" alt="Instagram" />
+                        <span
+                            class="font-inter text-[25.18px] font-bold tracking-[-6%] leading-[44px]"
+                            >Useazza_</span
+                        >
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <img src="./images/x-icon.png" class="w-8 h-8" alt="X" />
+                        <span
+                            class="font-inter text-[25.18px] font-bold tracking-[-6%] leading-[44px]"
+                            >Useazza</span
+                        >
+                    </span>
+                </div>
+            </div>
         </div>
     </body>
 </html>

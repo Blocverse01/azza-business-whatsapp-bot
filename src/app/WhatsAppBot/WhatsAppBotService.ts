@@ -85,9 +85,7 @@ import {
 import SmileIdService from '../SmileID/SmileIdService';
 import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
-import { generateRatesReceipt } from '../rate-card/generators';
-import * as fs from 'fs';
-import * as path from 'path';
+import { generateRatesCard } from '../rate-card/generators';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -569,39 +567,33 @@ class WhatsAppBotService {
             rates.unshift(userCountry);
         }
 
-        // Step 1: Generate the rates image
-    const imageBinary = await generateRatesReceipt(rates);
+        const ratesText = `_*Conversion Rates*_\n\n${rates.map((rate) => `${getCountryFlagEmoji(rate.locale)} ${rate.code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`).join('\n')}`;
 
-    // Step 2: Save the image temporarily
-    const tempImagePath = path.join(__dirname, 'temp_rates_image.png');
-    fs.writeFileSync(tempImagePath, imageBinary);
+        const imageBinary = await generateRatesCard(rates);
 
-       // Step 3: Create a File object for uploading
-    const imageFile = new File([imageBinary], 'rates_image.png', { type: 'image/png' });
+        const imageFile = new File([imageBinary], 'rates_card.png', { type: 'image/png' });
 
-    // Step 4: Upload the image to WhatsApp
-    const mediaResponse = await this.uploadImageToWhatsapp(businessPhoneNumberId, imageFile);
+        const mediaResponse = await this.uploadImageToWhatsapp(businessPhoneNumberId, imageFile);
 
-    if (!mediaResponse || !mediaResponse.id) {
-        throw new HttpException(
-            INTERNAL_SERVER_ERROR,
-            'Failed to upload rates image to WhatsApp'
+        if (!mediaResponse?.id) {
+            // Fallback to text message
+            await this.sendWhatsappMessage(
+                businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(userPhoneNumber, ratesText)
+            );
+
+            return;
+        }
+
+        await this.sendMediaMessage(
+            { userPhoneNumber, businessPhoneNumberId },
+            {
+                mediaId: mediaResponse.id,
+                caption: ratesText,
+                type: 'image',
+            }
         );
     }
-
-    // Step 5: Send the image as a media message
-    await this.sendMediaMessage(
-        { userPhoneNumber, businessPhoneNumberId },
-        {
-            mediaId: mediaResponse.id,
-            caption: 'Here are the latest conversion rates!',
-            type: 'image',
-        }
-    );
-
-    // Step 6: Clean up the temporary file
-    fs.unlinkSync(tempImagePath);
-}
 
     public static async depositAssetCommandHandler(
         user: UserV2Record,
@@ -742,9 +734,11 @@ class WhatsAppBotService {
 
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
 
-        const smileIdIsEnabled = await FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SMILE_ID_KYC);
+        const smileIdIsEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.SMILE_ID_KYC
+        );
         const shouldUseSumsub = !smileIdIsEnabled ? true : userCountryCode !== 'NG';
-        
+
         const kycUrl = await (async (useSumsub: boolean) => {
             if (useSumsub) {
                 const kycLevelName =
