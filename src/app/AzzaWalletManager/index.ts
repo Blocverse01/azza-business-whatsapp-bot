@@ -74,6 +74,12 @@ class AzzaWalletManager implements BaseWalletProvider {
     public searchAssets(searchParams: SearchAssetParams) {
         return this.walletProvider.searchAssets(searchParams);
     }
+
+    public getWithdrawNetworkFee(
+        params: Pick<WithdrawAssetParams, 'amount' | 'assetId' | 'userId' | 'recipient'>
+    ): Promise<{ nativeBalance: number; networkFee: number }> {
+        return this.walletProvider.getWithdrawNetworkFee(params);
+    }
 }
 
 export default AzzaWalletManager;

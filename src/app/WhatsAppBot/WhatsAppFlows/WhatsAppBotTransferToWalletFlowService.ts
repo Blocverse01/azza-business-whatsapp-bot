@@ -107,9 +107,9 @@ const TRANSFER_DETAILS_FORM_SUB_TEXT =
     'Enter a wallet address OR a phone number to send crypto to.';
 
 class WhatsAppBotTransferToWalletFlowService {
-    private static FLOW_MODE: FlowMode = flowConfig.flowMode;
-    private static FLOW_ID = flowConfig.flowId;
-    private static INITIAL_SCREEN = TransferToWalletFlowScreens.TRANSACTION_DETAILS;
+    private static readonly FLOW_MODE: FlowMode = flowConfig.flowMode;
+    private static readonly FLOW_ID = flowConfig.flowId;
+    private static readonly INITIAL_SCREEN = TransferToWalletFlowScreens.TRANSACTION_DETAILS;
     private static readonly USER_BALANCE_PATTERN = /Your balance: (\d+) (\w+)/;
 
     public static async receiveDataExchange(
@@ -235,6 +235,29 @@ class WhatsAppBotTransferToWalletFlowService {
                   return standardInputPhoneNumber === standardizePhoneNumber(phone, countryCode);
               })
             : null;
+
+        if (asset.isNative) {
+            let walletAddress = data.wallet_address;
+
+            if (recipientType === 'azza-phone-number' && azzaUserRecipient) {
+                walletAddress = (
+                    await azzaWalletManager.getUserWallet(azzaUserRecipient.id, asset.network)
+                ).address;
+            }
+
+            const networkFeeInfo = await azzaWalletManager.getWithdrawNetworkFee({
+                amount: amount.toString(),
+                assetId: asset.listItemId,
+                recipient: walletAddress,
+                userId: data.user_id,
+            });
+
+            const withdrawableAmount = networkFeeInfo.nativeBalance - networkFeeInfo.networkFee;
+
+            if (userBalance < withdrawableAmount) {
+                errorMessages.amount = `To cover for gas which cost (${networkFeeInfo.networkFee} ${asset.tokenName}), the max you can withdraw is ${withdrawableAmount} ${asset.tokenName}`;
+            }
+        }
 
         if (Object.keys(errorMessages).length > 0) {
             return {
@@ -493,9 +516,10 @@ class WhatsAppBotTransferToWalletFlowService {
         params: {
             recipient: string;
             assetBalance: AssetBalance;
+            networkFee: number;
         }
     ) {
-        const { assetBalance, recipient } = params;
+        const { assetBalance, recipient, networkFee } = params;
 
         const { asset, balance } = assetBalance;
         const assetLabel = `${asset.tokenName} (${asset.network})`;
@@ -505,7 +529,11 @@ class WhatsAppBotTransferToWalletFlowService {
         /**
          * Updating this will require updating the regex pattern in `this.USER_BALANCE_PATTERN`
          * */
-        const userBalanceMessage = `Your balance: ${balance} ${asset.tokenName}`;
+        let userBalanceMessage = `Your balance: ${balance} ${asset.tokenName}`;
+
+        if (networkFee > 0) {
+            userBalanceMessage = `Your balance: ${balance} ${asset.tokenName}\nYou can withdraw: ${balance - networkFee} ${asset.tokenName}\nGas: ${networkFee}${asset.tokenName}`;
+        }
 
         const flowMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',

@@ -382,6 +382,40 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         return this.dataSources.supportedNetworks();
     }
 
+    public async getWithdrawNetworkFee(
+        params: Pick<WithdrawAssetParams, 'amount' | 'assetId' | 'userId' | 'recipient'>
+    ) {
+        const assetConfig = this.getAssetConfig(params.assetId);
+        const blockradarAssetId = this.dataSources.blockradarAssetId(params.assetId);
+        const walletClient = this.dataSources.blockradarMasterWalletClient(assetConfig.network);
+
+        const userAddressId = await this.gracefullyGetUserAddressId(
+            params.userId,
+            assetConfig.network
+        );
+
+        if (!userAddressId) {
+            throw new BlockradarWalletProviderError({
+                data: {
+                    userId: params.userId,
+                    network: assetConfig.network,
+                },
+                message: `User address ID does not exist`,
+            });
+        }
+
+        const networkFeeInfo = await walletClient.getWithdrawNetworkFee(userAddressId, {
+            amount: params.amount,
+            address: params.recipient,
+            assetId: blockradarAssetId,
+        });
+
+        return {
+            networkFee: Number(networkFeeInfo.networkFee),
+            nativeBalance: Number(networkFeeInfo.nativeBalance),
+        };
+    }
+
     private getAssetConfig(assetId: string) {
         const config = this.getSupportedAssets().find(
             (assetConfig) => assetConfig.listItemId.toLowerCase() === assetId.toLowerCase()

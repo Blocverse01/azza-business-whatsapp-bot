@@ -86,6 +86,7 @@ import SmileIdService from '../SmileID/SmileIdService';
 import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
 import { generateRatesCard } from '../rate-card/generators';
+import { getDefaultParamsForNetworkFeeQuery } from '../AzzaWalletManager/fallback-data';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -973,12 +974,28 @@ class WhatsAppBotService {
             assetId,
             userId: user.id,
         });
+        let withdrawNetworkFee = 0;
+
+        const assetConfig = getAssetConfigOrThrow(assetId);
+        if (assetConfig.isNative) {
+            const defaultParams = getDefaultParamsForNetworkFeeQuery(assetConfig.network);
+
+            const networkFeeInfo = await azzaWalletManager.getWithdrawNetworkFee({
+                amount: defaultParams.amount.toString(),
+                recipient: defaultParams.recipient,
+                assetId,
+                userId: user.id,
+            });
+
+            withdrawNetworkFee = networkFeeInfo.networkFee;
+        }
 
         const message = WhatsAppBotTransferToWalletFlowService.generateTransferToWalletInitMessage(
             user,
             {
                 recipient: userPhoneNumber,
                 assetBalance: assetBalance,
+                networkFee: withdrawNetworkFee,
             }
         );
 

@@ -87,5 +87,12 @@ export abstract class BaseWalletProvider {
 
     public abstract withdrawAsset(params: WithdrawAssetParams): Promise<AssetTransaction>;
 
+    public abstract getWithdrawNetworkFee(
+        params: Pick<WithdrawAssetParams, 'amount' | 'assetId' | 'userId' | 'recipient'>
+    ): Promise<{
+        nativeBalance: number;
+        networkFee: number;
+    }>;
+
     public abstract searchAssets(searchParams: SearchAssetParams): Array<AssetConfig>;
 }

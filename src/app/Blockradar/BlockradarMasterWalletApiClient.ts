@@ -12,6 +12,7 @@ import {
     WithdrawAssetRequestBody,
     withdrawAssetRequestBodySchema,
     withdrawAssetResponseDataSchema,
+    withdrawNetworkFeeResponseDataSchema,
     type BlockradarTransactionType,
 } from '@/app/Blockradar/schema';
 import { OK } from '@/constants/status-codes';
@@ -337,6 +338,54 @@ class BlockradarMasterWalletApiClient {
         }
 
         const responseDataValidation = withdrawAssetResponseDataSchema.safeParse(response.data);
+
+        if (!responseDataValidation.success) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: responseDataValidation.error.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+                requestData: bodyPayload,
+            });
+        }
+
+        return responseDataValidation.data;
+    }
+
+    public async getWithdrawNetworkFee(
+        addressId: string,
+        params: Pick<WithdrawAssetRequestBody, 'amount' | 'address' | 'assetId'>
+    ) {
+        const addressResourceUrl = this.getResourceUrl(MasterWalletApiResources.ADDRESS);
+        const url = `${addressResourceUrl}/${addressId}/withdraw/network-fee`;
+
+        const bodyPayload = withdrawAssetRequestBodySchema
+            .pick({
+                amount: true,
+                assetId: true,
+                address: true,
+            })
+            .parse(params);
+
+        const response = await this.fetch(url, {
+            headers: this.headers,
+            method: 'POST',
+            body: JSON.stringify(bodyPayload),
+        });
+
+        if (response.statusCode !== OK) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: response.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+                requestData: bodyPayload,
+            });
+        }
+
+        const responseDataValidation = withdrawNetworkFeeResponseDataSchema.safeParse(
+            response.data
+        );
 
         if (!responseDataValidation.success) {
             throw new BlockradarMasterWalletApiClientError({

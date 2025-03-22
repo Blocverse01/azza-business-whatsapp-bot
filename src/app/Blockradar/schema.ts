@@ -161,6 +161,10 @@ export const withdrawAssetResponseDataSchema = commonTransactionFieldsSchema
         wallet: z.object({ id: z.string() }),
     })
     .merge(datesSchema);
+export const withdrawNetworkFeeResponseDataSchema = z.object({
+    networkFee: z.string(),
+    nativeBalance: z.string(),
+});
 
 ////////////////////////
 // Webhook Payload
