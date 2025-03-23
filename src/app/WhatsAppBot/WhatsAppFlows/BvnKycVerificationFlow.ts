@@ -7,11 +7,10 @@ import {
 import { FlowConfig, PhoneNumberId, getFlowConfig } from './config';
 import { bvnKycVerificationSchema } from './schema';
 import SmileIdService from '@/app/SmileID/SmileIdService';
-import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
+import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { userIdentityInfoSchema } from '@/app/User/userSchema';
 import { HttpException } from '@/resources/exceptions/HttpException';
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
-import WhatsAppBotService from '../WhatsAppBotService';
+import { BAD_REQUEST } from '@/constants/status-codes';
 import { UserV2Record } from '@/db/xata';
 import {
     convertAsciiStringToBase64,
