@@ -970,6 +970,10 @@ export const createWhatsappBroadcastWorker = () => {
                 max: 20,
                 duration: 1000,
             },
+            removeOnComplete: {
+                age: 2 * 3600, // keep up to 2 hours,
+                count: 1000, // keep up to 1000 jobs
+            },
         }
     );
 };

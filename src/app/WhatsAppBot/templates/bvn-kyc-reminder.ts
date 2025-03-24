@@ -18,7 +18,7 @@ export const composeBvnKycReminderMessage = (
         messaging_product: 'whatsapp',
         to: params.userPhoneNumber,
         recipient_type: 'individual',
-        type: 'interactive',
+        type: 'template',
         template: {
             name: TEMPLATE_NAME,
             language: {

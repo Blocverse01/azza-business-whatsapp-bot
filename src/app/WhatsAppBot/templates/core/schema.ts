@@ -18,7 +18,7 @@ export const TemplateMessageBaseSchema = z.object({
     messaging_product: z.literal('whatsapp'),
     recipient_type: z.literal('individual'),
     to: z.string(),
-    type: z.enum(['interactive', 'text', 'image']),
+    type: z.literal('template'),
     template: TemplateBaseSchema,
 });
 
