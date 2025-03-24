@@ -959,7 +959,14 @@ export const createWhatsappBroadcastWorker = () => {
         async (job) => {
             const { businessPhoneNumberId, message } = job.data;
 
-            await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message);
+            const result = await WhatsAppBotService.sendWhatsappMessage(
+                businessPhoneNumberId,
+                message
+            );
+
+            if (!result?.sent) {
+                throw new Error('Message not sent');
+            }
 
             return { status: 'success' };
         },

@@ -157,8 +157,10 @@ class WhatsAppBotService {
                     'Error sending message'
                 );
 
-                return;
+                return { sent: false };
             }
+
+            return { sent: true };
         } catch (error) {
             await logServiceError(error, 'Error sending message');
             throw error;
