@@ -4,6 +4,7 @@ export enum WhatsAppMessageType {
     TEXT = 'text',
     STICKER = 'sticker',
     INTERACTIVE = 'interactive',
+    BUTTON = 'button',
     // Add more message types here as needed (e.g., IMAGE, VIDEO, AUDIO, etc.)
 }
 
@@ -279,6 +280,7 @@ export enum ActionExecuted {
     ACKNOWLEDGED_MANUAL_OFFRAMP_SETTLEMENT = 'ACKNOWLEDGED_MANUAL_OFFRAMP_SETTLEMENT',
     MARK_MANUAL_OFFRAMP_SETTLEMENT_PAID = 'MARK_MANUAL_OFFRAMP_SETTLEMENT_PAID',
     SEND_MAINTAINANCE_MESSAGE = 'SEND_MAINTAINANCE_MESSAGE',
+    SEND_KYC_QUERY_RESPONSE = 'SEND_KYC_QUERY_RESPONSE',
 }
 
 export type IncomingWhatsappMessage = {
@@ -287,6 +289,10 @@ export type IncomingWhatsappMessage = {
     from: string;
     text: {
         body: string;
+    };
+    button?: {
+        text: string;
+        payload: string;
     };
     interactive: {
         type: 'button_reply' | 'list_reply' | 'nfm_reply';

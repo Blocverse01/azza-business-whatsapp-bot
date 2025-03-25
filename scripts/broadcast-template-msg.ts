@@ -4,7 +4,10 @@ import {
     TemplateMessageBase,
     TemplateNameSchema,
 } from '../src/app/WhatsAppBot/templates/core/schema';
-import { composeBvnKycReminderMessage } from '../src/app/WhatsAppBot/templates/bvn-kyc-reminder';
+import {
+    composeBvnKycReminderMessage,
+    composeCashbackOnBaseMessage,
+} from '../src/app/WhatsAppBot/templates';
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
 import * as readline from 'node:readline';
@@ -39,6 +42,16 @@ async function broadcastTemplateMessage(templateName: Template['name'], onlyTo: 
                         userPhoneNumber: phoneNumber,
                     });
 
+                    resolve(
+                        sendWhatsappBroadcastMessage({
+                            message: message,
+                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        })
+                    );
+                } else if (templateName === 'cashback_on_base') {
+                    message = composeCashbackOnBaseMessage({
+                        userPhoneNumber: phoneNumber,
+                    });
                     resolve(
                         sendWhatsappBroadcastMessage({
                             message: message,

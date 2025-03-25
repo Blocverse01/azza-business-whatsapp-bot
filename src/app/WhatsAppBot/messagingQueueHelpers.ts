@@ -9,11 +9,7 @@ import ManualOfframpSettlementService from '@/app/FiatRamp/alternatives/ManualOf
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import BotCommandHandler from '@/app/WhatsAppBot/BotCommandHandler';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
-import {
-    getSessionId,
-    textPromptHandler,
-    type StoredMessage,
-} from '@/app/WhatsAppBot/text/textPromptHandler';
+import { getSessionId, textPromptHandler } from '@/app/WhatsAppBot/text/textPromptHandler';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     ActionExecuted,
@@ -42,7 +38,7 @@ import {
     extractSellAssetToBeneficiaryGroups,
     extractTradeAssetGroups,
 } from '@/constants/regex';
-import { BAD_REQUEST } from '@/constants/status-codes';
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import { getDynamicMaintainanceMessage } from '@/constants/strings';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import logger from '@/resources/logger';
@@ -54,6 +50,8 @@ import { Worker } from 'bullmq';
 import type { CountryCode } from 'libphonenumber-js';
 import { getConversationHistory, storeUserMessage } from '../aiAgent/conversation-manager';
 import { handleUserMessage } from './text/handleUserMessage';
+import { VERIFY_ME_QUICK_REPLY_PAYLOAD } from './templates/base-cashback-reminder';
+import { handleUserKycRequest } from '../kyc/utils';
 
 export const receiveIncomingWhatsappMessage = async (
     message: IncomingWhatsappMessage,
@@ -525,6 +523,21 @@ const handleIncomingWhatsappMessageTemp = async (
             displayName,
         });
         return ActionExecuted.SEND_SET_TRANSACTION_PIN_MESSAGE;
+    }
+
+    ////////////////////////////////////
+    // QUICK REPLY BUTTON MESSAGES
+    ////////////////////////////////////
+    if (type === WhatsAppMessageType.BUTTON) {
+        if (message.button?.payload === VERIFY_ME_QUICK_REPLY_PAYLOAD) {
+            await handleUserKycRequest(userV2, phoneParams);
+
+            return ActionExecuted.SEND_KYC_QUERY_RESPONSE;
+        }
+
+        throw new HttpException(INTERNAL_SERVER_ERROR, 'Unhandled button message', {
+            button: message.button,
+        });
     }
 
     // ============== HANDLE TEXT MESSAGES ============== //
