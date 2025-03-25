@@ -159,7 +159,7 @@ class WhatsAppBotService {
             return { sent: true };
         } catch (error) {
             await logServiceError(error, 'Error sending message');
-            throw error;
+            return { sent: false };
         }
     }
 
