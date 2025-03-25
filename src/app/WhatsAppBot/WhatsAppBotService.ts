@@ -148,16 +148,12 @@ class WhatsAppBotService {
             const responseData = await response.body.json();
 
             if (response.statusCode !== OK) {
-                await logServiceError(
-                    new HttpException(response.statusCode, 'Error sending message', {
-                        responseData,
-                        message,
-                        businessPhoneNumberId,
-                    }),
-                    'Error sending message'
-                );
-
-                return { sent: false };
+                const error = new HttpException(response.statusCode, 'Error sending message', {
+                    responseData,
+                    message,
+                    businessPhoneNumberId,
+                });
+                throw error;
             }
 
             return { sent: true };
