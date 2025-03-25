@@ -81,48 +81,50 @@ class FiatRampServiceController {
             }
 
             const user = await userServiceV2.getUserById(transaction.ownerId);
-            const userPhoneNumber = user?.primaryWhatsappPhoneNumber;
+            const userPhoneNumber = user?.primaryWhatsappPhoneNumber!;
             const supportedChain = azzaWalletManager
                 .getSupportedNetworks()
                 .find(
                     (chain) => chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
                 );
 
-            if (message.trim() && userPhoneNumber) {
-                await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
+            if (message.trim()) {
+                try {
+                    await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
+                } catch (error) {}
+            }
 
-                if (newTransactionStatus === 'complete') {
-                    if (supportedChain === 'Base') {
-                        await addCashbackJobToQueue({
-                            transactionId: sequenceId,
-                            transactionType: 'offramp',
-                        });
-                    }
-
-                    const receiptBuffer = await generateOfframpToBankRecipientReceipt(transaction);
-                    const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
-                        env.WA_PHONE_NUMBER_ID,
-                        new File([Buffer.from(receiptBuffer)], `receipt-${sequenceId}.png`, {
-                            type: 'image/png',
-                        })
-                    );
-
-                    if (uploadedMedia) {
-                        await WhatsAppBotService.sendMediaMessage(
-                            {
-                                userPhoneNumber,
-                                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                            },
-                            {
-                                mediaId: uploadedMedia.id,
-                                caption: `🧾Transaction Receipt`,
-                                type: 'image',
-                            }
-                        );
-
-                        return;
-                    }
+            if (newTransactionStatus === 'complete') {
+                if (supportedChain === 'Base') {
+                    await addCashbackJobToQueue({
+                        transactionId: sequenceId,
+                        transactionType: 'offramp',
+                    });
                 }
+
+                const receiptBuffer = await generateOfframpToBankRecipientReceipt(transaction);
+                const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
+                    env.WA_PHONE_NUMBER_ID,
+                    new File([Buffer.from(receiptBuffer)], `receipt-${sequenceId}.png`, {
+                        type: 'image/png',
+                    })
+                );
+
+                if (uploadedMedia) {
+                    await WhatsAppBotService.sendMediaMessage(
+                        {
+                            userPhoneNumber,
+                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        },
+                        {
+                            mediaId: uploadedMedia.id,
+                            caption: `🧾Transaction Receipt`,
+                            type: 'image',
+                        }
+                    );
+                }
+
+                return;
             }
 
             if (supportedChain && newTransactionStatus === 'failed') {
@@ -179,7 +181,9 @@ class FiatRampServiceController {
             const userPhoneNumber = user?.primaryWhatsappPhoneNumber;
 
             if (message.trim() && userPhoneNumber) {
-                await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
+                try {
+                    await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
+                } catch (error) {}
             }
 
             if (newTransactionStatus.toLowerCase() === 'complete') {
@@ -224,8 +228,6 @@ class FiatRampServiceController {
                             type: 'image',
                         }
                     );
-
-                    return;
                 }
             }
         } catch (error) {
