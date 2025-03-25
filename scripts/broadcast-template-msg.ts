@@ -6,7 +6,7 @@ import {
 } from '../src/app/WhatsAppBot/templates/core/schema';
 import {
     composeBvnKycReminderMessage,
-    composeCashbackOnBaseMessage,
+    BaseCashbackTemplateMessage,
 } from '../src/app/WhatsAppBot/templates';
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
@@ -17,18 +17,27 @@ const rl = readline.createInterface({
     output: process.stdout,
 });
 
+// Todo: Standardize TemplateMessage object with composer and default target recipients getter.
+
 async function broadcastTemplateMessage(templateName: Template['name'], onlyTo: string[] = []) {
-    const allUsers =
-        onlyTo.length > 0
-            ? await dbClient.user_v2
-                  .select(['primaryWhatsappPhoneNumber'])
-                  .filter({
-                      primaryWhatsappPhoneNumber: {
-                          $any: onlyTo,
-                      },
-                  })
-                  .getAll()
-            : await dbClient.user_v2.select(['primaryWhatsappPhoneNumber']).getAll();
+    const allUsers = await (async () => {
+        if (onlyTo.length > 0) {
+            return await dbClient.user_v2
+                .select(['primaryWhatsappPhoneNumber'])
+                .filter({
+                    primaryWhatsappPhoneNumber: {
+                        $any: onlyTo,
+                    },
+                })
+                .getAll();
+        }
+
+        if (templateName === 'cashback_on_base') {
+            return await BaseCashbackTemplateMessage.getDefaultTargetRecipients();
+        }
+
+        return await dbClient.user_v2.select(['primaryWhatsappPhoneNumber']).getAll();
+    })();
 
     const sendSendMessagesPromises = allUsers.map(
         (user) =>
@@ -49,7 +58,7 @@ async function broadcastTemplateMessage(templateName: Template['name'], onlyTo: 
                         })
                     );
                 } else if (templateName === 'cashback_on_base') {
-                    message = composeCashbackOnBaseMessage({
+                    message = BaseCashbackTemplateMessage.composer({
                         userPhoneNumber: phoneNumber,
                     });
                     resolve(

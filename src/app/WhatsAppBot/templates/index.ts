@@ -1,4 +1,4 @@
 import { composeBvnKycReminderMessage } from './bvn-kyc-reminder';
-import { composeCashbackOnBaseMessage } from './base-cashback-reminder';
+import { BaseCashbackTemplateMessage } from './base-cashback-reminder';
 
-export { composeBvnKycReminderMessage, composeCashbackOnBaseMessage };
+export { composeBvnKycReminderMessage, BaseCashbackTemplateMessage };

@@ -1,3 +1,4 @@
+import { dbClient } from '@/db/dbClient';
 import { Template, TemplateMessageBase } from './core/schema';
 
 const HEADER_IMAGE_URL =
@@ -9,7 +10,7 @@ export const VERIFY_ME_QUICK_REPLY_PAYLOAD = 'Verify-Me-Button';
 type ComposeCashbackOnBaseMessageParams = {
     userPhoneNumber: string;
 };
-export const composeCashbackOnBaseMessage = (
+const composeCashbackOnBaseMessage = (
     params: ComposeCashbackOnBaseMessageParams
 ): TemplateMessageBase => {
     return {
@@ -48,4 +49,37 @@ export const composeCashbackOnBaseMessage = (
             ],
         },
     };
+};
+
+export const BaseCashbackTemplateMessage = {
+    composer: composeCashbackOnBaseMessage,
+    name: TEMPLATE_NAME,
+    getDefaultTargetRecipients: async () => {
+        return await dbClient.user_v2
+            .filter({
+                $all: [
+                    {
+                        'xata.createdAt': {
+                            $le: new Date('2025-03-16T00:00:00.000Z'),
+                        },
+                    },
+                    {
+                        $any: [
+                            {
+                                kycStatus: {
+                                    $any: ['rejected', 'REJECTED'],
+                                },
+                            },
+                            {
+                                $notExists: 'kycStatus',
+                            },
+                        ],
+                    },
+                    {
+                        $exists: 'transactionPinHash',
+                    },
+                ],
+            })
+            .getAll();
+    },
 };
