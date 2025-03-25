@@ -193,7 +193,7 @@ export const createKycEventJobWorker = () => {
                             const shouldRetry = errors.length >= 2;
 
                             const messageBody = shouldRetry
-                                ? `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`
+                                ? `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease confirm your BVN number and click on 'Try Again'`
                                 : `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease contact support using the /support command.`;
 
                             const message = shouldRetry
@@ -202,7 +202,7 @@ export const createKycEventJobWorker = () => {
                                   ).createBvnVerificationFlowMessage(user, {
                                       messageBody: messageBody,
                                       messageRecipient: user.primaryWhatsappPhoneNumber,
-                                      flowCTA: 'Retry BVN verification',
+                                      flowCTA: 'Try Again',
                                       initialValues: {
                                           email: user.email ?? undefined,
                                       },
@@ -243,9 +243,9 @@ export const createKycEventJobWorker = () => {
                     const message = BvnKycVerificationFlow.withPhoneNumberId(
                         env.WA_PHONE_NUMBER_ID
                     ).createBvnVerificationFlowMessage(user, {
-                        messageBody: `BVN verification failed.\n\nPlease confirm your BVN number and click on 'Retry BVN verification'`,
+                        messageBody: `BVN verification failed.\n\nPlease confirm your BVN number and click on 'Try Again'`,
                         messageRecipient: user.primaryWhatsappPhoneNumber,
-                        flowCTA: 'Retry BVN verification',
+                        flowCTA: 'Try Again',
                         initialValues: {
                             email: user.email ?? undefined,
                         },
@@ -267,7 +267,7 @@ export const createKycEventJobWorker = () => {
                               bodyText: `${kycResult.message}\n\nPlease click on the link below to retry.`,
                               headerText: `Submit KYC details`,
                               ctaUrl: await SmileIdService.generateKycLink(user.id),
-                              ctaText: 'Retry KYC Verification',
+                              ctaText: 'Retry KYC',
                           })
                         : MessageGenerators.generateTextMessage(
                               user.primaryWhatsappPhoneNumber,
