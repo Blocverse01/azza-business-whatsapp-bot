@@ -15,6 +15,7 @@ import apiRoutes from './routes';
 import './background-processing/workers';
 import './app/globalErrorHandler';
 import './background-processing/single-instance-workers';
+import SafeHaveService from './app/SafeHaven/SafeHavenService';
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(
 app.use(CookieParser());
 
 app.get('/', async (_, res) => {
+    res.status(OK).json({data : await SafeHaveService.getSupportedBanks()})
     res.status(OK).send('API welcomes you :)');
 });
 
@@ -69,7 +71,7 @@ app.use('/api', apiRoutes, async () => {
 
 app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found' }));
 
-app.listen(env.PORT, () => {
+app.listen(env.PORT, async() => {
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 
