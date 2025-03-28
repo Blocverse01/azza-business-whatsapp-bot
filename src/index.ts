@@ -69,7 +69,7 @@ app.use('/api', apiRoutes, async () => {
 
 app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found' }));
 
-app.listen(env.PORT, () => {
+app.listen(env.PORT, async() => {
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 

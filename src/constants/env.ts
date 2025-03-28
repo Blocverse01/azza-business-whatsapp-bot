@@ -104,6 +104,17 @@ const envSchema = z.object({
     SMILE_ID_BASE_URL: notEmptyStringSchema('SMILE_ID_BASE_URL'),
     SMILE_ID_WEBHOOK_URL: notEmptyStringSchema('SMILE_ID_WEBHOOK_URL'),
     SMILE_ID_PROD_API_KEY: notEmptyStringSchema('SMILE_ID_PROD_API_KEY'),
+
+
+    ///////////////////////
+    /// SaveHave
+    ///////////////////////
+    SAVEHAVEN_CLIENT_ID : notEmptyStringSchema('SAVEHAVEN_CLIENT_ID'),
+    SAVEHAVEN_CLIENT_ASSERTION : notEmptyStringSchema('SAVEHAVEN_CLIENT_ASSERTION'),
+    SAVEHAVEN_BASE_URL : notEmptyStringSchema('SAVEHAVE_BASE_URL').and(
+        z.string().url()
+    )
+
 });
 
 const env = envSchema.parse(process.env);
