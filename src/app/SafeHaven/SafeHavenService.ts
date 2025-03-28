@@ -2,7 +2,17 @@ import env from "@/constants/env";
 import axios from 'axios';
 import slugify from 'slugify';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import {AuthTokenResponse, AccessTokenResult, SupportedBankResponse} from './SafeHaveSchema'
+import ManualOfframpSettlementService from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
+import { HttpException } from '@/resources/exceptions/HttpException';
+import logger from '@/resources/logger';
+import {
+    AuthTokenResponse, 
+    AccessTokenResult, 
+    SupportedBankResponse,
+    BankAccountVerificationResponse,
+    accountNameEnquirySchema
+} from './SafeHaveSchema'
+import { BAD_REQUEST, OK } from "@/constants/status-codes";
 
 class SafeHaveService {
 
@@ -42,8 +52,8 @@ class SafeHaveService {
                 payload,
                 {
                     headers: {
-                        'Content-Type': 'application/json',
-                    },
+                        'Content-Type': 'application/json'
+                    }
                 }
             );
 
@@ -65,14 +75,13 @@ class SafeHaveService {
     }
 
 
-    public static async getSupportedBanks() : Promise<SupportedBankResponse[]> {
-        
+    public static async getSupportedBanks() : Promise<{ name: string; slug: string; bankCode: string }[]> {
         try {
 
             const authTokenData = await this.generateAccessToken();
             
-            const response = await axios.get<SupportedBankResponse[]>(
-                `${this.SAVEHAVEN_BASE_URL}/oauth2/token`,
+            const response = await axios.get<SupportedBankResponse>(
+                `${this.SAVEHAVEN_BASE_URL}/transfers/banks`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -82,9 +91,9 @@ class SafeHaveService {
                 }
             );
 
-            const supportedBanks: SupportedBankResponse[] = response.data;
+            const { data: banks  } = response.data; 
 
-            supportedBanks.map(bank => ({
+            const supportedBanks = banks.map(bank => ({
                 name : bank.name,
                 slug : slugify(bank.name, { lower: true, replacement: '-' }),
                 bankCode : bank.bankCode,
@@ -93,13 +102,108 @@ class SafeHaveService {
             return supportedBanks;
 
         } catch (error) {
-            await logServiceError(error, 'Error generating SavaHaven access token');
+            await logServiceError(error, 'Error fetching supported banks from SavaHaven');
             throw error;
         }
-
     }
 
+    public static async accountNameEnquiry( params : {bankCode : string, accountNumber : string}) {
+        try {
 
+            const {bankCode, accountNumber} = params;
+
+            const authTokenData = await this.generateAccessToken();
+
+            const result = accountNameEnquirySchema.safeParse(params);
+    
+            if (!result.success) {
+                throw new HttpException(BAD_REQUEST, `${result.error.message}`);
+            }
+
+            const payload = {
+                bankCode : bankCode,
+                accountNumber : accountNumber
+            }
+            
+            const response = await axios.post<BankAccountVerificationResponse>(
+                `${this.SAVEHAVEN_BASE_URL}/transfers/name-enquiry`,
+                 payload,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization' :  `Bearer ${authTokenData.access_token}`,
+                        'ClientID' : `${authTokenData.ibs_client_id}`
+                    },
+                }
+            );
+
+            const { data, statusCode, message } = response.data; 
+
+            if(statusCode != OK) throw new HttpException(statusCode, `${message}`);
+
+            return {
+                sessionId: data.sessionId,
+                bankCode: data.bankCode,
+                accountNumber : data.accountNumber,
+                accountName : data.accountName
+            };
+
+        } catch (error) {
+            await logServiceError(error, 'Error fetching user account name');
+            throw error;
+        }
+    }
+
+    public static async processManualOffRampPayment(params : {
+        sessionId: string, 
+        beneficiaryBankCode : string,
+        amountToSend : number,
+        beneficiaryAccountNumber : string
+    }) {
+        try {
+
+            const {sessionId, beneficiaryBankCode, amountToSend, beneficiaryAccountNumber} = params;
+
+            const authTokenData = await this.generateAccessToken();
+
+            const payload = {
+                saveBeneficiary: true,
+                nameEnquiryReference : sessionId,
+                debitAccountNumber : this.SAVEHAVEN_ACCOUNT_NUMBER,
+                beneficiaryBankCode : beneficiaryBankCode,
+                beneficiaryAccountNumber : beneficiaryAccountNumber,
+                amount : amountToSend,
+                narration : "AZZA",
+                paymentReference : ManualOfframpSettlementService.generateSequenceId(`${sessionId}`)
+            }
+            
+            const response = await axios.post(
+                `${this.SAVEHAVEN_BASE_URL}/transfers`,
+                 payload,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization' :  `Bearer ${authTokenData.access_token}`,
+                        'ClientID' : `${authTokenData.ibs_client_id}`
+                    },
+                }
+            );
+
+            const { data, statusCode, message } = response.data; 
+
+            void logger.info(`Processing manual off-ramp payment of ${amountToSend} NGN to beneficiary account: ${beneficiaryAccountNumber}, Session ID: ${sessionId}`);
+
+            if(statusCode != OK) throw new HttpException(statusCode, `${message}`);
+
+            void logger.info(`Successfully sent ${amountToSend} NGN to beneficiary account: ${beneficiaryAccountNumber}, Session ID: ${sessionId}`);
+
+
+        } catch (error) {
+            await logServiceError(error, 'Error processing Manual Off-Ramp Payment');
+            throw error;
+        }
+    }
+   
 
 }
 
