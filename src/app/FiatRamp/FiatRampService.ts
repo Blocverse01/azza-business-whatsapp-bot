@@ -94,42 +94,7 @@ class FiatRampService {
     }
 
     public static async getSupportedBanks(countryCode: CountryCode, channelId: string) {
-
         return await FiatRampsRpcService.getPaymentNetworks(countryCode, channelId);
-
-        // const mapYellowCardBanks = yellowCardBanks.map((bank) => ({
-        //     channelId: bank.channelId,
-        //     networkId: bank.networkId,
-        //     bankName: bank.name,
-        //     seerbitId: bank.seerbitId,
-        //     slug: slugify(bank.name, { lower: true, replacement: '-' })
-        // }));
-
-        // const saveHavenBanks = await SafeHaveService.getSupportedBanks();
-
-        // const commonBanks = saveHavenBanks.reduce<CommonBank[]>((accumulator, saveHavenBank) => {
-
-        //     const matchingYellowCardBank = mapYellowCardBanks.find((yellowBank) => {
-
-        //         return (
-        //             saveHavenBank.bankCode === yellowBank.seerbitId || yellowBank.slug === saveHavenBank.slug 
-        //         );
-        //     });
-
-        //     if (matchingYellowCardBank) {
-        //         accumulator.push({
-        //             channelId: matchingYellowCardBank.channelId,
-        //             network: matchingYellowCardBank.networkId,
-        //             bankCode: saveHavenBank.bankCode || "",
-        //             bankName: saveHavenBank.name
-        //         });
-        //     }
-        //     return accumulator;
-        // }, []);
-
-        // return commonBanks;
-
-        return
     }
 
     public static async createBeneficiary(

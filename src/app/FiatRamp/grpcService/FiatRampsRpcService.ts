@@ -280,7 +280,7 @@ class FiatRampsRpcService {
 
         const { networks } = response.toObject();
 
-        console.log(networks)
+      
 
         if (request.country_code === 'NG') {
 
@@ -288,15 +288,15 @@ class FiatRampsRpcService {
 
             const yellowCardBanks = z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
 
-            // console.log(networks)
-
+            console.log(yellowCardBanks);
+            
             const saveHavenBanks = await SafeHaveService.getSupportedBanks();
 
             const commonBanks = saveHavenBanks.reduce<supportedPaymentNetworkType[]>((accumulator, saveHavenBank) => {
 
                 const matchingYellowCardBank = yellowCardBanks.find((bank) => {
                     return (
-                        saveHavenBank.bankCode === bank.seerbitId
+                        saveHavenBank.slug === slugify(bank.name, { lower: true, replacement: '-' })
                     );
                 });
 
@@ -304,7 +304,7 @@ class FiatRampsRpcService {
                     accumulator.push({
                         channelId: matchingYellowCardBank.channelId,
                         networkId: matchingYellowCardBank.networkId,
-                        seerbitId: saveHavenBank.bankCode || "",
+                        seerbitId: saveHavenBank.bankCode,
                         name: saveHavenBank.name
                     });
                 }
