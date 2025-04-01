@@ -153,6 +153,7 @@ message ActivePaymentNetwork {
   string name = 1;
   string network_id = 2;
   string channel_id = 3;
+  string seerbit_id = 4;
 }
 message GetPaymentNetworksResponse {
   repeated ActivePaymentNetwork networks = 1;

@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "azza",
-        "Blockradar"
+        "Blockradar",
+        "protoimpl",
+        "protoreflect"
     ]
 }

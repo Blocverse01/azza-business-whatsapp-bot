@@ -2389,6 +2389,7 @@ export namespace fiatramps.v1 {
             name?: string;
             network_id?: string;
             channel_id?: string;
+            seerbit_id?: string;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -2401,6 +2402,9 @@ export namespace fiatramps.v1 {
                 }
                 if ("channel_id" in data && data.channel_id != undefined) {
                     this.channel_id = data.channel_id;
+                }
+                if ("seerbit_id" in data && data.seerbit_id != undefined) {
+                    this.seerbit_id = data.seerbit_id;
                 }
             }
         }
@@ -2422,10 +2426,17 @@ export namespace fiatramps.v1 {
         set channel_id(value: string) {
             pb_1.Message.setField(this, 3, value);
         }
+        get seerbit_id() {
+            return pb_1.Message.getFieldWithDefault(this, 4, "") as string;
+        }
+        set seerbit_id(value: string) {
+            pb_1.Message.setField(this, 4, value);
+        }
         static fromObject(data: {
             name?: string;
             network_id?: string;
             channel_id?: string;
+            seerbit_id?: string;
         }): ActivePaymentNetwork {
             const message = new ActivePaymentNetwork({});
             if (data.name != null) {
@@ -2437,6 +2448,9 @@ export namespace fiatramps.v1 {
             if (data.channel_id != null) {
                 message.channel_id = data.channel_id;
             }
+            if (data.seerbit_id != null) {
+                message.seerbit_id = data.seerbit_id;
+            }
             return message;
         }
         toObject() {
@@ -2444,6 +2458,7 @@ export namespace fiatramps.v1 {
                 name?: string;
                 network_id?: string;
                 channel_id?: string;
+                seerbit_id?: string;
             } = {};
             if (this.name != null) {
                 data.name = this.name;
@@ -2453,6 +2468,9 @@ export namespace fiatramps.v1 {
             }
             if (this.channel_id != null) {
                 data.channel_id = this.channel_id;
+            }
+            if (this.seerbit_id != null) {
+                data.seerbit_id = this.seerbit_id;
             }
             return data;
         }
@@ -2466,6 +2484,8 @@ export namespace fiatramps.v1 {
                 writer.writeString(2, this.network_id);
             if (this.channel_id.length)
                 writer.writeString(3, this.channel_id);
+            if (this.seerbit_id.length)
+                writer.writeString(4, this.seerbit_id);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -2483,6 +2503,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 3:
                         message.channel_id = reader.readString();
+                        break;
+                    case 4:
+                        message.seerbit_id = reader.readString();
                         break;
                     default: reader.skipField();
                 }

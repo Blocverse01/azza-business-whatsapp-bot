@@ -280,9 +280,15 @@ class FiatRampsRpcService {
 
         const { networks } = response.toObject();
 
+        console.log(networks)
+
         if (request.country_code === 'NG') {
 
+            console.log('NG')
+
             const yellowCardBanks = z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
+
+            // console.log(networks)
 
             const saveHavenBanks = await SafeHaveService.getSupportedBanks();
 
