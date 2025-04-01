@@ -92,7 +92,10 @@ export const supportedPaymentNetworkSchema = z.object({
     networkId: z.string().min(3),
     channelId: z.string().min(3),
     name: z.string().min(3),
+    seerbitId : z.string().min(3).optional()
 });
+
+export type supportedPaymentNetworkType = z.infer<typeof supportedPaymentNetworkSchema>
 
 const beneficiaryCountrySchema = z.object({
     country: z.string(),

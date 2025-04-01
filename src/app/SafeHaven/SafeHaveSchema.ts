@@ -12,12 +12,7 @@ export interface AuthTokenResponse {
 
 interface Bank {
     name: string;
-    alias: string[];
-    routingKey: string;
-    logoImage: string | null;
     bankCode: string;
-    categoryId: string;
-    nubanCode: string | null;
 }
 
 export interface SupportedBankResponse {
@@ -35,7 +30,8 @@ export interface AccessTokenResult {
 export interface SupportedBankResult {
     name : string,
     slug : string
-    bankCode : string,
+    bankCode: string,
+    routingKey : string
 }
 
 interface BankAccountData {

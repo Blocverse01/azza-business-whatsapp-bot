@@ -13,6 +13,7 @@ import {
     sendOnrampTransactionResponseSchema,
     supportedCountry,
     supportedPaymentNetworkSchema,
+    supportedPaymentNetworkType,
 } from '@/app/FiatRamp/fiatRampSchema';
 import redis from '@/cache/redis';
 import { HUNDRED } from '@/constants/numbers';
@@ -63,6 +64,8 @@ import ResolveBankAccountRequest = fiatramps.v1.ResolveBankAccountRequest;
 import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
 import UpdatePaymentTransactionStatusRequest = fiatramps.v1.UpdatePaymentTransactionStatusRequest;
 import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
+import SafeHaveService from '@/app/SafeHaven/SafeHavenService';
+import slugify from 'slugify';
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -267,6 +270,7 @@ class FiatRampsRpcService {
     }
 
     public static async getPaymentNetworks(countryCode: CountryCode, channelId: string) {
+
         const request = new GetPaymentNetworksRequest({
             country_code: countryCode,
             channel_id: channelId,
@@ -275,6 +279,35 @@ class FiatRampsRpcService {
         const response = await getPaymentNetworks(request);
 
         const { networks } = response.toObject();
+
+        if (request.country_code === 'NG') {
+
+            const yellowCardBanks = z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
+
+            const saveHavenBanks = await SafeHaveService.getSupportedBanks();
+
+            const commonBanks = saveHavenBanks.reduce<supportedPaymentNetworkType[]>((accumulator, saveHavenBank) => {
+
+                const matchingYellowCardBank = yellowCardBanks.find((bank) => {
+                    return (
+                        saveHavenBank.bankCode === bank.seerbitId
+                    );
+                });
+
+                if (matchingYellowCardBank) {
+                    accumulator.push({
+                        channelId: matchingYellowCardBank.channelId,
+                        networkId: matchingYellowCardBank.networkId,
+                        seerbitId: saveHavenBank.bankCode || "",
+                        name: saveHavenBank.name
+                    });
+                }
+                return accumulator;
+            }, []);
+
+            return commonBanks;
+
+        }
 
         return z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
     }
@@ -288,17 +321,17 @@ class FiatRampsRpcService {
         const beneficiaryDetails =
             'firstName' in params.beneficiary
                 ? (() => ({
-                      accountName: `${params.beneficiary.firstName.trim()} ${params.beneficiary.lastName.trim()}`,
-                      accountType: accountType,
-                      accountNumber: params.beneficiary.mobileNumber,
-                      networkName: params.beneficiary.mobileProvider,
-                  }))()
+                    accountName: `${params.beneficiary.firstName.trim()} ${params.beneficiary.lastName.trim()}`,
+                    accountType: accountType,
+                    accountNumber: params.beneficiary.mobileNumber,
+                    networkName: params.beneficiary.mobileProvider,
+                }))()
                 : (() => ({
-                      accountName: params.beneficiary.accountName,
-                      accountType: accountType,
-                      accountNumber: params.beneficiary.accountNumber,
-                      networkName: params.beneficiary.bankName,
-                  }))();
+                    accountName: params.beneficiary.accountName,
+                    accountType: accountType,
+                    accountNumber: params.beneficiary.accountNumber,
+                    networkName: params.beneficiary.bankName,
+                }))();
 
         const request = new AddBeneficiaryRequest({
             account_name: beneficiaryDetails.accountName
