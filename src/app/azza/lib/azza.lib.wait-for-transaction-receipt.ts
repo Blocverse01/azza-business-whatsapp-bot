@@ -15,7 +15,7 @@ export const waitForTransactionReceipt = async function waitForTransactionReceip
 
 export async function waitForTransactionReceiptV2(
     transaction: Pick<SendTransferTransactionResponse, 'transactionId' | 'asset' | 'walletManager'>,
-    maxRetries = 5,
+    maxRetries = 10,
     delayBetweenRetries = 5000,
     retries = 0
 ) {
@@ -35,7 +35,7 @@ export async function waitForTransactionReceiptV2(
         return waitForTransactionReceiptV2(
             transaction,
             maxRetries,
-            delayBetweenRetries,
+            delayBetweenRetries * 2,
             retries + 1
         );
     }
@@ -46,7 +46,7 @@ export async function waitForTransactionReceiptV2(
         transactionHash,
         status: assetTransaction.status.toLowerCase() as FinalStateStatus,
         explorerUrl: transactionHash
-            ? getTransactionExplorerUrl(transactionHash as string, asset.network)
+            ? getTransactionExplorerUrl(transactionHash, asset.network)
             : null,
     };
 }
