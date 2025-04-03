@@ -14,7 +14,10 @@ export const waitForTransactionReceipt = async function waitForTransactionReceip
 };
 
 export async function waitForTransactionReceiptV2(
-    transaction: Pick<SendTransferTransactionResponse, 'transactionId' | 'asset' | 'walletManager'>
+    transaction: Pick<SendTransferTransactionResponse, 'transactionId' | 'asset' | 'walletManager'>,
+    maxRetries = 5,
+    delayBetweenRetries = 5000,
+    retries = 0
 ) {
     const { transactionId, asset, walletManager } = transaction;
 
@@ -25,8 +28,16 @@ export async function waitForTransactionReceiptV2(
     const assetTransaction = await azzaWalletManager.getTransaction(transactionId, asset.network);
 
     if (assetTransaction.status === 'PENDING') {
-        await delay(5000);
-        return waitForTransactionReceiptV2(transaction);
+        await delay(delayBetweenRetries);
+        if (retries >= maxRetries) {
+            throw new Error('Transaction not confirmed');
+        }
+        return waitForTransactionReceiptV2(
+            transaction,
+            maxRetries,
+            delayBetweenRetries,
+            retries + 1
+        );
     }
 
     const transactionHash = assetTransaction.hash;
