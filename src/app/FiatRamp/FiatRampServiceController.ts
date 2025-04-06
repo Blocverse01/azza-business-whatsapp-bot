@@ -17,6 +17,7 @@ import { Request, Response } from 'express';
 import { Buffer } from 'node:buffer';
 import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
 import { addCryptoPayoutJobToQueue } from '../crypto-payouts-v2/utils';
+import ManualOfframpSettlementService from './alternatives/ManualOfframpSettlementService';
 
 class FiatRampServiceController {
     public static receiveWebHookData(req: Request) {
@@ -128,6 +129,23 @@ class FiatRampServiceController {
             }
 
             if (supportedChain && newTransactionStatus === 'failed') {
+                const correspondingManualPaymentSequenceId = sequenceId.replace(
+                    'azza-p',
+                    'azza-mp'
+                );
+                const matchingManualPayment =
+                    await ManualOfframpSettlementService.getManualOfframpSettlementBySequenceId(
+                        correspondingManualPaymentSequenceId
+                    );
+
+                if (matchingManualPayment) {
+                    // Already settled manually
+                    await logger.info(
+                        `Offramp transaction ${sequenceId} has already been settled manually with sequenceId ${correspondingManualPaymentSequenceId}`
+                    );
+                    return;
+                }
+
                 await addCryptoPayoutJobToQueue({
                     transactionId: sequenceId,
                     transactionType: 'offramp-refund',
