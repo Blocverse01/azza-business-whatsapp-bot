@@ -10,9 +10,13 @@ import {
     AccessTokenResult,
     SupportedBankResponse,
     BankAccountVerificationResponse,
-    accountNameEnquirySchema
+    accountNameEnquirySchema,
+    SaveHavenOfframpSettlement,
+    BankAccountBalance
 } from './SafeHaveSchema'
 import { BAD_REQUEST, OK } from "@/constants/status-codes";
+import { dbClient } from "@/db/dbClient";
+
 
 class SafeHaveService {
 
@@ -22,7 +26,8 @@ class SafeHaveService {
     private static readonly SAVEHAVEN_CLIENT_ID = env.SAVEHAVEN_CLIENT_ID;
     private static readonly SAVEHAVEN_CLIENT_ASSERTION = env.SAVEHAVEN_CLIENT_ASSERTION;
     private static readonly SAVEHAVEN_ACCOUNT_NUMBER = '0117226117';
-
+    private static readonly SAVEHEVEN_ACCOUNT_ID = '67c8b8242a82110024bcaf97'
+    private static readonly SAVEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY = dbClient.safehaven_offramp_settlement_transaction
     private static accessToken: string | null = null;
     private static tokenExpiry: number | null = null;
     private static ibsClientId: string | null = null;
@@ -75,6 +80,34 @@ class SafeHaveService {
     }
 
 
+    public static async createSaveHavenOfframpSettlement(offrampTransaction: SaveHavenOfframpSettlement) {
+
+        return await this.SAVEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY.create({
+            localAmount: offrampTransaction.localAmount,
+            usdAmount: offrampTransaction.usdAmount,
+            transactionFeeUsd: offrampTransaction.transactionFeeUsd,
+            conversionRate: offrampTransaction.rate,
+            paymentCurrency: offrampTransaction.localCurrencySymbol,
+            transactionHash: offrampTransaction.transactionHash,
+            processingStatus: 'pending',
+            ownerId: offrampTransaction.ownerId,
+            sequenceId: offrampTransaction.sequenceId,
+            blockchainNetwork: offrampTransaction.blockchainNetwork,
+            fromWalletAddress: offrampTransaction.fromWalletAddress,
+            platformFeePercentage: offrampTransaction.platformFeePercentage,
+            hotWalletAddress: offrampTransaction.hotWalletAddress,
+            destinationAccountName: offrampTransaction.destination.accountName,
+            destinationAccountNumber: offrampTransaction.destination.accountNumber,
+            destinationNetworkName: offrampTransaction.destination.networkName,
+            tokenAddress: offrampTransaction.tokenAddress,
+            tokenSymbol: offrampTransaction.tokenSymbol,
+            localCurrencySymbol: offrampTransaction.localCurrencySymbol,
+            country: offrampTransaction.destination.country,
+        });
+
+    }
+
+
     public static async getSupportedBanks(): Promise<{ name: string; slug: string; bankCode: string }[]> {
         try {
 
@@ -91,7 +124,9 @@ class SafeHaveService {
                 }
             );
 
-            const { data: banks } = response.data;
+            const { data: banks, statusCode, message } = response.data;
+
+            if (statusCode != OK) throw new HttpException(statusCode, `${message}`);
 
             const supportedBanks = banks.map(bank => ({
                 name: bank.name,
@@ -154,7 +189,37 @@ class SafeHaveService {
         }
     }
 
-    public static async processManualOffRampPayment(params: {
+    public static async getSafeHavenAccountBalance() {
+
+        try {
+
+            const authTokenData = await this.generateAccessToken();
+
+            const response = await axios.get<BankAccountBalance>(
+                `${this.SAVEHAVEN_BASE_URL}/accounts/${this.SAVEHEVEN_ACCOUNT_ID}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authTokenData.access_token}`,
+                        'ClientID': `${authTokenData.ibs_client_id}`
+                    },
+                }
+            );
+
+            const { statusCode, message, data: account } = response.data;
+
+            if (statusCode != OK) throw new HttpException(statusCode, `${message}`);
+
+            return account.accountBalance;
+
+        } catch (error) {
+            await logServiceError(error, 'Error fetching blocverse account balance from SavaHaven');
+            throw error;
+        }
+
+    }
+
+    public static async processOffRampPaymentWithSaveHaven(params: {
         sessionId: string,
         beneficiaryBankCode: string,
         amountToSend: number,
@@ -174,7 +239,7 @@ class SafeHaveService {
                 beneficiaryAccountNumber: beneficiaryAccountNumber,
                 amount: amountToSend,
                 narration: "AZZA",
-                paymentReference: ManualOfframpSettlementService.generateSequenceId(`${sessionId}`)
+                paymentReference: ManualOfframpSettlementService.generateSequenceId(`${sessionId}`, 'safehaven')
             }
 
             const response = await axios.post(
@@ -191,7 +256,7 @@ class SafeHaveService {
 
             const { data, statusCode, message } = response.data;
 
-            void logger.info(`Processing manual off-ramp payment of ${amountToSend} NGN to beneficiary account: ${beneficiaryAccountNumber}, Session ID: ${sessionId}`);
+            void logger.info(`Processing safehaven off-ramp transaction of ${amountToSend} NGN to beneficiary account: ${beneficiaryAccountNumber}, Session ID: ${sessionId}`);
 
             if (statusCode != OK) throw new HttpException(statusCode, `${message}`);
 
@@ -199,7 +264,7 @@ class SafeHaveService {
 
 
         } catch (error) {
-            await logServiceError(error, 'Error processing Manual Off-Ramp Payment');
+            await logServiceError(error, 'Error processing safehaven Off-Ramp Transaction');
             throw error;
         }
     }

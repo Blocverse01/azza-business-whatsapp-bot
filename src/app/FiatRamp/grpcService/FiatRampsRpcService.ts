@@ -8,6 +8,7 @@ import {
     paymentMethodsResponseDataSchema,
     quoteSchema,
     ratesSchema,
+    resolveBankAccountSchema,
     SendOfframpRequestPayload,
     sendOfframpRequestPayloadSchema,
     sendOnrampTransactionResponseSchema,
@@ -71,7 +72,8 @@ class FiatRampsRpcService {
     public static async getSupportedCountries() {
         const cacheKey = 'supported_countries';
         const cachedCountries = await redis.get(cacheKey);
-        if (cachedCountries) {
+
+        if (cachedCountries && JSON.parse(cachedCountries).length !== 0) {
             return z.array(supportedCountry).parse(JSON.parse(cachedCountries));
         }
 
@@ -189,6 +191,8 @@ class FiatRampsRpcService {
                 channelId: deserializedBeneficiary.channel_id!,
                 networkId: deserializedBeneficiary.network_id!,
                 id: deserializedBeneficiary.id!,
+                nameEnquiryReference: deserializedBeneficiary.name_enquiry_reference!,
+                seerbitId: deserializedBeneficiary.seerbit_id!
             } satisfies BankBeneficiary;
         }
 
@@ -222,6 +226,7 @@ class FiatRampsRpcService {
         });
 
         const response = await getBeneficiary(request);
+
         const parsedBeneficiary = this.parseBeneficiary(response);
 
         await redis.set(cacheKey, JSON.stringify(parsedBeneficiary));
@@ -269,6 +274,19 @@ class FiatRampsRpcService {
             : defaultAmountFixer(offramp_fee_percentage / HUNDRED);
     }
 
+    public static async getNetwork(data: { networkId: string, countryCode: CountryCode, channelId: string }) {
+
+        const { networkId, countryCode, channelId } = data;
+
+        const networks = await this.getPaymentNetworks(countryCode, channelId);
+
+        const network = networks.find(bank => bank.networkId === networkId);
+
+        if (!network) throw new Error(`Network not found`);
+
+        return network;
+    }
+
     public static async getPaymentNetworks(countryCode: CountryCode, channelId: string) {
 
         const request = new GetPaymentNetworksRequest({
@@ -280,16 +298,10 @@ class FiatRampsRpcService {
 
         const { networks } = response.toObject();
 
-      
-
         if (request.country_code === 'NG') {
-
-            console.log('NG')
 
             const yellowCardBanks = z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
 
-            console.log(yellowCardBanks);
-            
             const saveHavenBanks = await SafeHaveService.getSupportedBanks();
 
             const commonBanks = saveHavenBanks.reduce<supportedPaymentNetworkType[]>((accumulator, saveHavenBank) => {
@@ -297,6 +309,7 @@ class FiatRampsRpcService {
                 const matchingYellowCardBank = yellowCardBanks.find((bank) => {
                     return (
                         saveHavenBank.slug === slugify(bank.name, { lower: true, replacement: '-' })
+                        || saveHavenBank.bankCode === bank.seerbitId
                     );
                 });
 
@@ -324,6 +337,7 @@ class FiatRampsRpcService {
         accountType: 'bank' | 'phone',
         params: CreateBeneficiaryParams
     ) {
+
         const beneficiaryDetails =
             'firstName' in params.beneficiary
                 ? (() => ({
@@ -331,13 +345,19 @@ class FiatRampsRpcService {
                     accountType: accountType,
                     accountNumber: params.beneficiary.mobileNumber,
                     networkName: params.beneficiary.mobileProvider,
+                    nameEnquiryReference: '',
+                    seerbitId: ''
                 }))()
                 : (() => ({
                     accountName: params.beneficiary.accountName,
                     accountType: accountType,
                     accountNumber: params.beneficiary.accountNumber,
                     networkName: params.beneficiary.bankName,
+                    nameEnquiryReference: params.beneficiary.nameEnquiryReference,
+                    seerbitId: params.beneficiary.seerbitId
                 }))();
+
+        console.log('received', beneficiaryDetails.seerbitId);
 
         const request = new AddBeneficiaryRequest({
             account_name: beneficiaryDetails.accountName
@@ -350,7 +370,10 @@ class FiatRampsRpcService {
             channel_id: params.beneficiary.channelId,
             country: countryCode,
             network_name: beneficiaryDetails.networkName.trim(),
+            name_enquiry_reference: beneficiaryDetails.nameEnquiryReference,
+            seerbit_id: beneficiaryDetails.seerbitId,
             owner_id: ownerId,
+
         });
 
         const response = await addBeneficiary(request);
@@ -522,22 +545,33 @@ class FiatRampsRpcService {
         return address;
     }
 
-    public static async resolveBankAccount(params: { networkId: string; accountNumber: string }) {
+    public static async resolveBankAccount(params:
+        {
+            networkId: string;
+            accountNumber: string,
+            countryCode: string,
+            seerbitId: string
+        }) {
         try {
+
+            if (params.countryCode === 'NG') {
+                const response = await SafeHaveService.accountNameEnquiry({
+                    bankCode: params.seerbitId,
+                    accountNumber: params.accountNumber
+                })
+
+                return resolveBankAccountSchema.parse(response);
+            }
+
             const request = new ResolveBankAccountRequest({
                 network_id: params.networkId,
-                account_number: params.accountNumber,
+                account_number: params.accountNumber
             });
 
             const response = await resolveBankAccount(request);
 
-            return z
-                .object({
-                    accountName: z.string(),
-                    accountBank: z.string(),
-                    accountNumber: z.string(),
-                })
-                .parse(transformKeysToCamelCase(response.toObject()));
+            return resolveBankAccountSchema.parse(transformKeysToCamelCase(response.toObject()));
+
         } catch (error) {
             void logger.error('Error resolving bank account', { error });
             return null;

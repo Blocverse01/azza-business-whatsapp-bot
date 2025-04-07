@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { OfframpTransactionRecord } from '../FiatRamp/fiatRampSchema';
 
 export interface AuthTokenResponse {
     access_token: string;
@@ -21,17 +22,17 @@ export interface SupportedBankResponse {
     message: string;
     data: Bank[];
 }
-  
+
 export interface AccessTokenResult {
     access_token: string;
     ibs_client_id: string;
 }
 
 export interface SupportedBankResult {
-    name : string,
-    slug : string
+    name: string,
+    slug: string
     bankCode: string,
-    routingKey : string
+    routingKey: string
 }
 
 interface BankAccountData {
@@ -40,16 +41,28 @@ interface BankAccountData {
     sessionId: string;
     bankCode: string;
     accountNumber: string;
+    accountBank?: string;
     accountName: string;
     kycLevel: string;
     bvn: string;
 }
+
+export type SaveHavenOfframpSettlement = Omit<OfframpTransactionRecord, 'createdAt' | 'status'>;
 
 export interface BankAccountVerificationResponse {
     statusCode: number;
     responseCode: string;
     message: string;
     data: BankAccountData;
+}
+
+export interface BankAccountBalance {
+    statusCode: number;
+    responseCode: string;
+    message: string;
+    data: {
+        accountBalance: number,
+    }
 }
 
 export const accountNameEnquirySchema = z.object({

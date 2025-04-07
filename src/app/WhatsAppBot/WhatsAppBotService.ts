@@ -347,9 +347,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                      title: 'More',
-                  } as const)
+                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                    title: 'More',
+                } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -532,6 +532,17 @@ class WhatsAppBotService {
             FiatRampService.getBeneficiary(beneficiaryId),
         ]);
 
+        if ('accountNumber' in beneficiary) {
+            if (beneficiary.country.code === 'NG' && !beneficiary.nameEnquiryReference) {
+                await FiatRampService.getAccountNameEntryId({
+                    networkId: beneficiary.networkId,
+                    countryCode: beneficiary.country.code,
+                    channelId: beneficiary.channelId,
+                    accountNumber: beneficiary.accountNumber ?? ''
+                })
+            }
+        }
+
         const { rate, fee } = await FiatRampService.getQuotes(
             beneficiary.country.currencySymbol,
             beneficiary.country.code as CountryCode,
@@ -593,7 +604,7 @@ class WhatsAppBotService {
                     type: 'image',
                 }
             );
-        } catch (error) {}
+        } catch (error) { }
     }
 
     public static async depositAssetCommandHandler(
@@ -781,6 +792,8 @@ class WhatsAppBotService {
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
         const supportedCurrencies = await FiatRampService.getSupportedCurrencies();
 
+        console.log({ supportedCurrencies })
+
         const userCountry = supportedCurrencies.find(
             (country) => country.code.toLowerCase() === userCountryCode.toLowerCase()
         );
@@ -807,12 +820,14 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                      id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
-                      title: 'More',
-                  }
+                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                    title: 'More',
+                }
                 : null;
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);
+
+        console.log({ countriesToDisplay })
 
         const page = Math.floor(sliceFrom / 9) + 1;
 
@@ -954,6 +969,8 @@ class WhatsAppBotService {
                 return;
             }
         }
+
+        console.log('Got here')
 
         await this.sendSelectSupportedCurrenciesMessage(
             phoneParams,

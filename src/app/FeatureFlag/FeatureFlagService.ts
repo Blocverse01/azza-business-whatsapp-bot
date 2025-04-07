@@ -9,7 +9,7 @@ class FeatureFlagService {
             })
             .getFirst();
 
-        return featureFlag?.isEnabled ?? false;
+        return featureFlag.isEnabled;
     }
 }
 

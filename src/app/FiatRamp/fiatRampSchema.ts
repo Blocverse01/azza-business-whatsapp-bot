@@ -88,6 +88,14 @@ export const sendOnrampTransactionResponseSchema = z.object({
 
 export type SendOnrampTransactionResponse = z.infer<typeof sendOnrampTransactionResponseSchema>;
 
+export const resolveBankAccountSchema = z
+    .object({
+        accountName: z.string(),
+        accountBank: z.string().optional(),
+        accountNumber: z.string(),
+        sessionId: z.string()
+    });
+
 export const supportedPaymentNetworkSchema = z.object({
     networkId: z.string().min(3),
     channelId: z.string().min(3),
@@ -113,6 +121,8 @@ export const bankBeneficiarySchema = z.object({
     id: z.string(),
     countryId: z.string(),
     country: beneficiaryCountrySchema,
+    seerbitId: z.string().optional(),
+    nameEnquiryReference: z.string().optional()
 });
 
 export const mobileMoneyBeneficiarySchema = (countryCode: CountryCode) =>
@@ -127,7 +137,7 @@ export const mobileMoneyBeneficiarySchema = (countryCode: CountryCode) =>
             .string()
             .refine((data) => isValidPhoneNumber(data, countryCode), 'Invalid Mobile Number'),
         countryId: z.string(),
-        country: beneficiaryCountrySchema,
+        country: beneficiaryCountrySchema
     });
 
 export type BankBeneficiary = z.infer<typeof bankBeneficiarySchema>;
@@ -138,7 +148,7 @@ export type UsersBeneficiaries = Beneficiary[];
 
 export const createBeneficiaryParams = (
     beneficiaryType: 'phone' | 'bank',
-    countryCode: CountryCode
+    countryCode: CountryCode,
 ) =>
     z.object({
         beneficiary:
@@ -201,7 +211,30 @@ export const OfframpTransactionRecordSchema = z.object({
         networkId: z.string(),
         country: z.string(),
         accountType: z.enum(['bank', 'phone']),
-    }),
+        seerbitId: z.string().optional(),
+        nameEnquiryReference: z.string().optional()
+    }).refine(
+        (data) => {
+            if (data.country === 'NG') {
+                return data.seerbitId !== undefined;
+            }
+            return true;
+        },
+        {
+            message: 'seerbitId is required when country is Nigeria (NG).',
+            path: ['destination', 'seerbitId'],
+        }).refine(
+            (data) => {
+                if (data.country === 'NG') {
+                    return data.nameEnquiryReference !== undefined;
+                }
+                return true;
+            },
+            {
+                message: 'nameEnquiryReference is required when country is Nigeria (NG).',
+                path: ['destination', 'nameEnquiryReference'],
+            }
+        ),
     createdAt: z.string().datetime(),
     rate: z.number(),
     sequenceId: z.string(),

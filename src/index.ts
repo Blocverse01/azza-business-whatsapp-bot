@@ -15,7 +15,6 @@ import apiRoutes from './routes';
 import './background-processing/workers';
 import './app/globalErrorHandler';
 import './background-processing/single-instance-workers';
-import FiatRampService from './app/FiatRamp/FiatRampService';
 import SafeHaveService from './app/SafeHaven/SafeHavenService';
 
 const app = express();
@@ -35,10 +34,6 @@ app.use(
 app.use(CookieParser());
 
 app.get('/', async (_, res) => {
-    return res.status(OK).json({
-        message: 'success',
-        data: await FiatRampService.getSupportedBanks('NG', 'fe8f4989-3bf6-41ca-9621-ffe2bc127569'),
-    });
     res.status(OK).send('API welcomes you :)');
 });
 
@@ -76,7 +71,7 @@ app.use('/api', apiRoutes, async () => {
 app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found' }));
 
 app.listen(env.PORT, async () => {
-    console.log('New array',await FiatRampService.getSupportedBanks('NG', 'fe8f4989-3bf6-41ca-9621-ffe2bc127569'));
+    console.log(await SafeHaveService.getSafeHavenAccountBalance())
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 

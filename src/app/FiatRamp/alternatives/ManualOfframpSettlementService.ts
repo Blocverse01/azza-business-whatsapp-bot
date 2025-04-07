@@ -53,10 +53,10 @@ class ManualOfframpSettlementService {
             .getFirst();
     }
 
-    public static generateSequenceId(txHash: string) {
+    public static generateSequenceId(txHash: string, txHashType?: string) {
         const txHashSha256 = crypto.createHash('sha256').update(txHash).digest('hex');
         const relevantParts = txHashSha256.slice(0, 16) + txHashSha256.slice(-8);
-        return `azza-mp-${relevantParts}`;
+        return txHashType ? `azza-${txHashType}-${relevantParts}` : `azza-mp-${relevantParts}`;
     }
 
     public static async sendManualSettleMessages(
