@@ -1,7 +1,6 @@
 import { OfframpTransactionRecord, OnrampTransactionRecord } from '@/app/FiatRamp/fiatRampSchema';
 import { prettifyNumber } from '@/resources/utils/currency';
 import { truncate } from '@/resources/utils/transformers';
-import { TokenIconURIs } from '@/resources/web3/core/tokens';
 import { formatDate } from 'date-fns';
 import fs from 'fs';
 import path from 'path';
@@ -33,11 +32,21 @@ export const generateOfframpToBankRecipientReceipt = async (
 
     const transactionDate = formatDate(offrampTransaction.createdAt, 'dd/MM/yyyy');
     const transactionTime = formatDate(offrampTransaction.createdAt, 'HH:mm a');
-    const tokenIconUrl = TokenIconURIs[offrampTransaction.tokenSymbol.toUpperCase()];
-    const fontBase64 = encodeFontToBase64(
-        path.join(__dirname, 'templates/fonts/Subjectivity.Extrabold.woff2')
+    const tokenIconBase64 = encodeToBase64(
+        path.join(
+            __dirname,
+            `templates/images/crypto-logos/${offrampTransaction.tokenSymbol.toLowerCase()}.svg`
+        ),
+        'image/svg+xml'
     );
-    const patternBgBase64 = encodeToBase64(path.join(__dirname, 'templates/images/pattern-bg.png'));
+    const fontBase64 = encodeToBase64(
+        path.join(__dirname, 'templates/fonts/Subjectivity.Extrabold.woff2'),
+        'font/woff2'
+    );
+    const patternBgBase64 = encodeToBase64(
+        path.join(__dirname, 'templates/images/pattern-bg.png'),
+        'image/png'
+    );
 
     template = template
         .replace('url(./fonts/Subjectivity.Extrabold.woff2)', `url(${fontBase64})`)
@@ -53,7 +62,7 @@ export const generateOfframpToBankRecipientReceipt = async (
         .replaceAll('{{transactionFee}}', offrampTransaction.transactionFeeUsd.toString())
         .replaceAll('{{transactionDate}}', transactionDate)
         .replaceAll('{{transactionTime}}', transactionTime)
-        .replaceAll('{{tokenIcon}}', tokenIconUrl);
+        .replaceAll('{{tokenIcon}}', tokenIconBase64);
 
     await page.setContent(template, { waitUntil: 'networkidle0' });
 
@@ -92,11 +101,21 @@ export const generateOnrampReceipt = async (onrampTransaction: OnrampTransaction
 
     const transactionDate = formatDate(onrampTransaction.createdAt, 'dd/MM/yyyy');
     const transactionTime = formatDate(onrampTransaction.createdAt, 'HH:mm a');
-    const tokenIconUrl = TokenIconURIs[onrampTransaction.tokenSymbol.toUpperCase()];
-    const fontBase64 = encodeFontToBase64(
-        path.join(__dirname, 'templates/fonts/Subjectivity.Extrabold.woff2')
+    const tokenIconBase64 = encodeToBase64(
+        path.join(
+            __dirname,
+            `templates/images/crypto-logos/${onrampTransaction.tokenSymbol.toLowerCase()}.svg`
+        ),
+        'image/svg+xml'
     );
-    const patternBgBase64 = encodeToBase64(path.join(__dirname, 'templates/images/pattern-bg.png'));
+    const fontBase64 = encodeToBase64(
+        path.join(__dirname, 'templates/fonts/Subjectivity.Extrabold.woff2'),
+        'font/woff2'
+    );
+    const patternBgBase64 = encodeToBase64(
+        path.join(__dirname, 'templates/images/pattern-bg.png'),
+        'image/png'
+    );
 
     template = template
         .replace('url(./fonts/Subjectivity.Extrabold.woff2)', `url(${fontBase64})`)
@@ -111,7 +130,7 @@ export const generateOnrampReceipt = async (onrampTransaction: OnrampTransaction
         .replaceAll('{{transactionFee}}', onrampTransaction.transactionFeeUsd.toString())
         .replaceAll('{{transactionDate}}', transactionDate)
         .replaceAll('{{transactionTime}}', transactionTime)
-        .replaceAll('{{tokenIcon}}', tokenIconUrl);
+        .replaceAll('{{tokenIcon}}', tokenIconBase64);
 
     await page.setContent(template, { waitUntil: 'networkidle0' });
 
@@ -127,10 +146,6 @@ export const generateOnrampReceipt = async (onrampTransaction: OnrampTransaction
     return imageBinary;
 };
 
-function encodeFontToBase64(filePath: string) {
-    return `data:font/woff2;base64,${fs.readFileSync(filePath).toString('base64')}`;
-}
-
-function encodeToBase64(filePath: string) {
-    return `data:image/png;base64,${fs.readFileSync(filePath).toString('base64')}`;
+function encodeToBase64(filePath: string, fileType: string) {
+    return `data:${fileType};base64,${fs.readFileSync(filePath).toString('base64')}`;
 }
