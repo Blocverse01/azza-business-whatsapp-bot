@@ -438,6 +438,7 @@ export const handleBalanceQueryPrompt = async (
                     resetSession: false,
                 };
             }
+
             await WhatsAppBotService.sendWhatsappMessage(
                 botParams.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(

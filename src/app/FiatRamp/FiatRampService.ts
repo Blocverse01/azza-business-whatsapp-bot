@@ -1,4 +1,4 @@
-import { FeatureFlagKey, SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE } from '@/app/FeatureFlag/feature-flag-schema';
+import { FeatureFlagKey, SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE, SAFEHAVEN_WITHDRAWAL_LIMIT } from '@/app/FeatureFlag/feature-flag-schema';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import ManualOfframpSettlementService, {
     ManualOfframpSettlement,
@@ -158,6 +158,12 @@ class FiatRampService {
                 const balance = await SafeHavenService.getSafeHavenAccountBalance();
 
                 if ((balance + SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE) < params.localAmount) {
+                    return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
+                }
+
+                if ((balance + SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE) > params.localAmount
+                    && params.localAmount > SAFEHAVEN_WITHDRAWAL_LIMIT
+                ) {
                     return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
                 }
 

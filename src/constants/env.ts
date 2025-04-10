@@ -117,7 +117,7 @@ const envSchema = z.object({
     EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE: z
         .enum(['true', 'false'])
         .default('false')
-        .transform((data) => data === 'true'),
+        .transform((data) => data === 'true')
 
 });
 
