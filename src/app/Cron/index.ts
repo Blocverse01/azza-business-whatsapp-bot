@@ -2,8 +2,9 @@ import CryptoPayoutCronJobService from '@/app/CryptoPayout/CryptoPayoutCronJobSe
 import logger from '@/resources/logger';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import cron, { ScheduledTask } from 'node-cron';
+import SafeHavenJobService from '../SafeHaven/SafeHavenJobService';
 
-type JobKeys = 'crypto-payout';
+type JobKeys = 'crypto-payout' | 'safehaven-transaction-update';
 
 class CronHandler {
     private static jobs: Map<JobKeys, ScheduledTask> = new Map<JobKeys, ScheduledTask>();
@@ -52,6 +53,33 @@ class CronHandler {
 
                 try {
                     await CryptoPayoutCronJobService.execute();
+                } catch (error) {
+                    const parsedError = parseUnknownError(error);
+
+                    void logger.error('Error processing crypto payouts', {
+                        error: parsedError,
+                    });
+                } finally {
+                    this.resumeCronTask(key);
+                }
+            },
+            cronExpression
+        );
+
+        job.start();
+    }
+
+    public static scheduleSafeHavenTransactionUpdate(cronExpression: string) {
+
+        const key: JobKeys = 'safehaven-transaction-update';
+
+        const job = this.scheduleFunctionWithCron(
+            key,
+            async () => {
+                this.pauseCronTask(key);
+
+                try {
+                    await SafeHavenJobService.execute();
                 } catch (error) {
                     const parsedError = parseUnknownError(error);
 

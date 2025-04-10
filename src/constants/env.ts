@@ -107,13 +107,17 @@ const envSchema = z.object({
 
 
     ///////////////////////
-    /// SaveHave
+    /// SafeHaven
     ///////////////////////
-    SAVEHAVEN_CLIENT_ID : notEmptyStringSchema('SAVEHAVEN_CLIENT_ID'),
-    SAVEHAVEN_CLIENT_ASSERTION : notEmptyStringSchema('SAVEHAVEN_CLIENT_ASSERTION'),
-    SAVEHAVEN_BASE_URL : notEmptyStringSchema('SAVEHAVE_BASE_URL').and(
+    SAFEHAVEN_CLIENT_ID: notEmptyStringSchema('SAFEHAVEN_CLIENT_ID'),
+    SAFEHAVEN_CLIENT_ASSERTION: notEmptyStringSchema('SAFEHAVEN_CLIENT_ASSERTION'),
+    SAFEHAVEN_BASE_URL: notEmptyStringSchema('SAFEHAVEN_BASE_URL').and(
         z.string().url()
-    )
+    ),
+    EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE: z
+        .enum(['true', 'false'])
+        .default('false')
+        .transform((data) => data === 'true'),
 
 });
 

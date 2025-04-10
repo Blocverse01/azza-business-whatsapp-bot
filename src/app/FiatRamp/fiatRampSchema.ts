@@ -212,29 +212,9 @@ export const OfframpTransactionRecordSchema = z.object({
         country: z.string(),
         accountType: z.enum(['bank', 'phone']),
         seerbitId: z.string().optional(),
-        nameEnquiryReference: z.string().optional()
-    }).refine(
-        (data) => {
-            if (data.country === 'NG') {
-                return data.seerbitId !== undefined;
-            }
-            return true;
-        },
-        {
-            message: 'seerbitId is required when country is Nigeria (NG).',
-            path: ['destination', 'seerbitId'],
-        }).refine(
-            (data) => {
-                if (data.country === 'NG') {
-                    return data.nameEnquiryReference !== undefined;
-                }
-                return true;
-            },
-            {
-                message: 'nameEnquiryReference is required when country is Nigeria (NG).',
-                path: ['destination', 'nameEnquiryReference'],
-            }
-        ),
+        nameEnquiryReference: z.string().optional(),
+        channelId: z.string().optional()
+    }),
     createdAt: z.string().datetime(),
     rate: z.number(),
     sequenceId: z.string(),

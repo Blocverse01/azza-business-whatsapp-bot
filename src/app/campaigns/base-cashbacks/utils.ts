@@ -19,6 +19,7 @@ import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import ManualOfframpSettlementService from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import logger from '@/resources/logger';
+import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
 
 const CASHBACK_PAYOUT_WALLET_USER_ID = 'cashback-payout';
 const BASE_CASHBACK_BANNER_MEDIA_ID = '1103964578170380';
@@ -76,6 +77,11 @@ export const createBaseCashbackWorker = () => {
             const transaction = await (async () => {
                 if (transactionType === 'manual-offramp') {
                     return await ManualOfframpSettlementService.getManualOfframpSettlementBySequenceId(
+                        transactionId
+                    );
+                }
+                if (transactionType === 'safehaven-offramp') {
+                    return await SafeHavenService.getSafeHavenOfframpTransactionBySequenceId(
                         transactionId
                     );
                 }

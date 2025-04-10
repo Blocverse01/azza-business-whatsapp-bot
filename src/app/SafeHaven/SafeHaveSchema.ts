@@ -16,13 +16,6 @@ interface Bank {
     bankCode: string;
 }
 
-export interface SupportedBankResponse {
-    statusCode: number;
-    responseCode: string;
-    message: string;
-    data: Bank[];
-}
-
 export interface AccessTokenResult {
     access_token: string;
     ibs_client_id: string;
@@ -47,23 +40,63 @@ interface BankAccountData {
     bvn: string;
 }
 
-export type SaveHavenOfframpSettlement = Omit<OfframpTransactionRecord, 'createdAt' | 'status'>;
+export type SafeHavenOfframpSettlement = Omit<OfframpTransactionRecord, 'createdAt' | 'status'>;
 
-export interface BankAccountVerificationResponse {
+interface BaseApiResponse<T> {
     statusCode: number;
     responseCode: string;
     message: string;
-    data: BankAccountData;
+    data: T;
 }
 
-export interface BankAccountBalance {
-    statusCode: number;
+export type BankAccountVerificationResponse = BaseApiResponse<BankAccountData>;
+
+export type BankAccountBalance = BaseApiResponse<{
+    accountBalance: number;
+}>;
+
+export type SupportedBankResponse = BaseApiResponse<Bank[]>;
+
+export type TransactionResponse = BaseApiResponse<{
+    queued: boolean;
+    _id: string;
+    client: string;
+    account: string;
+    type: "Outwards" | string;
+    sessionId: string;
+    nameEnquiryReference: string;
+    paymentReference: string;
+    mandateReference: string | null;
+    isReversed: boolean;
+    reversalReference: string | null;
+    provider: string;
+    providerChannel: string;
+    providerChannelCode: string;
+    destinationInstitutionCode: string;
+    creditAccountName: string;
+    creditAccountNumber: string;
+    creditBankVerificationNumber: string | null;
+    creditKYCLevel: string;
+    debitAccountName: string;
+    debitAccountNumber: string;
+    debitBankVerificationNumber: string | null;
+    debitKYCLevel: string;
+    transactionLocation: string;
+    narration: string;
+    amount: number;
+    fees: number;
+    vat: number;
+    stampDuty: number;
     responseCode: string;
-    message: string;
-    data: {
-        accountBalance: number,
-    }
-}
+    responseMessage: string;
+    status: string;
+    isDeleted: boolean;
+    createdAt: string;
+    createdBy: string;
+    updatedAt: string;
+    __v: number;
+}>
+
 
 export const accountNameEnquirySchema = z.object({
     bankCode: z.string().min(1, { message: "Bank code is required" }),

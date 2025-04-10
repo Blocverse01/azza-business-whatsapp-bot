@@ -417,8 +417,6 @@ class WhatsAppBotAddBeneficiaryFlowService {
             };
         }
 
-        console.log('before adding beneficiary', selectedBank.networkId)
-
         return {
             screen: AddBeneficiaryFlowScreens.BANK_ACCOUNT_SUMMARY,
             data: {

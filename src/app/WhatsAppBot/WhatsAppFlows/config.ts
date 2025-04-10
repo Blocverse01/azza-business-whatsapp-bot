@@ -38,7 +38,7 @@ const flowConfigs: FlowConfigs = {
     },
     OFFRAMP: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
-            flowId: '1011245846972252',
+            flowId: '2073254229862862',
             flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {

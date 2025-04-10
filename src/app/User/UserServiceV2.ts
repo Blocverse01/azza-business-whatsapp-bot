@@ -154,6 +154,12 @@ class UserServiceV2 {
         return user;
     }
 
+    public static async getUserPhoneNumber(userId: string) {
+        const user = await this.getUserById(userId);
+        const userPhoneNumber = user?.primaryWhatsappPhoneNumber!;
+        return userPhoneNumber;
+    }
+
     public static async searchWhatsappUserByPhoneNumber(phoneNumber: string) {
         const existingUserRecord =
             await this.repository.user.searchUserByWhatsappUserPhoneNumber(phoneNumber);
@@ -408,12 +414,12 @@ class UserServiceV2 {
 
         const walletsToCreate = evmWallet
             ? [
-                  {
-                      ...evmWallet,
-                      blockchainNetwork: 'EVM',
-                  },
-                  ...otherWallets,
-              ]
+                {
+                    ...evmWallet,
+                    blockchainNetwork: 'EVM',
+                },
+                ...otherWallets,
+            ]
             : otherWallets;
 
         const walletConfig = await this.repository.blockradarWallet.createWalletConfig(

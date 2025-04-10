@@ -1,4 +1,4 @@
-import { BALANCE_FOR_TRANSACTION_FEE, FeatureFlagKey, NGN_PAYOUTS } from '@/app/FeatureFlag/feature-flag-schema';
+import { FeatureFlagKey, SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE } from '@/app/FeatureFlag/feature-flag-schema';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import ManualOfframpSettlementService, {
     ManualOfframpSettlement,
@@ -29,7 +29,7 @@ import {
     YellowCardOnRampEvents,
     YellowCardWebhookPayload,
 } from './types';
-import SafeHaveService from '../SafeHaven/SafeHavenService';
+import SafeHavenService from '../SafeHaven/SafeHavenService';
 
 
 class FiatRampService {
@@ -110,12 +110,16 @@ class FiatRampService {
 
         const bank = await FiatRampsRpcService.getNetwork({ networkId, countryCode, channelId })
 
-        const accountNameEnquiry = await SafeHaveService.accountNameEnquiry({
+        const accountNameEnquiry = await SafeHavenService.accountNameEnquiry({
             bankCode: bank.seerbitId ?? '',
             accountNumber: accountNumber
         })
 
-        console.log(accountNameEnquiry.sessionId);
+        return {
+            seerbitId: accountNameEnquiry.bankCode,
+            nameEnquiryReference: accountNameEnquiry.sessionId
+        }
+
     }
 
     public static async createBeneficiary(
@@ -143,21 +147,17 @@ class FiatRampService {
 
         const [beneficiary, yellowCardPayoutIsEnabled, saveHavenPayoutIsEnabled] = await Promise.all([
             FiatRampService.getBeneficiary(params.beneficiaryId),
-            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAVEHAVEN_NGN_PAYOUTS),
-            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS)
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS),
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAFEHAVEN_NGN_PAYOUTS)
         ]);
 
         if (beneficiary.country.code === 'NG') {
 
-            console.log('got here', beneficiary.country.code)
-
             if (saveHavenPayoutIsEnabled) {
 
-                console.log('got here safehaven my guy', beneficiary.country.code)
+                const balance = await SafeHavenService.getSafeHavenAccountBalance();
 
-                const balance = await SafeHaveService.getSafeHavenAccountBalance();
-
-                if ((balance + BALANCE_FOR_TRANSACTION_FEE) < params.localAmount) {
+                if ((balance + SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE) < params.localAmount) {
                     return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
                 }
 
@@ -367,6 +367,7 @@ class FiatRampService {
                 nameEnquiryReference: 'bankName' in beneficiary ? beneficiary.nameEnquiryReference : '',
                 networkId: beneficiary.networkId,
                 country: beneficiary.country.code,
+                channelId: beneficiary.channelId
             },
         };
     }
@@ -377,27 +378,69 @@ class FiatRampService {
         params: SendOfframpRequestPayload
     ) {
 
-        console.log('valid data', beneficiary)
-
-        return beneficiary.channelId;
-
         const settlementData = await this._prepareOfframpSettlementData(beneficiary, params);
 
         const safeHavenSettlementRecord =
-            await SafeHaveService.createSaveHavenOfframpSettlement(settlementData);
+            await SafeHavenService.createSafeHavenOfframpSettlement(settlementData);
 
         if (!safeHavenSettlementRecord.sequenceId) {
             throw new Error('Failed to create safehaven settlement record');
         }
 
-        await SafeHaveService.processOffRampPaymentWithSaveHaven({
-            sessionId: '',
-            amountToSend: settlementData.localAmount,
-            beneficiaryBankCode: settlementData.destination.accountNumber,
-            beneficiaryAccountNumber: settlementData.destination.accountNumber
+        const { networkId,
+            country,
+            channelId,
+            seerbitId,
+            nameEnquiryReference,
+            accountNumber } = settlementData.destination
+
+        let accountNameEnquiry: { seerbitId: string, nameEnquiryReference: string } = {
+            seerbitId: '',
+            nameEnquiryReference: '',
+        };
+
+        if (!nameEnquiryReference) {
+            accountNameEnquiry = await this.getAccountNameEntryId({
+                networkId: networkId,
+                countryCode: country as CountryCode,
+                channelId: channelId!,
+                accountNumber: accountNumber
+            });
+        };
+
+        await SafeHavenService.sendSafeHavenProcessingSettlementMessage({
+            usdAmount: safeHavenSettlementRecord!.usdAmount!,
+            transactionFeeUsd: safeHavenSettlementRecord.transactionFeeUsd!,
+            ownerId: safeHavenSettlementRecord.ownerId!,
+            tokenSymbol: safeHavenSettlementRecord.tokenSymbol!,
+            blockchainNetwork: safeHavenSettlementRecord.blockchainNetwork!,
+            localCurrencySymbol: safeHavenSettlementRecord.localCurrencySymbol!,
+            localAmount: safeHavenSettlementRecord.localAmount!
         })
 
-        return safeHavenSettlementRecord.sequenceId;
+        const transaction = await SafeHavenService.processOffRampPaymentWithSaveHaven({
+            nameEnquiryReference: (nameEnquiryReference)
+                ? nameEnquiryReference : accountNameEnquiry.nameEnquiryReference,
+            amountToSend: settlementData.localAmount,
+            beneficiaryBankCode: (seerbitId)
+                ? seerbitId : accountNameEnquiry.seerbitId,
+            beneficiaryAccountNumber: accountNumber,
+            sequenceId: safeHavenSettlementRecord.sequenceId
+        });
+
+        if (!transaction) {
+            throw new Error('Failed to process off-ramp settlement with safehaven');
+        }
+
+        const isUpdated = await safeHavenSettlementRecord.update({
+            sessionId: transaction.sessionId
+        })
+
+        if (!isUpdated) {
+            throw new Error('Failed to update safehaven off-ramp settlement status');
+        }
+
+        return transaction.sequenceId;
     }
 
     public static async passOfframpTransactionToManualProcess(

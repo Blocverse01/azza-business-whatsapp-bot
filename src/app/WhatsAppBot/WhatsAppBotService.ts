@@ -186,6 +186,7 @@ class WhatsAppBotService {
             const responseData = await response.body.json();
 
             if (response.statusCode !== OK) {
+               
                 await logServiceError(
                     new HttpException(response.statusCode, 'Error uploading media', {
                         responseData,
@@ -532,17 +533,6 @@ class WhatsAppBotService {
             FiatRampService.getBeneficiary(beneficiaryId),
         ]);
 
-        if ('accountNumber' in beneficiary) {
-            if (beneficiary.country.code === 'NG' && !beneficiary.nameEnquiryReference) {
-                await FiatRampService.getAccountNameEntryId({
-                    networkId: beneficiary.networkId,
-                    countryCode: beneficiary.country.code,
-                    channelId: beneficiary.channelId,
-                    accountNumber: beneficiary.accountNumber ?? ''
-                })
-            }
-        }
-
         const { rate, fee } = await FiatRampService.getQuotes(
             beneficiary.country.currencySymbol,
             beneficiary.country.code as CountryCode,
@@ -792,8 +782,6 @@ class WhatsAppBotService {
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
         const supportedCurrencies = await FiatRampService.getSupportedCurrencies();
 
-        console.log({ supportedCurrencies })
-
         const userCountry = supportedCurrencies.find(
             (country) => country.code.toLowerCase() === userCountryCode.toLowerCase()
         );
@@ -969,8 +957,6 @@ class WhatsAppBotService {
                 return;
             }
         }
-
-        console.log('Got here')
 
         await this.sendSelectSupportedCurrenciesMessage(
             phoneParams,

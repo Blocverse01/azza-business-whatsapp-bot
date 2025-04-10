@@ -705,9 +705,8 @@ class WhatsAppBotOffRampFlowService {
             tokenAmount,
         } = params;
 
-        console.log('got here after slecting existing beneficiary...')
-
         const assetConfig = getAssetConfigOrThrow(assetId);
+
         const [assetBalanceInfo, assetWallet, user] = await Promise.all([
             azzaWalletManager.getAssetBalance({
                 userId,
@@ -780,6 +779,7 @@ class WhatsAppBotOffRampFlowService {
                 message:
                     "Your transaction is currently being processed, we'd send updates on the status of your transaction in your DM",
             };
+
         } catch (error) {
             await logServiceError(error, 'Processing offramp transaction failed');
 

@@ -7,5 +7,5 @@ export type CryptoPayoutParams = {
 
 export type CryptoPayoutQueueInput = {
     transactionId: string;
-    transactionType: 'offramp-refund' | 'onramp-payout';
+    transactionType: 'offramp-refund' | 'onramp-payout' | 'offramp-safehaven-refund';
 };

@@ -65,7 +65,7 @@ import ResolveBankAccountRequest = fiatramps.v1.ResolveBankAccountRequest;
 import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
 import UpdatePaymentTransactionStatusRequest = fiatramps.v1.UpdatePaymentTransactionStatusRequest;
 import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
-import SafeHaveService from '@/app/SafeHaven/SafeHavenService';
+import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
 import slugify from 'slugify';
 
 class FiatRampsRpcService {
@@ -302,7 +302,7 @@ class FiatRampsRpcService {
 
             const yellowCardBanks = z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
 
-            const saveHavenBanks = await SafeHaveService.getSupportedBanks();
+            const saveHavenBanks = await SafeHavenService.getSupportedBanks();
 
             const commonBanks = saveHavenBanks.reduce<supportedPaymentNetworkType[]>((accumulator, saveHavenBank) => {
 
@@ -555,7 +555,7 @@ class FiatRampsRpcService {
         try {
 
             if (params.countryCode === 'NG') {
-                const response = await SafeHaveService.accountNameEnquiry({
+                const response = await SafeHavenService.accountNameEnquiry({
                     bankCode: params.seerbitId,
                     accountNumber: params.accountNumber
                 })
