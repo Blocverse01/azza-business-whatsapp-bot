@@ -738,7 +738,7 @@ class WhatsAppBotService {
         const smileIdIsEnabled = await FeatureFlagService.isFeatureEnabled(
             FeatureFlagKey.SMILE_ID_KYC
         );
-        const shouldUseSumsub = !smileIdIsEnabled ? true : userCountryCode !== 'NG';
+        const shouldUseSumsub = !smileIdIsEnabled ? true : !['NG', 'KE'].includes(userCountryCode);
 
         const kycUrl = await (async (useSumsub: boolean) => {
             if (useSumsub) {
