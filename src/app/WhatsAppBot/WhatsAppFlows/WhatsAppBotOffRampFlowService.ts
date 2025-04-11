@@ -107,7 +107,7 @@ type AmountInputScreenData = {
 };
 
 type TokenAmountPattern =
-    `${string} ${TokenNames} (${AllSupportedBlockchains})\n---------------------------------\nFee = ${number} ${TokenNames}`;
+    `${string} ${TokenNames} (${AllSupportedBlockchains})\n---------------------------------\nFee = ${string} ${TokenNames}`;
 type TokenAmountToDebitPattern = `${number} ${TokenNames}`;
 type DestinationPattern = `${string} | ${string} | ${string}`;
 type FiatToReceivePattern =
@@ -187,7 +187,7 @@ class WhatsAppBotOffRampFlowService {
         },
         transactionFee: number
     ) {
-        const tokenAmount: TokenAmountPattern = `${amount} ${asset.assetName} (${asset.assetNetwork})${SECTION_SEPARATOR}Fee = ${transactionFee} ${asset.assetName}`;
+        const tokenAmount: TokenAmountPattern = `${amount} ${asset.assetName} (${asset.assetNetwork})${SECTION_SEPARATOR}Fee = ${prettifyNumber(transactionFee, 6)} ${asset.assetName}`;
 
         return tokenAmount;
     }
