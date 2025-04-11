@@ -370,7 +370,7 @@ class WhatsAppBotOffRampFlowService {
         const feePercentage = feeConfig.feePercentage;
 
         const token_amount: TokenAmountPattern = this.generateTokenAmountPattern(
-            prettifyNumber(tokenAmount, 8),
+            prettifyNumber(tokenAmount, 6),
             {
                 assetName,
                 assetNetwork,
@@ -380,8 +380,8 @@ class WhatsAppBotOffRampFlowService {
 
         const amountToDebit =
             amount_denomination === beneficiary.currency_symbol
-                ? fixNumber(math.add(tokenAmount, transactionFee / tokenUsdPrice), FOUR)
-                : fixNumber(tokenAmount, FOUR);
+                ? fixNumber(math.add(tokenAmount, transactionFee / tokenUsdPrice), 6)
+                : fixNumber(tokenAmount, 6);
         const token_amount_to_debit: TokenAmountToDebitPattern = `${amountToDebit} ${assetName}`;
 
         const destination_account = this.generateDestinationString(beneficiary);
@@ -886,7 +886,7 @@ class WhatsAppBotOffRampFlowService {
 
         const sellMessage = `To sell ${assetLabel} for ${getCountryFlagEmoji(beneficiary.country.code)} ${beneficiary.country.currencySymbol}, tap "Proceed" to enter the amount you want to sell`;
 
-        const userBalanceFormatted = prettifyNumber(userBalance, FOUR) + ' ' + asset.tokenName;
+        const userBalanceFormatted = prettifyNumber(userBalance, 6) + ' ' + asset.tokenName;
         const userBalanceInFiat = formatNumberAsCurrency(
             fixNumber(userBalance * params.fiatConversionRate * assetUsdPrice, THREE),
             beneficiary.country.currencySymbol
