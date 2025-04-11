@@ -22,7 +22,7 @@ class AlchemyPriceProvider implements CryptoAssetPriceProvider {
     }
 
     public async getAssetPrice(asset: AssetConfig): Promise<GetAssetPriceResponse> {
-        const requestUrl = `${this.alchemyApiUrl}/${this.alchemyApiKey}/tokens/by-symbol/${asset.tokenName}`;
+        const requestUrl = `${this.alchemyApiUrl}/${this.alchemyApiKey}/tokens/by-symbol?symbols=${asset.tokenName}`;
 
         const response = await fetch(requestUrl);
 
@@ -58,7 +58,7 @@ class AlchemyPriceProvider implements CryptoAssetPriceProvider {
             }
 
             targetAsset.prices.forEach((price) => {
-                const currency = price.currency as SupportedFiat;
+                const currency = price.currency.toUpperCase() as SupportedFiat;
                 prices[currency] = parseFloat(price.value);
             });
 
