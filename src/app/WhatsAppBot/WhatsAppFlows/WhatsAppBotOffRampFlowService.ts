@@ -370,12 +370,12 @@ class WhatsAppBotOffRampFlowService {
         const feePercentage = feeConfig.feePercentage;
 
         const token_amount: TokenAmountPattern = this.generateTokenAmountPattern(
-            prettifyNumber(tokenAmount, THREE),
+            prettifyNumber(tokenAmount, 8),
             {
                 assetName,
                 assetNetwork,
             },
-            transactionFee
+            transactionFee / tokenUsdPrice
         );
 
         const amountToDebit =
@@ -395,7 +395,7 @@ class WhatsAppBotOffRampFlowService {
         );
 
         const fiat_to_receive: FiatToReceivePattern = this.generateFiatToReceivePattern(
-            conversionRate,
+            conversionRate * tokenUsdPrice,
             beneficiary.currency_symbol,
             assetName,
             fiatEquivalent
