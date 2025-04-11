@@ -147,7 +147,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                     transactionFeeUsd: pendingOfframpRequest.transactionFeeUsd!,
                     beneficiaryId: pendingOfframpRequest.beneficiaryId!,
                     usdAmount: pendingOfframpRequest.usdAmount!,
-                    platformFeePercentage: pendingOfframpRequest.platformFeePercentage!,
+                    platformFeePercentage: pendingOfframpRequest.platformFeePercentage,
                     userWalletAddress: pendingOfframpRequest.fromWalletAddress!,
                     tokenAddress: assetConfig.tokenAddress,
                     tokenName: assetConfig.tokenName,
@@ -160,7 +160,10 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 })
             );
 
-            await pendingOfframpRequest.delete();
+            await pendingOfframpRequest.update({
+                cryptoTransactionId: data.data.hash,
+                cryptoTransactionStatus: 'SUCCESS',
+            });
             return;
         }
 

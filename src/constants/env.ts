@@ -45,21 +45,9 @@ const envSchema = z.object({
         .transform((data) => data === 'true'),
 
     ///////////////////////////
-    /// Alchemy Notify
+    /// Alchemy
     ///////////////////////////
-    ALCHEMY_AUTH_TOKEN: notEmptyStringSchema('ALCHEMY_AUTH_TOKEN'),
-    ALCHEMY_NOTIFY_FORWARDER_ETH_SIGNING_KEY: notEmptyStringSchema(
-        'ALCHEMY_NOTIFY_ETH_SIGNING_KEY'
-    ),
-    ALCHEMY_NOTIFY_FORWARDER_POLYGON_SIGNING_KEY: notEmptyStringSchema(
-        'ALCHEMY_NOTIFY_POLYGON_SIGNING_KEY'
-    ),
-    ALCHEMY_NOTIFY_FORWARDER_BASE_SIGNING_KEY: notEmptyStringSchema(
-        'ALCHEMY_NOTIFY_BASE_SIGNING_KEY'
-    ),
-    ALCHEMY_NOTIFY_FORWARDER_OPTIMISM_SIGNING_KEY: notEmptyStringSchema(
-        'ALCHEMY_NOTIFY_OPTIMISM_SIGNING_KEY'
-    ),
+    ALCHEMY_API_KEY: notEmptyStringSchema('ALCHEMY_API_KEY'),
     //================================================================
     TESTING_GRPC_SERVICE: z
         .enum(['true', 'false'])

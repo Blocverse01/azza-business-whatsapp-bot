@@ -139,7 +139,7 @@ const tables = [
     name: "manual_offramp_settlement_transaction",
     columns: [
       { name: "blockchainNetwork", type: "text" },
-      { name: "conversionRate", type: "int" },
+      { name: "conversionRateInt", type: "int" },
       { name: "fromWalletAddress", type: "text" },
       { name: "hotWalletAddress", type: "text" },
       { name: "localAmount", type: "float" },
@@ -189,6 +189,12 @@ const tables = [
         defaultValue: "",
       },
       { name: "country", type: "text", notNull: true, defaultValue: "" },
+      {
+        name: "conversionRate",
+        type: "float",
+        notNull: true,
+        defaultValue: "0",
+      },
     ],
   },
   {
@@ -202,7 +208,6 @@ const tables = [
     name: "offramp_awaiting_crypto_debit",
     columns: [
       { name: "assetId", type: "text" },
-      { name: "conversionRate", type: "int" },
       { name: "fromWalletAddress", type: "text" },
       { name: "hotWalletAddress", type: "text" },
       { name: "localAmount", type: "float" },
@@ -210,13 +215,22 @@ const tables = [
       { name: "transactionFeeUsd", type: "float" },
       { name: "usdAmount", type: "float" },
       { name: "beneficiaryId", type: "text" },
-      { name: "xatacreatedAt", type: "text" },
-      { name: "xataupdatedAt", type: "text" },
-      { name: "xataversion", type: "int" },
       { name: "cryptoTransactionId", type: "text" },
       { name: "cryptoTransactionStatus", type: "text" },
       {
         name: "platformFeePercentage",
+        type: "float",
+        notNull: true,
+        defaultValue: "0",
+      },
+      {
+        name: "conversionRate",
+        type: "float",
+        notNull: true,
+        defaultValue: "0",
+      },
+      {
+        name: "tokenAmountToDebit",
         type: "float",
         notNull: true,
         defaultValue: "0",

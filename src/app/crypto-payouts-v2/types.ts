@@ -1,5 +1,5 @@
 export type CryptoPayoutParams = {
-    usdAmount: number;
+    amount: number;
     userWalletAddress: string;
     targetTransactionHash: string;
     assetId: string;

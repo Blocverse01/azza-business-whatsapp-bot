@@ -46,7 +46,7 @@ export const createEventDrivenOfframpWorker = () => {
                 platformFeePercentage: offrampParams.platformFeePercentage,
             });
 
-            const totalAmountUsd = job.data.offrampParams.totalAmountUsd;
+            const tokenAmountToDebit = job.data.offrampParams.tokenAmountToDebit;
 
             const reference = `${OFFRAMP_WITHDRAW_REFERENCE_PREFIX}${pendingOfframp.id}`;
 
@@ -58,7 +58,7 @@ export const createEventDrivenOfframpWorker = () => {
                     metadata: {
                         reason: OFFRAMP,
                     },
-                    amount: totalAmountUsd,
+                    amount: tokenAmountToDebit,
                     transactionType: 'SEND',
                     recipient: offrampParams.hotWalletAddress,
                     recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
@@ -71,7 +71,7 @@ export const createEventDrivenOfframpWorker = () => {
 
             if (!sendCryptoTxResponse && txError !== null) {
                 const assetConfig = getAssetConfigOrThrow(offrampParams.assetId);
-                const userMessage = `Debiting ${totalAmountUsd} ${assetConfig.tokenName} from your wallet failed.\nPlease reach out to support if you were debited.`;
+                const userMessage = `Debiting ${tokenAmountToDebit} ${assetConfig.tokenName} from your wallet failed.\nPlease reach out to support if you were debited.`;
 
                 await WhatsAppBotService.sendWhatsappMessage(
                     whatsappParams.businessPhoneNumberId,
