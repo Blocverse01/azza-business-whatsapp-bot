@@ -13,6 +13,7 @@ export const OfframpQueueFlowSchema = z.object({
     platformFeePercentage: z.number(),
     conversionRate: z.number(),
     transactionFeeUsd: z.number(),
+    tokenAmountDebited: z.number(),
     whatsappParams: z.object({
         userPhoneNumber: z.string(),
         businessPhoneNumberId: z.string(),

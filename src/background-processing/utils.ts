@@ -44,6 +44,7 @@ export const createEventDrivenOfframpWorker = () => {
                 beneficiaryId: offrampParams.beneficiaryId,
                 conversionRate: offrampParams.conversionRate,
                 platformFeePercentage: offrampParams.platformFeePercentage,
+                tokenAmountToDebit: job.data.offrampParams.tokenAmountToDebit,
             });
 
             const tokenAmountToDebit = job.data.offrampParams.tokenAmountToDebit;

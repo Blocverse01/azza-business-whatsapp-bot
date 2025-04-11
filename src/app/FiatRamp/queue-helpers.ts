@@ -35,13 +35,11 @@ export const handleOfframpRequestInQueue = async (
         throw new Error('Onchain transaction failed');
     }
 
-    const expectedUsdAmount = params.usdAmount + params.transactionFeeUsd;
-    const transactionUsdAmount = transaction.amount;
-    const transactionAmountIsValid = math.largerEq(transactionUsdAmount, expectedUsdAmount);
+    const transactionAmountIsValid = math.largerEq(transaction.amount, params.tokenAmountDebited);
 
     assert.ok(
         transactionAmountIsValid,
-        `transaction USD amount (${transactionUsdAmount}) less than expected USD amount (${expectedUsdAmount})`
+        `transaction ${params.tokenName} amount (${transaction.amount}) less than expected ${params.tokenName} amount (${params.tokenAmountDebited})`
     );
 
     try {

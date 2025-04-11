@@ -141,7 +141,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             await addOfframpRequestToQueue(
                 OfframpQueueFlowSchemaV2.parse({
                     userId: pendingOfframpRequest.ownerId!,
-                    conversionRate: pendingOfframpRequest.conversionRate!,
+                    conversionRate: pendingOfframpRequest.conversionRate,
                     localAmount: pendingOfframpRequest.localAmount!,
                     hotWalletAddress: pendingOfframpRequest.hotWalletAddress!,
                     transactionFeeUsd: pendingOfframpRequest.transactionFeeUsd!,
@@ -153,6 +153,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                     tokenName: assetConfig.tokenName,
                     chainName: assetConfig.network.toUpperCase(),
                     txHash: data.data.hash,
+                    tokenAmountDebited: pendingOfframpRequest.tokenAmountToDebit,
                     whatsappParams: {
                         businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         userPhoneNumber: user.primaryWhatsappPhoneNumber,

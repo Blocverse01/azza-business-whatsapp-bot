@@ -413,11 +413,11 @@ class WhatsAppBotOffRampFlowService {
                     fiat_to_receive,
                 },
                 transaction_details: {
-                    token_amount: decimalToString(fixNumber(usdAmount, FOUR)),
+                    token_amount: decimalToString(tokenAmount),
+                    token_amount_to_debit: amountToDebit.toString(),
                     transaction_fee: transactionFee.toString(),
                     fiat_to_receive: fiatEquivalent.toString(),
                     beneficiary: beneficiary,
-                    token_amount_to_debit: amountToDebit.toString(),
                     conversion_rate,
                     usd_amount: usdAmount,
                     platform_fee_percentage: feePercentage.toString(),
