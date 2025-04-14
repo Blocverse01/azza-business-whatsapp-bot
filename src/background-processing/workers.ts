@@ -240,12 +240,12 @@ const cryptoDebitConfirmationWorker = new Worker<
 
                 await CryptoPayoutService.updateProcessedCryptPayoutOrder(job.data.orderId, {
                     status: newStatus,
-                    payoutTransactionHash: transactionReceipt.transactionHash,
+                    payoutTransactionHash: transactionReceipt.transactionHash ?? null,
                 });
 
                 return {
                     status: transactionReceipt.status,
-                    transactionHash: transactionReceipt.transactionHash,
+                    transactionHash: transactionReceipt.transactionHash ?? null,
                 };
             }
 
@@ -306,7 +306,7 @@ const cryptoDebitConfirmationWorker = new Worker<
 
             return {
                 status: transactionReceipt.status,
-                transactionHash: transactionReceipt.transactionHash,
+                transactionHash: transactionReceipt.transactionHash ?? null,
             };
         }
 
@@ -362,7 +362,7 @@ const cryptoDebitConfirmationWorker = new Worker<
 
         return {
             status: transactionReceipt.status,
-            transactionHash: transactionReceipt.transactionHash,
+            transactionHash: transactionReceipt.transactionHash ?? null,
         };
     },
     {

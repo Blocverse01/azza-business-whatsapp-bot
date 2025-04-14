@@ -142,7 +142,7 @@ class CryptoPayoutService {
     public static async updateProcessedCryptPayoutOrder(
         orderId: string,
         updatableParams: {
-            payoutTransactionHash: string | null;
+            payoutTransactionHash: string | null | undefined;
             status: CryptoPayoutOrderStatus;
         }
     ) {
