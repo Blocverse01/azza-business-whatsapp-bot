@@ -307,9 +307,7 @@ class FiatRampsRpcService {
             const commonBanks = saveHavenBanks.reduce<supportedPaymentNetworkType[]>((accumulator, saveHavenBank) => {
 
                 const matchingYellowCardBank = yellowCardBanks.find((bank) => {
-                    return (
-                        saveHavenBank.slug === slugify(bank.name, { lower: true, replacement: '-' })
-                        || saveHavenBank.bankCode === bank.seerbitId
+                    return (saveHavenBank.bankCode === bank.seerbitId
                     );
                 });
 
