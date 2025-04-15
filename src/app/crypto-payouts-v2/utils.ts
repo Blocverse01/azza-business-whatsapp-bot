@@ -24,7 +24,7 @@ const storeCryptoPayout = async (
     const assetConfig = getAssetConfigOrThrow(params.assetId);
 
     return await dbClient.crypto_payout_v2.create(params.reference, {
-        usdAmount: params.usdAmount,
+        usdAmount: params.amount,
         destinationWalletAddress: params.userWalletAddress,
         payoutType: params.transactionType,
         triggerTransactionId: params.targetTransactionHash,
@@ -82,7 +82,7 @@ export const processCryptoPayout = async (
         assetId: params.assetId,
         userId:
             transactionType === 'onramp-payout' ? ONRAMP_WALLET_USER_ID : OFFRAMP_WALLET_USER_ID,
-        amount: math.fix(params.usdAmount, 6).toString(),
+        amount: math.fix(params.amount, 6).toString(),
         recipient: params.userWalletAddress,
         reference,
         metadata: {
@@ -137,10 +137,19 @@ export const createCryptoPayoutWorker = () => {
                 throw new Error(`Payout not available for transaction`);
             }
 
-            let transactionUsdAmount = transaction.usdAmount;
+            let transactionAmount = transaction.usdAmount;
 
-            if (transactionType === 'offramp-refund' || transactionType === 'offramp-safehaven-refund') {
-                transactionUsdAmount += transaction.transactionFeeUsd;
+            if ((transactionType === 'offramp-refund' || transactionType === 'offramp-safehaven-refund') && 'transactionHash' in transaction) {
+                const offrampRequest = await dbClient.offramp_awaiting_crypto_debit
+                    .filter({
+                        cryptoTransactionId: transaction.transactionHash,
+                    })
+                    .getFirst();
+
+                if (!offrampRequest) {
+                    throw new Error('Offramp request not found');
+                }
+                transactionAmount = offrampRequest.tokenAmountToDebit;
             }
 
             const assetConfig = azzaWalletManager.searchAssets({
@@ -161,15 +170,15 @@ export const createCryptoPayoutWorker = () => {
                 throw Error('Missing sequenceId');
             }
 
-            const cashbackParams: CryptoPayoutParams = {
-                usdAmount: transactionUsdAmount,
+            const cryptoPayoutParams: CryptoPayoutParams = {
+                amount: transactionAmount,
                 userWalletAddress: destinationWalletAddress,
                 targetTransactionHash: transaction.sequenceId,
                 assetId: assetConfig.listItemId,
             };
 
             try {
-                return await processCryptoPayout(cashbackParams, transactionType);
+                return await processCryptoPayout(cryptoPayoutParams, transactionType);
             } catch (error) {
                 const parsedError = parseUnknownError(error);
                 await logger.error(parsedError.message, {

@@ -7,11 +7,16 @@ type SmileIdType = {
 };
 
 const COUNTRY_ID_LIST: Array<SmileIdType> = [
-    // {
-    //     country: 'NG',
-    //     id_type: 'BVN',
-    //     verification_method: 'enhanced_kyc',
-    // },
+    {
+        country: 'KE',
+        id_type: 'NATIONAL_ID',
+        verification_method: 'biometric_kyc',
+    },
+    {
+        country: 'KE',
+        id_type: 'PASSPORT',
+        verification_method: 'biometric_kyc',
+    },
     {
         country: 'NG',
         id_type: 'NIN_V2',
