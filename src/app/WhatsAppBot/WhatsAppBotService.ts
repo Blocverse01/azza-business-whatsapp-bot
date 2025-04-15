@@ -87,6 +87,7 @@ import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
 import { generateRatesCard } from '../rate-card/generators';
 import { getDefaultParamsForNetworkFeeQuery } from '../AzzaWalletManager/fallback-data';
+import cryptoAssetPriceService from '@/runtime/crypto-asset-price';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -545,6 +546,7 @@ class WhatsAppBotService {
             recipient: userPhoneNumber,
             fiatConversionRate: rate,
             transactionFee: fee,
+            assetUsdPrice: await cryptoAssetPriceService.getAssetPrice(assetBalance.asset, 'USD'),
         });
 
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
@@ -739,7 +741,7 @@ class WhatsAppBotService {
         const smileIdIsEnabled = await FeatureFlagService.isFeatureEnabled(
             FeatureFlagKey.SMILE_ID_KYC
         );
-        const shouldUseSumsub = !smileIdIsEnabled ? true : userCountryCode !== 'NG';
+        const shouldUseSumsub = !smileIdIsEnabled ? true : !['NG', 'KE'].includes(userCountryCode);
 
         const kycUrl = await (async (useSumsub: boolean) => {
             if (useSumsub) {

@@ -141,18 +141,19 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             await addOfframpRequestToQueue(
                 OfframpQueueFlowSchemaV2.parse({
                     userId: pendingOfframpRequest.ownerId!,
-                    conversionRate: pendingOfframpRequest.conversionRate!,
+                    conversionRate: pendingOfframpRequest.conversionRate,
                     localAmount: pendingOfframpRequest.localAmount!,
                     hotWalletAddress: pendingOfframpRequest.hotWalletAddress!,
                     transactionFeeUsd: pendingOfframpRequest.transactionFeeUsd!,
                     beneficiaryId: pendingOfframpRequest.beneficiaryId!,
                     usdAmount: pendingOfframpRequest.usdAmount!,
-                    platformFeePercentage: pendingOfframpRequest.platformFeePercentage!,
+                    platformFeePercentage: pendingOfframpRequest.platformFeePercentage,
                     userWalletAddress: pendingOfframpRequest.fromWalletAddress!,
                     tokenAddress: assetConfig.tokenAddress,
                     tokenName: assetConfig.tokenName,
                     chainName: assetConfig.network.toUpperCase(),
                     txHash: data.data.hash,
+                    tokenAmountDebited: pendingOfframpRequest.tokenAmountToDebit,
                     whatsappParams: {
                         businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         userPhoneNumber: user.primaryWhatsappPhoneNumber,
@@ -160,7 +161,10 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 })
             );
 
-            await pendingOfframpRequest.delete();
+            await pendingOfframpRequest.update({
+                cryptoTransactionId: data.data.hash,
+                cryptoTransactionStatus: 'SUCCESS',
+            });
             return;
         }
 
