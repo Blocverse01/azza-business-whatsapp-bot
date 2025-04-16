@@ -135,7 +135,7 @@ class UserServiceV2 {
             return user;
         } catch (error) {
             console.log('Error fetching user', error);
-            return null;
+            throw new error();
         }
     }
 
