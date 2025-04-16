@@ -484,9 +484,7 @@ const handleIncomingWhatsappMessageTemp = async (
 
     const phoneParams = { userPhoneNumber: from, businessPhoneNumberId };
 
-    const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
-        FeatureFlagKey.CORE_MAINTAINANCE
-    );
+    const coreMaintainanceIsEnabled = false;
 
     const [userV2] = await Promise.all([
         //getUserAgentThread(from),
