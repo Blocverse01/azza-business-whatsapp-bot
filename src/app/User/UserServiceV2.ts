@@ -125,13 +125,18 @@ class UserServiceV2 {
             }
         }
 
-        const user = await this.repository.user.getUserByWhatsappPhoneNumber(phoneNumber);
+        try {
+            const user = await this.repository.user.getUserByWhatsappPhoneNumber(phoneNumber);
 
-        if (user && this.cacheStore && this.env.enableCache) {
-            await this.cacheStore.set(cacheKey, user.id);
+            if (user && this.cacheStore && this.env.enableCache) {
+                await this.cacheStore.set(cacheKey, user.id);
+            }
+
+            return user;
+        } catch (error) {
+            console.log('Error fetching user', error);
+            return null;
         }
-
-        return user;
     }
 
     public static async getUserById(userId: string) {
