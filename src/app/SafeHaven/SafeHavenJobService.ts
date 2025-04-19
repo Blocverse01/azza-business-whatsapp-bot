@@ -1,17 +1,7 @@
 import logger from "@/resources/logger";
 import SafeHavenService from "./SafeHavenService";
-import { prettifyNumber } from "@/resources/utils/currency";
-import userServiceV2 from "@/runtime/user";
-import env from "@/constants/env";
-import { addCashbackJobToQueue } from "../campaigns/base-cashbacks/utils";
-import azzaWalletManager from "@/runtime/wallet";
-import { generateOfframpToBankRecipientReceipt } from "../receipts/generators";
-import { addCryptoPayoutJobToQueue } from "../crypto-payouts-v2/utils";
 import { HttpException } from "@/resources/exceptions/HttpException";
 import { INTERNAL_SERVER_ERROR } from "@/constants/status-codes";
-import { transactionStatusSchema } from "../FiatRamp/fiatRampSchema";
-import { Buffer } from 'node:buffer';
-import WhatsAppBotService from "../WhatsAppBot/WhatsAppBotService";
 import { addSafeHavenTransactionUpdateJobToQueue } from "./queue-utils";
 
 
