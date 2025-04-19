@@ -156,6 +156,21 @@ class SafeHavenService {
         }
     }
 
+    public static async getSafeHavenOfframpPendingTransaction(transactionId: string) {
+
+        const transaction = await this.SAFEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
+            processingStatus: transactionStatusSchema.parse("pending"),
+            sequenceId: transactionId,
+            sessionId: { $isNot: null }
+        }).getFirst();
+
+        if (!transaction) {
+            throw new HttpException(NOT_FOUND, 'Transaction not found');
+        }
+
+        return transaction
+    }
+
     public static async getSafeHavenOfframpPendingTransactions() {
 
         const transactions = await this.SAFEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
