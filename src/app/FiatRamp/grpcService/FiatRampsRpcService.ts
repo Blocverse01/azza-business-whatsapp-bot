@@ -67,6 +67,7 @@ import UpdatePaymentTransactionStatusRequest = fiatramps.v1.UpdatePaymentTransac
 import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
 import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
 import slugify from 'slugify';
+import env from '@/constants/env';
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -302,12 +303,15 @@ class FiatRampsRpcService {
 
             const yellowCardBanks = z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
 
-            const saveHavenBanks = await SafeHavenService.getSupportedBanks();
+            const safeHavenBank = await SafeHavenService.getSupportedBanks();
 
-            const commonBanks = saveHavenBanks.reduce<supportedPaymentNetworkType[]>((accumulator, saveHavenBank) => {
+            const commonBanks = safeHavenBank.reduce<supportedPaymentNetworkType[]>((accumulator, safeHavenBank) => {
 
                 const matchingYellowCardBank = yellowCardBanks.find((bank) => {
-                    return (saveHavenBank.bankCode === bank.seerbitId
+                    return (
+                        safeHavenBank.bankCode === bank.seerbitId ||
+                        (env.WEB3_ENVIRONMENT === 'testnet' &&
+                            safeHavenBank.slug === slugify(bank.name, { lower: true, replacement: '-' }))
                     );
                 });
 
@@ -315,8 +319,8 @@ class FiatRampsRpcService {
                     accumulator.push({
                         channelId: matchingYellowCardBank.channelId,
                         networkId: matchingYellowCardBank.networkId,
-                        seerbitId: saveHavenBank.bankCode,
-                        name: saveHavenBank.name
+                        seerbitId: safeHavenBank.bankCode,
+                        name: safeHavenBank.name
                     });
                 }
                 return accumulator;

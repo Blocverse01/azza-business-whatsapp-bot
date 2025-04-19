@@ -108,6 +108,8 @@ class FiatRampService {
 
         const { networkId, countryCode, channelId, accountNumber } = data;
 
+        console.log('getAccountNameEntryId',data);
+
         const bank = await FiatRampsRpcService.getNetwork({ networkId, countryCode, channelId })
 
         const accountNameEnquiry = await SafeHavenService.accountNameEnquiry({

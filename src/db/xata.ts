@@ -218,6 +218,12 @@ const tables = [
         notNull: true,
         defaultValue: "0",
       },
+      {
+        name: "tokenAmountToDebit",
+        type: "float",
+        notNull: true,
+        defaultValue: "0",
+      },
     ],
   },
   {

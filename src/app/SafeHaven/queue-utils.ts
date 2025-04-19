@@ -64,7 +64,6 @@ export const createSafeHavenTransactionUpdateJobWorker = () => {
                         )
                     : undefined;
 
-
                 if (supportedChain === 'Base') {
                     await addCashbackJobToQueue({
                         transactionId: settlement.sequenceId!,
