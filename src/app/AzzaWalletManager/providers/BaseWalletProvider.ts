@@ -31,10 +31,10 @@ export type AssetTransaction = {
     amount: string;
     asset: AssetConfig;
     blockchainNetwork: AllSupportedBlockchains;
-    confirmations: number | null;
+    confirmations?: number | null;
     confirmed: boolean;
     status: 'PENDING' | 'FAILED' | 'SUCCESS';
-    hash: string | null;
+    hash?: string | null;
     recipientAddress: string;
     senderAddress: string;
     id: string;

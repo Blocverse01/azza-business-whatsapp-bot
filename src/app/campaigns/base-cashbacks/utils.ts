@@ -22,7 +22,7 @@ import logger from '@/resources/logger';
 import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
 
 const CASHBACK_PAYOUT_WALLET_USER_ID = 'cashback-payout';
-const BASE_CASHBACK_BANNER_MEDIA_ID = '1103964578170380';
+const BASE_CASHBACK_BANNER_MEDIA_ID = '1613273422694481';
 
 const generateTransactionReferenceId = (targetTransactionHash: string) => {
     const txHashSha256 = crypto.createHash('sha256').update(targetTransactionHash).digest('hex');

@@ -148,6 +148,8 @@ class WhatsAppBotService {
 
             const responseData = await response.body.json();
 
+            console.log(responseData);
+
             if (response.statusCode !== OK) {
                 const error = new HttpException(response.statusCode, 'Error sending message', {
                     responseData,
@@ -479,7 +481,13 @@ class WhatsAppBotService {
 
         try {
             const requestOptions = this.getRequestConfig();
-            await axios.post(`${env.CLOUD_API_URL}/${endpoint}`, data, requestOptions);
+            const response = await axios.post(
+                `${env.CLOUD_API_URL}/${endpoint}`,
+                data,
+                requestOptions
+            );
+
+            console.log(`Message ${messageId}  marked as read`, response.data);
         } catch (error) {
             await logServiceError(error, 'Error marking message as read:');
         }
@@ -741,7 +749,7 @@ class WhatsAppBotService {
         const smileIdIsEnabled = await FeatureFlagService.isFeatureEnabled(
             FeatureFlagKey.SMILE_ID_KYC
         );
-        const shouldUseSumsub = !smileIdIsEnabled ? true : !['NG', 'KE'].includes(userCountryCode);
+        const shouldUseSumsub = !smileIdIsEnabled ? true : !['NG'].includes(userCountryCode);
 
         const kycUrl = await (async (useSumsub: boolean) => {
             if (useSumsub) {
