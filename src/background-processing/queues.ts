@@ -21,6 +21,7 @@ import {
     EventDrivenOfframpQueueResult,
     FiatPayoutQueueResult,
     QueueNames,
+    SafeHavenTransactionQueueInput,
     SyncUserWalletIdQueueInput,
     UserTxPinSecurityQueueInput,
     UserTxPinSecurityQueueResult,
@@ -113,6 +114,9 @@ export const queues = {
             connection: connectionConfig,
         }
     ),
+    handleSafeHavenTransactionStatusUpdate: new Queue<SafeHavenTransactionQueueInput>(QueueNames.handleSafeHavenTransactionStatusUpdate, {
+        connection : connectionConfig
+    })
 };
 
 export const defaultQueueRemoveOptions = {

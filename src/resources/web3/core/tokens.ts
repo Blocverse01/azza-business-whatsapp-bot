@@ -191,7 +191,6 @@ export const ethBaseConfig = {
     supportedAssetActions: [
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
-        ExploreAssetActions.SELL_ASSET,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
     isNative: true,
@@ -239,7 +238,6 @@ export const ethEthereumConfig = {
     supportedAssetActions: [
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
-        ExploreAssetActions.SELL_ASSET,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
     isNative: true,
@@ -281,7 +279,6 @@ export const ethOptimismConfig = {
     supportedAssetActions: [
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
-        ExploreAssetActions.SELL_ASSET,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
     isNative: true,
@@ -339,7 +336,6 @@ export const solConfig = {
     supportedAssetActions: [
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
-        ExploreAssetActions.SELL_ASSET,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
     isNative: true,

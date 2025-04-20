@@ -105,6 +105,8 @@ message Beneficiary {
   string channel_id = 6;
   string network_id = 7;
   SupportedCountry country = 8;
+  string name_enquiry_reference = 9;
+  string seerbit_id = 10;
 }
 
 message GetBeneficiaryRequest {
@@ -140,6 +142,8 @@ message AddBeneficiaryRequest {
   string channel_id = 7;
   string country = 8;
   string owner_id = 9;
+  string name_enquiry_reference = 10;
+  string seerbit_id = 11;
 }
 message AddBeneficiaryResponse {
   string new_beneficiary_id = 1;
@@ -153,6 +157,7 @@ message ActivePaymentNetwork {
   string name = 1;
   string network_id = 2;
   string channel_id = 3;
+  string seerbit_id = 4;
 }
 message GetPaymentNetworksResponse {
   repeated ActivePaymentNetwork networks = 1;

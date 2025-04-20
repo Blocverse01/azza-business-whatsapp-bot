@@ -15,6 +15,7 @@ import { generateRandomHexString } from '@/resources/utils/encryption';
 import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
 import { AssetConfig } from '@/resources/web3/core/tokens';
 import { type CountryCode } from 'libphonenumber-js';
+import { extractIdFromString } from './schema';
 
 enum AddBeneficiaryFlowScreens {
     ACCOUNT_TYPE = 'ACCOUNT_TYPE',
@@ -228,7 +229,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
 
         return {
             bankName: selectedBank.title,
-            networkId: selectedBank.id,
+            networkId: selectedBank.id
         };
     }
 
@@ -318,7 +319,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
             data: {
                 supported_banks: supportedBanks.map((bank) => ({
                     title: bank.name,
-                    id: bank.networkId,
+                    id: (country_code === 'NG') ? `networkId:${bank.networkId}:seerbitId:${bank.seerbitId}` : `${bank.networkId}`
                 })),
                 country_code,
                 channel_id: selectedAccountType.channelId,
@@ -349,6 +350,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
                     title: provider.name,
                     id: provider.networkId,
                     description: provider.name,
+                    seerbitId: ''
                 })),
                 country_code,
                 channel_id: selectedAccountType.channelId,
@@ -374,6 +376,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
         } = input;
 
         const selectedBank = this.determineSelectedBank(bank, supported_banks);
+
         let resolvedBankAccount: Awaited<ReturnType<typeof FiatRampService.resolveBankAccount>> =
             null;
 
@@ -383,10 +386,12 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 country_code.toUpperCase()
             )
         ) {
-            resolvedBankAccount = await FiatRampService.resolveBankAccount(
-                selectedBank.networkId,
-                account_number.trim()
-            );
+            resolvedBankAccount = await FiatRampService.resolveBankAccount({
+                networkId: (country_code === 'NG') ? extractIdFromString({ input: selectedBank.networkId, key: "networkId" }) : selectedBank.networkId,
+                accountNumber: account_number.trim(),
+                seerbitId: (country_code === 'NG') ? extractIdFromString({ input: selectedBank.networkId, key: "seerbitId" }) : '',
+                countryCode: country_code.toUpperCase()
+            });
         }
 
         if (!resolvedBankAccount && !account_name) {
@@ -419,7 +424,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 account_number,
                 bank_name: selectedBank.bankName,
                 channel_id,
-                network_id: selectedBank.networkId,
+                network_id: `${selectedBank.networkId}:nameEnquiryReference:${resolvedBankAccount?.sessionId}`,
                 country_code,
                 user_id,
                 asset_id,
@@ -438,17 +443,20 @@ class WhatsAppBotAddBeneficiaryFlowService {
             account_number,
             bank_name,
             asset_id,
-            user_id,
+            user_id
         } = input;
 
         try {
             const supportedCountries = await FiatRampService.getSupportedCurrencies();
+
             const country = supportedCountries.find((country) => country.code === country_code);
+
 
             if (!country) {
                 throw new Error('Invalid country code');
             }
 
+            //add safehaven details
             const beneficiaryId = await FiatRampService.createBeneficiary(
                 user_id,
                 country_code as CountryCode,
@@ -458,7 +466,9 @@ class WhatsAppBotAddBeneficiaryFlowService {
                         accountName: account_name.trim(),
                         accountNumber: account_number.trim(),
                         bankName: bank_name,
-                        networkId: network_id,
+                        networkId: (country_code === 'NG') ? extractIdFromString({ input: network_id, key: 'networkId' }) : network_id,
+                        seerbitId: (country_code === 'NG') ? extractIdFromString({ input: network_id, key: 'seerbitId' }) : '',
+                        nameEnquiryReference: (country_code === 'NG') ? extractIdFromString({ input: network_id, key: 'nameEnquiryReference' }) : '',
                         channelId: channel_id,
                         countryId: country.id,
                     },

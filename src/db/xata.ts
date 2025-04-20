@@ -119,6 +119,7 @@ const tables = [
     revLinks: [
       { column: "user", table: "user_blockradar_wallet" },
       { column: "user", table: "fallback_regional_phone_number" },
+      { column: "user", table: "gasless_withdrawal_counter" },
     ],
   },
   {
@@ -295,6 +296,106 @@ const tables = [
       { name: "countryCode", type: "text", notNull: true, defaultValue: "" },
     ],
   },
+  {
+    name: "gasless_withdrawal_counter",
+    columns: [
+      {
+        name: "transactionCount",
+        type: "int",
+        notNull: true,
+        defaultValue: "0",
+      },
+      { name: "chain", type: "text", notNull: true, defaultValue: "" },
+      { name: "user", type: "link", link: { table: "user_v2" } },
+      { name: "maxLimit", type: "int", notNull: true, defaultValue: "10" },
+    ],
+  },
+  {
+    name: "safehaven_offramp_settlement_transaction",
+    columns: [
+      { name: "country", type: "text", notNull: true, defaultValue: "" },
+      {
+        name: "blockchainNetwork",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      {
+        name: "fromWalletAddress",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      {
+        name: "hotWalletAddress",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      {
+        name: "localAmount",
+        type: "float",
+        notNull: true,
+        defaultValue: "0.0",
+      },
+      { name: "ownerId", type: "text", notNull: true, defaultValue: "" },
+      { name: "sequenceId", type: "text", notNull: true, defaultValue: "" },
+      { name: "tokenAddress", type: "text", notNull: true, defaultValue: "" },
+      { name: "tokenSymbol", type: "text", notNull: true, defaultValue: "" },
+      {
+        name: "transactionFeeUsd",
+        type: "float",
+        notNull: true,
+        defaultValue: "0.0",
+      },
+      {
+        name: "transactionHash",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      { name: "usdAmount", type: "float", notNull: true, defaultValue: "0.0" },
+      {
+        name: "processingStatus",
+        type: "text",
+        notNull: true,
+        defaultValue: "pending",
+      },
+      {
+        name: "destinationAccountName",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      {
+        name: "destinationNetworkName",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      { name: "paymentCurrency", type: "text" },
+      {
+        name: "platformFeePercentage",
+        type: "float",
+        notNull: true,
+        defaultValue: "0.0",
+      },
+      { name: "localCurrencySymbol", type: "text" },
+      {
+        name: "conversionRate",
+        type: "float",
+        notNull: true,
+        defaultValue: "0.0",
+      },
+      {
+        name: "destinationAccountNumber",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      { name: "sessionId", type: "text" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -345,6 +446,16 @@ export type FallbackRegionalPhoneNumber =
 export type FallbackRegionalPhoneNumberRecord = FallbackRegionalPhoneNumber &
   XataRecord;
 
+export type GaslessWithdrawalCounter =
+  InferredTypes["gasless_withdrawal_counter"];
+export type GaslessWithdrawalCounterRecord = GaslessWithdrawalCounter &
+  XataRecord;
+
+export type SafehavenOfframpSettlementTransaction =
+  InferredTypes["safehaven_offramp_settlement_transaction"];
+export type SafehavenOfframpSettlementTransactionRecord =
+  SafehavenOfframpSettlementTransaction & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -359,6 +470,8 @@ export type DatabaseSchema = {
   user_message: UserMessageRecord;
   conversation_summary: ConversationSummaryRecord;
   fallback_regional_phone_number: FallbackRegionalPhoneNumberRecord;
+  gasless_withdrawal_counter: GaslessWithdrawalCounterRecord;
+  safehaven_offramp_settlement_transaction: SafehavenOfframpSettlementTransactionRecord;
 };
 
 const DatabaseClient = buildClient();

@@ -33,6 +33,7 @@ export default class WhatsAppFlowController {
 
     public static async addBeneficiaryFlowDataExchange(req: Request, res: Response) {
         try {
+
             const { decryptedBody, initialVectorBuffer, aesKeyBuffer } =
                 requestDecryptedDataFlowExchange(req);
 

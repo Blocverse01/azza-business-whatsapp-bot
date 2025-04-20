@@ -13,6 +13,7 @@ import { CRYPTO_PAYOUT_REFERENCE_PREFIX } from '@/constants/strings';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import logger from '@/resources/logger';
 import * as math from 'mathjs';
+import SafeHavenService from '../SafeHaven/SafeHavenService';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -114,6 +115,9 @@ export const createCryptoPayoutWorker = () => {
                 if (transactionType === 'offramp-refund') {
                     return await FiatRampService.getOfframpTransaction(transactionId);
                 }
+                if (transactionType === 'offramp-safehaven-refund') {
+                    return await SafeHavenService.getSafeHavenOfframpTransaction(transactionId);
+                }
                 if (transactionType === 'onramp-payout') {
                     return await FiatRampService.getOnrampTransaction(transactionId);
                 }
@@ -125,7 +129,7 @@ export const createCryptoPayoutWorker = () => {
             }
 
             const canPayout =
-                transactionType === 'offramp-refund'
+                transactionType === 'offramp-refund' || 'offramp-safehaven-refund'
                     ? transaction.status === 'failed'
                     : transaction.status === 'complete';
 
@@ -135,7 +139,7 @@ export const createCryptoPayoutWorker = () => {
 
             let transactionAmount = transaction.usdAmount;
 
-            if (transactionType === 'offramp-refund' && 'transactionHash' in transaction) {
+            if ((transactionType === 'offramp-refund' || transactionType === 'offramp-safehaven-refund') && 'transactionHash' in transaction) {
                 const offrampRequest = await dbClient.offramp_awaiting_crypto_debit
                     .filter({
                         cryptoTransactionId: transaction.transactionHash,

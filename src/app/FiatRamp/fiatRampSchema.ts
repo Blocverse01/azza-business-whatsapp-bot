@@ -88,11 +88,21 @@ export const sendOnrampTransactionResponseSchema = z.object({
 
 export type SendOnrampTransactionResponse = z.infer<typeof sendOnrampTransactionResponseSchema>;
 
+export const resolveBankAccountSchema = z.object({
+    accountName: z.string(),
+    accountBank: z.string(),
+    accountNumber: z.string(),
+    sessionId: z.string().optional(),
+});
+
 export const supportedPaymentNetworkSchema = z.object({
     networkId: z.string().min(3),
     channelId: z.string().min(3),
     name: z.string().min(3),
+    seerbitId: z.string().min(3).optional(),
 });
+
+export type supportedPaymentNetworkType = z.infer<typeof supportedPaymentNetworkSchema>;
 
 const beneficiaryCountrySchema = z.object({
     country: z.string(),
@@ -110,6 +120,8 @@ export const bankBeneficiarySchema = z.object({
     id: z.string(),
     countryId: z.string(),
     country: beneficiaryCountrySchema,
+    seerbitId: z.string().optional(),
+    nameEnquiryReference: z.string().optional(),
 });
 
 export const mobileMoneyBeneficiarySchema = (countryCode: CountryCode) =>
@@ -198,6 +210,9 @@ export const OfframpTransactionRecordSchema = z.object({
         networkId: z.string(),
         country: z.string(),
         accountType: z.enum(['bank', 'phone']),
+        seerbitId: z.string().optional(),
+        nameEnquiryReference: z.string().optional(),
+        channelId: z.string().optional(),
     }),
     createdAt: z.string().datetime(),
     rate: z.number(),

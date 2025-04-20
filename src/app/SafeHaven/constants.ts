@@ -1,0 +1,3 @@
+export const SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE: number = 500;
+
+export const SAFEHAVEN_WITHDRAWAL_LIMIT: number = 2000000;

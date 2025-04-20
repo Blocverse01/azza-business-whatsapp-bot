@@ -19,6 +19,7 @@ import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { createFiatPayoutV2Worker } from '@/app/FiatRamp/queue-helpers';
+import { createSafeHavenTransactionUpdateJobWorker } from '@/app/SafeHaven/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
@@ -240,12 +241,12 @@ const cryptoDebitConfirmationWorker = new Worker<
 
                 await CryptoPayoutService.updateProcessedCryptPayoutOrder(job.data.orderId, {
                     status: newStatus,
-                    payoutTransactionHash: transactionReceipt.transactionHash,
+                    payoutTransactionHash: transactionReceipt.transactionHash ?? null,
                 });
 
                 return {
                     status: transactionReceipt.status,
-                    transactionHash: transactionReceipt.transactionHash,
+                    transactionHash: transactionReceipt.transactionHash ?? null,
                 };
             }
 
@@ -306,7 +307,7 @@ const cryptoDebitConfirmationWorker = new Worker<
 
             return {
                 status: transactionReceipt.status,
-                transactionHash: transactionReceipt.transactionHash,
+                transactionHash: transactionReceipt.transactionHash ?? null,
             };
         }
 
@@ -362,7 +363,7 @@ const cryptoDebitConfirmationWorker = new Worker<
 
         return {
             status: transactionReceipt.status,
-            transactionHash: transactionReceipt.transactionHash,
+            transactionHash: transactionReceipt.transactionHash ?? null,
         };
     },
     {
@@ -464,6 +465,7 @@ createWhatsappBroadcastWorker();
 createEventDrivenOfframpWorker();
 createFiatPayoutV2Worker();
 createSyncUserWalletWorker();
+createSafeHavenTransactionUpdateJobWorker();
 createBaseCashbackWorker();
 createCryptoPayoutWorker();
 createCleanupOldMessagesWorker();

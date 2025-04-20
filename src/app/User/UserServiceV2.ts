@@ -125,13 +125,18 @@ class UserServiceV2 {
             }
         }
 
-        const user = await this.repository.user.getUserByWhatsappPhoneNumber(phoneNumber);
+        try {
+            const user = await this.repository.user.getUserByWhatsappPhoneNumber(phoneNumber);
 
-        if (user && this.cacheStore && this.env.enableCache) {
-            await this.cacheStore.set(cacheKey, user.id);
+            if (user && this.cacheStore && this.env.enableCache) {
+                await this.cacheStore.set(cacheKey, user.id);
+            }
+
+            return user;
+        } catch (error) {
+            console.log('Error fetching user', error);
+            throw error;
         }
-
-        return user;
     }
 
     public static async getUserById(userId: string) {
@@ -152,6 +157,12 @@ class UserServiceV2 {
         }
 
         return user;
+    }
+
+    public static async getUserPhoneNumber(userId: string) {
+        const user = await this.getUserById(userId);
+        const userPhoneNumber = user?.primaryWhatsappPhoneNumber!;
+        return userPhoneNumber;
     }
 
     public static async searchWhatsappUserByPhoneNumber(phoneNumber: string) {
@@ -408,12 +419,12 @@ class UserServiceV2 {
 
         const walletsToCreate = evmWallet
             ? [
-                  {
-                      ...evmWallet,
-                      blockchainNetwork: 'EVM',
-                  },
-                  ...otherWallets,
-              ]
+                {
+                    ...evmWallet,
+                    blockchainNetwork: 'EVM',
+                },
+                ...otherWallets,
+            ]
             : otherWallets;
 
         const walletConfig = await this.repository.blockradarWallet.createWalletConfig(

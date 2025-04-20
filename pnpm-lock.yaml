@@ -101,9 +101,15 @@ importers:
       puppeteer:
         specifier: ^24.2.1
         version: 24.3.1(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)
+      slugify:
+        specifier: ^1.6.6
+        version: 1.6.6
       smile-identity-core:
         specifier: ^3.1.0
         version: 3.1.0
+      string-similarity-js:
+        specifier: ^2.1.4
+        version: 2.1.4
       tronweb:
         specifier: 6.0.0-beta.4
         version: 6.0.0-beta.4(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -3192,6 +3198,10 @@ packages:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
 
+  slugify@1.6.6:
+    resolution: {integrity: sha512-h+z7HKHYXj6wJU+AnS/+IH8Uh9fdcX1Lrhg1/VMdf9PwoBQXFcXiAdsy2tSK0P6gKwJLXp02r90ahUCqHk9rrw==}
+    engines: {node: '>=8.0.0'}
+
   smart-buffer@4.2.0:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
@@ -3250,6 +3260,9 @@ packages:
   string-length@4.0.2:
     resolution: {integrity: sha512-+l6rNN5fYHNhZZy41RXsYptCjA2Igmq4EG7kZAYFQI1E1VTXarr6ZPXBg6eq7Y6eK4FEhY6AJlyuFIb/v/S0VQ==}
     engines: {node: '>=10'}
+
+  string-similarity-js@2.1.4:
+    resolution: {integrity: sha512-uApODZNjCHGYROzDSAdCmAHf60L/pMDHnP/yk6TAbvGg7JSPZlSto/ceCI7hZEqzc53/juU2aOJFkM2yUVTMTA==}
 
   string-width@4.2.3:
     resolution: {integrity: sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==}
@@ -7193,6 +7206,8 @@ snapshots:
 
   slash@3.0.0: {}
 
+  slugify@1.6.6: {}
+
   smart-buffer@4.2.0: {}
 
   smile-identity-core@3.1.0:
@@ -7254,6 +7269,8 @@ snapshots:
     dependencies:
       char-regex: 1.0.2
       strip-ansi: 6.0.1
+
+  string-similarity-js@2.1.4: {}
 
   string-width@4.2.3:
     dependencies:

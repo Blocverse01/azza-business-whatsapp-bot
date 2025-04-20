@@ -8,11 +8,13 @@ import {
     paymentMethodsResponseDataSchema,
     quoteSchema,
     ratesSchema,
+    resolveBankAccountSchema,
     SendOfframpRequestPayload,
     sendOfframpRequestPayloadSchema,
     sendOnrampTransactionResponseSchema,
     supportedCountry,
     supportedPaymentNetworkSchema,
+    supportedPaymentNetworkType,
 } from '@/app/FiatRamp/fiatRampSchema';
 import redis from '@/cache/redis';
 import { HUNDRED } from '@/constants/numbers';
@@ -63,12 +65,16 @@ import ResolveBankAccountRequest = fiatramps.v1.ResolveBankAccountRequest;
 import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
 import UpdatePaymentTransactionStatusRequest = fiatramps.v1.UpdatePaymentTransactionStatusRequest;
 import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
+import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
+import slugify from 'slugify';
+import env from '@/constants/env';
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
         const cacheKey = 'supported_countries';
         const cachedCountries = await redis.get(cacheKey);
-        if (cachedCountries) {
+
+        if (cachedCountries && JSON.parse(cachedCountries).length !== 0) {
             return z.array(supportedCountry).parse(JSON.parse(cachedCountries));
         }
 
@@ -186,6 +192,8 @@ class FiatRampsRpcService {
                 channelId: deserializedBeneficiary.channel_id!,
                 networkId: deserializedBeneficiary.network_id!,
                 id: deserializedBeneficiary.id!,
+                nameEnquiryReference: deserializedBeneficiary.name_enquiry_reference!,
+                seerbitId: deserializedBeneficiary.seerbit_id!,
             } satisfies BankBeneficiary;
         }
 
@@ -219,6 +227,7 @@ class FiatRampsRpcService {
         });
 
         const response = await getBeneficiary(request);
+
         const parsedBeneficiary = this.parseBeneficiary(response);
 
         await redis.set(cacheKey, JSON.stringify(parsedBeneficiary));
@@ -292,12 +301,16 @@ class FiatRampsRpcService {
                       accountType: accountType,
                       accountNumber: params.beneficiary.mobileNumber,
                       networkName: params.beneficiary.mobileProvider,
+                      nameEnquiryReference: '',
+                      seerbitId: '',
                   }))()
                 : (() => ({
                       accountName: params.beneficiary.accountName,
                       accountType: accountType,
                       accountNumber: params.beneficiary.accountNumber,
                       networkName: params.beneficiary.bankName,
+                      nameEnquiryReference: params.beneficiary.nameEnquiryReference,
+                      seerbitId: params.beneficiary.seerbitId,
                   }))();
 
         const request = new AddBeneficiaryRequest({
@@ -311,6 +324,8 @@ class FiatRampsRpcService {
             channel_id: params.beneficiary.channelId,
             country: countryCode,
             network_name: beneficiaryDetails.networkName.trim(),
+            name_enquiry_reference: beneficiaryDetails.nameEnquiryReference,
+            seerbit_id: beneficiaryDetails.seerbitId,
             owner_id: ownerId,
         });
 
@@ -491,14 +506,7 @@ class FiatRampsRpcService {
             });
 
             const response = await resolveBankAccount(request);
-
-            return z
-                .object({
-                    accountName: z.string(),
-                    accountBank: z.string(),
-                    accountNumber: z.string(),
-                })
-                .parse(transformKeysToCamelCase(response.toObject()));
+            return resolveBankAccountSchema.parse(transformKeysToCamelCase(response.toObject()));
         } catch (error) {
             void logger.error('Error resolving bank account', { error });
             return null;
