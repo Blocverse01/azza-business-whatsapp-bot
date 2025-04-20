@@ -202,40 +202,44 @@ class FiatRampService {
     }
 
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
-        const [beneficiary, yellowCardPayoutIsEnabled, saveHavenPayoutIsEnabled] =
+        // Fetch beneficiary and feature flag statuses concurrently
+        const [beneficiary, yellowCardPayoutIsEnabled, safeHavenPayoutIsEnabled] =
             await Promise.all([
                 FiatRampService.getBeneficiary(params.beneficiaryId),
                 FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS),
                 FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAFEHAVEN_NGN_PAYOUTS),
             ]);
 
+        // Special handling for Nigeria (NG) beneficiaries
         if (beneficiary.country.code === 'NG') {
-            if (saveHavenPayoutIsEnabled) {
+            if (safeHavenPayoutIsEnabled) {
                 const balance = await SafeHavenService.getSafeHavenAccountBalance();
                 const transferableBalance = balance - SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE;
 
-                if (
-                    transferableBalance < params.localAmount ||
-                    params.localAmount > SAFEHAVEN_WITHDRAWAL_LIMIT
-                ) {
-                    return await FiatRampService.passOfframpTransactionToManualProcess(
+                const withinLimits =
+                    transferableBalance >= params.localAmount &&
+                    params.localAmount <= SAFEHAVEN_WITHDRAWAL_LIMIT;
+
+                if (withinLimits) {
+                    // SafeHaven is available, sufficiently funded, and within withdrawal limits — use it.
+                    return await FiatRampService.passOfframpTransactionToSafeHaven(
                         beneficiary,
                         params
                     );
                 }
-
-                return await FiatRampService.passOfframpTransactionToSafeHaven(beneficiary, params);
             }
 
-            if (!yellowCardPayoutIsEnabled) {
-                return await FiatRampService.passOfframpTransactionToManualProcess(
-                    beneficiary,
-                    params
-                );
+            if (yellowCardPayoutIsEnabled) {
+                // SafeHaven isn't viable — use YellowCard if enabled
+                return await FiatRampService.passOfframpTransactionToYC(params);
             }
+
+            // Neither SafeHaven nor YellowCard is viable — fall back to manual processing
+            return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
         }
 
-        return await FiatRampsRpcService.createBeneficiaryOfframpRequest(params);
+        // Default path for non-NG countries — use YellowCard
+        return await FiatRampService.passOfframpTransactionToYC(params);
     }
 
     public static async getTransactionStatus(sequenceId: string, route: 'onramp' | 'offramp') {
@@ -446,7 +450,7 @@ class FiatRampService {
         };
     }
 
-    public static async passOfframpTransactionToSafeHaven(
+    private static async passOfframpTransactionToSafeHaven(
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload
     ) {
@@ -516,7 +520,7 @@ class FiatRampService {
         return transaction.sequenceId;
     }
 
-    public static async passOfframpTransactionToManualProcess(
+    private static async passOfframpTransactionToManualProcess(
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload
     ) {
@@ -539,6 +543,10 @@ class FiatRampService {
         );
 
         return manualSettlementRecord.sequenceId;
+    }
+
+    private static async passOfframpTransactionToYC(params: SendOfframpRequestPayload) {
+        return await FiatRampsRpcService.createBeneficiaryOfframpRequest(params);
     }
 }
 
