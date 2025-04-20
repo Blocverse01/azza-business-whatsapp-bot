@@ -1,4 +1,4 @@
-import { FeatureFlagKey, SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE, SAFEHAVEN_WITHDRAWAL_LIMIT } from '@/app/FeatureFlag/feature-flag-schema';
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import ManualOfframpSettlementService, {
     ManualOfframpSettlement,
@@ -7,21 +7,31 @@ import {
     Beneficiary,
     CreateBeneficiaryParams,
     OnrampTransactionPayload,
+    resolveBankAccountSchema,
     SendOfframpRequestPayload,
     sendOfframpRequestPayloadSchema,
     SendOnrampTransactionResponse,
+    supportedPaymentNetworkType,
     TransactionFees,
+    transactionStatusSchema,
 } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService';
+import {
+    SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE,
+    SAFEHAVEN_WITHDRAWAL_LIMIT,
+} from '@/app/SafeHaven/constants';
 import env from '@/constants/env';
 import { HUNDRED } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
 import { HttpException } from '@/resources/exceptions/HttpException';
+import { transformKeysToCamelCase } from '@/resources/utils/transformers';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { getNetworkTag } from '@/runtime/platform-wallets';
 import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
 import crypto from 'node:crypto';
+import slugify from 'slugify';
+
 import {
     YellowCardOfframpEvent,
     YellowCardOfframpEvents,
@@ -30,7 +40,6 @@ import {
     YellowCardWebhookPayload,
 } from './types';
 import SafeHavenService from '../SafeHaven/SafeHavenService';
-
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
@@ -95,33 +104,76 @@ class FiatRampService {
     }
 
     public static async getSupportedBanks(countryCode: CountryCode, channelId: string) {
-        return await FiatRampsRpcService.getPaymentNetworks(countryCode, channelId);
+        const networks = await FiatRampsRpcService.getPaymentNetworks(countryCode, channelId);
+
+        if (countryCode === 'NG') {
+            const safeHavenBank = await SafeHavenService.getSupportedBanks();
+
+            const commonBanks = safeHavenBank.reduce<supportedPaymentNetworkType[]>(
+                (accumulator, safeHavenBank) => {
+                    const matchingYellowCardBank = networks.find((bank) => {
+                        return (
+                            safeHavenBank.bankCode === bank.seerbitId ||
+                            (env.WEB3_ENVIRONMENT === 'testnet' &&
+                                safeHavenBank.slug ===
+                                    slugify(bank.name, { lower: true, replacement: '-' }))
+                        );
+                    });
+
+                    if (matchingYellowCardBank) {
+                        accumulator.push({
+                            channelId: matchingYellowCardBank.channelId,
+                            networkId: matchingYellowCardBank.networkId,
+                            seerbitId: safeHavenBank.bankCode,
+                            name: safeHavenBank.name,
+                        });
+                    }
+                    return accumulator;
+                },
+                []
+            );
+
+            return commonBanks;
+        }
+
+        return networks;
     }
 
-    public static async getAccountNameEntryId(data:
-        {
-            networkId: string,
-            countryCode: CountryCode,
-            channelId: string,
-            accountNumber: string
-        }) {
+    public static async getBankNetwork(data: {
+        networkId: string;
+        countryCode: CountryCode;
+        channelId: string;
+    }) {
+        const { networkId, countryCode, channelId } = data;
 
+        const banks = await this.getSupportedBanks(countryCode, channelId);
+
+        const network = banks.find((bank) => bank.networkId === networkId);
+
+        if (!network) throw new Error(`Network not found`);
+
+        return network;
+    }
+
+    public static async getAccountNameEntryId(data: {
+        networkId: string;
+        countryCode: CountryCode;
+        channelId: string;
+        accountNumber: string;
+    }) {
         const { networkId, countryCode, channelId, accountNumber } = data;
 
-        console.log('getAccountNameEntryId',data);
-
-        const bank = await FiatRampsRpcService.getNetwork({ networkId, countryCode, channelId })
+        const bank = await this.getBankNetwork({ networkId, countryCode, channelId });
 
         const accountNameEnquiry = await SafeHavenService.accountNameEnquiry({
             bankCode: bank.seerbitId ?? '',
-            accountNumber: accountNumber
-        })
+            accountNumber: accountNumber,
+        });
 
         return {
             seerbitId: accountNameEnquiry.bankCode,
-            nameEnquiryReference: accountNameEnquiry.sessionId
-        }
-
+            nameEnquiryReference: accountNameEnquiry.sessionId,
+        };
     }
 
     public static async createBeneficiary(
@@ -146,34 +198,36 @@ class FiatRampService {
     }
 
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
-
-        const [beneficiary, yellowCardPayoutIsEnabled, saveHavenPayoutIsEnabled] = await Promise.all([
-            FiatRampService.getBeneficiary(params.beneficiaryId),
-            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS),
-            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAFEHAVEN_NGN_PAYOUTS)
-        ]);
+        const [beneficiary, yellowCardPayoutIsEnabled, saveHavenPayoutIsEnabled] =
+            await Promise.all([
+                FiatRampService.getBeneficiary(params.beneficiaryId),
+                FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS),
+                FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAFEHAVEN_NGN_PAYOUTS),
+            ]);
 
         if (beneficiary.country.code === 'NG') {
-
             if (saveHavenPayoutIsEnabled) {
-
                 const balance = await SafeHavenService.getSafeHavenAccountBalance();
+                const transferableBalance = balance - SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE;
 
-                if ((balance + SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE) < params.localAmount) {
-                    return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
-                }
-
-                if ((balance + SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE) > params.localAmount
-                    && params.localAmount > SAFEHAVEN_WITHDRAWAL_LIMIT
+                if (
+                    transferableBalance < params.localAmount ||
+                    params.localAmount > SAFEHAVEN_WITHDRAWAL_LIMIT
                 ) {
-                    return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
+                    return await FiatRampService.passOfframpTransactionToManualProcess(
+                        beneficiary,
+                        params
+                    );
                 }
 
                 return await FiatRampService.passOfframpTransactionToSafeHaven(beneficiary, params);
             }
 
             if (!yellowCardPayoutIsEnabled) {
-                return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
+                return await FiatRampService.passOfframpTransactionToManualProcess(
+                    beneficiary,
+                    params
+                );
             }
         }
 
@@ -243,21 +297,26 @@ class FiatRampService {
         return ['NG'];
     }
 
-    public static async resolveBankAccount(
-        data: {
-            networkId: string,
-            accountNumber: string,
-            seerbitId: string,
-            countryCode: string
-        }) {
-
+    public static async resolveBankAccount(data: {
+        networkId: string;
+        accountNumber: string;
+        seerbitId: string;
+        countryCode: string;
+    }) {
         const { networkId, accountNumber, seerbitId, countryCode } = data;
+
+        if (countryCode === 'NG') {
+            const response = await SafeHavenService.accountNameEnquiry({
+                bankCode: seerbitId,
+                accountNumber: accountNumber,
+            });
+
+            return resolveBankAccountSchema.parse(response);
+        }
 
         return await FiatRampsRpcService.resolveBankAccount({
             networkId,
             accountNumber,
-            seerbitId,
-            countryCode
         });
     }
 
@@ -331,12 +390,11 @@ class FiatRampService {
         };
     }
 
-
     private static async _prepareOfframpSettlementData(
         beneficiary: Beneficiary,
-        params: SendOfframpRequestPayload
+        params: SendOfframpRequestPayload,
+        processorIdentifier: 'mp' | 'safehaven'
     ): Promise<ManualOfframpSettlement> {
-
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
         const localCurrencySymbol = beneficiary.country.currencySymbol;
 
@@ -357,7 +415,10 @@ class FiatRampService {
             ownerId: validatedParams.userId,
             fromWalletAddress: validatedParams.userWalletAddress,
             hotWalletAddress: validatedParams.hotWalletAddress,
-            sequenceId: ManualOfframpSettlementService.generateSequenceId(validatedParams.txHash, 'safehaven'),
+            sequenceId: ManualOfframpSettlementService.generateSequenceId(
+                validatedParams.txHash,
+                processorIdentifier
+            ),
             platformFeePercentage: validatedParams.platformFeePercentage,
             destination: {
                 accountType: 'mobileNumber' in beneficiary ? 'phone' : 'bank',
@@ -372,21 +433,24 @@ class FiatRampService {
                 networkName:
                     'bankName' in beneficiary ? beneficiary.bankName : beneficiary.mobileProvider,
                 seerbitId: 'bankName' in beneficiary ? beneficiary.seerbitId : '',
-                nameEnquiryReference: 'bankName' in beneficiary ? beneficiary.nameEnquiryReference : '',
+                nameEnquiryReference:
+                    'bankName' in beneficiary ? beneficiary.nameEnquiryReference : '',
                 networkId: beneficiary.networkId,
                 country: beneficiary.country.code,
-                channelId: beneficiary.channelId
+                channelId: beneficiary.channelId,
             },
         };
     }
-
 
     public static async passOfframpTransactionToSafeHaven(
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload
     ) {
-
-        const settlementData = await this._prepareOfframpSettlementData(beneficiary, params);
+        const settlementData = await this._prepareOfframpSettlementData(
+            beneficiary,
+            params,
+            'safehaven'
+        );
 
         const safeHavenSettlementRecord =
             await SafeHavenService.createSafeHavenOfframpSettlement(settlementData);
@@ -395,14 +459,10 @@ class FiatRampService {
             throw new Error('Failed to create safehaven settlement record');
         }
 
-        const { networkId,
-            country,
-            channelId,
-            seerbitId,
-            nameEnquiryReference,
-            accountNumber } = settlementData.destination
+        const { networkId, country, channelId, seerbitId, nameEnquiryReference, accountNumber } =
+            settlementData.destination;
 
-        let accountNameEnquiry: { seerbitId: string, nameEnquiryReference: string } = {
+        let accountNameEnquiry: { seerbitId: string; nameEnquiryReference: string } = {
             seerbitId: '',
             nameEnquiryReference: '',
         };
@@ -412,9 +472,9 @@ class FiatRampService {
                 networkId: networkId,
                 countryCode: country as CountryCode,
                 channelId: channelId!,
-                accountNumber: accountNumber
+                accountNumber: accountNumber,
             });
-        };
+        }
 
         await SafeHavenService.sendSafeHavenProcessingSettlementMessage({
             usdAmount: safeHavenSettlementRecord!.usdAmount!,
@@ -423,17 +483,17 @@ class FiatRampService {
             tokenSymbol: safeHavenSettlementRecord.tokenSymbol!,
             blockchainNetwork: safeHavenSettlementRecord.blockchainNetwork!,
             localCurrencySymbol: safeHavenSettlementRecord.localCurrencySymbol!,
-            localAmount: safeHavenSettlementRecord.localAmount!
-        })
+            localAmount: safeHavenSettlementRecord.localAmount!,
+        });
 
         const transaction = await SafeHavenService.processOffRampPaymentWithSaveHaven({
-            nameEnquiryReference: (nameEnquiryReference)
-                ? nameEnquiryReference : accountNameEnquiry.nameEnquiryReference,
+            nameEnquiryReference: nameEnquiryReference
+                ? nameEnquiryReference
+                : accountNameEnquiry.nameEnquiryReference,
             amountToSend: settlementData.localAmount,
-            beneficiaryBankCode: (seerbitId)
-                ? seerbitId : accountNameEnquiry.seerbitId,
+            beneficiaryBankCode: seerbitId ? seerbitId : accountNameEnquiry.seerbitId,
             beneficiaryAccountNumber: accountNumber,
-            sequenceId: safeHavenSettlementRecord.sequenceId
+            sequenceId: safeHavenSettlementRecord.sequenceId,
         });
 
         if (!transaction) {
@@ -441,8 +501,9 @@ class FiatRampService {
         }
 
         const isUpdated = await safeHavenSettlementRecord.update({
-            sessionId: transaction.sessionId
-        })
+            sessionId: transaction.sessionId,
+            processingStatus: transactionStatusSchema.parse('processing'),
+        });
 
         if (!isUpdated) {
             throw new Error('Failed to update safehaven off-ramp settlement status');
@@ -455,8 +516,7 @@ class FiatRampService {
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload
     ) {
-
-        const settlementData = await this._prepareOfframpSettlementData(beneficiary, params);
+        const settlementData = await this._prepareOfframpSettlementData(beneficiary, params, 'mp');
 
         const manualSettlementRecord =
             await ManualOfframpSettlementService.createManualOfframpSettlement(settlementData);

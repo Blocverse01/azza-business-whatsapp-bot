@@ -193,7 +193,7 @@ class FiatRampsRpcService {
                 networkId: deserializedBeneficiary.network_id!,
                 id: deserializedBeneficiary.id!,
                 nameEnquiryReference: deserializedBeneficiary.name_enquiry_reference!,
-                seerbitId: deserializedBeneficiary.seerbit_id!
+                seerbitId: deserializedBeneficiary.seerbit_id!,
             } satisfies BankBeneficiary;
         }
 
@@ -275,21 +275,7 @@ class FiatRampsRpcService {
             : defaultAmountFixer(offramp_fee_percentage / HUNDRED);
     }
 
-    public static async getNetwork(data: { networkId: string, countryCode: CountryCode, channelId: string }) {
-
-        const { networkId, countryCode, channelId } = data;
-
-        const networks = await this.getPaymentNetworks(countryCode, channelId);
-
-        const network = networks.find(bank => bank.networkId === networkId);
-
-        if (!network) throw new Error(`Network not found`);
-
-        return network;
-    }
-
     public static async getPaymentNetworks(countryCode: CountryCode, channelId: string) {
-
         const request = new GetPaymentNetworksRequest({
             country_code: countryCode,
             channel_id: channelId,
@@ -298,37 +284,6 @@ class FiatRampsRpcService {
         const response = await getPaymentNetworks(request);
 
         const { networks } = response.toObject();
-
-        if (request.country_code === 'NG') {
-
-            const yellowCardBanks = z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
-
-            const safeHavenBank = await SafeHavenService.getSupportedBanks();
-
-            const commonBanks = safeHavenBank.reduce<supportedPaymentNetworkType[]>((accumulator, safeHavenBank) => {
-
-                const matchingYellowCardBank = yellowCardBanks.find((bank) => {
-                    return (
-                        safeHavenBank.bankCode === bank.seerbitId ||
-                        (env.WEB3_ENVIRONMENT === 'testnet' &&
-                            safeHavenBank.slug === slugify(bank.name, { lower: true, replacement: '-' }))
-                    );
-                });
-
-                if (matchingYellowCardBank) {
-                    accumulator.push({
-                        channelId: matchingYellowCardBank.channelId,
-                        networkId: matchingYellowCardBank.networkId,
-                        seerbitId: safeHavenBank.bankCode,
-                        name: safeHavenBank.name
-                    });
-                }
-                return accumulator;
-            }, []);
-
-            return commonBanks;
-
-        }
 
         return z.array(supportedPaymentNetworkSchema).parse(transformKeysToCamelCase(networks));
     }
@@ -339,27 +294,24 @@ class FiatRampsRpcService {
         accountType: 'bank' | 'phone',
         params: CreateBeneficiaryParams
     ) {
-
         const beneficiaryDetails =
             'firstName' in params.beneficiary
                 ? (() => ({
-                    accountName: `${params.beneficiary.firstName.trim()} ${params.beneficiary.lastName.trim()}`,
-                    accountType: accountType,
-                    accountNumber: params.beneficiary.mobileNumber,
-                    networkName: params.beneficiary.mobileProvider,
-                    nameEnquiryReference: '',
-                    seerbitId: ''
-                }))()
+                      accountName: `${params.beneficiary.firstName.trim()} ${params.beneficiary.lastName.trim()}`,
+                      accountType: accountType,
+                      accountNumber: params.beneficiary.mobileNumber,
+                      networkName: params.beneficiary.mobileProvider,
+                      nameEnquiryReference: '',
+                      seerbitId: '',
+                  }))()
                 : (() => ({
-                    accountName: params.beneficiary.accountName,
-                    accountType: accountType,
-                    accountNumber: params.beneficiary.accountNumber,
-                    networkName: params.beneficiary.bankName,
-                    nameEnquiryReference: params.beneficiary.nameEnquiryReference,
-                    seerbitId: params.beneficiary.seerbitId
-                }))();
-
-        console.log('received', beneficiaryDetails.seerbitId);
+                      accountName: params.beneficiary.accountName,
+                      accountType: accountType,
+                      accountNumber: params.beneficiary.accountNumber,
+                      networkName: params.beneficiary.bankName,
+                      nameEnquiryReference: params.beneficiary.nameEnquiryReference,
+                      seerbitId: params.beneficiary.seerbitId,
+                  }))();
 
         const request = new AddBeneficiaryRequest({
             account_name: beneficiaryDetails.accountName
@@ -375,7 +327,6 @@ class FiatRampsRpcService {
             name_enquiry_reference: beneficiaryDetails.nameEnquiryReference,
             seerbit_id: beneficiaryDetails.seerbitId,
             owner_id: ownerId,
-
         });
 
         const response = await addBeneficiary(request);
@@ -547,33 +498,15 @@ class FiatRampsRpcService {
         return address;
     }
 
-    public static async resolveBankAccount(params:
-        {
-            networkId: string;
-            accountNumber: string,
-            countryCode: string,
-            seerbitId: string
-        }) {
+    public static async resolveBankAccount(params: { networkId: string; accountNumber: string }) {
         try {
-
-            if (params.countryCode === 'NG') {
-                const response = await SafeHavenService.accountNameEnquiry({
-                    bankCode: params.seerbitId,
-                    accountNumber: params.accountNumber
-                })
-
-                return resolveBankAccountSchema.parse(response);
-            }
-
             const request = new ResolveBankAccountRequest({
                 network_id: params.networkId,
-                account_number: params.accountNumber
+                account_number: params.accountNumber,
             });
 
             const response = await resolveBankAccount(request);
-
             return resolveBankAccountSchema.parse(transformKeysToCamelCase(response.toObject()));
-
         } catch (error) {
             void logger.error('Error resolving bank account', { error });
             return null;

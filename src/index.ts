@@ -1,9 +1,6 @@
 import CronHandler from '@/app/Cron';
 import { queues } from '@/background-processing/queues';
-import {
-    CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION,
-    SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION
-} from '@/config/backgroundJobs';
+import { SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION } from '@/config/backgroundJobs';
 import env from '@/constants/env';
 import { NOT_FOUND, OK } from '@/constants/status-codes';
 import logger from '@/resources/logger';
@@ -18,6 +15,7 @@ import apiRoutes from './routes';
 import './background-processing/workers';
 import './app/globalErrorHandler';
 import './background-processing/single-instance-workers';
+
 const app = express();
 
 app.use(compression());
@@ -58,7 +56,7 @@ createBullBoard({
         new BullMQAdapter(queues.cryptoPayout),
         new BullMQAdapter(queues.cleanupMessages),
         new BullMQAdapter(queues.handleSmileKycWebhook),
-        new BullMQAdapter(queues.handleSafeHavenTransactionStatusUpdate)
+        new BullMQAdapter(queues.handleSafeHavenTransactionStatusUpdate),
     ],
     serverAdapter: serverAdapter,
 });
@@ -76,11 +74,6 @@ app.listen(env.PORT, () => {
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 
-// if (env.SHOULD_EXECUTE_CRYPTO_PAYOUTS) {
-//     CronHandler.scheduleCryptoPayoutExecution(CRYPTO_PAYOUTS_EXECUTION_CRON_EXPRESSION);
-// }
-
 if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
-    CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION)
+    CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
 }
-

@@ -189,7 +189,6 @@ class WhatsAppBotService {
             const responseData = await response.body.json();
 
             if (response.statusCode !== OK) {
-               
                 await logServiceError(
                     new HttpException(response.statusCode, 'Error uploading media', {
                         responseData,
@@ -351,9 +350,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                    title: 'More',
-                } as const)
+                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                      title: 'More',
+                  } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -604,7 +603,7 @@ class WhatsAppBotService {
                     type: 'image',
                 }
             );
-        } catch (error) { }
+        } catch (error) {}
     }
 
     public static async depositAssetCommandHandler(
@@ -818,14 +817,14 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
-                    title: 'More',
-                }
+                      id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                      title: 'More',
+                  }
                 : null;
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);
 
-        console.log({ countriesToDisplay })
+        console.log({ countriesToDisplay });
 
         const page = Math.floor(sliceFrom / 9) + 1;
 
