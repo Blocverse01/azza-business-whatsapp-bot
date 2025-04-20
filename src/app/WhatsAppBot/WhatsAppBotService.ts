@@ -824,8 +824,6 @@ class WhatsAppBotService {
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);
 
-        console.log({ countriesToDisplay });
-
         const page = Math.floor(sliceFrom / 9) + 1;
 
         const shouldShowCurrentPageNumber = supportedCurrencies.length > 9;
