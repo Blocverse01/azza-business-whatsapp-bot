@@ -14,10 +14,15 @@ import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
 import * as math from 'mathjs';
 import * as assert from 'node:assert';
+import crypto from 'node:crypto';
 
 export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2) => {
-    return await queues.fiatPayoutV2.add(`fiat-payout-${params.txHash}`, params, {
-        jobId: `fiat-payout-${params.txHash}`,
+    const txHashSha256 = crypto.createHash('sha256').update(params.txHash).digest('hex');
+    const relevantParts = txHashSha256.slice(0, 16) + txHashSha256.slice(-8);
+
+    const jobId = `fiat-payout-${relevantParts}`;
+    return await queues.fiatPayoutV2.add(jobId, params, {
+        jobId,
     });
 };
 
