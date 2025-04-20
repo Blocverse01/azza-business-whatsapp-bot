@@ -90,7 +90,7 @@ export type SendOnrampTransactionResponse = z.infer<typeof sendOnrampTransaction
 
 export const resolveBankAccountSchema = z.object({
     accountName: z.string(),
-    accountBank: z.string(),
+    accountBank: z.string().optional(),
     accountNumber: z.string(),
     sessionId: z.string().optional(),
 });
