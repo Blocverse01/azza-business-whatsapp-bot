@@ -92,9 +92,6 @@ class BotCommandHandler {
             case 'CHANGE_PIN':
                 await BotCommandHandler.changeTransactionPin(user, phoneParams);
                 break;
-            case 'PERFORM_KYC':
-                await BotCommandHandler.handleKycVerificationRequest(user, phoneParams);
-                break;
             default:
                 return {
                     handled: false,
