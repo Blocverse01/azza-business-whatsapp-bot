@@ -128,10 +128,15 @@ export const createCryptoPayoutWorker = () => {
                 throw Error(`Transaction with ID ${transactionId} not found`);
             }
 
-            const canPayout =
-                transactionType === 'offramp-refund' || 'offramp-safehaven-refund'
-                    ? transaction.status === 'failed'
-                    : transaction.status === 'complete';
+            const canPayout = (() => {
+                if(transactionType === 'offramp-refund' || transactionType === 'offramp-safehaven-refund') {
+                    return transaction.status === 'failed';
+                }
+                if(transactionType === 'onramp-payout') {
+                    return transaction.status === 'complete';
+                }
+                return false;
+            })();
 
             if (!canPayout) {
                 throw new Error(`Payout not available for transaction`);

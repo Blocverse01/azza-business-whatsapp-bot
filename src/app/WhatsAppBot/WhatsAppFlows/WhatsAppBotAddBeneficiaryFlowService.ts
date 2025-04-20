@@ -432,7 +432,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 account_number,
                 bank_name: selectedBank.bankName,
                 channel_id,
-                network_id: `${selectedBank.networkId}:nameEnquiryReference:${resolvedBankAccount?.sessionId}`,
+                network_id: resolvedBankAccount?.sessionId ? `${selectedBank.networkId}:nameEnquiryReference:${resolvedBankAccount.sessionId}` : selectedBank.networkId,
                 country_code,
                 user_id,
                 asset_id,
