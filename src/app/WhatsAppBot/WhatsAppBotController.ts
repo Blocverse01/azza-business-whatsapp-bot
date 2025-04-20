@@ -1,4 +1,4 @@
-import { receiveIncomingWhatsappMessageTemp } from '@/app/WhatsAppBot/messagingQueueHelpers';
+import { receiveIncomingWhatsappMessageV2 } from '@/app/WhatsAppBot/messagingQueueHelpers';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { type IncomingWhatsappMessage } from '@/app/WhatsAppBot/WhatsAppBotType';
 import env from '@/constants/env';
@@ -45,11 +45,7 @@ class WhatsAppBotController {
             }
 
             if (message && message.id && businessPhoneNumberId && displayName) {
-                await receiveIncomingWhatsappMessageTemp(
-                    message,
-                    businessPhoneNumberId,
-                    displayName
-                );
+                await receiveIncomingWhatsappMessageV2(message, businessPhoneNumberId, displayName);
             } else {
                 return;
             }

@@ -23,7 +23,7 @@ import {
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import { getDynamicMaintainanceMessage } from '@/constants/strings';
+import { getDynamicMaintenanceMessage } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import logger from '@/resources/logger';
 
@@ -59,7 +59,7 @@ const checkAndHandleMaintenance = async (
         FeatureFlagKey.CORE_MAINTAINANCE
     );
     if (coreMaintainanceIsEnabled) {
-        const message = getDynamicMaintainanceMessage(actionType, { length: 3, name: 'hours' });
+        const message = getDynamicMaintenanceMessage(actionType, { length: 3, name: 'hours' });
         await WhatsAppBotService.sendWhatsappMessage(
             phoneParams.businessPhoneNumberId,
             MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, message)

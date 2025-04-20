@@ -23,7 +23,7 @@ import {
     extractGroups,
     type TradeAssetBotCommandMatchGroups,
 } from '@/constants/regex';
-import { getDynamicMaintainanceMessage } from '@/constants/strings';
+import { getDynamicMaintenanceMessage } from '@/constants/strings';
 import type { UserV2Record } from '@/db/xata';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { TokenNames } from '@/resources/web3/core/tokens';
@@ -245,7 +245,7 @@ class BotCommandHandler {
         );
 
         if (coreMaintainanceIsEnabled) {
-            const maintainanceMessage = getDynamicMaintainanceMessage('asset management', {
+            const maintainanceMessage = getDynamicMaintenanceMessage('asset management', {
                 length: 3,
                 name: 'hours',
             });
@@ -325,7 +325,7 @@ class BotCommandHandler {
         );
 
         if (coreMaintainanceIsEnabled) {
-            const maintainanceMessage = getDynamicMaintainanceMessage('withdrawal', {
+            const maintainanceMessage = getDynamicMaintenanceMessage('withdrawal', {
                 length: 3,
                 name: 'hours',
             });
@@ -382,7 +382,7 @@ class BotCommandHandler {
         );
 
         if (coreMaintainanceIsEnabled) {
-            const maintainanceMessage = getDynamicMaintainanceMessage('deposit', {
+            const maintainanceMessage = getDynamicMaintenanceMessage('deposit', {
                 length: 3,
                 name: 'hours',
             });
@@ -439,7 +439,7 @@ class BotCommandHandler {
         );
 
         if (coreMaintainanceIsEnabled) {
-            const maintainanceMessage = getDynamicMaintainanceMessage('balance', {
+            const maintainanceMessage = getDynamicMaintenanceMessage('balance', {
                 length: 3,
                 name: 'hours',
             });
@@ -466,7 +466,7 @@ class BotCommandHandler {
         );
 
         if (coreMaintainanceIsEnabled) {
-            const maintainanceMessage = getDynamicMaintainanceMessage('balance', {
+            const maintainanceMessage = getDynamicMaintenanceMessage('balance', {
                 length: 3,
                 name: 'hours',
             });

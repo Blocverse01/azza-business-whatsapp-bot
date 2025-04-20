@@ -24,8 +24,7 @@ import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     createWhatsappBroadcastWorker,
-    createWhatsappMessagingTempWorker,
-    createWhatsappMessagingWorker,
+    createWhatsappMessagingWorkerV2,
 } from '@/app/WhatsAppBot/messagingQueueHelpers';
 import {
     getPossibleBotActionsMessageText,
@@ -475,10 +474,7 @@ createKycEventJobWorker().on('error', async (error) => {
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {
-    createWhatsappMessagingWorker();
-}
-for (let i = 0; i < 8; i++) {
-    createWhatsappMessagingTempWorker().on('error', async (error) => {
+    createWhatsappMessagingWorkerV2().on('error', async (error) => {
         await logServiceError(error, 'Whatsapp Messaging Worker Error');
     });
 }

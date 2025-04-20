@@ -1,3 +1,5 @@
+import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
+
 export const ANKR_BASE_MAINNET_RPC_URL = 'https://rpc.ankr.com/base';
 export const ANKR_BASE_SEPOLIA_RPC_URL = 'https://rpc.ankr.com/base_sepolia';
 
@@ -28,7 +30,7 @@ export const MAINTAINANCE_MESSAGE = [
     'Thank you for your patience!⚡️',
 ].join('\n');
 
-export const getDynamicMaintainanceMessage = (
+export const getDynamicMaintenanceMessage = (
     feature: string,
     duration: {
         length: number;
@@ -49,3 +51,13 @@ export const BASE_CASHBACK_REFERENCE_PREFIX = 'base-cb-';
 export const BASE_CASHBACK_REASON = 'base-cashback';
 
 export const CRYPTO_PAYOUT_REFERENCE_PREFIX = 'azza-pay';
+
+export const getTransactionMinimumDepositMessage = (params: {
+    minimum: number;
+    tokenSymbol: string;
+    network: AllSupportedBlockchains;
+}) => {
+    const { minimum, tokenSymbol, network } = params;
+
+    return `👋 Just a heads-up — to sell ${tokenSymbol} on ${network}, the amount needs to be worth at least $${minimum.toFixed(2)}.`;
+};

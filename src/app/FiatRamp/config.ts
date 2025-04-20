@@ -1,11 +1,11 @@
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 
 export const ONRAMP_MINIMUM_BY_CHAIN: Partial<Record<AllSupportedBlockchains, number>> = {
-    Tron: 29,
+    Tron: 1000,
 };
 
 export const OFFRAMP_MINIMUM_BY_CHAIN: Partial<Record<AllSupportedBlockchains, number>> = {
-    Tron: 29,
+    Tron: 1000,
 };
 
 export const getMinimumOnrampUsdAmount = (chain: AllSupportedBlockchains): number | null => {

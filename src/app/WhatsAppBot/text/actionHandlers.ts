@@ -1,6 +1,7 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { getDefaultSolanaNode, getSolanaNetworkClient } from '@/app/ExtendedWallet/solana/config';
 import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
+import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
 import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
@@ -20,7 +21,7 @@ import {
 } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { SIX, ZERO } from '@/constants/numbers';
-import { USD_SYMBOL } from '@/constants/strings';
+import { getTransactionMinimumDepositMessage, USD_SYMBOL } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import {
@@ -131,6 +132,33 @@ export const handleDepositRelatedPrompt = async (
         params.botParams.userPhoneNumber,
         `☝️That’s your deposit address for ${targetAsset.tokenName} on ${targetAsset.network}:\n- Copy the address carefully. (Tap and hold to copy.)\n- Open your external wallet or exchange.\n- Paste the address and send your ${targetAsset.tokenName}.`
     );
+
+    const usdLimit = getMinimumOfframpUsdAmount(targetAsset.network);
+
+    if (usdLimit) {
+        const limitAcknowledgeMessageBody = getTransactionMinimumDepositMessage({
+            minimum: usdLimit,
+            tokenSymbol: targetAsset.tokenName,
+            network: targetAsset.network,
+        });
+        const limitMessage = MessageGenerators.generateInteractiveButtonMessage({
+            recipient: botParams.userPhoneNumber,
+            bodyText: limitAcknowledgeMessageBody,
+            replyButtons: [
+                {
+                    id: `${ExploreAssetActions.DEPOSIT}:${targetAsset.listItemId}`,
+                    title: `I Understand`,
+                },
+            ],
+        });
+
+        await WhatsAppBotService.sendWhatsappMessage(botParams.businessPhoneNumberId, limitMessage);
+
+        return {
+            response: limitAcknowledgeMessageBody,
+            resetSession: true,
+        };
+    }
 
     await WhatsAppBotService.sendWhatsappMessage(
         botParams.businessPhoneNumberId,

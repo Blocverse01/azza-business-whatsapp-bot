@@ -195,7 +195,8 @@ export type InteractiveButtonReplyTypes =
     | 'explore-asset'
     | 'sell-asset-destination-choice'
     | 'acknowledge-manual-offramp-settlement'
-    | 'mark-manual-offramp-settlement-as-paid';
+    | 'mark-manual-offramp-settlement-as-paid'
+    | 'explore-asset-action';
 export type InteractiveListReplyTypes =
     | 'explore-asset-action'
     | 'trade-asset-with-currency'

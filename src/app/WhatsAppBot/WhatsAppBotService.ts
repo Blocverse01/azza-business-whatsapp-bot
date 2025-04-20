@@ -3,6 +3,7 @@ import {
     ACKNOWLEDGE_BUTTON_ID_PREFIX,
     MARK_AS_PAID_BUTTON_ID_PREFIX,
 } from '@/app/FiatRamp/alternatives/config';
+import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
 import {
     BankBeneficiary,
     MobileMoneyBeneficiary,
@@ -40,6 +41,7 @@ import {
     TRADE_ASSET_REGEX,
 } from '@/constants/regex';
 import { INTERNAL_SERVER_ERROR, OK } from '@/constants/status-codes';
+import { getTransactionMinimumDepositMessage } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
@@ -609,7 +611,8 @@ class WhatsAppBotService {
     public static async depositAssetCommandHandler(
         user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        listItemId: string
+        listItemId: string,
+        limitAcknowledged?: boolean
     ) {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
         const { tokenName, network } = getAssetConfigOrThrow(listItemId);
@@ -628,6 +631,31 @@ class WhatsAppBotService {
             recipient_type: 'individual',
             to: userPhoneNumber,
         };
+
+        const usdLimit = getMinimumOfframpUsdAmount(network);
+
+        if (usdLimit && !limitAcknowledged) {
+            const limitAcknowledgeMessageBody = getTransactionMinimumDepositMessage({
+                minimum: usdLimit,
+                tokenSymbol: tokenName,
+                network,
+            });
+            const limitMessage = MessageGenerators.generateInteractiveButtonMessage({
+                recipient: userPhoneNumber,
+                bodyText: limitAcknowledgeMessageBody,
+                replyButtons: [
+                    {
+                        id: `${ExploreAssetActions.DEPOSIT}:${listItemId}`,
+                        title: `I Understand`,
+                    },
+                ],
+            });
+
+            return await WhatsAppBotService.sendWhatsappMessage(
+                businessPhoneNumberId,
+                limitMessage
+            );
+        }
 
         await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, messagePayload);
 
@@ -652,6 +680,10 @@ class WhatsAppBotService {
 
         if (assetInteractiveButtonsIds.includes(interactiveButtonId as AssetInteractiveButtonIds)) {
             return 'explore-asset';
+        }
+
+        if (interactiveButtonId.match(ASSET_ACTION_REGEX_PATTERN)) {
+            return 'explore-asset-action';
         }
 
         if (interactiveButtonId.startsWith(ACKNOWLEDGE_BUTTON_ID_PREFIX)) {
