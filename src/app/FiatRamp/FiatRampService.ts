@@ -4,6 +4,11 @@ import ManualOfframpSettlementService, {
     ManualOfframpSettlement,
 } from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 import {
+    MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID,
+    ProcessorId,
+    SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID,
+} from '@/app/FiatRamp/config';
+import {
     Beneficiary,
     CreateBeneficiaryParams,
     OnrampTransactionPayload,
@@ -393,7 +398,7 @@ class FiatRampService {
     private static async _prepareOfframpSettlementData(
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload,
-        processorIdentifier: 'mp' | 'safehaven'
+        processorIdentifier: ProcessorId
     ): Promise<ManualOfframpSettlement> {
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
         const localCurrencySymbol = beneficiary.country.currencySymbol;
@@ -449,7 +454,7 @@ class FiatRampService {
         const settlementData = await this._prepareOfframpSettlementData(
             beneficiary,
             params,
-            'safehaven'
+            SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
         );
 
         const safeHavenSettlementRecord =
@@ -516,7 +521,11 @@ class FiatRampService {
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload
     ) {
-        const settlementData = await this._prepareOfframpSettlementData(beneficiary, params, 'mp');
+        const settlementData = await this._prepareOfframpSettlementData(
+            beneficiary,
+            params,
+            MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID
+        );
 
         const manualSettlementRecord =
             await ManualOfframpSettlementService.createManualOfframpSettlement(settlementData);

@@ -1,3 +1,7 @@
+import {
+    MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID,
+    SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID,
+} from '@/app/FiatRamp/config';
 import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
@@ -5,6 +9,7 @@ import {
     generateOfframpToBankRecipientReceipt,
     generateOnrampReceipt,
 } from '@/app/receipts/generators';
+import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { OK } from '@/constants/status-codes';
@@ -89,7 +94,7 @@ class FiatRampServiceController {
                     (chain) => chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
                 );
 
-            if (message.trim()) {
+            if (message.trim() && newTransactionStatus !== 'failed') {
                 try {
                     await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
                 } catch (error) {}
@@ -131,20 +136,31 @@ class FiatRampServiceController {
             if (supportedChain && newTransactionStatus === 'failed') {
                 const correspondingManualPaymentSequenceId = sequenceId.replace(
                     'azza-p',
-                    'azza-mp'
+                    MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID
                 );
-                const matchingManualPayment =
-                    await ManualOfframpSettlementService.getManualOfframpSettlementBySequenceId(
+                const correspondingSafeHavenPaymentSequenceId = sequenceId.replace(
+                    'azza-p',
+                    SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
+                );
+                const matchingAlternativePayment =
+                    (await ManualOfframpSettlementService.getManualOfframpSettlementBySequenceId(
                         correspondingManualPaymentSequenceId
-                    );
+                    )) ??
+                    (await SafeHavenService.getSafeHavenOfframpTransactionBySequenceId(
+                        correspondingSafeHavenPaymentSequenceId
+                    ));
 
-                if (matchingManualPayment) {
-                    // Already settled manually
+                if (matchingAlternativePayment) {
+                    // Already settled alternatively
                     await logger.info(
-                        `Offramp transaction ${sequenceId} has already been settled manually with sequenceId ${correspondingManualPaymentSequenceId}`
+                        `Offramp transaction ${sequenceId} has already been settled alternative with sequenceId ${matchingAlternativePayment.sequenceId}`
                     );
                     return;
                 }
+
+                try {
+                    await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
+                } catch (error) {}
 
                 await addCryptoPayoutJobToQueue({
                     transactionId: sequenceId,
