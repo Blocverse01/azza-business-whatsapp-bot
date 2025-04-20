@@ -29,7 +29,6 @@ import env from '@/constants/env';
 import { HUNDRED } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
 import { HttpException } from '@/resources/exceptions/HttpException';
-import { transformKeysToCamelCase } from '@/resources/utils/transformers';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { getNetworkTag } from '@/runtime/platform-wallets';
 import { CountryCode } from 'libphonenumber-js';
