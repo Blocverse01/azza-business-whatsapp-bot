@@ -1,6 +1,6 @@
 {
   "databaseURL": "https://Blocverse-Development-es1pni.us-east-1.xata.sh/db/whatsapp-social-fi-bot",
   "codegen": {
-    "output": "src/Db/xata.ts"
+    "output": "src/db/xata.ts"
   }
 }
