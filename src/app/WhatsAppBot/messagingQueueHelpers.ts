@@ -87,27 +87,9 @@ const handleIncomingWhatsappMessageV2 = async (
         FeatureFlagService.isFeatureEnabled(FeatureFlagKey.CORE_MAINTAINANCE),
     ]);
 
-    if (type === WhatsAppMessageType.TEXT) {
-        const possibleReferralCode = extractReferralCodeFromMessage(text.body);
-        if (possibleReferralCode) {
-            const validReferralScheme =
-                await ReferralSchemeService.getReferralSchemeByCode(possibleReferralCode);
-            const referralCode = validReferralScheme?.isActive ? validReferralScheme.code : null;
-
-            console.log(`Debug referral message: `, {
-                possibleReferralCode,
-                message: text.body,
-                referralCode,
-            });
-        }
-    }
-
     if (!userV2) {
         if (interactive?.button_reply?.id.startsWith(BaseInteractiveButtonIds.CREATE_WALLET)) {
-            const createdNewUser =
-                (await userServiceV2.getWhatsappUserByPhoneNumber(from, {
-                    omitCache: true,
-                })) ?? (await userServiceV2.createWhatsappUser(from));
+            const createdNewUser = await userServiceV2.createWhatsappUser(from);
 
             // Wallet creation happens on demand when the user requests it
             // await queues.walletMigration.add(`Create wallets for user: ${createdNewUser.id}`, {
