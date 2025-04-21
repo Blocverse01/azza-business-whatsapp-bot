@@ -120,6 +120,8 @@ const tables = [
       { column: "user", table: "user_blockradar_wallet" },
       { column: "user", table: "fallback_regional_phone_number" },
       { column: "user", table: "gasless_withdrawal_counter" },
+      { column: "user", table: "referral_scheme" },
+      { column: "referee", table: "referrals" },
     ],
   },
   {
@@ -396,6 +398,31 @@ const tables = [
       { name: "sessionId", type: "text" },
     ],
   },
+  {
+    name: "referral_scheme",
+    columns: [
+      { name: "code", type: "text", notNull: true, defaultValue: "" },
+      { name: "user", type: "link", link: { table: "user_v2" }, unique: true },
+      { name: "isActive", type: "bool", notNull: true, defaultValue: "true" },
+    ],
+    revLinks: [{ column: "referralScheme", table: "referrals" }],
+  },
+  {
+    name: "referrals",
+    columns: [
+      {
+        name: "referee",
+        type: "link",
+        link: { table: "user_v2" },
+        unique: true,
+      },
+      {
+        name: "referralScheme",
+        type: "link",
+        link: { table: "referral_scheme" },
+      },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -456,6 +483,12 @@ export type SafehavenOfframpSettlementTransaction =
 export type SafehavenOfframpSettlementTransactionRecord =
   SafehavenOfframpSettlementTransaction & XataRecord;
 
+export type ReferralScheme = InferredTypes["referral_scheme"];
+export type ReferralSchemeRecord = ReferralScheme & XataRecord;
+
+export type Referrals = InferredTypes["referrals"];
+export type ReferralsRecord = Referrals & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -472,6 +505,8 @@ export type DatabaseSchema = {
   fallback_regional_phone_number: FallbackRegionalPhoneNumberRecord;
   gasless_withdrawal_counter: GaslessWithdrawalCounterRecord;
   safehaven_offramp_settlement_transaction: SafehavenOfframpSettlementTransactionRecord;
+  referral_scheme: ReferralSchemeRecord;
+  referrals: ReferralsRecord;
 };
 
 const DatabaseClient = buildClient();

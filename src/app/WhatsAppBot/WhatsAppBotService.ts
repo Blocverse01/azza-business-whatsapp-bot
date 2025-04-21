@@ -444,7 +444,8 @@ class WhatsAppBotService {
     public static async createWalletMessage(
         businessPhoneNumberId: string,
         displayName: string,
-        recipient: string
+        recipient: string,
+        referralCode: string | null = null
     ) {
         const interactiveMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
@@ -458,7 +459,9 @@ class WhatsAppBotService {
                         {
                             type: 'reply',
                             reply: {
-                                id: BaseInteractiveButtonIds.CREATE_WALLET,
+                                id: referralCode
+                                    ? `${BaseInteractiveButtonIds.CREATE_WALLET}:${referralCode}`
+                                    : BaseInteractiveButtonIds.CREATE_WALLET,
                                 title: 'Create wallet 🚀',
                             },
                         },
@@ -670,7 +673,7 @@ class WhatsAppBotService {
     public static determineInteractiveButtonReplyAction(
         interactiveButtonId: string
     ): InteractiveButtonReplyTypes {
-        if (interactiveButtonId === BaseInteractiveButtonIds.CREATE_WALLET) {
+        if (interactiveButtonId.startsWith(BaseInteractiveButtonIds.CREATE_WALLET)) {
             return 'create-wallet';
         }
 

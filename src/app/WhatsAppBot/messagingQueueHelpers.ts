@@ -39,7 +39,7 @@ import {
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import { getDynamicMaintenanceMessage } from '@/constants/strings';
 import { HttpException } from '@/resources/exceptions/HttpException';
-import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
+// import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
@@ -47,6 +47,8 @@ import type { CountryCode } from 'libphonenumber-js';
 import { handleUserMessage } from './text/handleUserMessage';
 import { VERIFY_ME_QUICK_REPLY_PAYLOAD } from './templates/base-cashback-reminder';
 import { handleUserKycRequest } from '../kyc/utils';
+import { extractReferralCodeFromMessage } from '../referral-scheme/utils';
+import ReferralSchemeService from '../referral-scheme/service';
 
 export const receiveIncomingWhatsappMessageV2 = async (
     message: IncomingWhatsappMessage,
@@ -86,18 +88,29 @@ const handleIncomingWhatsappMessageV2 = async (
     ]);
 
     if (!userV2) {
-        if (
-            interactive &&
-            interactive.button_reply?.id === BaseInteractiveButtonIds.CREATE_WALLET
-        ) {
+        if (interactive?.button_reply?.id.startsWith(BaseInteractiveButtonIds.CREATE_WALLET)) {
             const createdNewUser = await userServiceV2.createWhatsappUser(from);
 
-            await queues.walletMigration.add(`Create wallets for user: ${createdNewUser.id}`, {
-                userPhoneNumber: convertAsciiStringToBase64(from),
-                businessPhoneNumberId: convertAsciiStringToBase64(businessPhoneNumberId),
-            });
+            // Wallet creation happens on demand when the user requests it
+            // await queues.walletMigration.add(`Create wallets for user: ${createdNewUser.id}`, {
+            //     userPhoneNumber: convertAsciiStringToBase64(from),
+            //     businessPhoneNumberId: convertAsciiStringToBase64(businessPhoneNumberId),
+            // });
 
             if (createdNewUser) {
+                const optionalReferralCode = interactive.button_reply.id.split(':')[1] ?? undefined;
+                if (optionalReferralCode) {
+                    const validReferralScheme =
+                        await ReferralSchemeService.getReferralSchemeByCode(optionalReferralCode);
+
+                    if (validReferralScheme) {
+                        await ReferralSchemeService.registerReferral({
+                            refereeId: createdNewUser.id,
+                            referralSchemeId: validReferralScheme.id,
+                        });
+                    }
+                }
+
                 await WhatsAppBotService.sendSetTransactionPinMessage(createdNewUser, phoneParams);
 
                 return ActionExecuted.CREATED_NEW_USER;
@@ -106,7 +119,23 @@ const handleIncomingWhatsappMessageV2 = async (
             throw new Error('Failed to create new user');
         }
 
-        await WhatsAppBotService.createWalletMessage(businessPhoneNumberId, displayName, from);
+        let referralCode: string | null = null;
+
+        if (type === WhatsAppMessageType.TEXT) {
+            const possibleReferralCode = extractReferralCodeFromMessage(text.body);
+            if (possibleReferralCode) {
+                const validReferralScheme =
+                    await ReferralSchemeService.getReferralSchemeByCode(possibleReferralCode);
+                referralCode = validReferralScheme?.isActive ? validReferralScheme.code : null;
+            }
+        }
+
+        await WhatsAppBotService.createWalletMessage(
+            businessPhoneNumberId,
+            displayName,
+            from,
+            referralCode
+        );
         return ActionExecuted.SEND_CREATE_WALLET_MESSAGE;
     }
 
@@ -180,19 +209,34 @@ const handleIncomingWhatsappMessageV2 = async (
                 WhatsAppBotService.determineInteractiveButtonReplyAction(interactiveButtonId);
 
             switch (interactiveActionResponse) {
-                case 'create-wallet':
+                case 'create-wallet': {
                     const createdNewUser = await userServiceV2.createWhatsappUser(from);
 
-                    await queues.walletMigration.add(
-                        `Create wallets for user: ${createdNewUser.id}`,
-                        {
-                            userPhoneNumber: convertAsciiStringToBase64(from),
-                            businessPhoneNumberId:
-                                convertAsciiStringToBase64(businessPhoneNumberId),
-                        }
-                    );
+                    // Wallet creation happens on demand when the user requests it
+                    // await queues.walletMigration.add(
+                    //     `Create wallets for user: ${createdNewUser.id}`,
+                    //     {
+                    //         userPhoneNumber: convertAsciiStringToBase64(from),
+                    //         businessPhoneNumberId:
+                    //             convertAsciiStringToBase64(businessPhoneNumberId),
+                    //     }
+                    // );
 
                     if (createdNewUser) {
+                        const optionalReferralCode = interactiveButtonId.split(':')[1] ?? undefined;
+                        if (optionalReferralCode) {
+                            const validReferralScheme =
+                                await ReferralSchemeService.getReferralSchemeByCode(
+                                    optionalReferralCode
+                                );
+
+                            if (validReferralScheme) {
+                                await ReferralSchemeService.registerReferral({
+                                    refereeId: createdNewUser.id,
+                                    referralSchemeId: validReferralScheme.id,
+                                });
+                            }
+                        }
                         await WhatsAppBotService.sendSetTransactionPinMessage(
                             createdNewUser,
                             phoneParams
@@ -202,8 +246,8 @@ const handleIncomingWhatsappMessageV2 = async (
                     }
 
                     return ActionExecuted.CREATED_NEW_USER;
-
-                case 'explore-asset':
+                }
+                case 'explore-asset': {
                     if (coreMaintenanceIsEnabled) {
                         const maintenanceMessage = getDynamicMaintenanceMessage(
                             'asset management',
@@ -230,8 +274,8 @@ const handleIncomingWhatsappMessageV2 = async (
                     });
                     await WhatsAppBotService.walletDetailsMessage(phoneParams, userAssetBalance);
                     return ActionExecuted.SEND_MANAGE_ASSET_MESSAGE;
-
-                case 'sell-asset-destination-choice':
+                }
+                case 'sell-asset-destination-choice': {
                     const { assetId, beneficiaryAction, countryCode } =
                         extractSellAssetDestinationChoiceGroups(interactiveButtonId);
 
@@ -260,8 +304,8 @@ const handleIncomingWhatsappMessageV2 = async (
                     }
 
                     return ActionExecuted.SEND_SELL_ASSET_DESTINATION_CHOICE_MESSAGE;
-
-                case 'mark-manual-offramp-settlement-as-paid':
+                }
+                case 'mark-manual-offramp-settlement-as-paid': {
                     const sequenceIdToUse = interactiveButtonId.split(
                         MARK_AS_PAID_BUTTON_ID_PREFIX
                     )[1];
@@ -273,8 +317,8 @@ const handleIncomingWhatsappMessageV2 = async (
                     });
 
                     return ActionExecuted.MARK_MANUAL_OFFRAMP_SETTLEMENT_PAID;
-
-                case 'acknowledge-manual-offramp-settlement':
+                }
+                case 'acknowledge-manual-offramp-settlement': {
                     const sequenceId = interactiveButtonId.split(ACKNOWLEDGE_BUTTON_ID_PREFIX)[1];
 
                     await ManualOfframpSettlementService.acknowledgeManualSettlement({
@@ -284,8 +328,8 @@ const handleIncomingWhatsappMessageV2 = async (
                     });
 
                     return ActionExecuted.ACKNOWLEDGED_MANUAL_OFFRAMP_SETTLEMENT;
-
-                case 'explore-asset-action':
+                }
+                case 'explore-asset-action': {
                     const [_interactiveButtonId, assetAction, _assetId] = interactiveButtonId.match(
                         ASSET_ACTION_REGEX_PATTERN
                     ) as AssetActionRegexMatch;
@@ -319,6 +363,7 @@ const handleIncomingWhatsappMessageV2 = async (
                     }
 
                     throw new Error(`Unhandled asset action: ${assetAction}`);
+                }
             }
         }
 
