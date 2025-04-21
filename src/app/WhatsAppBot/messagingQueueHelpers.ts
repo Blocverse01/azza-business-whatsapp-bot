@@ -89,7 +89,10 @@ const handleIncomingWhatsappMessageV2 = async (
 
     if (!userV2) {
         if (interactive?.button_reply?.id.startsWith(BaseInteractiveButtonIds.CREATE_WALLET)) {
-            const createdNewUser = await userServiceV2.createWhatsappUser(from);
+            const createdNewUser =
+                (await userServiceV2.getWhatsappUserByPhoneNumber(from, {
+                    omitCache: true,
+                })) ?? (await userServiceV2.createWhatsappUser(from));
 
             // Wallet creation happens on demand when the user requests it
             // await queues.walletMigration.add(`Create wallets for user: ${createdNewUser.id}`, {
