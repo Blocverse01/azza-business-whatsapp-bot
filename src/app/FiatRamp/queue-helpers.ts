@@ -29,9 +29,11 @@ export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2)
 export const handleOfframpRequestInQueue = async (
     params: OfframpQueueFlowParamsV2
 ): Promise<FiatPayoutQueueResult> => {
+    const transactionHash = params.txHash.split('_retry')[0];
+
     const [transaction] = await Promise.all([
         azzaWalletManager.getTransactionByHash(
-            params.txHash,
+            transactionHash,
             normalizeBlockchainInput(params.chainName)
         ),
     ]);
