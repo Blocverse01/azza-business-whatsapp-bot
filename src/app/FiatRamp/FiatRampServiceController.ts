@@ -66,6 +66,10 @@ class FiatRampServiceController {
                 FiatRampService.updateOfframpTransactionStatus(sequenceId, newTransactionStatus),
             ]);
 
+            if (transaction.status === 'retried') {
+                return;
+            }
+
             const totalAmount = prettifyNumber(
                 transaction.usdAmount + transaction.transactionFeeUsd,
                 3
