@@ -3,7 +3,10 @@ import {
     SwapTokensTransactionDetails,
     TransferAssetTransactionDetails,
 } from '@/app/azza/azza.schema';
-import { sendTransferAssetTransaction } from '@/app/azza/lib/azza.lib.transaction';
+import {
+    sendTransferAssetTransaction,
+    SendTransferTransactionResponse,
+} from '@/app/azza/lib/azza.lib.transaction';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -14,6 +17,7 @@ import {
 import { FlowConfig, getFlowConfig, PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { queues } from '@/background-processing/queues';
+import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
@@ -61,7 +65,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
     public static async receiveDataExchange(
         requestBody: DecryptedFlowDataExchange['decryptedBody']
     ): Promise<DataExchangeResponse> {
-        const { action, screen, data } = requestBody;
+        const { action, screen, data, flow_token } = requestBody;
 
         if (action === 'INIT') {
             // Using Preview data
@@ -73,7 +77,8 @@ class WhatsAppBotTransactionConfirmationFlowService {
             switch (screen) {
                 case TransactionConfirmationFlowScreens.ENTER_TRANSACTION_PIN:
                     nextScreenData = await this.getFeedbackScreenData(
-                        data as DataExchangePayload['ENTER_TRANSACTION_PIN']
+                        data as DataExchangePayload['ENTER_TRANSACTION_PIN'],
+                        flow_token
                     );
                     break;
             }
@@ -92,7 +97,8 @@ class WhatsAppBotTransactionConfirmationFlowService {
     }
 
     private static async getFeedbackScreenData(
-        data: DataExchangePayload['ENTER_TRANSACTION_PIN']
+        data: DataExchangePayload['ENTER_TRANSACTION_PIN'],
+        flowToken: string
     ): Promise<Omit<DataExchangeResponse, 'version'>> {
         const { transaction_pin, transaction_summary, transaction_details } = data;
 
@@ -130,46 +136,56 @@ class WhatsAppBotTransactionConfirmationFlowService {
         switch (transaction_details.transactionType) {
             case 'SEND':
                 const userPhoneNumber = user.primaryWhatsappPhoneNumber;
+                let transactionResponse: SendTransferTransactionResponse | null = null;
 
-                const [transaction, error] = await sendTransferAssetTransaction(
-                    {
-                        ...transaction_details,
-                        userId: unmaskedUserId,
-                        transactionPin: transaction_pin,
-                    },
-                    true,
-                    'new'
-                );
+                try {
+                    const [transaction, error] = await sendTransferAssetTransaction(
+                        {
+                            ...transaction_details,
+                            userId: unmaskedUserId,
+                            transactionPin: transaction_pin,
+                            reference: `withdrawal-${flowToken}`,
+                        },
+                        true,
+                        'new'
+                    );
 
-                if (error !== null) {
-                    return {
-                        screen: TransactionConfirmationFlowScreens.FEEDBACK,
-                        data: {
-                            feedback_title: 'An error occurred',
-                            feedback_message: `Submitting transaction failed: ${error.message}`,
-                            feedback_sub_message: 'Click on the button below to exit the flow',
-                            footer_cta_text: 'Exit',
-                            icon_src: ERROR_FEEDBACK_ICON,
-                        } satisfies ScreenDataPayload['FEEDBACK'],
-                    };
-                }
+                    if (error !== null) {
+                        return {
+                            screen: TransactionConfirmationFlowScreens.FEEDBACK,
+                            data: {
+                                feedback_title: 'An error occurred',
+                                feedback_message: `Submitting transaction failed: ${error.message}`,
+                                feedback_sub_message: 'Click on the button below to exit the flow',
+                                footer_cta_text: 'Exit',
+                                icon_src: ERROR_FEEDBACK_ICON,
+                            } satisfies ScreenDataPayload['FEEDBACK'],
+                        };
+                    }
 
-                const assetLabel = `${transaction.asset.tokenName} (${transaction.asset.network})`;
+                    transactionResponse = transaction;
+                } catch (error) {}
+
+                const assetDetails = getAssetConfigOrThrow(transaction_details.assetId);
+
+                const assetLabel = `${assetDetails.tokenName} (${assetDetails.network})`;
 
                 const message = MessageGenerators.generateTextMessage(
                     user.primaryWhatsappPhoneNumber,
-                    `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${transaction.transactionAmount} ${assetLabel} to ${transaction.destination}\n\n➡️ Request ID: ${transaction.transactionId}`
+                    `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${transaction_details.amount} ${assetLabel} to ${transaction_details.recipient}${transactionResponse?.transactionId ? `\n\n➡️ Request ID: ${transactionResponse?.transactionId}` : ''}`
                 );
 
                 await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
 
-                await queues.cryptoDebitConfirmation.add('send-crypto-confirmation', {
-                    transactionResponse: transaction,
-                    whatsappParams: {
-                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                        userPhoneNumber: userPhoneNumber,
-                    },
-                });
+                if (transactionResponse) {
+                    await queues.cryptoDebitConfirmation.add('send-crypto-confirmation', {
+                        transactionResponse,
+                        whatsappParams: {
+                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                            userPhoneNumber: userPhoneNumber,
+                        },
+                    });
+                }
                 break;
 
             default:
