@@ -115,7 +115,7 @@ class WhatsAppBotTransferToWalletFlowService {
     public static async receiveDataExchange(
         requestBody: DecryptedFlowDataExchange['decryptedBody']
     ): Promise<DataExchangeResponse> {
-        const { action, screen, data } = requestBody;
+        const { action, screen, data, flow_token } = requestBody;
 
         if (action === 'INIT') {
             // Using Preview data because initialization should typically be done from `WhatsAppBotService.handleWithdrawAssetAction`
@@ -134,7 +134,8 @@ class WhatsAppBotTransferToWalletFlowService {
 
                 case TransferToWalletFlowScreens.TRANSACTION_SUMMARY:
                     nextScreenData = await this.getFeedbackScreenData(
-                        data as DataExchangePayload['TRANSACTION_SUMMARY']
+                        data as DataExchangePayload['TRANSACTION_SUMMARY'],
+                        flow_token
                     );
                     break;
             }
@@ -295,7 +296,10 @@ class WhatsAppBotTransferToWalletFlowService {
         };
     }
 
-    private static async getFeedbackScreenData(data: DataExchangePayload['TRANSACTION_SUMMARY']) {
+    private static async getFeedbackScreenData(
+        data: DataExchangePayload['TRANSACTION_SUMMARY'],
+        flowToken: string
+    ) {
         const [userAssetInfo, user] = await Promise.all([
             azzaWalletManager.getAssetBalance({
                 userId: data.user_id,
@@ -429,47 +433,56 @@ class WhatsAppBotTransferToWalletFlowService {
                 };
             }
 
-            const [transactionResponse, txError] = await sendTransferAssetTransaction(
-                {
-                    transactionType: 'SEND',
-                    amount: Number(data.amount),
-                    recipient: walletAddress,
-                    recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
-                    assetId: data.asset_id,
-                    transactionFee: transactionFee,
-                    userId: data.user_id,
-                    transactionPin: data.transaction_pin,
-                },
-                true,
-                'new'
-            );
+            let transactionResponse: SendTransferTransactionResponse | null = null;
 
-            if (txError !== null) {
-                return {
-                    screen: TransferToWalletFlowScreens.FEEDBACK,
-                    data: {
-                        feedback_title: 'An error occurred',
-                        feedback_message: 'Submitting transaction failed.',
-                        feedback_sub_message: 'Click on the button below to exit the flow',
-                        footer_cta_text: 'Exit',
-                        icon_src: ERROR_FEEDBACK_ICON,
-                    } satisfies ScreenDataPayload['FEEDBACK'],
-                };
-            }
+            try {
+                const [transaction, txError] = await sendTransferAssetTransaction(
+                    {
+                        transactionType: 'SEND',
+                        amount: Number(data.amount),
+                        recipient: walletAddress,
+                        recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
+                        assetId: data.asset_id,
+                        transactionFee: transactionFee,
+                        userId: data.user_id,
+                        transactionPin: data.transaction_pin,
+                        reference: `withdrawal-${flowToken}`,
+                    },
+                    true,
+                    'new'
+                );
+
+                if (txError !== null) {
+                    return {
+                        screen: TransferToWalletFlowScreens.FEEDBACK,
+                        data: {
+                            feedback_title: 'An error occurred',
+                            feedback_message: 'Submitting transaction failed.',
+                            feedback_sub_message: 'Click on the button below to exit the flow',
+                            footer_cta_text: 'Exit',
+                            icon_src: ERROR_FEEDBACK_ICON,
+                        } satisfies ScreenDataPayload['FEEDBACK'],
+                    };
+                }
+
+                transactionResponse = transaction;
+            } catch (error) {}
 
             const assetLabel = `${userAssetInfo.asset.tokenName} (${userAssetInfo.blockchainNetwork})`;
 
             const message = MessageGenerators.generateTextMessage(
                 user.primaryWhatsappPhoneNumber,
-                `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${walletAddress}\n\n➡️ Request ID: ${transactionResponse.transactionId}`
+                `⏳ Your transaction with the following details is being processed:\n\n🔀 Transfer ${amount} ${assetLabel} to ${walletAddress}${transactionResponse ? `\n\n➡️ Request ID: ${transactionResponse.transactionId}` : ''}`
             );
 
             await WhatsAppBotService.sendWhatsappMessage(env.WA_PHONE_NUMBER_ID, message);
 
-            await this.waitForTransactionReceiptInBackground(transactionResponse, {
-                userPhoneNumber: user.primaryWhatsappPhoneNumber,
-                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-            });
+            if (transactionResponse) {
+                await this.waitForTransactionReceiptInBackground(transactionResponse, {
+                    userPhoneNumber: user.primaryWhatsappPhoneNumber,
+                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                });
+            }
 
             return {
                 screen: TransferToWalletFlowScreens.FEEDBACK,
