@@ -14,6 +14,13 @@ const xataClient2 = new XataClient({
     branch: env.XATA_BRANCH,
 });
 
+const RANK_THRESHOLDS: Record<RankCardGeneratorParams['rank'], [number, number]> = {
+    hustler: [0, 99],
+    azzaman: [100, 499],
+    odogwu: [500, 999],
+    jagaban: [1000, Infinity],
+};
+
 function generateUserTransactionStats(transactions: Array<UserTransaction>) {
     let totalVolume = 0;
     let highestTrade = 0;
@@ -45,13 +52,14 @@ function generateUserTransactionStats(transactions: Array<UserTransaction>) {
     };
 }
 
-async function getAllTransactions(): Promise<Array<UserTransaction>> {
+async function getAllUserTransactions(userId: string): Promise<Array<UserTransaction>> {
     const [ycOfframpTxs, ycOnrampTxs, manualOfframpTxs, safeHavenOfframpTxs] = await Promise.all([
         xataClient2.db.yellowcard_offramp_transaction
             .filter({
                 yellowCardStatus: {
                     $iContains: 'complete',
                 },
+                ownerId: userId,
             })
             .getAll(),
         xataClient2.db.yellowcard_onramp_transaction
@@ -59,6 +67,7 @@ async function getAllTransactions(): Promise<Array<UserTransaction>> {
                 yellowCardStatus: {
                     $iContains: 'complete',
                 },
+                ownerId: userId,
             })
             .getAll(),
         dbClient.manual_offramp_settlement_transaction
@@ -66,6 +75,7 @@ async function getAllTransactions(): Promise<Array<UserTransaction>> {
                 processingStatus: {
                     $iContains: 'complete',
                 },
+                ownerId: userId,
             })
             .getAll(),
         dbClient.safehaven_offramp_settlement_transaction
@@ -73,6 +83,7 @@ async function getAllTransactions(): Promise<Array<UserTransaction>> {
                 processingStatus: {
                     $iContains: 'complete',
                 },
+                ownerId: userId,
             })
             .getAll(),
     ]);
@@ -84,32 +95,16 @@ async function getAllTransactions(): Promise<Array<UserTransaction>> {
     }));
 }
 
-function getAllUserVolumes(allTxs: Array<UserTransaction>): Record<string, number> {
-    const volumeMap: Record<string, number> = {};
-
-    for (const tx of allTxs) {
-        const ownerId = tx.ownerId;
-        const usdAmount = tx.usdAmount ?? 0;
-        if (!ownerId) continue;
-
-        volumeMap[ownerId] = (volumeMap[ownerId] || 0) + usdAmount;
+function getUserLevelRank(userVolume: number): 'hustler' | 'azzaman' | 'odogwu' | 'jagaban' {
+    if (userVolume <= RANK_THRESHOLDS.hustler[1]) {
+        return 'hustler';
     }
-
-    return volumeMap;
-}
-
-function getUserLevelRank(
-    userVolume: number,
-    allUserVolumes: number[]
-): 'hustler' | 'azzaman' | 'odogwu' | 'jagaban' {
-    const sortedVolumes = [...allUserVolumes].sort((a, b) => a - b);
-    const index = sortedVolumes.findIndex((v) => userVolume <= v);
-    const position = index === -1 ? sortedVolumes.length : index;
-    const percentile = (position / sortedVolumes.length) * 100;
-
-    if (percentile <= 25) return 'hustler';
-    if (percentile <= 50) return 'azzaman';
-    if (percentile <= 75) return 'odogwu';
+    if (userVolume <= RANK_THRESHOLDS.azzaman[1]) {
+        return 'azzaman';
+    }
+    if (userVolume <= RANK_THRESHOLDS.odogwu[1]) {
+        return 'odogwu';
+    }
     return 'jagaban';
 }
 
@@ -124,15 +119,12 @@ export async function getUserStatsAndRank(userId: string): Promise<{
     rank: RankCardGeneratorParams['rank'];
     stats: RankCardGeneratorParams['stats'];
 }> {
-    const allTransactions = await getAllTransactions();
-    const volumeMap = getAllUserVolumes(allTransactions);
-    const userTxs = allTransactions.filter((tx) => tx.ownerId === userId);
+    const userTransactions = await getAllUserTransactions(userId);
 
-    const userTotal = userTxs.reduce((sum, tx) => sum + tx.usdAmount, 0);
-    const allVolumes = Object.values(volumeMap);
+    const userTotal = userTransactions.reduce((sum, tx) => sum + tx.usdAmount, 0);
 
-    const rank = getUserLevelRank(userTotal, allVolumes);
-    const stats = generateUserTransactionStats(userTxs);
+    const rank = getUserLevelRank(userTotal);
+    const stats = generateUserTransactionStats(userTransactions);
 
     const formattedStats: RankCardGeneratorParams['stats'] = {
         totalVolume: formatNumber(stats.totalVolume, 'currency'),
