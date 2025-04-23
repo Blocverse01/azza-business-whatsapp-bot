@@ -466,7 +466,9 @@ class WhatsAppBotTransferToWalletFlowService {
                 }
 
                 transactionResponse = transaction;
-            } catch (error) {}
+            } catch (error) {
+                await logServiceError(error, `Withdrawal error.`);
+            }
 
             const assetLabel = `${userAssetInfo.asset.tokenName} (${userAssetInfo.blockchainNetwork})`;
 

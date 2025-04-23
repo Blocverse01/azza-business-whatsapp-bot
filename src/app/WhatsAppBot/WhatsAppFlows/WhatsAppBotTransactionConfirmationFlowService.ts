@@ -21,6 +21,7 @@ import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
 import { SIXTEEN } from '@/constants/numbers';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { convertBase64ToAsciiString, generateRandomHexString } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
 import userServiceV2 from '@/runtime/user';
@@ -164,7 +165,9 @@ class WhatsAppBotTransactionConfirmationFlowService {
                     }
 
                     transactionResponse = transaction;
-                } catch (error) {}
+                } catch (error) {
+                    await logServiceError(error, `Withdrawal error.`);
+                }
 
                 const assetDetails = getAssetConfigOrThrow(transaction_details.assetId);
 
