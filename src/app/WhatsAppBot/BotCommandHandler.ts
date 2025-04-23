@@ -1,3 +1,4 @@
+import { addJobToAzzaWrappedQueue } from '@/app/campaigns/azza-wrapped/queue-utils';
 import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import SumSubService from '@/app/SumSub/SumSubService';
@@ -92,6 +93,9 @@ class BotCommandHandler {
             case 'CHANGE_PIN':
                 await BotCommandHandler.changeTransactionPin(user, phoneParams);
                 break;
+            case 'WRAPPED':
+                await BotCommandHandler.handleWrapped(user, phoneParams, displayName);
+                break;
             default:
                 return {
                     handled: false,
@@ -101,6 +105,18 @@ class BotCommandHandler {
         return {
             handled: true,
         };
+    }
+
+    private static async handleWrapped(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams,
+        displayName: string
+    ) {
+        return await addJobToAzzaWrappedQueue({
+            userId: user.id,
+            userDisplayName: displayName,
+            whatsappParams: phoneParams,
+        });
     }
 
     private static async getRates(phoneParams: PhoneNumberParams) {

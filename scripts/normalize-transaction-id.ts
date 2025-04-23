@@ -1,5 +1,4 @@
 import { Repository } from '@xata.io/client';
-import { isNumber } from 'mathjs';
 import env from '../src/constants/env';
 import {
     XataClient,

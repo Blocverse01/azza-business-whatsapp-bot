@@ -29,6 +29,7 @@ export const BOT_COMMANDS_REGEX = {
     CHANGE_PIN: /^\/change_pin$/,
     PERFORM_KYC: /^\/verify_me$/,
     SUPPORT: /^\/support$/,
+    WRAPPED: /^\/wrapped$/,
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {

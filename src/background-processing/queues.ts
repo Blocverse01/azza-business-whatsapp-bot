@@ -20,6 +20,7 @@ import {
     EventDrivenOfframpQueueInput,
     EventDrivenOfframpQueueResult,
     FiatPayoutQueueResult,
+    GenerateAzzaWrappedQueueInput,
     QueueNames,
     SafeHavenTransactionQueueInput,
     SyncUserWalletIdQueueInput,
@@ -114,9 +115,15 @@ export const queues = {
             connection: connectionConfig,
         }
     ),
-    handleSafeHavenTransactionStatusUpdate: new Queue<SafeHavenTransactionQueueInput>(QueueNames.handleSafeHavenTransactionStatusUpdate, {
-        connection : connectionConfig
-    })
+    handleSafeHavenTransactionStatusUpdate: new Queue<SafeHavenTransactionQueueInput>(
+        QueueNames.handleSafeHavenTransactionStatusUpdate,
+        {
+            connection: connectionConfig,
+        }
+    ),
+    generateAzzaWrapped: new Queue<GenerateAzzaWrappedQueueInput>(QueueNames.generateAzzaWrapped, {
+        connection: connectionConfig,
+    }),
 };
 
 export const defaultQueueRemoveOptions = {
