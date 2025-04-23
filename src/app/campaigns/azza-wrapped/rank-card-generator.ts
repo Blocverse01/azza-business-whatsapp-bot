@@ -116,6 +116,8 @@ export const generateTradingRankCard = async (params: RankCardGeneratorParams) =
 };
 
 const getBlockchainLogoSvg = async (blockchain: string) => {
+    if (blockchain.trim() === '') return '';
+
     const filePath = path.join(
         __dirname,
         `../../../resources/image-generation/blockchain-logos`,
