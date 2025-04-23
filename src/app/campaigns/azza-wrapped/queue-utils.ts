@@ -39,7 +39,7 @@ const handleAzzaWrappedJob = async (data: GenerateAzzaWrappedQueueInput) => {
         whatsappParams.businessPhoneNumberId,
         MessageGenerators.generateTextMessage(
             whatsappParams.userPhoneNumber,
-            `Crunching the numbers, decoding the trades, and unlocking your Azza Wrapped... 🧠📊 Hang tight, ${userDisplayName} – your rank reveal is moments away! 🚀`
+            `Crunching the numbers, decoding the trades, and unlocking your Azza Wrapped... 🧠📊\nHang tight, ${userDisplayName} – your rank reveal is moments away! 🚀`
         )
     );
 
@@ -62,7 +62,7 @@ const handleAzzaWrappedJob = async (data: GenerateAzzaWrappedQueueInput) => {
 
     await WhatsAppBotService.sendMediaMessage(whatsappParams, {
         mediaId: mediaResponse.id,
-        caption: `You made this moment possible, ${userDisplayName} 🎉\n\nSee how you helped shape our journey — and flex it on your socials! 🚀💛`,
+        caption: `You made this moment possible, ${userDisplayName} 🎉\n\nSee how you helped shape our journey — and flex it on your socials! 🚀💙`,
         type: 'image',
     });
 };
