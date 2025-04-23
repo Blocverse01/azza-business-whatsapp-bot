@@ -57,6 +57,7 @@ createBullBoard({
         new BullMQAdapter(queues.cleanupMessages),
         new BullMQAdapter(queues.handleSmileKycWebhook),
         new BullMQAdapter(queues.handleSafeHavenTransactionStatusUpdate),
+        new BullMQAdapter(queues.generateAzzaWrapped),
     ],
     serverAdapter: serverAdapter,
 });

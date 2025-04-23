@@ -2,6 +2,7 @@ import { getUserStatsAndRank } from '@/app/campaigns/azza-wrapped/analytics';
 import { generateTradingRankCard } from '@/app/campaigns/azza-wrapped/rank-card-generator';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { queues } from '@/background-processing/queues';
+import { connectionConfig } from '@/background-processing/redis-connection-config';
 import { GenerateAzzaWrappedQueueInput, QueueNames } from '@/background-processing/types';
 import { Worker } from 'bullmq';
 
@@ -22,6 +23,10 @@ export const createAzzaWrappedWorker = () => {
         QueueNames.generateAzzaWrapped,
         async (job) => {
             return await handleAzzaWrappedJob(job.data);
+        },
+        {
+            connection: connectionConfig,
+            concurrency: 20,
         }
     );
 };

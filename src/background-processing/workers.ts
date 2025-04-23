@@ -13,6 +13,7 @@ import {
     waitForTransactionReceipt,
     waitForTransactionReceiptV2,
 } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
+import { createAzzaWrappedWorker } from '@/app/campaigns/azza-wrapped/queue-utils';
 import { createBaseCashbackWorker } from '@/app/campaigns/base-cashbacks/utils';
 import { createCryptoPayoutWorker } from '@/app/crypto-payouts-v2/utils';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
@@ -471,6 +472,8 @@ createCleanupOldMessagesWorker();
 createKycEventJobWorker().on('error', async (error) => {
     await logServiceError(error, 'SmileID Kyc Webhook Worker Error');
 });
+
+createAzzaWrappedWorker();
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {
