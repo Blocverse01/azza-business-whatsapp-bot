@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Rates Receipt</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            @font-face {
+                font-family: 'Subjectivity';
+                src: url(../../../../resources/image-generation/fonts/Subjectivity.Extrabold.woff2)
+                    format('woff2');
+            }
+            @font-face {
+                font-family: 'Subjectivity-Super';
+                src: url(../../../../resources/image-generation/fonts/Subjectivity-Super.woff2)
+                    format('woff2');
+                font-weight: 950;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: 'Inter', sans-serif;
+                background-color: #3430e9;
+                color: #ffffff;
+                position: relative;
+            }
+
+            body::before {
+                background-image: url(./images/pattern-bg1.png);
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                opacity: 0.45;
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                right: 0;
+                width: 100%;
+                z-index: -1;
+                height: 100%;
+            }
+
+            .font-subjectivity {
+                font-family: 'Subjectivity', sans-serif;
+            }
+
+            .font-subjectivity-super {
+                font-family: 'Subjectivity-Super', sans-serif;
+            }
+
+            .font-inter {
+                font-family: 'Inter', sans-serif;
+                font-optical-sizing: auto;
+                font-style: normal;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="flex flex-col pt-[81.62px] pb-[64px]">
+            <div>
+                <div class="w-fit mx-auto mb-[112.23px]">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="140"
+                        height="48"
+                        viewBox="0 0 140 48"
+                        fill="none"
+                    >
+                        <path
+                            d="M0 0.618652L138.011 0.618652L139.961 47.7656L128.16 45.6254L0 45.6254L0 0.618652Z"
+                            fill="#D3FEB6"
+                        />
+                        <path
+                            d="M112.449 12.1936L110.046 27.0221H114.934L112.449 12.1936ZM117.012 38.4286L116.523 35.2104H108.457L107.968 38.4286L95.584 38.4694L101.817 9.01611L123.123 9.01611L129.396 38.4286H117.012Z"
+                            fill="#04150F"
+                        />
+                        <path
+                            d="M71.0762 21.8892L90.1413 18.1413H71.4835V9.01611L95.4372 9.01611V25.5963L76.9831 29.3441H95.8446V38.4694H71.0762V21.8892Z"
+                            fill="#04150F"
+                        />
+                        <path
+                            d="M44.7783 21.8892L63.8435 18.1413H45.1857V9.01611L69.1394 9.01611V25.5963L50.6853 29.3441H69.5467V38.4694H44.7783V21.8892Z"
+                            fill="#04150F"
+                        />
+                        <path
+                            d="M28.0655 12.1936L25.662 27.0221H30.5505L28.0655 12.1936ZM32.6281 38.4286L32.1393 35.2104H24.0733L23.5844 38.4286L11.2002 38.4694L17.433 9.01611L38.7388 9.01611L45.0124 38.4286H32.6281Z"
+                            fill="#04150F"
+                        />
+                    </svg>
+                </div>
+                <div
+                    class="font-subjectivity-super font-[950] text-[72px] leading-[88px] tracking-tighter w-fit mx-auto text-center mb-4"
+                >
+                    AZZA RATES UPDATE
+                </div>
+                <div
+                    class="w-fit mx-auto bg-[#D3FEB6] px-[47px] py-[11px] font-inter text-[#1E1E1E] font-bold text-[25.18px] leading-[44px] tracking-[-6%] text-center capitalize"
+                >
+                    {{transactionDate}}
+                </div>
+            </div>
+            <div class="relative">
+                <div class="absolute top-[-16px] z-[-1] left-[53px]">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="996"
+                        height="305"
+                        viewBox="0 0 996 305"
+                        fill="none"
+                    >
+                        <path
+                            d="M5.03546 0H984.351L996 305L895.061 289.879H0L5.03546 0Z"
+                            fill="#1E1E1E"
+                        />
+                    </svg>
+                </div>
+                <div
+                    class="flex pt-[69.93px] w-fit mx-auto pb-[92.32px] items-end divide-x divide-white divide-dashed"
+                >
+                    <section
+                        class="flex flex-col text-[#D3FEB6] font-subjectivity font-[800] text-[32px] leading-[48.75px] justify-end pr-[23px] tracking-[-2px] gap-[2px]"
+                    >
+                        <span>BUY:</span>
+                        <span>SELL:</span>
+                    </section>
+                    <div class="flex divide-x divide-white divide-dashed gap-[35.07px]">
+                        {{ratesHtml}}
+                    </div>
+                </div>
+                <img
+                    src="./images/coin-left.png"
+                    class="absolute w-[131.1px] top-[-123.12px] object-scale-down left-[-28px] h-[149.12px]"
+                    alt="Coin Left"
+                />
+                <img
+                    src="./images/coin-right.png"
+                    class="absolute w-[164.58px] bottom-[-100.2px] object-scale-down right-[80.96px] h-[187.2px]"
+                    alt="Coin Right"
+                />
+            </div>
+            <div class="pt-[70px]">
+                <div class="flex items-center justify-center gap-[65px]">
+                    <span class="flex items-center gap-1.5">
+                        <img src="./images/instagram-icon.png" class="w-8 h-8" alt="Instagram" />
+                        <span
+                            class="font-inter text-[25.18px] font-bold tracking-[-6%] leading-[44px]"
+                            >Useazza_</span
+                        >
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <img src="./images/x-icon.png" class="w-8 h-8" alt="X" />
+                        <span
+                            class="font-inter text-[25.18px] font-bold tracking-[-6%] leading-[44px]"
+                            >Useazza</span
+                        >
+                    </span>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
