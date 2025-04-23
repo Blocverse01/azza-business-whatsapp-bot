@@ -50,21 +50,30 @@ async function normalizeTransaction(
     const updatedTxs = txsToNormalize.map((tx) => {
         const userId = phoneToUserIdMap[tx.ownerId];
         if (userId) {
-            return { ...tx, ownerId: userId };
+            return {
+                id: tx.id,
+                ownerId: userId,
+            };
         }
-        return tx; // If no userId is found, return the transaction unchanged
+        return null; // If no userId is found, return the transaction unchanged
     });
 
-    console.log(updatedTxs.length, updatedTxs);
+    const filteredTxs = updatedTxs.filter((tx) => tx !== null);
+    console.log(txsToNormalize.length, filteredTxs.length);
 
-    // const updatedTxRecords = await repo.update(updatedTxs);
-
-    // console.log(`Updated ${updatedTxRecords.length} transactions with new owner IDs.`);
+    return filteredTxs;
 }
 
 export async function run() {
-    await normalizeTransaction(xataClient2.db.yellowcard_offramp_transaction);
-    await normalizeTransaction(xataClient2.db.yellowcard_onramp_transaction);
+    const updatableOfframpTxs = await normalizeTransaction(
+        xataClient2.db.yellowcard_offramp_transaction
+    );
+    const updatableOnrampTxs = await normalizeTransaction(
+        xataClient2.db.yellowcard_onramp_transaction
+    );
+
+    await xataClient2.db.yellowcard_offramp_transaction.update(updatableOfframpTxs);
+    await xataClient2.db.yellowcard_onramp_transaction.update(updatableOnrampTxs);
 }
 
 run();
