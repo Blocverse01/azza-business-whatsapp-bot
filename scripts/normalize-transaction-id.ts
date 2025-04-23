@@ -8,6 +8,9 @@ import {
 } from '../src/db/db-client-2';
 import { dbClient } from '../src/db/dbClient';
 
+// Regular expression to check if the ownerId consists only of digits
+const isValidPhoneNumber = (ownerId: any): boolean => /^\d+$/.test(ownerId);
+
 const xataClient2 = new XataClient({
     apiKey: env.XATA_API_KEY,
     branch: env.XATA_BRANCH,
@@ -21,7 +24,7 @@ async function normalizeTransaction(
     const transactions = await repo.getAll();
 
     // Filter transactions where ownerId is a phone number (stored as a number)
-    const txsToNormalize = transactions.filter((tx) => isNumber(tx.ownerId));
+    const txsToNormalize = transactions.filter((tx) => isValidPhoneNumber(tx.ownerId));
 
     console.log(txsToNormalize.length);
 
