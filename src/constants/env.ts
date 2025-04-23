@@ -45,6 +45,12 @@ const envSchema = z.object({
         .transform((data) => data === 'true'),
 
     ///////////////////////////
+    /// Xata
+    ///////////////////////////
+    XATA_API_KEY: notEmptyStringSchema('XATA_API_KEY'),
+    XATA_BRANCH: notEmptyStringSchema('XATA_BRANCH'),
+
+    ///////////////////////////
     /// Alchemy
     ///////////////////////////
     ALCHEMY_API_KEY: notEmptyStringSchema('ALCHEMY_API_KEY'),
@@ -93,20 +99,16 @@ const envSchema = z.object({
     SMILE_ID_WEBHOOK_URL: notEmptyStringSchema('SMILE_ID_WEBHOOK_URL'),
     SMILE_ID_PROD_API_KEY: notEmptyStringSchema('SMILE_ID_PROD_API_KEY'),
 
-
     ///////////////////////
     /// SafeHaven
     ///////////////////////
     SAFEHAVEN_CLIENT_ID: notEmptyStringSchema('SAFEHAVEN_CLIENT_ID'),
     SAFEHAVEN_CLIENT_ASSERTION: notEmptyStringSchema('SAFEHAVEN_CLIENT_ASSERTION'),
-    SAFEHAVEN_BASE_URL: notEmptyStringSchema('SAFEHAVEN_BASE_URL').and(
-        z.string().url()
-    ),
+    SAFEHAVEN_BASE_URL: notEmptyStringSchema('SAFEHAVEN_BASE_URL').and(z.string().url()),
     EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE: z
         .enum(['true', 'false'])
         .default('false')
-        .transform((data) => data === 'true')
-
+        .transform((data) => data === 'true'),
 });
 
 const env = envSchema.parse(process.env);

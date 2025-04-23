@@ -1,19 +1,8 @@
+import { RankCardGeneratorParams } from '@/app/campaigns/azza-wrapped/types';
 import { encodeToBase64 } from '@/resources/utils/encoding';
-import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import puppeteer from 'puppeteer';
-
-type RankCardGeneratorParams = {
-    stats: {
-        totalVolume: string;
-        highestTrade: string;
-        numberOfTransactions: string;
-        frequentChain: AllSupportedBlockchains;
-    };
-    rank: 'odogwu' | 'azzaman' | 'jagaban' | 'hustler';
-    displayName: string;
-};
 
 const TEMPLATE_PATHS: Record<
     RankCardGeneratorParams['rank'],
