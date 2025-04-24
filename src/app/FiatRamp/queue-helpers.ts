@@ -29,25 +29,25 @@ export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2)
 export const handleOfframpRequestInQueue = async (
     params: OfframpQueueFlowParamsV2
 ): Promise<FiatPayoutQueueResult> => {
-    const transactionHash = params.txHash.split('_retry')[0];
-
-    const [transaction] = await Promise.all([
-        azzaWalletManager.getTransactionByHash(
-            transactionHash,
-            normalizeBlockchainInput(params.chainName)
-        ),
-    ]);
-
-    if (transaction.status !== 'SUCCESS' || !transaction.confirmed) {
-        throw new Error('Onchain transaction failed');
-    }
-
-    const transactionAmountIsValid = math.largerEq(transaction.amount, params.tokenAmountDebited);
-
-    assert.ok(
-        transactionAmountIsValid,
-        `transaction ${params.tokenName} amount (${transaction.amount}) less than expected ${params.tokenName} amount (${params.tokenAmountDebited})`
-    );
+    // const transactionHash = params.txHash.split('_retry')[0];
+    //
+    // const [transaction] = await Promise.all([
+    //     azzaWalletManager.getTransactionByHash(
+    //         transactionHash,
+    //         normalizeBlockchainInput(params.chainName)
+    //     ),
+    // ]);
+    //
+    // if (transaction.status !== 'SUCCESS' || !transaction.confirmed) {
+    //     throw new Error('Onchain transaction failed');
+    // }
+    //
+    // const transactionAmountIsValid = math.largerEq(transaction.amount, params.tokenAmountDebited);
+    //
+    // assert.ok(
+    //     transactionAmountIsValid,
+    //     `transaction ${params.tokenName} amount (${transaction.amount}) less than expected ${params.tokenName} amount (${params.tokenAmountDebited})`
+    // );
 
     try {
         const sequenceId = await FiatRampService.postOfframpTransaction({
