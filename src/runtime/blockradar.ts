@@ -12,6 +12,7 @@ export const blockchainsEnabledOnBlockradar: Array<AllSupportedBlockchains> = [
     'Solana',
     'AssetChain',
     'Arbitrum',
+    'Lisk',
 ];
 export const assetsWithRequiredBlockradarConfig = ENABLED_ASSETS.filter(
     (asset) =>
