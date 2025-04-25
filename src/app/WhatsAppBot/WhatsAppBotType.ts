@@ -108,6 +108,7 @@ export enum AssetInteractiveButtonIds {
     ETH_ETHEREUM = 'eth-ethereum',
     ETH_ARBITRUM = 'eth-arbitrum',
     ETH_LISK = 'eth-lisk',
+    CELO_CELO = 'celo-celo',
 
     // StableCoins
     USDC_BASE = 'usdc-base',
@@ -142,6 +143,9 @@ export enum AssetInteractiveButtonIds {
 
     USDC_LISK = 'usdc-lisk',
     USDT_LISK = 'usdt-lisk',
+
+    USDC_CELO = 'usdc-celo',
+    USDT_CELO = 'usdt-celo',
 }
 
 export enum ExploreAssetActions {

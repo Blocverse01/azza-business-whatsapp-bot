@@ -50,6 +50,10 @@ const testnet__masterWalletApiConfig: Record<
         masterWalletId: '',
         apiKey: env.OPTIMISM_MASTER_WALLET_API_KEY,
     },
+    Celo: {
+        masterWalletId: '',
+        apiKey: env.OPTIMISM_MASTER_WALLET_API_KEY,
+    },
 };
 const mainnet__masterWalletApiConfig: Record<
     AllSupportedBlockchains,
@@ -94,6 +98,10 @@ const mainnet__masterWalletApiConfig: Record<
     Lisk: {
         masterWalletId: '056eb5b9-83e3-4501-b8f8-79c78e8853dc',
         apiKey: env.LISK_MASTER_WALLET_API_KEY,
+    },
+    Celo: {
+        masterWalletId: '33d5d924-ff0c-46ec-a867-ca715200fa03',
+        apiKey: env.CELO_MASTER_WALLET_API_KEY,
     },
     
 };

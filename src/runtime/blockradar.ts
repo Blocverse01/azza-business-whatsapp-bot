@@ -13,6 +13,7 @@ export const blockchainsEnabledOnBlockradar: Array<AllSupportedBlockchains> = [
     'AssetChain',
     'Arbitrum',
     'Lisk',
+    'Celo',
 ];
 export const assetsWithRequiredBlockradarConfig = ENABLED_ASSETS.filter(
     (asset) =>

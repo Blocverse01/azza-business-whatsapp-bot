@@ -75,6 +75,12 @@ export const networkStableTokenTransferFeeConfig: Record<
         feeThreshold: 10,
         feePerThreshold: 0.001, // 0.001 for every 10 USDT | USDC
     },
+    Celo: {
+        minimumFee: 0.2, // 0.2 USDT | USDC
+        maximumFee: 0.5,
+        feeThreshold: 10,
+        feePerThreshold: 0.001, // 0.001 for every 10 USDT | USDC
+    },
 };
 
 export function calculateStableTokenTransferTransactionFee(

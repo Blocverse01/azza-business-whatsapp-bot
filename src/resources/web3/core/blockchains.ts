@@ -9,6 +9,7 @@ export const EVM_BLOCKCHAINS = [
     'AssetChain',
     'Arbitrum',
     'Lisk',
+    'Celo'
 ] as const;
 export const NON_EVM_BLOCKCHAINS = ['Solana', 'Tron'] as const;
 export const SUPPORTED_BLOCKCHAINS = [...EVM_BLOCKCHAINS, ...NON_EVM_BLOCKCHAINS] as const;

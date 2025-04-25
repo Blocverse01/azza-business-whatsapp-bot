@@ -8,6 +8,7 @@ import {
     polConfig,
     solConfig,
     trxTronConfig,
+    celoConfig,
     usdcArbitrumConfig,
     usdcAssetChainConfig,
     usdcBaseConfig,
@@ -17,6 +18,7 @@ import {
     usdcPolygonConfig,
     usdcSolanaConfig,
     usdcLiskConfig,
+    usdcCeloConfig,
     usdtArbitrumConfig,
     usdtAssetChainConfig,
     usdtBep20Config,
@@ -26,6 +28,7 @@ import {
     usdtSolanaConfig,
     usdtTronConfig,
     usdtLiskConfig,
+    usdtCeloConfig,
 } from '@/resources/web3/core/tokens';
 
 export const ENABLED_ASSETS = [
@@ -55,6 +58,9 @@ export const ENABLED_ASSETS = [
     usdtLiskConfig,
     usdcLiskConfig,
     ethLiskConfig,
+    usdtCeloConfig,
+    usdcCeloConfig,
+    celoConfig,
 ];
 
 // Get asset config by list item id

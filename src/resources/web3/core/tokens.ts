@@ -111,6 +111,21 @@ export enum TokenAddresses {
     // USDT
     USDT_LISK_MAINNET = '0x05D032ac25d322df992303dCa074EE7392C117b9',
     USDT_LISK_SEPOLIA_TESTNET = '',
+
+     /**
+     * CELO Asset Addresses
+     */
+    // USDC
+    USDC_CELO_MAINNET = '0xcebA9300f2b948710d2653dD7B07f33A8B32118C',
+    USDC_CELO_ALFAJORES_TESTNET = '0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
+
+    // USDT
+    USDT_CELO_MAINNET = '0x48065fbbe25f71c9282ddf5e1cd6d6a887483d5e',
+    USDT_CELO_ALFAJORES_TESTNET = '',
+
+    //CELO
+    CELO_CELO = '0x471EcE3750Da237f93B8E339c536989b8978a438'
+    
 }
 
 export enum TokenNames {
@@ -121,6 +136,7 @@ export enum TokenNames {
     SOL = 'SOL',
     OP = 'OP',
     TRX = 'TRX',
+    CELO = 'CELO'
 }
 
 export const TokenIconURIs: Record<string, string> = {
@@ -499,6 +515,44 @@ export const ethLiskConfig = {
     listItemId: AssetInteractiveButtonIds.ETH_LISK,
     tokenAddress: 'ETH',
     network: 'Lisk' as const,
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
+    showOnAssetsMenu: false,
+    isNative: true,
+} satisfies AssetConfig;
+// CELO Assets
+/// ============== USDC ==============
+export const usdcCeloConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDC_CELO_ALFAJORES_TESTNET
+            : TokenAddresses.USDC_CELO_MAINNET,
+    tokenName: TokenNames.USDC,
+    listItemId: AssetInteractiveButtonIds.USDC_CELO,
+    network: 'Celo',
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+/// ============== USDT ==============
+export const usdtCeloConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDT_CELO_ALFAJORES_TESTNET
+            : TokenAddresses.USDT_CELO_MAINNET,
+    tokenName: TokenNames.USDT,
+    listItemId: AssetInteractiveButtonIds.USDT_CELO,
+    network: 'Celo',
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+// ============== CELO ==============
+export const celoConfig = {
+    tokenName: TokenNames.CELO,
+    listItemId: AssetInteractiveButtonIds.CELO_CELO,
+    tokenAddress: 'CELO',
+    network: 'Celo' as const,
     supportedAssetActions: [
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,

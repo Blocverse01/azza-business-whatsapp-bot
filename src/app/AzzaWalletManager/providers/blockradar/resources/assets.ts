@@ -49,6 +49,9 @@ const mainnet__blockradarAssetIdMap: Record<string, string> = {
     [AssetInteractiveButtonIds.USDT_LISK]: 'f01e8735-bbca-4cd0-b73c-5b72fbcd3450',
     [AssetInteractiveButtonIds.USDC_LISK]: '3d9f74f3-e880-4f22-8196-4f9dd41da46f',
     [AssetInteractiveButtonIds.ETH_LISK]: '3b957c9f-d664-4901-bc07-2833e7090eec',
+    [AssetInteractiveButtonIds.USDT_CELO]: 'd9083087-398e-4ebd-8d9e-d9c80ac86261',
+    [AssetInteractiveButtonIds.USDC_CELO]: 'e3ae7627-0ee9-4853-ac4f-b8ad704248fe',
+    [AssetInteractiveButtonIds.CELO_CELO]: 'b53fde62-6682-48dc-bf15-7b59a857142f',
 };
 
 const blockradarAssetIdMap =
