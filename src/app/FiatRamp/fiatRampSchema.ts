@@ -213,6 +213,7 @@ export const OfframpTransactionRecordSchema = z.object({
         accountType: z.enum(['bank', 'phone']),
         seerbitId: z.string().optional(),
         nameEnquiryReference: z.string().optional(),
+        processorName: z.string().optional(),
         channelId: z.string().optional(),
     }),
     createdAt: z.string().datetime(),

@@ -13,7 +13,7 @@ import { CRYPTO_PAYOUT_REFERENCE_PREFIX } from '@/constants/strings';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import logger from '@/resources/logger';
 import * as math from 'mathjs';
-import SafeHavenService from '../SafeHaven/SafeHavenService';
+import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -129,10 +129,10 @@ export const createCryptoPayoutWorker = () => {
             }
 
             const canPayout = (() => {
-                if(transactionType === 'offramp-refund' || transactionType === 'offramp-safehaven-refund') {
+                if (transactionType === 'offramp-refund' || transactionType === 'offramp-safehaven-refund') {
                     return transaction.status === 'failed';
                 }
-                if(transactionType === 'onramp-payout') {
+                if (transactionType === 'onramp-payout') {
                     return transaction.status === 'complete';
                 }
                 return false;

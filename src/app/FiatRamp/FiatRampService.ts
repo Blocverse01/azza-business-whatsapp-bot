@@ -4,6 +4,7 @@ import ManualOfframpSettlementService, {
     ManualOfframpSettlement,
 } from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 import {
+    BELL_OFFRAMP_PAYMENT_PROCESSOR_ID,
     MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID,
     ProcessorId,
     SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID,
@@ -24,7 +25,7 @@ import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService'
 import {
     SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE,
     SAFEHAVEN_WITHDRAWAL_LIMIT,
-} from '@/app/SafeHaven/constants';
+} from '@/app/NigeriaBanks/SafeHaven/constants';
 import env from '@/constants/env';
 import { HUNDRED } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
@@ -43,7 +44,9 @@ import {
     YellowCardOnRampEvents,
     YellowCardWebhookPayload,
 } from './types';
-import SafeHavenService from '../SafeHaven/SafeHavenService';
+import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
+import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
+import BellService from '../NigeriaBanks/BellMFB/BellService';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
@@ -110,35 +113,37 @@ class FiatRampService {
     public static async getSupportedBanks(countryCode: CountryCode, channelId: string) {
         const networks = await FiatRampsRpcService.getPaymentNetworks(countryCode, channelId);
 
-        if (countryCode === 'NG') {
-            const safeHavenBank = await SafeHavenService.getSupportedBanks();
+        //edited here
 
-            const commonBanks = safeHavenBank.reduce<supportedPaymentNetworkType[]>(
-                (accumulator, safeHavenBank) => {
-                    const matchingYellowCardBank = networks.find((bank) => {
-                        return (
-                            safeHavenBank.bankCode === bank.seerbitId ||
-                            (env.WEB3_ENVIRONMENT === 'testnet' &&
-                                safeHavenBank.slug ===
-                                    slugify(bank.name, { lower: true, replacement: '-' }))
-                        );
-                    });
+        // if (countryCode === 'NG') {
+        //     const safeHavenBank = await SafeHavenService.getSupportedBanks();
 
-                    if (matchingYellowCardBank) {
-                        accumulator.push({
-                            channelId: matchingYellowCardBank.channelId,
-                            networkId: matchingYellowCardBank.networkId,
-                            seerbitId: safeHavenBank.bankCode,
-                            name: safeHavenBank.name,
-                        });
-                    }
-                    return accumulator;
-                },
-                []
-            );
+        //     const commonBanks = safeHavenBank.reduce<supportedPaymentNetworkType[]>(
+        //         (accumulator, safeHavenBank) => {
+        //             const matchingYellowCardBank = networks.find((bank) => {
+        //                 return (
+        //                     safeHavenBank.bankCode === bank.seerbitId ||
+        //                     (env.WEB3_ENVIRONMENT === 'testnet' &&
+        //                         safeHavenBank.slug ===
+        //                         slugify(bank.name, { lower: true, replacement: '-' }))
+        //                 );
+        //             });
 
-            return commonBanks;
-        }
+        //             if (matchingYellowCardBank) {
+        //                 accumulator.push({
+        //                     channelId: matchingYellowCardBank.channelId,
+        //                     networkId: matchingYellowCardBank.networkId,
+        //                     seerbitId: safeHavenBank.bankCode,
+        //                     name: safeHavenBank.name,
+        //                 });
+        //             }
+        //             return accumulator;
+        //         },
+        //         []
+        //     );
+
+        //     return commonBanks;
+        // }
 
         return networks;
     }
@@ -313,14 +318,14 @@ class FiatRampService {
     }) {
         const { networkId, accountNumber, seerbitId, countryCode } = data;
 
-        if (countryCode === 'NG') {
-            const response = await SafeHavenService.accountNameEnquiry({
-                bankCode: seerbitId,
-                accountNumber: accountNumber,
-            });
+        // if (countryCode === 'NG') {
+        //     const response = await SafeHavenService.accountNameEnquiry({
+        //         bankCode: seerbitId,
+        //         accountNumber: accountNumber,
+        //     });
 
-            return resolveBankAccountSchema.parse(response);
-        }
+        //     return resolveBankAccountSchema.parse(response);
+        // }
 
         return await FiatRampsRpcService.resolveBankAccount({
             networkId,
@@ -401,7 +406,7 @@ class FiatRampService {
     private static async _prepareOfframpSettlementData(
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload,
-        processorIdentifier: ProcessorId
+        processorIdentifier: ProcessorId,
     ): Promise<ManualOfframpSettlement> {
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
         const localCurrencySymbol = beneficiary.country.currencySymbol;
@@ -446,8 +451,64 @@ class FiatRampService {
                 networkId: beneficiary.networkId,
                 country: beneficiary.country.code,
                 channelId: beneficiary.channelId,
+                processorName: processorIdentifier
             },
         };
+    }
+
+    private static async passOfframpTransactionToBell(
+        beneficiary: Beneficiary,
+        params: SendOfframpRequestPayload
+    ) {
+        const settlementData = await this._prepareOfframpSettlementData(
+            beneficiary,
+            params,
+            BELL_OFFRAMP_PAYMENT_PROCESSOR_ID
+        );
+
+        const bellSettlementRecord =
+            await NigeriaBanksService.createNGNOfframpSettlement(settlementData);
+
+        if (!bellSettlementRecord.sequenceId) {
+            throw new Error('Failed to create safehaven settlement record');
+        }
+
+        const { accountName, seerbitId, accountNumber } =
+            settlementData.destination;
+
+
+        await NigeriaBanksService.sendProcessingSettlementMessage({
+            usdAmount: bellSettlementRecord!.usdAmount!,
+            transactionFeeUsd: bellSettlementRecord.transactionFeeUsd!,
+            ownerId: bellSettlementRecord.ownerId!,
+            tokenSymbol: bellSettlementRecord.tokenSymbol!,
+            blockchainNetwork: bellSettlementRecord.blockchainNetwork!,
+            localCurrencySymbol: bellSettlementRecord.localCurrencySymbol!,
+            localAmount: bellSettlementRecord.localAmount!,
+        });
+
+        const transaction = await BellService.processOffRampPaymentWithBell({
+            amountToSend: settlementData.localAmount,
+            senderName: accountName,
+            beneficiaryBankCode: seerbitId!, //make is not null
+            beneficiaryAccountNumber: accountNumber,
+            sequenceId: bellSettlementRecord.sequenceId,
+        });
+
+        if (!transaction) {
+            throw new Error('Failed to process off-ramp settlement with safehaven');
+        }
+
+        const isUpdated = await bellSettlementRecord.update({
+            sessionId: transaction.sessionId,
+            processingStatus: transactionStatusSchema.parse('processing'),
+        });
+
+        if (!isUpdated) {
+            throw new Error('Failed to update safehaven off-ramp settlement status');
+        }
+
+        return transaction.sequenceId;
     }
 
     private static async passOfframpTransactionToSafeHaven(
@@ -461,7 +522,7 @@ class FiatRampService {
         );
 
         const safeHavenSettlementRecord =
-            await SafeHavenService.createSafeHavenOfframpSettlement(settlementData);
+            await NigeriaBanksService.createNGNOfframpSettlement(settlementData);
 
         if (!safeHavenSettlementRecord.sequenceId) {
             throw new Error('Failed to create safehaven settlement record');
@@ -484,7 +545,7 @@ class FiatRampService {
             });
         }
 
-        await SafeHavenService.sendSafeHavenProcessingSettlementMessage({
+        await NigeriaBanksService.sendProcessingSettlementMessage({
             usdAmount: safeHavenSettlementRecord!.usdAmount!,
             transactionFeeUsd: safeHavenSettlementRecord.transactionFeeUsd!,
             ownerId: safeHavenSettlementRecord.ownerId!,

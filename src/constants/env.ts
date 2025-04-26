@@ -109,6 +109,13 @@ const envSchema = z.object({
         .enum(['true', 'false'])
         .default('false')
         .transform((data) => data === 'true'),
+
+    ///////////////////////
+    /// BELLMFB
+    ///////////////////////
+    BELL_BASED_URL : notEmptyStringSchema('BELL_BASED_URL').and(z.string().url()),
+    BELL_CONSUMER_KEY: notEmptyStringSchema('BELL_CONSUMER_KEY'),
+    BELL_CONSUMER_SECRET: notEmptyStringSchema('BELL_CONSUMER_SECRET'),
 });
 
 const env = envSchema.parse(process.env);

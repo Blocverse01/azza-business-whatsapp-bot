@@ -15,9 +15,12 @@ export const getMinimumOfframpUsdAmount = (chain: AllSupportedBlockchains): numb
     return OFFRAMP_MINIMUM_BY_CHAIN[chain] ?? null;
 };
 
+export const BELL_OFFRAMP_PAYMENT_PROCESSOR_ID = 'bell' as const;
 export const SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID = 'safehaven' as const;
 export const MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID = 'mp' as const;
 
+
 export type ProcessorId =
     | typeof SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
-    | typeof MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID;
+    | typeof MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID
+    | typeof BELL_OFFRAMP_PAYMENT_PROCESSOR_ID;

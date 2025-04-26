@@ -41,7 +41,7 @@ class ManualOfframpSettlementService {
             tokenAddress: offrampTransaction.tokenAddress,
             tokenSymbol: offrampTransaction.tokenSymbol,
             localCurrencySymbol: offrampTransaction.localCurrencySymbol,
-            country: offrampTransaction.destination.country,
+            country: offrampTransaction.destination.country
         });
     }
 

@@ -425,6 +425,8 @@ class WhatsAppBotAddBeneficiaryFlowService {
             };
         }
 
+        //edited here
+        //  network_id: resolvedBankAccount?.sessionId ? `${selectedBank.networkId}:nameEnquiryReference:${resolvedBankAccount.sessionId}` :
         return {
             screen: AddBeneficiaryFlowScreens.BANK_ACCOUNT_SUMMARY,
             data: {
@@ -432,7 +434,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 account_number,
                 bank_name: selectedBank.bankName,
                 channel_id,
-                network_id: resolvedBankAccount?.sessionId ? `${selectedBank.networkId}:nameEnquiryReference:${resolvedBankAccount.sessionId}` : selectedBank.networkId,
+                network_id: selectedBank.networkId,
                 country_code,
                 user_id,
                 asset_id,
@@ -484,9 +486,9 @@ class WhatsAppBotAddBeneficiaryFlowService {
                         nameEnquiryReference:
                             country_code === 'NG'
                                 ? extractIdFromString({
-                                      input: network_id,
-                                      key: 'nameEnquiryReference',
-                                  })
+                                    input: network_id,
+                                    key: 'nameEnquiryReference',
+                                })
                                 : '',
                         channelId: channel_id,
                         countryId: country.id,

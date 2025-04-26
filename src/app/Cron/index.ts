@@ -2,7 +2,7 @@ import CryptoPayoutCronJobService from '@/app/CryptoPayout/CryptoPayoutCronJobSe
 import logger from '@/resources/logger';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import cron, { ScheduledTask } from 'node-cron';
-import SafeHavenJobService from '../SafeHaven/SafeHavenJobService';
+import SafeHavenJobService from '../NigeriaBanks/SafeHaven/SafeHavenJobService';
 
 type JobKeys = 'crypto-payout' | 'safehaven-transaction-update';
 

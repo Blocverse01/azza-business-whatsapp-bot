@@ -3,15 +3,15 @@ import { connectionConfig } from '@/background-processing/redis-connection-confi
 import { QueueNames, SafeHavenTransactionQueueInput } from '@/background-processing/types';
 import { Worker } from 'bullmq';
 import SafeHavenService from './SafeHavenService';
-import { transactionStatusSchema } from '../FiatRamp/fiatRampSchema';
+import { transactionStatusSchema } from '../../FiatRamp/fiatRampSchema';
 import { prettifyNumber } from '@/resources/utils/currency';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
-import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
-import { generateOfframpToBankRecipientReceipt } from '../receipts/generators';
-import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
+import { addCashbackJobToQueue } from '../../campaigns/base-cashbacks/utils';
+import { generateOfframpToBankRecipientReceipt } from '../../receipts/generators';
+import WhatsAppBotService from '../../WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
-import { addCryptoPayoutJobToQueue } from '../crypto-payouts-v2/utils';
+import { addCryptoPayoutJobToQueue } from '../../crypto-payouts-v2/utils';
 
 export const addSafeHavenTransactionUpdateJobToQueue = async (
     input: SafeHavenTransactionQueueInput
@@ -58,12 +58,12 @@ export const createSafeHavenTransactionUpdateJobWorker = () => {
 
                 const supportedChain = settlement.blockchainNetwork
                     ? azzaWalletManager
-                          .getSupportedNetworks()
-                          .find(
-                              (chain) =>
-                                  chain.toLowerCase() ===
-                                  settlement.blockchainNetwork!.toLowerCase()
-                          )
+                        .getSupportedNetworks()
+                        .find(
+                            (chain) =>
+                                chain.toLowerCase() ===
+                                settlement.blockchainNetwork!.toLowerCase()
+                        )
                     : undefined;
 
                 if (supportedChain === 'Base') {

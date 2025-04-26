@@ -20,7 +20,7 @@ import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { createFiatPayoutV2Worker } from '@/app/FiatRamp/queue-helpers';
-import { createSafeHavenTransactionUpdateJobWorker } from '@/app/SafeHaven/queue-utils';
+import { createSafeHavenTransactionUpdateJobWorker } from '@/app/NigeriaBanks/SafeHaven/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
@@ -85,8 +85,8 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
 
         const cryptoDebitConfirmation = cryptoDebitConfirmationChildValueKey
             ? (childrenValues[
-                  cryptoDebitConfirmationChildValueKey
-              ] as CryptoDebitConfirmationQueueResult)
+                cryptoDebitConfirmationChildValueKey
+            ] as CryptoDebitConfirmationQueueResult)
             : { status: 'failed', transactionHash: null };
 
         const txHash = cryptoDebitConfirmation.transactionHash;
@@ -175,10 +175,10 @@ const cryptoDebitWorker = new Worker<
                 userId: convertBase64ToAsciiString(transactionData.userId),
                 transactionPin: transactionData.transactionPin
                     ? decryptWithAES(
-                          transactionData.transactionPin,
-                          env.SECURITY_QUESTIONS_MASK_KEY,
-                          env.SECURITY_QUESTIONS_MASK_IV
-                      )
+                        transactionData.transactionPin,
+                        env.SECURITY_QUESTIONS_MASK_KEY,
+                        env.SECURITY_QUESTIONS_MASK_IV
+                    )
                     : '',
             },
             requirePin,

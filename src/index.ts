@@ -15,6 +15,8 @@ import apiRoutes from './routes';
 import './background-processing/workers';
 import './app/globalErrorHandler';
 import './background-processing/single-instance-workers';
+import SafeHavenService from './app/NigeriaBanks/SafeHaven/SafeHavenService';
+import BellService from './app/NigeriaBanks/BellMFB/BellService';
 
 const app = express();
 
@@ -32,7 +34,7 @@ app.use(
 //middleware for cookies
 app.use(CookieParser());
 
-app.get('/', async (_, res) => {
+app.get('/', (_, res) => {
     res.status(OK).send('API welcomes you :)');
 });
 
@@ -71,10 +73,11 @@ app.use('/api', apiRoutes, async () => {
 
 app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found' }));
 
-app.listen(env.PORT, () => {
+app.listen(env.PORT, async () => {
+    console.log(await BellService.generateAccessToken())
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 
-if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
-    CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
-}
+// if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
+//     CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
+// }

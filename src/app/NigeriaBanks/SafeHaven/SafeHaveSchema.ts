@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { OfframpTransactionRecord } from '../FiatRamp/fiatRampSchema';
+import { OfframpTransactionRecord } from '../../FiatRamp/fiatRampSchema';
 
 export interface AuthTokenResponse {
     access_token: string;

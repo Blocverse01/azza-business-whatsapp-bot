@@ -9,7 +9,7 @@ import {
     generateOfframpToBankRecipientReceipt,
     generateOnrampReceipt,
 } from '@/app/receipts/generators';
-import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
+import SafeHavenService from '@/app/NigeriaBanks/SafeHaven/SafeHavenService';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { OK } from '@/constants/status-codes';
@@ -101,7 +101,7 @@ class FiatRampServiceController {
             if (message.trim() && newTransactionStatus !== 'failed') {
                 try {
                     await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
-                } catch (error) {}
+                } catch (error) { }
             }
 
             if (newTransactionStatus === 'complete') {
@@ -164,7 +164,7 @@ class FiatRampServiceController {
 
                 try {
                     await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
-                } catch (error) {}
+                } catch (error) { }
 
                 await addCryptoPayoutJobToQueue({
                     transactionId: sequenceId,
@@ -221,7 +221,7 @@ class FiatRampServiceController {
             if (message.trim() && userPhoneNumber) {
                 try {
                     await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
-                } catch (error) {}
+                } catch (error) { }
             }
 
             if (newTransactionStatus.toLowerCase() === 'complete') {
