@@ -55,10 +55,12 @@ type ScreenPayload = {
         local_currency: string;
         country_code: string;
         amount_input_label: string;
+        amount_in_fait_input_label?: string;
         init_values: {
             payment_method: string;
             wallet_address?: string;
             amount?: string;
+            amount_in_fait? : string
         };
         error_messages?: {
             wallet_address?: string;
@@ -876,8 +878,10 @@ class WhatsAppBotOnRampFlowService {
                                 country_code: countryCode,
                                 init_values: {
                                     payment_method: paymentMethods[0].id,
+                                    amount_in_fait : 'Santos'
                                 },
                                 amount_input_label: `Amount (${asset.tokenName})`,
+                                amount_in_fait_input_label: `Amount (${asset.tokenName})`,
                             } satisfies ScreenPayload['TRANSACTION_DETAILS'],
                         },
                     },
