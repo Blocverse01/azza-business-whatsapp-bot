@@ -23,6 +23,7 @@ import { Buffer } from 'node:buffer';
 import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
 import { addCryptoPayoutJobToQueue } from '../crypto-payouts-v2/utils';
 import ManualOfframpSettlementService from './alternatives/ManualOfframpSettlementService';
+import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 
 class FiatRampServiceController {
     public static receiveWebHookData(req: Request) {
@@ -150,7 +151,7 @@ class FiatRampServiceController {
                     (await ManualOfframpSettlementService.getManualOfframpSettlementBySequenceId(
                         correspondingManualPaymentSequenceId
                     )) ??
-                    (await SafeHavenService.getSafeHavenOfframpTransactionBySequenceId(
+                    (await NigeriaBanksService.getNGNBankOfframpTransactionBySequenceId(
                         correspondingSafeHavenPaymentSequenceId
                     ));
 

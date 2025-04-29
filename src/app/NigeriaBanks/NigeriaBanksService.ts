@@ -1,9 +1,11 @@
 import { dbClient } from "@/db/dbClient";
-import { transactionStatusSchema } from "../FiatRamp/fiatRampSchema";
+import { OfframpTransactionRecordSchema, transactionStatusSchema } from "../FiatRamp/fiatRampSchema";
 import { NGNoffRampSettlement } from "./NigeriaBanksSchema";
 import { prettifyNumber } from "@/resources/utils/currency";
 import userServiceV2 from "@/runtime/user";
 import WhatsAppBotService from "../WhatsAppBot/WhatsAppBotService";
+import { HttpException } from "@/resources/exceptions/HttpException";
+import { NOT_FOUND } from "@/constants/status-codes";
 
 
 class NigeriaBanksService {
@@ -35,7 +37,7 @@ class NigeriaBanksService {
             tokenSymbol: offrampTransaction.tokenSymbol,
             localCurrencySymbol: offrampTransaction.localCurrencySymbol,
             country: offrampTransaction.destination.country,
-            processorName: offrampTransaction.destination.processorName
+            processorName: offrampTransaction.processorName
         });
     }
 
@@ -90,6 +92,111 @@ class NigeriaBanksService {
                 await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
             } catch (error) { }
         }
+    }
+
+    public static async getNGNBankOfframpTransactionBySequenceId(sequenceId: string) {
+        const transaction = await this.NGN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
+            sequenceId,
+        }).getFirst();
+
+        if (!transaction) {
+            throw new HttpException(NOT_FOUND, 'Transaction not found');
+        }
+
+        return transaction;
+    }
+
+    public static async getNGNBankOfframpProcessingTransaction(transactionId: string) {
+        const transaction = await this.NGN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
+            processingStatus: transactionStatusSchema.parse('processing'),
+            sequenceId: transactionId,
+            sessionId: { $isNot: null },
+        }).getFirst();
+
+        if (!transaction) {
+            throw new HttpException(NOT_FOUND, 'Transaction not found');
+        }
+
+        return transaction;
+    }
+
+
+    public static async getNGNBankOfframpProcessingTransactions() {
+        const transactions = await this.NGN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
+            processingStatus: transactionStatusSchema.parse('processing'),
+            sessionId: { $isNot: null },
+        }).getAll();
+
+        transactions.map((transaction) => {
+            return OfframpTransactionRecordSchema.parse({
+                destination: {
+                    accountName: transaction.destinationAccountName,
+                    accountNumber: transaction.destinationAccountNumber,
+                    networkName: transaction.destinationNetworkName,
+                    networkId: '',
+                    country: transaction.country,
+                    accountType: 'bank'
+                },
+                blockchainNetwork: transaction.blockchainNetwork,
+                usdAmount: transaction.usdAmount,
+                localAmount: transaction.localAmount,
+                localCurrencySymbol: transaction.localCurrencySymbol,
+                tokenSymbol: transaction.tokenSymbol,
+                ownerId: transaction.ownerId,
+                transactionHash: transaction.transactionHash,
+                transactionFeeUsd: transaction.transactionFeeUsd,
+                createdAt: transaction.xata.createdAt.toISOString(),
+                status: transaction.processingStatus,
+                rate: transaction.conversionRate!,
+                sequenceId: transaction.sequenceId,
+                hotWalletAddress: transaction.hotWalletAddress,
+                platformFeePercentage: transaction.platformFeePercentage,
+                fromWalletAddress: transaction.fromWalletAddress,
+                tokenAddress: transaction.tokenAddress,
+                processorName: transaction.processorName
+            });
+        });
+
+        return transactions;
+    }
+
+    public static async getNGNBankOfframpTransaction(sequenceId: string) {
+        const transaction = await this.NGN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
+            sequenceId: sequenceId,
+        }).getFirst();
+
+        if (!transaction) {
+            throw new HttpException(NOT_FOUND, 'Transaction not found');
+        }
+
+        const transactionRecord = OfframpTransactionRecordSchema.parse({
+            destination: {
+                accountName: transaction.destinationAccountName,
+                accountNumber: transaction.destinationAccountNumber,
+                networkName: transaction.destinationNetworkName,
+                networkId: '',
+                country: transaction.country,
+                accountType: 'bank',
+            },
+            blockchainNetwork: transaction.blockchainNetwork,
+            usdAmount: transaction.usdAmount,
+            localAmount: transaction.localAmount,
+            localCurrencySymbol: transaction.localCurrencySymbol,
+            tokenSymbol: transaction.tokenSymbol,
+            ownerId: transaction.ownerId,
+            transactionHash: transaction.transactionHash,
+            transactionFeeUsd: transaction.transactionFeeUsd,
+            createdAt: transaction.xata.createdAt.toISOString(),
+            status: transaction.processingStatus,
+            rate: transaction.conversionRate!,
+            sequenceId: transaction.sequenceId,
+            hotWalletAddress: transaction.hotWalletAddress,
+            platformFeePercentage: transaction.platformFeePercentage,
+            fromWalletAddress: transaction.fromWalletAddress,
+            tokenAddress: transaction.tokenAddress,
+        });
+
+        return transactionRecord;
     }
 
 }

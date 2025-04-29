@@ -2,9 +2,9 @@ import CryptoPayoutCronJobService from '@/app/CryptoPayout/CryptoPayoutCronJobSe
 import logger from '@/resources/logger';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import cron, { ScheduledTask } from 'node-cron';
-import SafeHavenJobService from '../NigeriaBanks/SafeHaven/SafeHavenJobService';
+import SafeHavenJobService from '../NigeriaBanks/NGNBanksJobService';
 
-type JobKeys = 'crypto-payout' | 'safehaven-transaction-update';
+type JobKeys = 'crypto-payout' | 'ngn-bank-transaction-update';
 
 class CronHandler {
     private static jobs: Map<JobKeys, ScheduledTask> = new Map<JobKeys, ScheduledTask>();
@@ -71,7 +71,7 @@ class CronHandler {
 
     public static scheduleSafeHavenTransactionUpdate(cronExpression: string) {
 
-        const key: JobKeys = 'safehaven-transaction-update';
+        const key: JobKeys = 'ngn-bank-transaction-update';
 
         const job = this.scheduleFunctionWithCron(
             key,

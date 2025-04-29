@@ -58,7 +58,7 @@ createBullBoard({
         new BullMQAdapter(queues.cryptoPayout),
         new BullMQAdapter(queues.cleanupMessages),
         new BullMQAdapter(queues.handleSmileKycWebhook),
-        new BullMQAdapter(queues.handleSafeHavenTransactionStatusUpdate),
+        new BullMQAdapter(queues.handleNGNBankTransactionStatusUpdate),
         new BullMQAdapter(queues.generateAzzaWrapped),
     ],
     serverAdapter: serverAdapter,
@@ -73,11 +73,10 @@ app.use('/api', apiRoutes, async () => {
 
 app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found' }));
 
-app.listen(env.PORT, async () => {
-    console.log(await BellService.generateAccessToken())
+app.listen(env.PORT, () => {
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 
-// if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
-//     CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
-// }
+if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
+    CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
+}

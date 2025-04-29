@@ -20,7 +20,7 @@ import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { createFiatPayoutV2Worker } from '@/app/FiatRamp/queue-helpers';
-import { createSafeHavenTransactionUpdateJobWorker } from '@/app/NigeriaBanks/SafeHaven/queue-utils';
+import { createSafeHavenTransactionUpdateJobWorker } from '@/app/NigeriaBanks/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {

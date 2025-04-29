@@ -150,7 +150,7 @@ class WhatsAppBotService {
 
             const responseData = await response.body.json();
 
-            console.log(responseData);
+            // console.log(responseData);
 
             if (response.statusCode !== OK) {
                 const error = new HttpException(response.statusCode, 'Error sending message', {

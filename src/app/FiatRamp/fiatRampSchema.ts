@@ -213,7 +213,6 @@ export const OfframpTransactionRecordSchema = z.object({
         accountType: z.enum(['bank', 'phone']),
         seerbitId: z.string().optional(),
         nameEnquiryReference: z.string().optional(),
-        processorName: z.string().optional(),
         channelId: z.string().optional(),
     }),
     createdAt: z.string().datetime(),
@@ -223,6 +222,7 @@ export const OfframpTransactionRecordSchema = z.object({
     platformFeePercentage: z.number(),
     fromWalletAddress: z.string(),
     tokenAddress: z.string(),
+    processorName: z.enum(['safehaven', 'bell', 'mp']).optional()
 });
 
 export const onrampTransactionRecordSchema = z.object({

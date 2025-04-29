@@ -1,11 +1,11 @@
 import env from "@/constants/env";
 import { logServiceError } from "@/resources/requestHelpers/handleRequestError";
 import axios from "axios";
-import { AccessTokenResult, BellOfframpSettlement, GenerateTokenResponse } from "./BellSchema";
+import { AccessTokenResult, BellOfframpSettlement, GenerateTokenResponse, TransactionResponse } from "./BellSchema";
 import SafeHavenService from "../SafeHaven/SafeHavenService";
 import { HttpException } from "@/resources/exceptions/HttpException";
 import logger from "@/resources/logger";
-import { OK } from "@/constants/status-codes";
+import { BAD_REQUEST, OK } from "@/constants/status-codes";
 
 
 
@@ -83,20 +83,22 @@ class BellService {
                 senderName: senderName
             };
 
-            const response = await axios.post(`${this.BELL_BASED_URL}/transfers`, payload, {
+            const response = await axios.post(`${this.BELL_BASED_URL}/transfer`, payload, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${authTokenData.access_token}`
                 },
             });
 
-            const { data, statusCode, message } = response.data;
+            const { data, success, message } = response.data;
+
+            console.log('bell-transaction', response.data);
 
             void logger.info(
                 `Processing bell off-ramp transaction of ${amountToSend} NGN to beneficiary account: ${beneficiaryAccountNumber}, sequenceId : ${sequenceId}`
             );
 
-            if (statusCode != OK) throw new HttpException(statusCode, `${message}`);
+            if (!success) throw new HttpException(BAD_REQUEST, `${message}`);
 
             void logger.info(
                 `Successfully sent ${amountToSend} NGN to beneficiary account: ${beneficiaryAccountNumber}, sequenceId: ${sequenceId}`
@@ -111,6 +113,45 @@ class BellService {
             throw error;
         }
     }
+
+    public static async getBellTransactionByReferenceId(referenceId: string) {
+        try {
+            const authTokenData = await this.generateAccessToken();
+
+            const response = await axios.get<TransactionResponse>(
+                `${this.BELL_BASED_URL}/transactions/reference/${referenceId}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${authTokenData.access_token}`
+                    },
+                }
+            );
+
+            const { data, success, message } = response.data;
+
+            console.log('bell-txn', data);
+
+            if (!success) throw new HttpException(BAD_REQUEST, `${message}`);
+
+            return {
+                status: data.status,
+                isReversed: (data.reversedFlag === 0) ? false : true
+            };
+        } catch (error) {
+            await logServiceError(error, 'Error fetching transaction status from bell mfb');
+            throw error;
+        }
+    }
+
+    public static async getBellAccountBalance() {
+
+        const balance = 1000;
+
+        return balance;
+    }
+
+
 
 
 

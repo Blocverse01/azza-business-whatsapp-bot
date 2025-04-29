@@ -14,6 +14,7 @@ import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError
 import logger from '@/resources/logger';
 import * as math from 'mathjs';
 import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
+import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -115,8 +116,8 @@ export const createCryptoPayoutWorker = () => {
                 if (transactionType === 'offramp-refund') {
                     return await FiatRampService.getOfframpTransaction(transactionId);
                 }
-                if (transactionType === 'offramp-safehaven-refund') {
-                    return await SafeHavenService.getSafeHavenOfframpTransaction(transactionId);
+                if (transactionType === 'offramp-ngn-bank-refund') {
+                    return await NigeriaBanksService.getNGNBankOfframpTransaction(transactionId);
                 }
                 if (transactionType === 'onramp-payout') {
                     return await FiatRampService.getOnrampTransaction(transactionId);
@@ -129,7 +130,7 @@ export const createCryptoPayoutWorker = () => {
             }
 
             const canPayout = (() => {
-                if (transactionType === 'offramp-refund' || transactionType === 'offramp-safehaven-refund') {
+                if (transactionType === 'offramp-refund' || transactionType === 'offramp-ngn-bank-refund') {
                     return transaction.status === 'failed';
                 }
                 if (transactionType === 'onramp-payout') {
@@ -144,7 +145,7 @@ export const createCryptoPayoutWorker = () => {
 
             let transactionAmount = transaction.usdAmount;
 
-            if ((transactionType === 'offramp-refund' || transactionType === 'offramp-safehaven-refund') && 'transactionHash' in transaction) {
+            if ((transactionType === 'offramp-refund' || transactionType === 'offramp-ngn-bank-refund') && 'transactionHash' in transaction) {
                 const offrampRequest = await dbClient.offramp_awaiting_crypto_debit
                     .filter({
                         cryptoTransactionId: transaction.transactionHash,
