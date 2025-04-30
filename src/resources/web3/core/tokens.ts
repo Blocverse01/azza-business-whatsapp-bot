@@ -100,6 +100,32 @@ export enum TokenAddresses {
     // USDT
     USDT_ARBITRUM_MAINNET = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
     USDT_ARBITRUM_TESTNET = '0x30fa2fbe15c1eadfbef28c188b7b8dbd3c1ff2eb',
+
+     /**
+     * LISK Asset Addresses
+     */
+    // USDC
+    USDC_LISK_MAINNET = '0xF242275d3a6527d877f2c927a82D9b057609cc71',
+    USDC_LISK_SEPOLIA_TESTNET = '0x0E82fDDAd51cc3ac12b69761C45bBCB9A2Bf3C83',
+
+    // USDT
+    USDT_LISK_MAINNET = '0x05D032ac25d322df992303dCa074EE7392C117b9',
+    USDT_LISK_SEPOLIA_TESTNET = '',
+
+     /**
+     * CELO Asset Addresses
+     */
+    // USDC
+    USDC_CELO_MAINNET = '0xcebA9300f2b948710d2653dD7B07f33A8B32118C',
+    USDC_CELO_ALFAJORES_TESTNET = '0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
+
+    // USDT
+    USDT_CELO_MAINNET = '0x48065fbbe25f71c9282ddf5e1cd6d6a887483d5e',
+    USDT_CELO_ALFAJORES_TESTNET = '',
+
+    //CELO
+    CELO_CELO = '0x471EcE3750Da237f93B8E339c536989b8978a438'
+    
 }
 
 export enum TokenNames {
@@ -110,6 +136,7 @@ export enum TokenNames {
     SOL = 'SOL',
     OP = 'OP',
     TRX = 'TRX',
+    CELO = 'CELO'
 }
 
 export const TokenIconURIs: Record<string, string> = {
@@ -456,4 +483,80 @@ export const usdtArbitrumConfig = {
         ExploreAssetActions.SELL_ASSET,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
+} satisfies AssetConfig;
+// Lisk Assets
+/// ============== USDC ==============
+export const usdcLiskConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDC_LISK_SEPOLIA_TESTNET
+            : TokenAddresses.USDC_LISK_MAINNET,
+    tokenName: TokenNames.USDC,
+    listItemId: AssetInteractiveButtonIds.USDC_LISK,
+    network: 'Lisk',
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+/// ============== USDT ==============
+export const usdtLiskConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDT_LISK_SEPOLIA_TESTNET
+            : TokenAddresses.USDT_LISK_MAINNET,
+    tokenName: TokenNames.USDT,
+    listItemId: AssetInteractiveButtonIds.USDT_LISK,
+    network: 'Lisk',
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+// ============== ETH ==============
+export const ethLiskConfig = {
+    tokenName: TokenNames.ETH,
+    listItemId: AssetInteractiveButtonIds.ETH_LISK,
+    tokenAddress: 'ETH',
+    network: 'Lisk' as const,
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
+    showOnAssetsMenu: false,
+    isNative: true,
+} satisfies AssetConfig;
+// CELO Assets
+/// ============== USDC ==============
+export const usdcCeloConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDC_CELO_ALFAJORES_TESTNET
+            : TokenAddresses.USDC_CELO_MAINNET,
+    tokenName: TokenNames.USDC,
+    listItemId: AssetInteractiveButtonIds.USDC_CELO,
+    network: 'Celo',
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+/// ============== USDT ==============
+export const usdtCeloConfig = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.USDT_CELO_ALFAJORES_TESTNET
+            : TokenAddresses.USDT_CELO_MAINNET,
+    tokenName: TokenNames.USDT,
+    listItemId: AssetInteractiveButtonIds.USDT_CELO,
+    network: 'Celo',
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: false,
+} satisfies AssetConfig;
+// ============== CELO ==============
+export const celoConfig = {
+    tokenName: TokenNames.CELO,
+    listItemId: AssetInteractiveButtonIds.CELO_CELO,
+    tokenAddress: 'CELO',
+    network: 'Celo' as const,
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
+    showOnAssetsMenu: false,
+    isNative: true,
 } satisfies AssetConfig;

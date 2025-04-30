@@ -16,6 +16,8 @@ const testnet__blockradarAssetIdMap: Record<string, string> = {
     [AssetInteractiveButtonIds.ETH_OPTIMISM]: 'd6150b49-a14e-4550-a2b6-c18e59282e45',
     [AssetInteractiveButtonIds.SOL]: '0d7a1412-42b0-4e6c-84b8-a509d8d0b120',
     [AssetInteractiveButtonIds.USDC_SOLANA]: 'c962060c-ebcd-4b82-a17c-c51305416c11',
+    [AssetInteractiveButtonIds.USDT_LISK]: 'e4724aa5-b6a8-4dcb-8ba2-87e9ecd13406',
+    [AssetInteractiveButtonIds.USDC_LISK]: 'e4724aa5-b6a8-4dcb-8ba2-87e9ecd13406',
 };
 
 const mainnet__blockradarAssetIdMap: Record<string, string> = {
@@ -44,6 +46,12 @@ const mainnet__blockradarAssetIdMap: Record<string, string> = {
     [AssetInteractiveButtonIds.ETH_ARBITRUM]: 'afa4efa6-eccd-4886-aa00-11833b30fb19',
     [AssetInteractiveButtonIds.USDT_ARBITRUM]: 'fac731c6-b759-472b-9dbf-00a8d43df8a9',
     [AssetInteractiveButtonIds.USDC_ARBITRUM]: '92587fc1-c3f9-42ef-9a44-172fb103f4e3',
+    [AssetInteractiveButtonIds.USDT_LISK]: 'f01e8735-bbca-4cd0-b73c-5b72fbcd3450',
+    [AssetInteractiveButtonIds.USDC_LISK]: '3d9f74f3-e880-4f22-8196-4f9dd41da46f',
+    [AssetInteractiveButtonIds.ETH_LISK]: '3b957c9f-d664-4901-bc07-2833e7090eec',
+    [AssetInteractiveButtonIds.USDT_CELO]: 'd9083087-398e-4ebd-8d9e-d9c80ac86261',
+    [AssetInteractiveButtonIds.USDC_CELO]: 'e3ae7627-0ee9-4853-ac4f-b8ad704248fe',
+    [AssetInteractiveButtonIds.CELO_CELO]: 'b53fde62-6682-48dc-bf15-7b59a857142f',
 };
 
 const blockradarAssetIdMap =

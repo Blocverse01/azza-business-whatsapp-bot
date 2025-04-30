@@ -44,6 +44,14 @@ const EXPLORER_URLS: {
         testnet: 'https://sepolia.arbiscan.io/',
         mainnet: 'https://arbiscan.io/',
     },
+    Lisk: {
+        testnet: 'https://sepolia-blockscout.lisk.com/',
+        mainnet: 'https://blockscout.lisk.com/',
+    },
+    Celo: {
+        testnet: 'https://alfajores.celoscan.io/',
+        mainnet: 'https://celoscan.io/',
+    },
 };
 
 export const getTransactionExplorerUrl = (
