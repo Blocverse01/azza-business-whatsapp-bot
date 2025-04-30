@@ -61,14 +61,13 @@ class FiatRampServiceController {
                 yellowCardStatus.toLowerCase()
             );
 
-            const [transaction] = await Promise.all([
-                FiatRampService.getOfframpTransaction(sequenceId),
-                FiatRampService.updateOfframpTransactionStatus(sequenceId, newTransactionStatus),
-            ]);
+            const transaction = await FiatRampService.getOfframpTransaction(sequenceId);
 
             if (transaction.status === 'retried') {
                 return;
             }
+
+            await FiatRampService.updateOfframpTransactionStatus(sequenceId, newTransactionStatus)
 
             const totalAmount = prettifyNumber(
                 transaction.usdAmount + transaction.transactionFeeUsd,
