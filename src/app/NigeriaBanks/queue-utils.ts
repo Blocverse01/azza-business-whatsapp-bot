@@ -39,7 +39,7 @@ export const createSafeHavenTransactionUpdateJobWorker = () => {
             const transaction = settlement.processorName === 'safehaven'
                 ? await SafeHavenService.getSafeHavenTransactionBySessionId(settlement.sessionId as string)
                 : settlement.processorName === 'bell'
-                    ? await BellService.getBellTransactionByReferenceId(settlement.sessionId as string)
+                    ? await BellService.getBellTransactionByReferenceId(settlement.sequenceId as string)
                     : (() => { throw new HttpException(NOT_FOUND, 'processor name not found'); })();
 
             const totalAmount = prettifyNumber(

@@ -79,34 +79,6 @@ class SafeHavenService {
         }
     }
 
-    // public static async createSafeHavenOfframpSettlement(
-    //     offrampTransaction: SafeHavenOfframpSettlement
-    // ) {
-    //     return await this.SAFEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY.create({
-    //         localAmount: offrampTransaction.localAmount,
-    //         usdAmount: offrampTransaction.usdAmount,
-    //         transactionFeeUsd: offrampTransaction.transactionFeeUsd,
-    //         conversionRate: offrampTransaction.rate,
-    //         paymentCurrency: offrampTransaction.localCurrencySymbol,
-    //         transactionHash: offrampTransaction.transactionHash,
-    //         processingStatus: transactionStatusSchema.parse('pending'),
-    //         ownerId: offrampTransaction.ownerId,
-    //         sequenceId: offrampTransaction.sequenceId,
-    //         blockchainNetwork: offrampTransaction.blockchainNetwork,
-    //         fromWalletAddress: offrampTransaction.fromWalletAddress,
-    //         platformFeePercentage: offrampTransaction.platformFeePercentage,
-    //         hotWalletAddress: offrampTransaction.hotWalletAddress,
-    //         destinationAccountName: offrampTransaction.destination.accountName,
-    //         destinationAccountNumber: offrampTransaction.destination.accountNumber,
-    //         destinationNetworkName: offrampTransaction.destination.networkName,
-    //         tokenAddress: offrampTransaction.tokenAddress,
-    //         tokenSymbol: offrampTransaction.tokenSymbol,
-    //         localCurrencySymbol: offrampTransaction.localCurrencySymbol,
-    //         country: offrampTransaction.destination.country,
-    //     });
-    // }
-
-
     public static async getSafeHavenTransactionBySessionId(sessionId: string) {
         try {
             const authTokenData = await this.generateAccessToken();
@@ -174,6 +146,7 @@ class SafeHavenService {
 
     public static async accountNameEnquiry(params: { bankCode: string; accountNumber: string }) {
         try {
+
             const { bankCode, accountNumber } = params;
 
             const authTokenData = await this.generateAccessToken();
@@ -213,6 +186,8 @@ class SafeHavenService {
                 accountNumber: data.accountNumber,
                 accountName: data.accountName,
             };
+
+
         } catch (error) {
             await logServiceError(error, 'Error fetching user account name');
             throw error;

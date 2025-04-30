@@ -1,7 +1,7 @@
 import env from "@/constants/env";
 import { logServiceError } from "@/resources/requestHelpers/handleRequestError";
 import axios from "axios";
-import { AccessTokenResult, BellOfframpSettlement, GenerateTokenResponse, TransactionResponse } from "./BellSchema";
+import { AccessTokenResult, BankAccountBalance, BellOfframpSettlement, GenerateTokenResponse, TransactionResponse } from "./BellSchema";
 import SafeHavenService from "../SafeHaven/SafeHavenService";
 import { HttpException } from "@/resources/exceptions/HttpException";
 import logger from "@/resources/logger";
@@ -92,8 +92,6 @@ class BellService {
 
             const { data, success, message } = response.data;
 
-            console.log('bell-transaction', response.data);
-
             void logger.info(
                 `Processing bell off-ramp transaction of ${amountToSend} NGN to beneficiary account: ${beneficiaryAccountNumber}, sequenceId : ${sequenceId}`
             );
@@ -130,8 +128,6 @@ class BellService {
 
             const { data, success, message } = response.data;
 
-            console.log('bell-txn', data);
-
             if (!success) throw new HttpException(BAD_REQUEST, `${message}`);
 
             return {
@@ -145,10 +141,29 @@ class BellService {
     }
 
     public static async getBellAccountBalance() {
+        try {
+            const authTokenData = await this.generateAccessToken();
 
-        const balance = 1000;
+            const response = await axios.get<BankAccountBalance>(
+                `${this.BELL_BASED_URL}/account`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${authTokenData.access_token}`
+                    },
+                }
+            );
 
-        return balance;
+            const { success, data: account } = response.data;
+
+            if (!success) throw new HttpException(BAD_REQUEST, `Failed to retrieve bell account balance`);
+
+            return Number(account.availableBalance);
+
+        } catch (error) {
+            await logServiceError(error, 'Error fetching blocverse account balance from Bell');
+            throw error;
+        }
     }
 
 

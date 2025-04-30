@@ -47,4 +47,21 @@ export interface AccessTokenResult {
     access_token: string
 }
 
+export interface BankAccountBalance {
+    success: boolean;
+    data: {
+        currency: string;
+        accountNumber: string;
+        productName: string;
+        accountType: string
+        accountName: string;
+        accountTier: number;
+        createdAt: number; 
+        updatedAt: number; 
+        ledgerBalance: string;
+        availableBalance: string; 
+    };
+}
+
+
 export type BellOfframpSettlement = Omit<OfframpTransactionRecord, 'createdAt' | 'status'>;

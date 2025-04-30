@@ -25,6 +25,7 @@ import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService'
 import {
     BELL_WITHDRAWAL_LIMIT,
     NGN_BANK_BALANCE_FOR_TRANSACTION_FEE,
+    PALM_PAY_BANK_SEERBIT_ID,
     SAFEHAVEN_WITHDRAWAL_LIMIT,
 } from '@/app/NigeriaBanks/SafeHaven/constants';
 import env from '@/constants/env';
@@ -114,8 +115,6 @@ class FiatRampService {
     public static async getSupportedBanks(countryCode: CountryCode, channelId: string) {
         const networks = await FiatRampsRpcService.getPaymentNetworks(countryCode, channelId);
 
-        //edited here
-
         if (countryCode === 'NG') {
             const safeHavenBank = await SafeHavenService.getSupportedBanks();
 
@@ -143,6 +142,13 @@ class FiatRampService {
                 []
             );
 
+            commonBanks.push({
+                channelId: 'fe8f4989-3bf6-41ca-9621-ffe2bc127569',
+                networkId: 'c11e35cf-d227-45e4-94e3-5a6c853c0be1',
+                seerbitId: '100033',
+                name: "PalmPay",
+            });
+
             return commonBanks;
         }
 
@@ -163,6 +169,21 @@ class FiatRampService {
         if (!network) throw new Error(`Network not found`);
 
         return network;
+    }
+
+    public static async getSeerBitId(data: {
+        networkId: string;
+        countryCode: CountryCode;
+        channelId: string;
+    }) {
+
+        const { networkId, countryCode, channelId } = data;
+
+        const bank = await this.getBankNetwork({ networkId, countryCode, channelId });
+
+        return {
+            seerbitId: bank.seerbitId
+        };
     }
 
     public static async getAccountNameEntryId(data: {
@@ -207,6 +228,42 @@ class FiatRampService {
         return await FiatRampsRpcService.getBeneficiary(beneficiaryId);
     }
 
+    public static async trySafeHavenPayout(
+        beneficiary: Beneficiary,
+        params: SendOfframpRequestPayload) {
+        const balance = await SafeHavenService.getSafeHavenAccountBalance();
+        const transferableBalance = balance - NGN_BANK_BALANCE_FOR_TRANSACTION_FEE;
+
+        const withinLimits =
+            transferableBalance >= params.localAmount &&
+            params.localAmount <= SAFEHAVEN_WITHDRAWAL_LIMIT;
+
+        if (withinLimits) {
+            // SafeHaven is available, sufficiently funded, and within withdrawal limits — use it.
+            return await FiatRampService.passOfframpTransactionToSafeHaven(
+                beneficiary,
+                params
+            );
+        }
+    }
+
+    public static async tryBellPayout(beneficiary: Beneficiary, params: SendOfframpRequestPayload) {
+        const bellBalance = await BellService.getBellAccountBalance();
+        const transferableBalance = bellBalance - NGN_BANK_BALANCE_FOR_TRANSACTION_FEE;
+
+        const withinLimits =
+            transferableBalance >= params.localAmount &&
+            params.localAmount <= BELL_WITHDRAWAL_LIMIT;
+
+        if (withinLimits) {
+            // Bell is available, sufficiently funded, and within withdrawal limits — use it.
+            return await FiatRampService.passOfframpTransactionToBell(
+                beneficiary,
+                params
+            );
+        }
+    }
+
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
         // Fetch beneficiary and feature flag statuses concurrently
         const [beneficiary, yellowCardPayoutIsEnabled, NGNBankIsEnabled, safeHavenPayoutIsEnabled] =
@@ -220,42 +277,20 @@ class FiatRampService {
         // Special handling for Nigeria (NG) beneficiaries
         if (beneficiary.country.code === 'NG') {
 
+            const isPalmPayBank =
+                ('seerbitId' in beneficiary && beneficiary.seerbitId === PALM_PAY_BANK_SEERBIT_ID) ||
+                ('bankName' in beneficiary && typeof beneficiary.bankName === 'string' && beneficiary.bankName.includes('PalmPay'));
+
             if (NGNBankIsEnabled) {
                 if (safeHavenPayoutIsEnabled) {
-                    const balance = await SafeHavenService.getSafeHavenAccountBalance();
-                    const transferableBalance = balance - NGN_BANK_BALANCE_FOR_TRANSACTION_FEE;
-
-                    const withinLimits =
-                        transferableBalance >= params.localAmount &&
-                        params.localAmount <= SAFEHAVEN_WITHDRAWAL_LIMIT;
-
-                    if (withinLimits) {
-                        // SafeHaven is available, sufficiently funded, and within withdrawal limits — use it.
-                        return await FiatRampService.passOfframpTransactionToSafeHaven(
-                            beneficiary,
-                            params
-                        );
-                    }
+                    return await this.trySafeHavenPayout(beneficiary, params);
                 }
-                if (!safeHavenPayoutIsEnabled) {
 
-                    // console.log('bell mfb');
-
-                    // const balance = await BellService.getBellAccountBalance();
-                    // const transferableBalance = balance - NGN_BANK_BALANCE_FOR_TRANSACTION_FEE;
-
-                    // const withinLimits =
-                    //     transferableBalance >= params.localAmount &&
-                    //     params.localAmount <= BELL_WITHDRAWAL_LIMIT;
-
-                    // if (withinLimits) {
-                        // Bell is available, sufficiently funded, and within withdrawal limits — use it.
-                        return await FiatRampService.passOfframpTransactionToBell(
-                            beneficiary,
-                            params
-                        );
-                    //}
+                if (!isPalmPayBank) {
+                    return await this.tryBellPayout(beneficiary, params);
                 }
+
+                return await this.trySafeHavenPayout(beneficiary, params);
             }
 
             if (yellowCardPayoutIsEnabled) {
@@ -492,14 +527,23 @@ class FiatRampService {
 
         const bellSettlementRecord =
             await NigeriaBanksService.createNGNOfframpSettlement(settlementData);
-        
+
 
         if (!bellSettlementRecord.sequenceId) {
             throw new Error('Failed to create safehaven settlement record');
         }
 
-        const { accountName, seerbitId, accountNumber } =
+        const { accountName, seerbitId, accountNumber, networkId, channelId, country } =
             settlementData.destination;
+
+        let _seerbitId = seerbitId;
+        if (!_seerbitId) {
+            await this.getSeerBitId({
+                networkId: networkId,
+                channelId: channelId as string,
+                countryCode: country as CountryCode
+            });
+        }
 
 
         await NigeriaBanksService.sendProcessingSettlementMessage({
@@ -515,7 +559,7 @@ class FiatRampService {
         const transaction = await BellService.processOffRampPaymentWithBell({
             amountToSend: settlementData.localAmount,
             senderName: accountName,
-            beneficiaryBankCode: seerbitId!, //make is not null
+            beneficiaryBankCode: _seerbitId as string,
             beneficiaryAccountNumber: accountNumber,
             sequenceId: bellSettlementRecord.sequenceId,
         });
