@@ -36,10 +36,14 @@ const handleBlockradarAddressTokenSwapJob = async (
 ) => {
     const { swapDetails, whatsappParams } = data;
 
+    const amountToSwap = swapDetails.fromAmount - swapDetails.transactionFee;
+    const amountToDebit = swapDetails.fromAmount;
+
     const swapTxReference = await SwapService.createOrRecoverSwapTransaction(
         jobId,
         swapTokensTransactionDetailsV2Schema.parse({
             ...swapDetails,
+            fromAmount: amountToSwap,
             userId: convertBase64ToAsciiString(swapDetails.userId),
         })
     );
@@ -49,7 +53,7 @@ const handleBlockradarAddressTokenSwapJob = async (
     const masterWalletAddress = masterWalletClient.walletAddress;
 
     const withdrawalTx = await azzaWalletManager.withdrawAsset({
-        amount: decimalToString(fixNumber(swapDetails.fromAmount + swapDetails.transactionFee, 6)),
+        amount: decimalToString(fixNumber(amountToDebit, 6)),
         assetId: swapDetails.fromTokenId,
         userId: convertBase64ToAsciiString(swapDetails.userId),
         reference: swapTxReference,
