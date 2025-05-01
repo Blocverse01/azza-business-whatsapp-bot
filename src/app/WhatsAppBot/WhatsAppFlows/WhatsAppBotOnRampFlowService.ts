@@ -329,7 +329,7 @@ class WhatsAppBotOnRampFlowService {
                         payment_method,
                         wallet_address,
                         amount,
-                        amount_denomination: assetConfig.tokenName
+                        amount_denomination: amount_denomination
                     },
                     error_messages: errorMessages,
                     amount_input_label: `Amount`,
@@ -356,19 +356,36 @@ class WhatsAppBotOnRampFlowService {
             errorMessages.amount = 'Amount must be greater than 0';
         }
 
-        const [minLimit, maxLimit] = [
+        const [minUsdLimit, maxUsdLimit] = [
             countryLimits.min / conversionRate,
             countryLimits.max / conversionRate,
         ];
 
-        const hardUsdLimit = getMinimumOnrampUsdAmount(assetConfig.network);
-        const minLimitUsed = hardUsdLimit ?? minLimit;
+        const [minLocalLimit, maxLocalLimit] = [
+            countryLimits.min,
+            countryLimits.max,
+        ];
 
-        if (amountAsNumber < minLimitUsed) {
-            errorMessages.amount = `Amount must be greater than ${prettifyNumber(minLimitUsed, TWO)} ${assetConfig.tokenName}`;
+        const hardUsdLimit = getMinimumOnrampUsdAmount(assetConfig.network);
+        const minUsdLimitUsed = hardUsdLimit ?? minUsdLimit;
+
+        let minLocalLimitUsed: number;
+
+        if (typeof hardUsdLimit === 'number' && typeof conversionRate === 'number') {
+            minLocalLimitUsed = math.multiply(hardUsdLimit, conversionRate);
+        } else {
+            minLocalLimitUsed = minLocalLimit;
         }
-        if (maxLimit > 0 && amountAsNumber > maxLimit) {
-            errorMessages.amount = `Amount must be less than ${prettifyNumber(maxLimit, TWO)} ${assetConfig.tokenName}`;
+
+        if (amountAsNumber < minUsdLimitUsed) {
+            errorMessages.amount = (amount_denomination !== local_currency)
+                ? `Amount must be greater than ${prettifyNumber(minUsdLimitUsed, TWO)} ${assetConfig.tokenName}`
+                : `Amount must be greater than ${prettifyNumber(minLocalLimitUsed, TWO)} ${local_currency}`;
+        }
+        if (maxUsdLimit > 0 && amountAsNumber > maxUsdLimit) {
+            errorMessages.amount = (amount_denomination !== local_currency)
+                ? `Amount must be less than ${prettifyNumber(maxUsdLimit, TWO)} ${assetConfig.tokenName}`
+                : `Amount must be less than ${prettifyNumber(maxLocalLimit, TWO)} ${local_currency}`;
         }
 
         /**
@@ -402,7 +419,7 @@ class WhatsAppBotOnRampFlowService {
                         payment_method,
                         wallet_address,
                         amount,
-                        amount_denomination: assetConfig.tokenName
+                        amount_denomination: amount_denomination
                     },
                     error_messages: errorMessages,
                     amount_input_label: `Amount`,
