@@ -3,17 +3,23 @@ import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
 
 const supportedChains = azzaWalletManager.getSupportedNetworks();
+const supportedTokenNames = azzaWalletManager.getSupportedAssets().map((asset) => asset.tokenName);
+const uniqueSupportedTokenNames = Array.from(new Set(supportedTokenNames));
+
+const BLOCKCHAIN_ARG_DESCRIPTION = `Supported blockchains: ${supportedChains.join(', ')}. Correct user typos when their input is closely related to any of the Supported blockchain options`;
+const CRYPTO_CURRENCY_SYMBOL_ARG_DESCRIPTION = `Supported symbols: ${uniqueSupportedTokenNames.join(', ')}. Correct user typos when their input is closely related to any of the Supported symbol options`;
+
 export const assetAndNetworkSchema = z.object({
     blockchainNetwork: z
         .string()
         .nullable()
-        .describe(
-            `The blockchain network to use for the action. Supported networks: ${supportedChains.join(', ')}`
-        ),
+        .describe(`The blockchain to use for the action. ${BLOCKCHAIN_ARG_DESCRIPTION}`),
     cryptoCurrencySymbol: z
         .string()
         .nullable()
-        .describe('The cryptocurrency symbol to use for the action'),
+        .describe(
+            `The cryptocurrency symbol to use for the action. ${CRYPTO_CURRENCY_SYMBOL_ARG_DESCRIPTION}`
+        ),
 });
 
 export const actionArgumentsSchema = {
@@ -50,21 +56,25 @@ export const actionArgumentsSchema = {
         fromBlockchainNetwork: z
             .string()
             .nullable()
-            .describe('The blockchain network to swap from.'),
+            .describe(`The blockchain network to swap from. ${BLOCKCHAIN_ARG_DESCRIPTION}`),
         fromCryptoCurrencySymbol: z
             .string()
             .nullable()
-            .describe('The cryptocurrency symbol to swap from.'),
+            .describe(
+                `The cryptocurrency symbol to swap from. ${CRYPTO_CURRENCY_SYMBOL_ARG_DESCRIPTION}`
+            ),
         toBlockchainNetwork: z
             .string()
             .nullable()
             .describe(
-                'The blockchain network to swap to. Should be the same as the fromBlockchainNetwork if not provided.'
+                `The blockchain network to swap to. Should be the same as the fromBlockchainNetwork if not provided. ${BLOCKCHAIN_ARG_DESCRIPTION}`
             ),
         toCryptoCurrencySymbol: z
             .string()
             .nullable()
-            .describe('The cryptocurrency symbol to swap to.'),
+            .describe(
+                `The cryptocurrency symbol to swap to. ${CRYPTO_CURRENCY_SYMBOL_ARG_DESCRIPTION}`
+            ),
         fromAmount: z.number().nullable().describe('The amount of cryptocurrency to swap.'),
         hasConfirmedSwap: z.boolean().nullable(),
     }),
