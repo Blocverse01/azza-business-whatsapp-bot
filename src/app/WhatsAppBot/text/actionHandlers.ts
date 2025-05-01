@@ -1162,12 +1162,12 @@ export const handleSwapCryptoPrompt = async (
         };
     }
 
-    const toAmount = quote.rate * fromAmount;
     const swapFee = fromAmount * FLAT_SWAP_FEE;
+    const toAmount = quote.rate * (fromAmount - swapFee);
     const prettifiedFromAmount = prettifyNumber(fromAmount, 6);
     const prettifiedToAmount = prettifyNumber(toAmount, 6);
     const swapRate = prettifyNumber(quote.rate, 6);
-    const prettifiedSwapFee = prettifyNumber(fromAmount * FLAT_SWAP_FEE, 6);
+    const prettifiedSwapFee = prettifyNumber(swapFee, 6);
 
     const chainMessages =
         fromBlockchainNetwork === toBlockchainNetwork
@@ -1180,11 +1180,11 @@ export const handleSwapCryptoPrompt = async (
     const transactionSummaryMessageBody = [
         `🔄 _Swap_ *_${fromTokenConfig.tokenName}_* to *_${toTokenConfig.tokenName}_*\n`,
         `From Amount: *${prettifiedFromAmount} ${fromTokenConfig.tokenName}*`,
-        `To Amount: *${prettifiedToAmount} ${toTokenConfig.tokenName}*`,
-        `1 ${fromTokenConfig.tokenName} = ${swapRate} ${toTokenConfig.tokenName}\n`,
-        `Fee: *${prettifiedSwapFee} ${fromTokenConfig.tokenName}*`,
+        `To Amount: *${prettifiedToAmount} ${toTokenConfig.tokenName}*\n`,
+        `1 *${fromTokenConfig.tokenName}* = ${swapRate} *${toTokenConfig.tokenName}*`,
+        `Fee: *${prettifiedSwapFee} ${fromTokenConfig.tokenName}*\n`,
         ...chainMessages,
-        `Estimated Time: *${quote.estimatedArrivalTime}s*`,
+        `\n_Estimated Time: *${quote.estimatedArrivalTime}s*_`,
     ].join('\n');
 
     const transactionSummaryMessage =
@@ -1195,7 +1195,7 @@ export const handleSwapCryptoPrompt = async (
             transactionSummary: transactionSummaryMessageBody
                 .replaceAll('_', '')
                 .replaceAll('*', ''),
-            transactionMessageBody: `${transactionSummaryMessageBody}\n\nClick on the button below to enter your transaction PIN and complete your transaction.`,
+            transactionMessageBody: `${transactionSummaryMessageBody}\n\nClick on "Confirm Transaction" to enter your transaction PIN and complete your transaction.`,
             transactionDetails: {
                 transactionType: 'SWAP_TOKENS',
                 userId: convertAsciiStringToBase64(user.id),
