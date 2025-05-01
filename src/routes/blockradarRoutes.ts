@@ -28,6 +28,7 @@ blockradarRouter.post('/webhooks/:network', async (req, res) => {
     });
 
     if (!payloadIsValid) {
+        console.log('Bad Request: ', req.body.event);
         return res.status(BAD_REQUEST).send('Invalid webhook signature');
     }
 

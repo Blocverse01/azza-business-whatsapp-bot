@@ -122,6 +122,7 @@ const tables = [
       { column: "user", table: "gasless_withdrawal_counter" },
       { column: "user", table: "referral_scheme" },
       { column: "referee", table: "referrals" },
+      { column: "user", table: "swap_transactions" },
     ],
   },
   {
@@ -423,6 +424,41 @@ const tables = [
       },
     ],
   },
+  {
+    name: "swap_transactions",
+    columns: [
+      { name: "fromAmount", type: "float", notNull: true, defaultValue: "0.0" },
+      {
+        name: "quoteToAmount",
+        type: "float",
+        notNull: true,
+        defaultValue: "0.0",
+      },
+      { name: "fromBlockchain", type: "text", notNull: true, defaultValue: "" },
+      { name: "toBlockchain", type: "text", notNull: true, defaultValue: "" },
+      {
+        name: "fromTokenSymbol",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      { name: "toTokenSymbol", type: "text", notNull: true, defaultValue: "" },
+      {
+        name: "recipientAddress",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      { name: "quoteRate", type: "float", notNull: true, defaultValue: "0.0" },
+      { name: "fee", type: "float", notNull: true, defaultValue: "0.0" },
+      { name: "user", type: "link", link: { table: "user_v2" } },
+      { name: "executedToAmount", type: "float" },
+      { name: "executedRate", type: "float" },
+      { name: "transactionHash", type: "text" },
+      { name: "status", type: "text", notNull: true, defaultValue: "created" },
+      { name: "jobId", type: "text", notNull: true, defaultValue: "" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -489,6 +525,9 @@ export type ReferralSchemeRecord = ReferralScheme & XataRecord;
 export type Referrals = InferredTypes["referrals"];
 export type ReferralsRecord = Referrals & XataRecord;
 
+export type SwapTransactions = InferredTypes["swap_transactions"];
+export type SwapTransactionsRecord = SwapTransactions & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -507,6 +546,7 @@ export type DatabaseSchema = {
   safehaven_offramp_settlement_transaction: SafehavenOfframpSettlementTransactionRecord;
   referral_scheme: ReferralSchemeRecord;
   referrals: ReferralsRecord;
+  swap_transactions: SwapTransactionsRecord;
 };
 
 const DatabaseClient = buildClient();

@@ -1,16 +1,21 @@
 import {
     type AssetBalance,
+    AssetSwapTransaction,
     type AssetTransaction,
     type BalanceQueryParams,
     BaseWalletProvider,
     type CreateUserWalletParams,
     type CreateUserWalletsParams,
+    ExecuteAssetSwapParams,
     type SearchAssetParams,
+    SwapAssetQuote,
+    SwapAssetQuoteParams,
     type UserWallet,
     type WithdrawAssetParams,
 } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import type { AssetConfig } from '@/resources/web3/core/tokens';
+import { undefined } from 'zod';
 
 class AzzaWalletManager implements BaseWalletProvider {
     private readonly walletProvider: BaseWalletProvider;
@@ -79,6 +84,14 @@ class AzzaWalletManager implements BaseWalletProvider {
         params: Pick<WithdrawAssetParams, 'amount' | 'assetId' | 'userId' | 'recipient'>
     ): Promise<{ nativeBalance: number; networkFee: number }> {
         return this.walletProvider.getWithdrawNetworkFee(params);
+    }
+
+    public getSwapQuote(params: SwapAssetQuoteParams): Promise<SwapAssetQuote> {
+        return this.walletProvider.getSwapQuote(params);
+    }
+
+    public executeAssetSwap(params: ExecuteAssetSwapParams): Promise<AssetSwapTransaction> {
+        return this.walletProvider.executeAssetSwap(params);
     }
 }
 

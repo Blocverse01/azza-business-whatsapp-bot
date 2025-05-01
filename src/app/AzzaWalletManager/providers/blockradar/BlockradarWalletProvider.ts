@@ -1,10 +1,14 @@
-import type {
+import {
     AssetBalance,
+    AssetSwapTransaction,
     AssetTransaction,
     BalanceQueryParams,
     BaseWalletProvider,
     CreateUserWalletParams,
     CreateUserWalletsParams,
+    ExecuteAssetSwapParams,
+    SwapAssetQuote,
+    SwapAssetQuoteParams,
     UserWallet,
     WithdrawAssetParams,
 } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
@@ -416,21 +420,6 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         };
     }
 
-    private getAssetConfig(assetId: string) {
-        const config = this.getSupportedAssets().find(
-            (assetConfig) => assetConfig.listItemId.toLowerCase() === assetId.toLowerCase()
-        );
-
-        if (!config) {
-            throw new BlockradarWalletProviderError({
-                message: `Asset config not found for asset ID`,
-                data: { assetId },
-            });
-        }
-
-        return config;
-    }
-
     public searchAssets(searchParams: Partial<Pick<AssetConfig, 'network' | 'tokenName'>>) {
         return this.getSupportedAssets().filter((asset) => {
             return Object.entries(searchParams).every(([key, value]) => {
@@ -483,6 +472,78 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         await delay(delayTime);
 
         return this.gracefullyGetUserAddressId(userId, blockchainNetwork, retryCount + 1);
+    }
+
+    public async getSwapQuote(params: SwapAssetQuoteParams): Promise<SwapAssetQuote> {
+        const fromAssetConfig = this.getAssetConfig(params.fromAssetId);
+        const [blockradarFromAssetId, blockradarToAssetId] = [
+            this.dataSources.blockradarAssetId(params.fromAssetId),
+            this.dataSources.blockradarAssetId(params.toAssetId),
+        ];
+
+        const walletClient = this.dataSources.blockradarMasterWalletClient(fromAssetConfig.network);
+        const rawQuotes = await walletClient.getSwapQuote({
+            amount: params.amount,
+            fromAssetId: blockradarFromAssetId,
+            toAssetId: blockradarToAssetId,
+            recipientAddress: params.recipientAddress,
+        });
+
+        return {
+            amount: Number(rawQuotes.amount),
+            rate: Number(rawQuotes.rate),
+            estimatedArrivalTime: rawQuotes.estimatedArrivalTime,
+            networkFee: Number(rawQuotes.networkFee),
+        };
+    }
+
+    public async executeAssetSwap(params: ExecuteAssetSwapParams): Promise<AssetSwapTransaction> {
+        const [fromAssetConfig, toAssetConfig] = [
+            this.getAssetConfig(params.fromAssetId),
+            this.getAssetConfig(params.toAssetId),
+        ];
+        const [blockradarFromAssetId, blockradarToAssetId] = [
+            this.dataSources.blockradarAssetId(params.fromAssetId),
+            this.dataSources.blockradarAssetId(params.toAssetId),
+        ];
+
+        const walletClient = this.dataSources.blockradarMasterWalletClient(fromAssetConfig.network);
+
+        const swapResponse = await walletClient.executeMasterWalletSwap({
+            amount: params.fromAmount,
+            reference: params.reference,
+            recipientAddress: params.recipientAddress,
+            fromAssetId: blockradarFromAssetId,
+            toAssetId: blockradarToAssetId,
+            metadata: params.metadata,
+        });
+
+        return {
+            fromAmount: Number(swapResponse.amount),
+            fromAsset: fromAssetConfig,
+            toAsset: toAssetConfig,
+            toAmount: Number(swapResponse.toAmount),
+            rate: Number(swapResponse.rate),
+            reference: params.reference,
+            confirmed: swapResponse.confirmed,
+            status: swapResponse.status,
+            id: swapResponse.id,
+        };
+    }
+
+    private getAssetConfig(assetId: string) {
+        const config = this.getSupportedAssets().find(
+            (assetConfig) => assetConfig.listItemId.toLowerCase() === assetId.toLowerCase()
+        );
+
+        if (!config) {
+            throw new BlockradarWalletProviderError({
+                message: `Asset config not found for asset ID`,
+                data: { assetId },
+            });
+        }
+
+        return config;
     }
 }
 
