@@ -471,7 +471,7 @@ class WhatsAppBotOnRampFlowService {
 
         await WhatsAppBotService.sendArbitraryTextMessage(
             phoneNumber,
-            `👆 Long press the account number and amount to copy`
+            `👆 *Long-press the account number or amount to copy.*\n\n🧾 Payment Instructions:\n\n 1. Please send the payment from *your own bank account*. \n\n 2. Make sure to send the *exact amount* to avoid any delays.`
         );
     }
 
@@ -625,7 +625,7 @@ class WhatsAppBotOnRampFlowService {
                 await this.sendOnRampPaymentInstructions({
                     phoneNumber: verifiedUserDetails.phoneNumber,
                     accountNumber: onrampResponse.bankInfo.accountNumber,
-                    fiatToPay: transaction_details.fiat_to_pay
+                    fiatToPay: prettifyNumber(parseFloat(transaction_details.fiat_to_pay))
                 })
 
                 return {
