@@ -11,6 +11,7 @@ import {
 } from '@/background-processing/types';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { decimalToString, fixNumber } from '@/resources/utils/currency';
+import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { ConnectionOptions, Worker } from 'bullmq';
@@ -37,7 +38,10 @@ const handleBlockradarAddressTokenSwapJob = async (
 
     const swapTxReference = await SwapService.createOrRecoverSwapTransaction(
         jobId,
-        swapTokensTransactionDetailsV2Schema.parse(swapDetails)
+        swapTokensTransactionDetailsV2Schema.parse({
+            ...swapDetails,
+            userId: convertBase64ToAsciiString(swapDetails.userId),
+        })
     );
     const fromTokenConfig = getAssetConfigOrThrow(swapDetails.fromTokenId);
     const masterWalletClient = getMasterWalletClient(fromTokenConfig.network);
@@ -47,7 +51,7 @@ const handleBlockradarAddressTokenSwapJob = async (
     const withdrawalTx = await azzaWalletManager.withdrawAsset({
         amount: decimalToString(fixNumber(swapDetails.fromAmount + swapDetails.transactionFee, 6)),
         assetId: swapDetails.fromTokenId,
-        userId: swapDetails.userId,
+        userId: convertBase64ToAsciiString(swapDetails.userId),
         reference: swapTxReference,
         recipient: masterWalletAddress,
         metadata: {
