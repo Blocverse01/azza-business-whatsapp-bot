@@ -1087,6 +1087,27 @@ export const handleSwapCryptoPrompt = async (
         };
     }
 
+    const fromTokenBalance = await azzaWalletManager.getAssetBalance({
+        assetId: fromTokenConfig.listItemId,
+        userId: user.id,
+    });
+    if (fromTokenBalance.balance < fromAmount) {
+        const insufficientBalanceResponse = `Insufficient balance. You have ${fromTokenBalance.balance} ${fromTokenConfig.tokenName}`;
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                insufficientBalanceResponse
+            )
+        );
+
+        return {
+            response: insufficientBalanceResponse,
+            resetSession: false,
+        };
+    }
+
     if (!swapArguments.hasConfirmedSwap) {
         const response = `
         Let’s confirm the details of your swap:\n✔Asset to Swap From: ${fromCryptoCurrencySymbol}\n✔Asset to Swap To: ${toCryptoCurrencySymbol}\n✔Amount: ${fromAmount} ${fromCryptoCurrencySymbol}\n✔From Chain: ${fromBlockchainNetwork}\n✔To Chain: ${toBlockchainNetwork}\n\nReply "Yes" to confirm.\n\n_To edit any of the details, reply with something like "Swap 2 usdc instead" or "Swap to ETH instead"._`;
@@ -1177,7 +1198,7 @@ export const handleSwapCryptoPrompt = async (
             transactionMessageBody: `${transactionSummaryMessageBody}\n\nClick on the button below to enter your transaction PIN and complete your transaction.`,
             transactionDetails: {
                 transactionType: 'SWAP_TOKENS',
-                userId: convertAsciiStringToBase64(botParams.userPhoneNumber),
+                userId: convertAsciiStringToBase64(user.id),
                 fromTokenId: fromTokenConfig.listItemId,
                 toTokenId: toTokenConfig.listItemId,
                 fromAmount: fromAmount,
