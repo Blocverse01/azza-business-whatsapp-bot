@@ -1,12 +1,8 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { SwapAssetQuote } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import { getDefaultSolanaNode, getSolanaNetworkClient } from '@/app/ExtendedWallet/solana/config';
-import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
-import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
-import Web3Library from '@/app/WalletAssetManagement/Web3Library';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -21,7 +17,6 @@ import {
     FeatureAccessLevel,
     FLAT_SWAP_FEE,
 } from '@/config/whatsAppBot';
-import env from '@/constants/env';
 import { SIX, ZERO } from '@/constants/numbers';
 import { getTransactionMinimumDepositMessage, USD_SYMBOL } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
@@ -40,12 +35,8 @@ import {
     normalizeBlockchainInput,
     SUPPORTED_BLOCKCHAINS,
 } from '@/resources/web3/core/blockchains';
-import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
-import { getPublicClient } from '@/resources/web3/evm/viem/clients';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
-import { formatUnits, getAddress, parseUnits } from 'viem';
 import { z, ZodSchema } from 'zod';
 import { getSupportedAssetAndNetworksText } from '../utils';
 import SumSubService from '@/app/SumSub/SumSubService';
@@ -1170,7 +1161,7 @@ export const handleSwapCryptoPrompt = async (
         `From Amount: *${prettifiedFromAmount} ${fromTokenConfig.tokenName}*`,
         `To Amount: *${prettifiedToAmount} ${toTokenConfig.tokenName}*`,
         `1 ${fromTokenConfig.tokenName} = ${swapRate} ${toTokenConfig.tokenName}\n`,
-        `Fee: *${swapFee} ${fromTokenConfig.tokenName}*`,
+        `Fee: *${prettifiedSwapFee} ${fromTokenConfig.tokenName}*`,
         ...chainMessages,
         `Estimated Time: *${quote.estimatedArrivalTime}s*`,
     ].join('\n');
@@ -1187,8 +1178,8 @@ export const handleSwapCryptoPrompt = async (
             transactionDetails: {
                 transactionType: 'SWAP_TOKENS',
                 userId: convertAsciiStringToBase64(botParams.userPhoneNumber),
-                fromToken: fromTokenConfig,
-                toToken: toTokenConfig,
+                fromTokenId: fromTokenConfig.listItemId,
+                toTokenId: toTokenConfig.listItemId,
                 fromAmount: fromAmount,
                 transactionFee: swapFee,
                 rate: quote.rate,
