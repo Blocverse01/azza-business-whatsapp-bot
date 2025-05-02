@@ -4,6 +4,7 @@ import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSol
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
 import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
+import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import Web3Library from '@/app/WalletAssetManagement/Web3Library';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -268,6 +269,25 @@ export const handleWithdrawRelatedPrompt = async (
 
         return {
             response: missingRecipientAddressResponse,
+            resetSession: false,
+        };
+    }
+
+    const withdrawalMinimum = getWithdrawalMinimum(targetAsset.listItemId);
+
+    if (withdrawalMinimum && withdrawArguments.amount < withdrawalMinimum) {
+        const withdrawalMinimumResponse = `Minimum withdrawal amount is ${withdrawalMinimum} ${targetAsset.tokenName}`;
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                withdrawalMinimumResponse
+            )
+        );
+
+        return {
+            response: withdrawalMinimumResponse,
             resetSession: false,
         };
     }

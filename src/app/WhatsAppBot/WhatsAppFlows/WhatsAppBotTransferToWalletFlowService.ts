@@ -4,6 +4,7 @@ import {
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -157,6 +158,7 @@ class WhatsAppBotTransferToWalletFlowService {
         data: DataExchangePayload['TRANSACTION_DETAILS']
     ) {
         const asset = getAssetConfigOrThrow(data.asset_id);
+        const withdrawalMinimum = getWithdrawalMinimum(asset.listItemId);
 
         const transactionFee =
             WalletAssetManagementService.calculateStableTokenTransferTransactionFee(
@@ -200,6 +202,9 @@ class WhatsAppBotTransferToWalletFlowService {
 
         if (amount <= ZERO) {
             errorMessages.amount = 'Amount must be greater than 0';
+        }
+        if (withdrawalMinimum && amount <= withdrawalMinimum) {
+            errorMessages.amount = `Minimum withdrawal amount is ${withdrawalMinimum} ${asset.tokenName}`;
         }
         if (userBalance < amount) {
             errorMessages.amount = `Insufficient balance, you have only ${userBalance} ${asset.tokenName}`;
