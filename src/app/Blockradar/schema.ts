@@ -17,7 +17,7 @@ const amlScreeningSchema = z.object({
     status: z.string().optional().nullable(),
 });
 const blockradarTransactionStatusSchema = z.enum(['PENDING', 'SUCCESS', 'FAILED'] as const);
-const blockradarTransactionTypeSchema = z.enum(['WITHDRAW', 'DEPOSIT', 'SALVAGE'] as const);
+const blockradarTransactionTypeSchema = z.enum(['WITHDRAW', 'DEPOSIT', 'SALVAGE', 'SWAP'] as const);
 
 export const blockradarBlockchainSchema = z
     .object({
@@ -169,7 +169,13 @@ export const withdrawNetworkFeeResponseDataSchema = z.object({
 ////////////////////////
 // Webhook Payload
 ////////////////////////
-const webhookEvent = z.enum(['deposit.success', 'withdraw.success', 'withdraw.failed'] as const);
+const webhookEvent = z.enum([
+    'deposit.success',
+    'withdraw.success',
+    'withdraw.failed',
+    'swap.success',
+    'swap.failed',
+] as const);
 export const blockradarWebhookPayloadSchema = z.object({
     event: webhookEvent,
     data: z.object({
@@ -188,6 +194,40 @@ export const blockradarWebhookPayloadSchema = z.object({
     }),
 });
 
+export const swapQuoteRequestBodySchema = z.object({
+    fromAssetId: z.string().nonempty(),
+    toAssetId: z.string().nonempty(),
+    amount: z.string(),
+    recipientAddress: z.string().optional(),
+});
+
+export const swapQuoteResponseDataSchema = z.object({
+    amount: z.string(),
+    estimatedArrivalTime: z.number(),
+    networkFee: z.string(),
+    rate: z.string(),
+});
+
+export const executeSwapRequestBodySchema = swapQuoteRequestBodySchema.extend({
+    reference: z.string(),
+    metadata: z.record(z.string()).optional().nullable(),
+});
+export const executeSwapResponseDataSchema = z.object({
+    amount: z.string(),
+    blockHash: z.string().optional().nullable(),
+    blockNumber: z.number().optional().nullable(),
+    blockchain: blockradarBlockchainSchema,
+    confirmations: z.number().optional().nullable(),
+    confirmed: z.boolean(),
+    hash: z.string().optional().nullable(),
+    id: z.string(),
+    status: blockradarTransactionStatusSchema,
+    rate: z.string(),
+    toAmount: z.string(),
+    network: blockradarNetworkSchema,
+    type: blockradarTransactionTypeSchema,
+});
+
 //////////////////////
 // Types
 //////////////////////
@@ -197,3 +237,7 @@ export type WithdrawAssetRequestBody = z.infer<typeof withdrawAssetRequestBodySc
 export type BlockradarWebhookPayload = z.infer<typeof blockradarWebhookPayloadSchema>;
 export type BlockradarAddress = z.infer<typeof blockradarAddressSchema>;
 export type BlockradarTransactionType = z.infer<typeof blockradarTransactionTypeSchema>;
+export type SwapQuoteRequestBody = z.infer<typeof swapQuoteRequestBodySchema>;
+export type SwapQuoteResponseData = z.infer<typeof swapQuoteResponseDataSchema>;
+export type ExecuteSwapRequestBody = z.infer<typeof executeSwapRequestBodySchema>;
+export type ExecuteSwapResponseData = z.infer<typeof executeSwapResponseDataSchema>;

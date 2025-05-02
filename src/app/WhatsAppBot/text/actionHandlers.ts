@@ -1,12 +1,9 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
-import { getDefaultSolanaNode, getSolanaNetworkClient } from '@/app/ExtendedWallet/solana/config';
-import ExtendedSolanaWalletLibrary from '@/app/ExtendedWallet/solana/ExtendedSolanaWalletLibrary';
+import { SwapAssetQuote } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
-import LiFiIntegrationLibrary from '@/app/LiFi/LiFiIntegrationLibrary';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
 import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
-import Web3Library from '@/app/WalletAssetManagement/Web3Library';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -19,13 +16,15 @@ import {
     canAccessFeature,
     deriveUserFeatureAccessLevel,
     FeatureAccessLevel,
+    FLAT_SWAP_FEE,
 } from '@/config/whatsAppBot';
-import env from '@/constants/env';
 import { SIX, ZERO } from '@/constants/numbers';
 import { getTransactionMinimumDepositMessage, USD_SYMBOL } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
 import {
+    decimalToString,
     getUserCountryCodeFromPhoneNumberOrThrow,
     prettifyNumber,
 } from '@/resources/utils/currency';
@@ -37,12 +36,8 @@ import {
     normalizeBlockchainInput,
     SUPPORTED_BLOCKCHAINS,
 } from '@/resources/web3/core/blockchains';
-import { getAppDefaultEvmConfig } from '@/resources/web3/evm/evm.config';
-import { getPublicClient } from '@/resources/web3/evm/viem/clients';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
-import { formatUnits, getAddress, parseUnits } from 'viem';
 import { z, ZodSchema } from 'zod';
 import { getSupportedAssetAndNetworksText } from '../utils';
 import SumSubService from '@/app/SumSub/SumSubService';
@@ -1085,32 +1080,6 @@ export const handleSwapCryptoPrompt = async (
     const typedFromBlockchainNetwork = normalizeBlockchainInput(fromBlockchainNetwork);
     const typedToBlockchainNetwork = normalizeBlockchainInput(toBlockchainNetwork);
 
-    if (!LiFiIntegrationLibrary.isSupportedChain(typedFromBlockchainNetwork)) {
-        const responseMessage = `Swaps from ${fromBlockchainNetwork} are not supported at the moment.`;
-        await WhatsAppBotService.sendWhatsappMessage(
-            botParams.businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, responseMessage)
-        );
-
-        return {
-            response: responseMessage,
-            resetSession: false,
-        };
-    }
-
-    if (!LiFiIntegrationLibrary.isSupportedChain(typedToBlockchainNetwork)) {
-        const responseMessage = `Swaps to ${toBlockchainNetwork} are not supported at the moment.`;
-        await WhatsAppBotService.sendWhatsappMessage(
-            botParams.businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, responseMessage)
-        );
-
-        return {
-            response: responseMessage,
-            resetSession: false,
-        };
-    }
-
     const [fromTokenConfig, toTokenConfig] = [
         azzaWalletManager.searchAssets({
             tokenName: fromCryptoCurrencySymbol,
@@ -1138,6 +1107,27 @@ export const handleSwapCryptoPrompt = async (
         };
     }
 
+    const fromTokenBalance = await azzaWalletManager.getAssetBalance({
+        assetId: fromTokenConfig.listItemId,
+        userId: user.id,
+    });
+    if (fromTokenBalance.balance < fromAmount) {
+        const insufficientBalanceResponse = `Insufficient balance. You have ${fromTokenBalance.balance} ${fromTokenConfig.tokenName}`;
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                insufficientBalanceResponse
+            )
+        );
+
+        return {
+            response: insufficientBalanceResponse,
+            resetSession: false,
+        };
+    }
+
     if (!swapArguments.hasConfirmedSwap) {
         const response = `
         Let’s confirm the details of your swap:\n✔Asset to Swap From: ${fromCryptoCurrencySymbol}\n✔Asset to Swap To: ${toCryptoCurrencySymbol}\n✔Amount: ${fromAmount} ${fromCryptoCurrencySymbol}\n✔From Chain: ${fromBlockchainNetwork}\n✔To Chain: ${toBlockchainNetwork}\n\nReply "Yes" to confirm.\n\n_To edit any of the details, reply with something like "Swap 2 usdc instead" or "Swap to ETH instead"._`;
@@ -1161,80 +1151,25 @@ export const handleSwapCryptoPrompt = async (
         )
     );
 
-    const [fromUserWallet, toUserWallet] = await Promise.all([
+    const [toUserWallet] = await Promise.all([
         azzaWalletManager.getUserWallet(user.id, fromTokenConfig.network),
         azzaWalletManager.getUserWallet(user.id, toTokenConfig.network),
     ]);
 
-    const formattedAmount =
-        typedFromBlockchainNetwork === 'Solana'
-            ? await (async () => {
-                  if (
-                      !validateWalletAddress(
-                          fromTokenConfig.tokenAddress,
-                          typedFromBlockchainNetwork
-                      )
-                  ) {
-                      return BigInt(fromAmount * LAMPORTS_PER_SOL).toString();
-                  }
-                  const connection = getSolanaNetworkClient(getDefaultSolanaNode());
-                  const decimals = await ExtendedSolanaWalletLibrary.getTokenDecimals(
-                      connection,
-                      new PublicKey(fromTokenConfig.tokenAddress)
-                  );
+    let quote: SwapAssetQuote | null = null;
 
-                  return parseUnits(`${fromAmount}`, decimals).toString();
-              })()
-            : await (async () => {
-                  let decimals: number;
-                  const networkConfig = getAppDefaultEvmConfig(
-                      typedFromBlockchainNetwork,
-                      env.WEB3_ENVIRONMENT
-                  );
+    try {
+        quote = await azzaWalletManager.getSwapQuote({
+            amount: decimalToString(fromAmount),
+            fromAssetId: fromTokenConfig.listItemId,
+            toAssetId: toTokenConfig.listItemId,
+            recipientAddress: toUserWallet.address,
+        });
+    } catch (error) {
+        await logServiceError(error, 'Error getting swap quotes');
+    }
 
-                  if (
-                      !validateWalletAddress(
-                          fromTokenConfig.tokenAddress,
-                          typedFromBlockchainNetwork
-                      )
-                  ) {
-                      decimals = networkConfig.viemChain.nativeCurrency.decimals;
-                  } else {
-                      const publicClient = getPublicClient(
-                          networkConfig.viemChain,
-                          networkConfig.rpcUrl
-                      );
-                      decimals = await Web3Library.getTokenDecimals(
-                          publicClient,
-                          getAddress(fromTokenConfig.tokenAddress)
-                      );
-                  }
-
-                  return parseUnits(`${fromAmount}`, decimals).toString();
-              })();
-
-    const [fromChainKey, toChainKey] = [
-        LiFiIntegrationLibrary.getChainKey(typedFromBlockchainNetwork),
-        LiFiIntegrationLibrary.getChainKey(typedToBlockchainNetwork),
-    ];
-
-    const quote = await LiFiIntegrationLibrary.getQuote({
-        fromToken: fromTokenConfig.tokenAddress,
-        fromAmount: formattedAmount,
-        fromAddress: fromUserWallet.address,
-        toToken: toTokenConfig.tokenAddress,
-        fromChain: fromChainKey,
-        toChain: toChainKey,
-        toAddress: toUserWallet.address,
-    });
-
-    const quote_fromToken = quote.action.fromToken;
-    const quote_toToken = quote.action.toToken;
-    const slippage = quote.action.slippage;
-    const quoteEstimate = quote.estimate;
-    const transactionRequest = quote.transactionRequest;
-
-    if (!transactionRequest) {
+    if (!quote) {
         const responseMessage = 'An error occurred while trying to get a quote for your swap.';
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
@@ -1247,18 +1182,12 @@ export const handleSwapCryptoPrompt = async (
         };
     }
 
-    const formattedFromAmount = formatUnits(
-        BigInt(quoteEstimate.fromAmount),
-        quote_fromToken.decimals
-    );
-    const formattedToAmount = formatUnits(BigInt(quoteEstimate.toAmount), quote_toToken.decimals);
-
-    const [prettifiedFromAmount, prettifiedToAmount] = [
-        prettifyNumber(Number(formattedFromAmount), 6),
-        prettifyNumber(Number(formattedToAmount), 6),
-    ];
-
-    const swapRate = prettifyNumber(Number(formattedToAmount) / Number(formattedFromAmount), 6);
+    const swapFee = fromAmount * FLAT_SWAP_FEE;
+    const toAmount = quote.rate * (fromAmount - swapFee);
+    const prettifiedFromAmount = prettifyNumber(fromAmount, 6);
+    const prettifiedToAmount = prettifyNumber(toAmount, 6);
+    const swapRate = prettifyNumber(quote.rate, 6);
+    const prettifiedSwapFee = prettifyNumber(swapFee, 6);
 
     const chainMessages =
         fromBlockchainNetwork === toBlockchainNetwork
@@ -1269,12 +1198,13 @@ export const handleSwapCryptoPrompt = async (
               ];
 
     const transactionSummaryMessageBody = [
-        `🔄 _Swap_ *_${quote_fromToken.symbol}_* to *_${quote_toToken.symbol}_*\n`,
-        `From Amount: *${prettifiedFromAmount} ${quote_fromToken.symbol}*`,
-        `To Amount: *${prettifiedToAmount} ${quote_toToken.symbol}*`,
-        `1 ${quote_fromToken.symbol} = ${swapRate} ${quote_toToken.symbol}\n`,
+        `🔄 _Swap_ *_${fromTokenConfig.tokenName}_* to *_${toTokenConfig.tokenName}_*\n`,
+        `From Amount: *${prettifiedFromAmount} ${fromTokenConfig.tokenName}*`,
+        `To Amount: *${prettifiedToAmount} ${toTokenConfig.tokenName}*\n`,
+        `1 *${fromTokenConfig.tokenName}* = ${swapRate} *${toTokenConfig.tokenName}*`,
+        `Fee: *${prettifiedSwapFee} ${fromTokenConfig.tokenName}*\n`,
         ...chainMessages,
-        `Slippage: *${slippage * 100}%*`,
+        `\n_Estimated Time: *${quote.estimatedArrivalTime}s*_`,
     ].join('\n');
 
     const transactionSummaryMessage =
@@ -1285,27 +1215,17 @@ export const handleSwapCryptoPrompt = async (
             transactionSummary: transactionSummaryMessageBody
                 .replaceAll('_', '')
                 .replaceAll('*', ''),
-            transactionMessageBody: `${transactionSummaryMessageBody}\n\nClick on the button below to enter your transaction PIN and complete your transaction.`,
+            transactionMessageBody: `${transactionSummaryMessageBody}\n\nClick on "Confirm Transaction" to enter your transaction PIN and complete your transaction.`,
             transactionDetails: {
                 transactionType: 'SWAP_TOKENS',
-                userId: convertAsciiStringToBase64(botParams.userPhoneNumber),
-                fromToken: {
-                    name: quote_fromToken.name,
-                    symbol: quote_fromToken.symbol,
-                    id: quote_fromToken.address,
-                    decimals: quote_fromToken.decimals,
-                },
-                toToken: {
-                    name: quote_toToken.name,
-                    symbol: quote_toToken.symbol,
-                    id: quote_toToken.address,
-                    decimals: quote_toToken.decimals,
-                },
-                fromAmount: quoteEstimate.fromAmount,
-                transactionRequest: transactionRequest,
-                approvalAddress: quote.estimate.approvalAddress,
-                fromChain: typedFromBlockchainNetwork,
-                toChain: typedToBlockchainNetwork,
+                userId: convertAsciiStringToBase64(user.id),
+                fromTokenId: fromTokenConfig.listItemId,
+                toTokenId: toTokenConfig.listItemId,
+                fromAmount: fromAmount,
+                transactionFee: swapFee,
+                rate: quote.rate,
+                recipientAddress: toUserWallet.address,
+                toAmount: toAmount,
             },
         });
 

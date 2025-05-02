@@ -6,104 +6,140 @@ import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 
 const BASE_URL = 'https://api.blockradar.co/v1';
 
+const TESTNET_EVM_ADDRESS = '';
+const TESTNET_SOLANA_ADDRESS = '';
+const TESTNET_TRON_ADDRESS = '';
+
+//////// @dev-notice - DO NOT EDIT or REPLACE
+const MAINNET_EVM_ADDRESS = '0x557e17a790C85D867813Fd9446A5263307A44Ca7';
+const MAINNET_SOLANA_ADDRESS = '5KtbAZXnGWdQ9H1RLptyLz2tLKNtsk1agXqfQiri7irg';
+const MAINNET_TRON_ADDRESS = 'TGZntn1ErdAGZnMRsNRciDtGEQj2DAsDSq';
+
 const testnet__masterWalletApiConfig: Record<
     AllSupportedBlockchains,
-    Pick<BlockradarMasterWalletApiClientConstructorParams, 'masterWalletId' | 'apiKey'>
+    Pick<
+        BlockradarMasterWalletApiClientConstructorParams,
+        'masterWalletId' | 'apiKey' | 'walletAddress'
+    >
 > = {
     Base: {
         masterWalletId: '3204a5f3-fc2f-4e95-8a08-e8ae77eb4b22',
         apiKey: env.BASE_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_EVM_ADDRESS,
     },
     Optimism: {
         masterWalletId: 'd60155ef-8fae-4107-a31f-3086a858c508',
         apiKey: env.OPTIMISM_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_EVM_ADDRESS,
     },
     Tron: {
         masterWalletId: 'efd62742-fbe2-4447-99ae-9cf5cd755755',
         apiKey: env.TRON_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_TRON_ADDRESS,
     },
     Bep20: {
         masterWalletId: '369ba83b-6545-4132-868c-2bbab7c88c52',
         apiKey: env.BSC_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_EVM_ADDRESS,
     },
     Solana: {
         masterWalletId: 'f3fe5449-c8c8-4cc8-97fe-a751cee8412a',
         apiKey: env.SOLANA_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_SOLANA_ADDRESS,
     },
     Polygon: {
         masterWalletId: '6e0083bc-8444-43f1-97e9-5960b94adc71',
         apiKey: env.POLYGON_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_EVM_ADDRESS,
     },
     Ethereum: {
         masterWalletId: '0cbe04f6-2168-4727-82d4-c81e30c3516c',
         apiKey: env.ETHEREUM_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_EVM_ADDRESS,
     },
     AssetChain: {
         masterWalletId: '',
         apiKey: env.ASSET_CHAIN_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_EVM_ADDRESS,
     },
     Arbitrum: {
         masterWalletId: '',
         apiKey: env.ARBITRUM_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_EVM_ADDRESS,
     },
     Lisk: {
         masterWalletId: '',
         apiKey: env.OPTIMISM_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_EVM_ADDRESS,
     },
     Celo: {
         masterWalletId: '',
         apiKey: env.OPTIMISM_MASTER_WALLET_API_KEY,
+        walletAddress: TESTNET_EVM_ADDRESS,
     },
 };
 const mainnet__masterWalletApiConfig: Record<
     AllSupportedBlockchains,
-    Pick<BlockradarMasterWalletApiClientConstructorParams, 'masterWalletId' | 'apiKey'>
+    Pick<
+        BlockradarMasterWalletApiClientConstructorParams,
+        'masterWalletId' | 'apiKey' | 'walletAddress'
+    >
 > = {
     Base: {
         masterWalletId: '006bfc36-7c04-4d6f-acf4-8bc7a5e2ed3b',
         apiKey: env.BASE_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_EVM_ADDRESS,
     },
     Optimism: {
         masterWalletId: '04a21b5d-8413-4751-850d-5c9b6fbf3889',
         apiKey: env.OPTIMISM_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_EVM_ADDRESS,
     },
     Tron: {
         masterWalletId: '5fc0a006-d9b7-4139-875b-e93cf9fe0b38',
         apiKey: env.TRON_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_TRON_ADDRESS,
     },
     Bep20: {
         masterWalletId: '59369735-9b6a-4575-b5ea-054773047589',
         apiKey: env.BSC_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_EVM_ADDRESS,
     },
     Solana: {
         masterWalletId: '2518e63a-5aeb-4bcb-819e-c2eccc467ba9',
         apiKey: env.SOLANA_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_SOLANA_ADDRESS,
     },
     Polygon: {
         masterWalletId: 'c44fa0fd-3618-4c76-aa67-a387c99427d3',
         apiKey: env.POLYGON_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_EVM_ADDRESS,
     },
     Ethereum: {
         masterWalletId: 'bbe3db5e-5ebb-4882-b9c3-26e66ceb62f7',
         apiKey: env.ETHEREUM_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_EVM_ADDRESS,
     },
     AssetChain: {
         masterWalletId: '79abf771-c1cb-4130-9d9a-e287a2d5964e',
         apiKey: env.ASSET_CHAIN_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_EVM_ADDRESS,
     },
     Arbitrum: {
         masterWalletId: 'ce1f41a2-a8bd-43cb-a5ad-dacfec29cfd6',
         apiKey: env.ARBITRUM_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_EVM_ADDRESS,
     },
     Lisk: {
         masterWalletId: '056eb5b9-83e3-4501-b8f8-79c78e8853dc',
         apiKey: env.LISK_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_EVM_ADDRESS,
     },
     Celo: {
         masterWalletId: '33d5d924-ff0c-46ec-a867-ca715200fa03',
         apiKey: env.CELO_MASTER_WALLET_API_KEY,
+        walletAddress: MAINNET_EVM_ADDRESS,
     },
-    
 };
 
 const masterWalletApiConfig =

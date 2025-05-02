@@ -1,4 +1,5 @@
 import { supportedBlockchainChainSchema } from '@/resources/web3/core/blockchains';
+import { AssetConfig } from '@/resources/web3/core/tokens';
 import { z } from 'zod';
 
 export const transactionPinSchema = z.string().min(4).max(6).describe('The transaction pin.');
@@ -103,6 +104,19 @@ export const swapTokensTransactionDetailsSchema = z.object({
     approvalAddress: z.string().optional(),
 });
 
+export const swapTokensTransactionDetailsV2Schema = z.object({
+    transactionType: z.literal('SWAP_TOKENS'),
+    userId: z.string(),
+    fromTokenId: z.string(),
+    toTokenId: z.string(),
+    fromAmount: z.coerce.number(),
+    toAmount: z.coerce.number(),
+    transactionPin: transactionPinSchema.optional(),
+    transactionFee: z.coerce.number(),
+    rate: z.coerce.number(),
+    recipientAddress: z.string(),
+});
+
 ////////////////////
 // Inferred Types
 ////////////////////
@@ -117,3 +131,4 @@ export type SwapTokensOnBaseTransactionDetails = z.infer<
     typeof swapTokensOnBaseTransactionDetailsSchema
 >;
 export type SwapTokensTransactionDetails = z.infer<typeof swapTokensTransactionDetailsSchema>;
+export type SwapTokensTransactionDetailsV2 = z.infer<typeof swapTokensTransactionDetailsV2Schema>;
