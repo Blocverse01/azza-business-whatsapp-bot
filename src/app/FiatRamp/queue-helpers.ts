@@ -128,7 +128,7 @@ const sendOnRampPaymentInstructions = async (params: { phoneNumber: string, acco
 
     await WhatsAppBotService.sendArbitraryTextMessage(
         phoneNumber,
-        `👆 *Long-press the account number or amount to copy.*\n\n🧾 Payment Instructions:\n\n 1. Please send the payment from *your own bank account*. \n\n 2. Make sure to send the *exact amount* to avoid any delays.`
+        `🧾 *Payment Instructions:*\n\n 1. 👆 *Long-press* the account number or amount *to copy.*\n\n 2. Please send the payment from *your own bank account*. \n\n 3. Make sure to send the *exact amount* to avoid any delays.`
     );
 }
 
