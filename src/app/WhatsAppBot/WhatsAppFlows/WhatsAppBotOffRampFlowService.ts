@@ -622,7 +622,7 @@ class WhatsAppBotOffRampFlowService {
                     fiat_to_receive,
                 },
                 transaction_details: {
-                    token_amount: decimalToString(fixNumber(usdAmount, FOUR)),
+                    token_amount: decimalToString(fixNumber(usdAmountToConvert, FOUR)),
                     transaction_fee: transactionFee.toString(),
                     fiat_to_receive: fiatEquivalent.toString(),
                     beneficiary: beneficiary,

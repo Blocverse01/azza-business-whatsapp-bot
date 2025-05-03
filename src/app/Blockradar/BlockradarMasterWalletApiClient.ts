@@ -14,6 +14,14 @@ import {
     withdrawAssetResponseDataSchema,
     withdrawNetworkFeeResponseDataSchema,
     type BlockradarTransactionType,
+    SwapQuoteRequestBody,
+    SwapQuoteResponseData,
+    swapQuoteRequestBodySchema,
+    swapQuoteResponseDataSchema,
+    ExecuteSwapRequestBody,
+    ExecuteSwapResponseData,
+    executeSwapRequestBodySchema,
+    executeSwapResponseDataSchema,
 } from '@/app/Blockradar/schema';
 import { OK } from '@/constants/status-codes';
 import { z } from 'zod';
@@ -22,12 +30,14 @@ export type BlockradarMasterWalletApiClientConstructorParams = {
     baseUrl: string;
     apiKey: string;
     masterWalletId: string;
+    walletAddress: string;
     debug?: boolean;
 };
 
 enum MasterWalletApiResources {
     ADDRESS = 'addresses',
     TRANSACTION = 'transactions',
+    SWAPS = 'swaps',
 }
 
 class BlockradarMasterWalletApiClient {
@@ -36,10 +46,13 @@ class BlockradarMasterWalletApiClient {
     private readonly masterWalletId: string;
     private readonly debug: boolean = false;
 
+    public readonly walletAddress: string;
+
     constructor(params: BlockradarMasterWalletApiClientConstructorParams) {
         this.baseUrl = params.baseUrl;
         this.apiKey = params.apiKey;
         this.masterWalletId = params.masterWalletId;
+        this.walletAddress = params.walletAddress;
         this.debug = params.debug || false;
     }
 
@@ -386,6 +399,82 @@ class BlockradarMasterWalletApiClient {
         const responseDataValidation = withdrawNetworkFeeResponseDataSchema.safeParse(
             response.data
         );
+
+        if (!responseDataValidation.success) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: responseDataValidation.error.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+                requestData: bodyPayload,
+            });
+        }
+
+        return responseDataValidation.data;
+    }
+
+    public async getSwapQuote(params: SwapQuoteRequestBody): Promise<SwapQuoteResponseData> {
+        const swapsResourceUrl = this.getResourceUrl(MasterWalletApiResources.SWAPS);
+        const url = `${swapsResourceUrl}/quote`;
+
+        const bodyPayload = swapQuoteRequestBodySchema.parse(params);
+
+        const response = await this.fetch(url, {
+            headers: this.headers,
+            method: 'POST',
+            body: JSON.stringify(bodyPayload),
+        });
+
+        if (response.statusCode !== OK) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: response.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+                requestData: bodyPayload,
+            });
+        }
+
+        const responseDataValidation = swapQuoteResponseDataSchema.safeParse(response.data);
+
+        if (!responseDataValidation.success) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: responseDataValidation.error.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+                requestData: bodyPayload,
+            });
+        }
+
+        return responseDataValidation.data;
+    }
+
+    public async executeMasterWalletSwap(
+        params: ExecuteSwapRequestBody
+    ): Promise<ExecuteSwapResponseData> {
+        const swapsResourceUrl = this.getResourceUrl(MasterWalletApiResources.SWAPS);
+        const url = `${swapsResourceUrl}/execute`;
+
+        const bodyPayload = executeSwapRequestBodySchema.parse(params);
+
+        const response = await this.fetch(url, {
+            headers: this.headers,
+            method: 'POST',
+            body: JSON.stringify(bodyPayload),
+        });
+
+        if (response.statusCode !== OK) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: response.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+                requestData: bodyPayload,
+            });
+        }
+
+        const responseDataValidation = executeSwapResponseDataSchema.safeParse(response.data);
 
         if (!responseDataValidation.success) {
             throw new BlockradarMasterWalletApiClientError({

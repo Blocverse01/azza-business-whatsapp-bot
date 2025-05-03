@@ -53,6 +53,38 @@ export type SearchAssetParams = Partial<{
     tokenName: string;
     tokenAddress: string;
 }>;
+export type SwapAssetQuoteParams = {
+    fromAssetId: string;
+    toAssetId: string;
+    amount: string;
+    recipientAddress?: string;
+};
+export type SwapAssetQuote = {
+    amount: number;
+    rate: number;
+    estimatedArrivalTime: number; // in seconds
+    networkFee: number; // in native asset
+};
+export type ExecuteAssetSwapParams = {
+    fromAssetId: string;
+    toAssetId: string;
+    fromAmount: string;
+    recipientAddress: string;
+    reference: string;
+    metadata?: Record<string, string>;
+};
+export type AssetSwapTransaction = {
+    fromAsset: AssetConfig;
+    toAsset: AssetConfig;
+    fromAmount: number;
+    toAmount: number;
+    rate: number;
+    reference: string;
+    confirmed: boolean;
+    status: 'PENDING' | 'FAILED' | 'SUCCESS';
+    hash?: string | null;
+    id: string;
+};
 
 export abstract class BaseWalletProvider {
     public abstract getAssetBalance(params: BalanceQueryParams): Promise<AssetBalance>;
@@ -93,6 +125,10 @@ export abstract class BaseWalletProvider {
         nativeBalance: number;
         networkFee: number;
     }>;
+
+    public abstract getSwapQuote(params: SwapAssetQuoteParams): Promise<SwapAssetQuote>;
+
+    public abstract executeAssetSwap(params: ExecuteAssetSwapParams): Promise<AssetSwapTransaction>;
 
     public abstract searchAssets(searchParams: SearchAssetParams): Array<AssetConfig>;
 }

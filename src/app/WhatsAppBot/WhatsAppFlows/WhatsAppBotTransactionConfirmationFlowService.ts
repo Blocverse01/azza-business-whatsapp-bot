@@ -1,12 +1,14 @@
 import {
     SwapTokensOnBaseTransactionDetails,
     SwapTokensTransactionDetails,
+    SwapTokensTransactionDetailsV2,
     TransferAssetTransactionDetails,
 } from '@/app/azza/azza.schema';
 import {
     sendTransferAssetTransaction,
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
+import { addBlockradarAddressTokenSwapJobToQueue } from '@/app/swap/queue-utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -34,7 +36,7 @@ enum TransactionConfirmationFlowScreens {
 type TransactionDetails =
     | TransferAssetTransactionDetails
     | SwapTokensOnBaseTransactionDetails
-    | SwapTokensTransactionDetails;
+    | SwapTokensTransactionDetailsV2;
 
 type ScreenDataPayload = {
     ENTER_TRANSACTION_PIN: {
@@ -190,6 +192,17 @@ class WhatsAppBotTransactionConfirmationFlowService {
                     });
                 }
                 break;
+
+            case 'SWAP_TOKENS': {
+                await addBlockradarAddressTokenSwapJobToQueue(`swap_req_${flowToken}`, {
+                    swapDetails: transaction_details,
+                    whatsappParams: {
+                        userPhoneNumber: user.primaryWhatsappPhoneNumber,
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                    },
+                });
+                break;
+            }
 
             default:
                 throw new Error('Invalid transaction type');
