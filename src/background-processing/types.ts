@@ -60,7 +60,7 @@ export enum QueueNames {
     handleSmileKycWebhook = 'handle-smile-kyc-webhook',
     handleSafeHavenTransactionStatusUpdate = 'handle-safehaven-transaction-status-update',
     generateAzzaWrapped = 'generate-azza-wrapped',
-    onRamp = 'onramp'
+    onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
     blockradarMasterWalletSwaps = 'blockradar-master-wallet-swaps',
 }
