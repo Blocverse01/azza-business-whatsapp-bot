@@ -120,9 +120,7 @@ const tables = [
       { column: "user", table: "user_blockradar_wallet" },
       { column: "user", table: "fallback_regional_phone_number" },
       { column: "user", table: "gasless_withdrawal_counter" },
-      { column: "user", table: "referral_scheme" },
       { column: "referee", table: "referrals" },
-      { column: "user", table: "swap_transactions" },
     ],
   },
   {
@@ -400,38 +398,23 @@ const tables = [
     ],
   },
   {
-    name: "swap_transactions",
+    name: "referral_scheme",
     columns: [
-      { name: "fromAmount", type: "float", notNull: true, defaultValue: "0.0" },
+      { name: "code", type: "text" },
+      { name: "user", type: "text" },
+      { name: "isActive", type: "bool" },
+    ],
+    revLinks: [{ column: "referralScheme", table: "referrals" }],
+  },
+  {
+    name: "referrals",
+    columns: [
+      { name: "referee", type: "link", link: { table: "user_v2" } },
       {
-        name: "quoteToAmount",
-        type: "float",
-        notNull: true,
-        defaultValue: "0.0",
+        name: "referralScheme",
+        type: "link",
+        link: { table: "referral_scheme" },
       },
-      { name: "fromBlockchain", type: "text", notNull: true, defaultValue: "" },
-      { name: "toBlockchain", type: "text", notNull: true, defaultValue: "" },
-      {
-        name: "fromTokenSymbol",
-        type: "text",
-        notNull: true,
-        defaultValue: "",
-      },
-      { name: "toTokenSymbol", type: "text", notNull: true, defaultValue: "" },
-      {
-        name: "recipientAddress",
-        type: "text",
-        notNull: true,
-        defaultValue: "",
-      },
-      { name: "quoteRate", type: "float", notNull: true, defaultValue: "0.0" },
-      { name: "fee", type: "float", notNull: true, defaultValue: "0.0" },
-      { name: "user", type: "link", link: { table: "user_v2" } },
-      { name: "executedToAmount", type: "float" },
-      { name: "executedRate", type: "float" },
-      { name: "transactionHash", type: "text" },
-      { name: "status", type: "text", notNull: true, defaultValue: "created" },
-      { name: "jobId", type: "text", notNull: true, defaultValue: "" },
     ],
   },
 ] as const;
@@ -494,6 +477,12 @@ export type GaslessWithdrawalCounter =
 export type GaslessWithdrawalCounterRecord = GaslessWithdrawalCounter &
   XataRecord;
 
+export type ReferralScheme = InferredTypes["referral_scheme"];
+export type ReferralSchemeRecord = ReferralScheme & XataRecord;
+
+export type Referrals = InferredTypes["referrals"];
+export type ReferralsRecord = Referrals & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -510,6 +499,8 @@ export type DatabaseSchema = {
   ngn_banks_offramp_settlement_transaction: NgnBanksOfframpSettlementTransactionRecord;
   fallback_regional_phone_number: FallbackRegionalPhoneNumberRecord;
   gasless_withdrawal_counter: GaslessWithdrawalCounterRecord;
+  referral_scheme: ReferralSchemeRecord;
+  referrals: ReferralsRecord;
 };
 
 const DatabaseClient = buildClient();
