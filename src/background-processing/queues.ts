@@ -129,7 +129,7 @@ export const queues = {
     }),
     onRamp: new Queue<OnRampQueueInput>(QueueNames.onRamp, {
         connection: connectionConfig,
-    })
+    }),
     blockradarAddressSwaps: new Queue<BlockradarAddressSwapQueueInput>(
         QueueNames.blockradarAddressSwaps,
         {
