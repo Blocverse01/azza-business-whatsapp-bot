@@ -99,6 +99,7 @@ export enum BaseInteractiveButtonIds {
     CREATE_WALLET = 'create-wallet',
 }
 
+
 export enum AssetInteractiveButtonIds {
     ETH_BASE = 'eth-base',
     ETH_OPTIMISM = 'eth-optimism',
@@ -106,6 +107,8 @@ export enum AssetInteractiveButtonIds {
     POL_POLYGON = 'pol-polygon',
     ETH_ETHEREUM = 'eth-ethereum',
     ETH_ARBITRUM = 'eth-arbitrum',
+    ETH_LISK = 'eth-lisk',
+    CELO_CELO = 'celo-celo',
 
     // StableCoins
     USDC_BASE = 'usdc-base',
@@ -137,6 +140,12 @@ export enum AssetInteractiveButtonIds {
 
     USDC_ARBITRUM = 'usdc-arbitrum',
     USDT_ARBITRUM = 'usdt-arbitrum',
+
+    USDC_LISK = 'usdc-lisk',
+    USDT_LISK = 'usdt-lisk',
+
+    USDC_CELO = 'usdc-celo',
+    USDT_CELO = 'usdt-celo',
 }
 
 export enum ExploreAssetActions {

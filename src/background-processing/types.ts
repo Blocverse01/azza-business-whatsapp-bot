@@ -1,4 +1,7 @@
-import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
+import {
+    SwapTokensTransactionDetailsV2,
+    TransferAssetTransactionDetails,
+} from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
 import {
     IncomingWhatsappMessage,
@@ -56,6 +59,8 @@ export enum QueueNames {
     handleSmileKycWebhook = 'handle-smile-kyc-webhook',
     handleNGNBankTransactionStatusUpdate = 'handle-ngn-bank-transaction-status-update',
     generateAzzaWrapped = 'generate-azza-wrapped',
+    blockradarAddressSwaps = 'blockradar-address-swaps',
+    blockradarMasterWalletSwaps = 'blockradar-master-wallet-swaps',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -143,4 +148,15 @@ export type GenerateAzzaWrappedQueueInput = {
     userId: string;
     userDisplayName: string;
     whatsappParams: PhoneNumberParams;
+};
+
+export type BlockradarAddressSwapQueueInput = {
+    swapDetails: SwapTokensTransactionDetailsV2;
+    whatsappParams: PhoneNumberParams;
+};
+
+export type BlockradarMasterWalletSwapsQueueInput = {
+    swapDebitReferenceId: string;
+    swapDebitTransactionHash: string;
+    whatsappParams: Pick<PhoneNumberParams, 'businessPhoneNumberId'>;
 };

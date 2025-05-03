@@ -4,6 +4,8 @@ import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashb
 import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-payouts-v2/utils';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
+import { addBlockradarMasterWalletTokenSwapJobToQueue } from '@/app/swap/queue-utils';
+import SwapService from '@/app/swap/service';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
@@ -116,6 +118,17 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
 
         const reason = metadata?.reason;
 
+        if (reason === SwapService.SWAP_WITHDRAWAL_TX_REASON && data.data.hash) {
+            await addBlockradarMasterWalletTokenSwapJobToQueue(reference, {
+                swapDebitReferenceId: reference,
+                swapDebitTransactionHash: data.data.hash,
+                whatsappParams: {
+                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                },
+            });
+            return;
+        }
+
         if (reason === OFFRAMP) {
             const pendingOfframpId = reference.split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1];
             const pendingOfframpRequest =
@@ -185,6 +198,41 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
 
         const reason = metadata?.reason;
 
+        if (reason === SwapService.SWAP_WITHDRAWAL_TX_REASON) {
+            const pendingSwapRequest =
+                await SwapService.getSwapTransactionByExternalReference(reference);
+            if (!pendingSwapRequest) {
+                return;
+            }
+
+            const user = await userServiceV2.getUserById(pendingSwapRequest.user?.id!);
+            if (!user) throw new Error('Invalid swap user ID');
+
+            const liveTransactionData = await azzaWalletManager.getTransactionByHash(
+                data.data.hash,
+                network
+            );
+            if (liveTransactionData.status === 'SUCCESS') {
+                const technicalSupportMessage = `Swap debit transaction was successful, but a withdraw.failed webhook was sent.\n\nTransaction details:\nTransaction ID: ${data.data.id}\nBlockchain: ${network}\nHash: ${data.data.hash}\nReference: ${reference}`;
+                await sendTechnicalIssueAlert(technicalSupportMessage, env.WA_PHONE_NUMBER_ID);
+                return;
+            }
+
+            await WhatsAppBotService.sendWhatsappMessage(
+                env.WA_PHONE_NUMBER_ID,
+                MessageGenerators.generateTextMessage(
+                    user.primaryWhatsappPhoneNumber,
+                    '❌ Your swap transaction failed, please try again.\n\nIf you were debited, please contact reach out for assistance using the /support command.'
+                )
+            );
+            await pendingSwapRequest.update({
+                transactionHash: `debit_${data.data.hash}`,
+                status: 'failed',
+            });
+
+            return;
+        }
+
         if (reason === OFFRAMP) {
             const pendingOfframpId = reference.split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1];
             const pendingOfframpRequest =
@@ -244,6 +292,58 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 status: 'failed',
             });
         }
+    },
+    handleSwapSuccess: async (data, network) => {
+        const reference = data.data.reference;
+
+        const swapTransactionRecord =
+            await SwapService.getSwapTransactionByExternalReference(reference);
+
+        if (!swapTransactionRecord) return;
+
+        const userPhoneNumber = await userServiceV2.getUserPhoneNumber(
+            swapTransactionRecord.user?.id!
+        );
+
+        try {
+            await swapTransactionRecord.update({
+                status: 'complete',
+                transactionHash: `swap_${data.data.hash}`,
+            });
+        } catch (e) {}
+        await WhatsAppBotService.sendWhatsappMessage(
+            env.WA_PHONE_NUMBER_ID,
+            MessageGenerators.generateTextMessage(
+                userPhoneNumber,
+                `✅ Your swap transaction has been completed successfully. Expect your new crypto asset in 1 - 5 minutes 🩵`
+            )
+        );
+    },
+    handleSwapFailed: async (data, network) => {
+        const reference = data.data.reference;
+
+        const swapTransactionRecord =
+            await SwapService.getSwapTransactionByExternalReference(reference);
+
+        if (!swapTransactionRecord) return;
+
+        const userPhoneNumber = await userServiceV2.getUserPhoneNumber(
+            swapTransactionRecord.user?.id!
+        );
+
+        try {
+            await swapTransactionRecord.update({
+                status: 'failed',
+                transactionHash: `swap_${data.data.hash}`,
+            });
+        } catch (e) {}
+        await WhatsAppBotService.sendWhatsappMessage(
+            env.WA_PHONE_NUMBER_ID,
+            MessageGenerators.generateTextMessage(
+                userPhoneNumber,
+                `❌ Your swap transaction failed, please try again.\n\nIf you were debited, please contact reach out for assistance using the /support command.`
+            )
+        );
     },
 });
 

@@ -15,17 +15,29 @@ type BlockradarMasterWalletWebhookServiceParams = {
         data: BlockradarWebhookPayload,
         network: AllSupportedBlockchains
     ) => Promise<void>;
+    handleSwapSuccess: (
+        data: BlockradarWebhookPayload,
+        network: AllSupportedBlockchains
+    ) => Promise<void>;
+    handleSwapFailed: (
+        data: BlockradarWebhookPayload,
+        network: AllSupportedBlockchains
+    ) => Promise<void>;
 };
 
 class BlockradarMasterWalletWebhookService {
     private readonly handleDepositSuccess: BlockradarMasterWalletWebhookServiceParams['handleDepositSuccess'];
     private readonly handleWithdrawalSuccess: BlockradarMasterWalletWebhookServiceParams['handleWithdrawalSuccess'];
     private readonly handleWithdrawalFailed: BlockradarMasterWalletWebhookServiceParams['handleWithdrawalFailed'];
+    private readonly handleSwapSuccess: BlockradarMasterWalletWebhookServiceParams['handleSwapSuccess'];
+    private readonly handleSwapFailed: BlockradarMasterWalletWebhookServiceParams['handleSwapSuccess'];
 
     constructor(params: BlockradarMasterWalletWebhookServiceParams) {
         this.handleDepositSuccess = params.handleDepositSuccess;
         this.handleWithdrawalSuccess = params.handleWithdrawalSuccess;
         this.handleWithdrawalFailed = params.handleWithdrawalFailed;
+        this.handleSwapSuccess = params.handleSwapSuccess;
+        this.handleSwapFailed = params.handleSwapFailed;
     }
 
     public verifyWebhookSignature(params: {
@@ -53,6 +65,15 @@ class BlockradarMasterWalletWebhookService {
         }
         if (payload.event === 'withdraw.failed') {
             await this.handleWithdrawalFailed(payload, network);
+            return;
+        }
+        if (payload.event === 'swap.success') {
+            await this.handleSwapSuccess(payload, network);
+            return;
+        }
+        if (payload.event === 'swap.failed') {
+            await this.handleSwapFailed(payload, network);
+            return;
         }
     }
 }

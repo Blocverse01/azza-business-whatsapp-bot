@@ -4,7 +4,7 @@ import { createConfig, getActiveRoute, getQuote, QuoteRequest } from '@lifi/sdk'
 
 export type ChainsSupportedByLifi = Exclude<
     AllSupportedBlockchains,
-    'Lisk' | 'AssetChain' | 'Tron' | 'Bep20' | 'Arbitrum'
+    'Lisk' | 'AssetChain' | 'Tron' | 'Bep20' | 'Arbitrum' | 'Celo'
 >;
 
 export const chainsSupportedByLifi: ChainsSupportedByLifi[] = [

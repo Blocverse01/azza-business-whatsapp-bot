@@ -12,6 +12,8 @@ import type {
     OfframpQueueFlowParamsV2,
 } from '@/background-processing/schema';
 import {
+    BlockradarAddressSwapQueueInput,
+    BlockradarMasterWalletSwapsQueueInput,
     CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
     CryptoDebitQueueInput,
@@ -124,6 +126,18 @@ export const queues = {
     generateAzzaWrapped: new Queue<GenerateAzzaWrappedQueueInput>(QueueNames.generateAzzaWrapped, {
         connection: connectionConfig,
     }),
+    blockradarAddressSwaps: new Queue<BlockradarAddressSwapQueueInput>(
+        QueueNames.blockradarAddressSwaps,
+        {
+            connection: connectionConfig,
+        }
+    ),
+    blockradarMasterWalletSwaps: new Queue<BlockradarMasterWalletSwapsQueueInput>(
+        QueueNames.blockradarMasterWalletSwaps,
+        {
+            connection: connectionConfig,
+        }
+    ),
 };
 
 export const defaultQueueRemoveOptions = {

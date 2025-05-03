@@ -22,6 +22,10 @@ import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { createFiatPayoutV2Worker } from '@/app/FiatRamp/queue-helpers';
 import { createSafeHavenTransactionUpdateJobWorker } from '@/app/NigeriaBanks/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
+import {
+    createBlockradarAddressTokenSwapWorker,
+    createBlockradarMasterWalletTokenSwapWorker,
+} from '@/app/swap/queue-utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     createWhatsappBroadcastWorker,
@@ -474,6 +478,8 @@ createKycEventJobWorker().on('error', async (error) => {
 });
 
 createAzzaWrappedWorker();
+createBlockradarAddressTokenSwapWorker(connectionConfig);
+createBlockradarMasterWalletTokenSwapWorker(connectionConfig);
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

@@ -16,6 +16,10 @@ import {
     polygon,
     polygonAmoy,
     sepolia,
+    lisk,
+    liskSepolia,
+    celo,
+    celoAlfajores
 } from 'viem/chains';
 
 export type EvmNode =
@@ -29,6 +33,8 @@ export type EvmNode =
     | 'default-ethereum-sepolia'
     | 'default-lisk'
     | 'default-lisk-sepolia'
+    | 'default-celo'
+    | 'default-celo-alfajores'
     | 'default-asset-chain-testnet'
     | 'default-asset-chain-mainnet'
     | 'default-bsc-testnet'
@@ -133,6 +139,31 @@ const defaultArbitrumTestnet: EvmNetworkConfig = {
     network: 'Arbitrum',
     viemChain: arbitrumSepolia
 }
+export const defaultLiskSepolia: EvmNetworkConfig = {
+    rpcUrl: liskSepolia.rpcUrls['default'].http[0],
+    key: 'default-lisk-sepolia',
+    network: 'Lisk',
+    viemChain: liskSepolia,
+};
+
+export const defaultLisk: EvmNetworkConfig = {
+    rpcUrl: lisk.rpcUrls['default'].http[0],
+    key: 'default-lisk',
+    network: 'Lisk',
+    viemChain: lisk,
+};
+export const defaultCelo: EvmNetworkConfig = {
+    rpcUrl: lisk.rpcUrls['default'].http[0],
+    key: 'default-celo',
+    network: 'Celo',
+    viemChain: celo,
+};
+export const defaultCeloAlfajores: EvmNetworkConfig = {
+    rpcUrl: lisk.rpcUrls['default'].http[0],
+    key: 'default-celo-alfajores',
+    network: 'Celo',
+    viemChain: celoAlfajores,
+};
 
 const APP_DEFAULT_EVM_NETWORK_CONFIGS: Record<
     EvmNetworkConfig['network'],
@@ -165,6 +196,14 @@ const APP_DEFAULT_EVM_NETWORK_CONFIGS: Record<
     Arbitrum: {
         mainnet: defaultArbitrumMainnet,
         testnet: defaultArbitrumTestnet
+    },
+    Lisk: {
+        mainnet: defaultLisk,
+        testnet: defaultLiskSepolia,
+    },
+    Celo: {
+        mainnet: defaultCelo,
+        testnet: defaultCeloAlfajores,
     }
 };
 
