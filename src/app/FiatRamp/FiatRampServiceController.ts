@@ -67,7 +67,7 @@ class FiatRampServiceController {
                 return;
             }
 
-            await FiatRampService.updateOfframpTransactionStatus(sequenceId, newTransactionStatus)
+            await FiatRampService.updateOfframpTransactionStatus(sequenceId, newTransactionStatus);
 
             const totalAmount = prettifyNumber(
                 transaction.usdAmount + transaction.transactionFeeUsd,
@@ -210,9 +210,9 @@ class FiatRampServiceController {
                 message = `❌ Your transaction with the following details has failed:\n\n${transactionDetailsString}\n\nPlease contact support for assistance`;
             }
 
-            if (newTransactionStatus === 'processing' || newTransactionStatus === 'process') {
-                message = `⏳ Your transaction with the following details is being processed:\n\n${transactionDetailsString}\n\nPlease be patient`;
-            }
+            // if (newTransactionStatus === 'processing' || newTransactionStatus === 'process') {
+            //     message = `⏳ Your transaction with the following details is being processed:\n\n${transactionDetailsString}\n\nPlease be patient`;
+            // }
 
             const user = await userServiceV2.getUserById(transaction.ownerId);
             const userPhoneNumber = user?.primaryWhatsappPhoneNumber;
