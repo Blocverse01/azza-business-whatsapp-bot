@@ -1,6 +1,7 @@
 import { getMinimumOnrampUsdAmount, ONRAMP_MINIMUM_BY_CHAIN } from '@/app/FiatRamp/config';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { addOnRampRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { getFallBackRegionalPhoneNumber } from '@/app/FiatRamp/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -33,7 +34,7 @@ import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { AssetConfig, TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
-import { CountryCode } from 'libphonenumber-js';
+import { CountryCode, PhoneNumber } from 'libphonenumber-js';
 import * as math from 'mathjs';
 
 enum OnRampFlowScreens {
@@ -49,16 +50,19 @@ type ScreenPayload = {
     TRANSACTION_DETAILS: {
         dynamic_page_title: string;
         payment_methods: Array<DropdownOption>;
+        amount_denominations: Array<DropdownOption>;
         asset_label: string;
         asset_id: string;
         user_id: string;
         local_currency: string;
         country_code: string;
         amount_input_label: string;
+        amount_denomination_label: string;
         init_values: {
             payment_method: string;
             wallet_address?: string;
             amount?: string;
+            amount_denomination: string;
         };
         error_messages?: {
             wallet_address?: string;
@@ -136,6 +140,7 @@ type DataExchangePayload = {
         user_id: string;
         local_currency: string;
         country_code: string;
+        amount_denomination: string
     };
     TRANSACTION_SUMMARY: {
         asset_id: string;
@@ -188,7 +193,7 @@ class WhatsAppBotOnRampFlowService {
     public static async receiveDataExchange(
         requestBody: DecryptedFlowDataExchange['decryptedBody']
     ): Promise<DataExchangeResponse> {
-        const { action, screen, data } = requestBody;
+        const { action, screen, data, flow_token } = requestBody;
 
         if (action === 'INIT') {
             // Using Preview data because initialization should typically be done from `WhatsAppBotService.beginOnRampFlowMessage`
@@ -206,7 +211,8 @@ class WhatsAppBotOnRampFlowService {
                     break;
                 case OnRampFlowScreens.TRANSACTION_SUMMARY:
                     nextScreenData = await this.getPaymentScreenData(
-                        data as DataExchangePayload['TRANSACTION_SUMMARY']
+                        data as DataExchangePayload['TRANSACTION_SUMMARY'],
+                        flow_token
                     );
                     break;
                 case OnRampFlowScreens.BANK_PAYMENT:
@@ -280,6 +286,7 @@ class WhatsAppBotOnRampFlowService {
             asset_id,
             payment_methods,
             payment_method,
+            amount_denomination,
             local_currency,
             user_id,
             wallet_address,
@@ -299,7 +306,6 @@ class WhatsAppBotOnRampFlowService {
 
         if (Object.keys(errorMessages).length > 0) {
             const assetLabel = `${assetConfig.tokenName} (${assetConfig.network})`;
-
             return {
                 screen: OnRampFlowScreens.TRANSACTION_DETAILS,
                 data: {
@@ -310,13 +316,25 @@ class WhatsAppBotOnRampFlowService {
                     user_id,
                     local_currency,
                     country_code,
+                    amount_denomination_label: 'Provide amount in',
+                    amount_denominations: [
+                        {
+                            id: assetConfig.tokenName,
+                            title: assetConfig.tokenName,
+                        },
+                        {
+                            id: local_currency,
+                            title: local_currency,
+                        },
+                    ],
                     init_values: {
                         payment_method,
                         wallet_address,
                         amount,
+                        amount_denomination: amount_denomination
                     },
                     error_messages: errorMessages,
-                    amount_input_label: `Amount (${assetConfig.tokenName})`,
+                    amount_input_label: `Amount`,
                 } satisfies ScreenPayload['TRANSACTION_DETAILS'],
             };
         }
@@ -329,28 +347,52 @@ class WhatsAppBotOnRampFlowService {
             FiatRampService.getPaymentMethods(country_code as CountryCode, 'onramp'),
         ]);
 
-        const amountAsNumber = parseFloat(amount.trim());
-        const transactionFee = fixNumber(math.multiply(amountAsNumber, fee), 3);
-        const totalAmount = fixNumber(math.add(amountAsNumber, transactionFee), 3);
-        const fiatEquivalent = fixNumber(math.multiply(totalAmount, conversionRate), 2);
 
-        if (amountAsNumber <= 0) {
+        if (parseFloat(amount) <= 0) {
             errorMessages.amount = 'Amount must be greater than 0';
         }
 
-        const [minLimit, maxLimit] = [
+        const amountIsUsd = amount_denomination !== local_currency;
+
+        const { tokenAmountToReceive, transactionFeeUsd, fiatAmountToPay } = this.calculateTransactionAmounts({
+            amount: parseFloat(amount),
+            feePercent: fee,
+            conversionRate,
+            amountIsUsd: amountIsUsd
+        })
+
+        const totalAmountUsd = fixNumber(math.add(transactionFeeUsd, tokenAmountToReceive), 3);
+
+        const [minUsdLimit, maxUsdLimit] = [
             countryLimits.min / conversionRate,
             countryLimits.max / conversionRate,
         ];
 
-        const hardUsdLimit = getMinimumOnrampUsdAmount(assetConfig.network);
-        const minLimitUsed = hardUsdLimit ?? minLimit;
+        const [minLocalLimit, maxLocalLimit] = [
+            countryLimits.min,
+            countryLimits.max,
+        ];
 
-        if (amountAsNumber < minLimitUsed) {
-            errorMessages.amount = `Amount must be greater than ${prettifyNumber(minLimitUsed, TWO)} ${assetConfig.tokenName}`;
+        const hardUsdLimit = getMinimumOnrampUsdAmount(assetConfig.network);
+        const minUsdLimitUsed = hardUsdLimit ?? minUsdLimit;
+
+        let minLocalLimitUsed: number;
+
+        if (typeof hardUsdLimit === 'number' && typeof conversionRate === 'number') {
+            minLocalLimitUsed = math.multiply(hardUsdLimit, conversionRate);
+        } else {
+            minLocalLimitUsed = minLocalLimit;
         }
-        if (maxLimit > 0 && amountAsNumber > maxLimit) {
-            errorMessages.amount = `Amount must be less than ${prettifyNumber(maxLimit, TWO)} ${assetConfig.tokenName}`;
+
+        if (totalAmountUsd < minUsdLimitUsed) {
+            errorMessages.amount = (amount_denomination !== local_currency)
+                ? `Amount must be greater than ${prettifyNumber(minUsdLimitUsed, TWO)} ${assetConfig.tokenName}`
+                : `Amount must be greater than ${prettifyNumber(minLocalLimitUsed, TWO)} ${local_currency}`;
+        }
+        if (maxUsdLimit > 0 && totalAmountUsd > maxUsdLimit) {
+            errorMessages.amount = (amount_denomination !== local_currency)
+                ? `Amount must be less than ${prettifyNumber(maxUsdLimit, TWO)} ${assetConfig.tokenName}`
+                : `Amount must be less than ${prettifyNumber(maxLocalLimit, TWO)} ${local_currency}`;
         }
 
         /**
@@ -359,7 +401,6 @@ class WhatsAppBotOnRampFlowService {
          * */
         if (Object.keys(errorMessages).length > 0) {
             const assetLabel = `${assetConfig.tokenName} (${assetConfig.network})`;
-
             return {
                 screen: OnRampFlowScreens.TRANSACTION_DETAILS,
                 data: {
@@ -370,27 +411,39 @@ class WhatsAppBotOnRampFlowService {
                     user_id,
                     local_currency,
                     country_code,
+                    amount_denomination_label: 'Provide amount in',
+                    amount_denominations: [
+                        {
+                            id: assetConfig.tokenName,
+                            title: assetConfig.tokenName,
+                        },
+                        {
+                            id: local_currency,
+                            title: local_currency,
+                        },
+                    ],
                     init_values: {
                         payment_method,
                         wallet_address,
                         amount,
+                        amount_denomination: amount_denomination
                     },
                     error_messages: errorMessages,
-                    amount_input_label: `Amount (${assetConfig.tokenName})`,
+                    amount_input_label: `Amount`,
                 } satisfies ScreenPayload['TRANSACTION_DETAILS'],
             };
         }
 
         const token_amount: TokenAmountPattern = this.generateTokenAmountPattern(
-            amountAsNumber,
+            tokenAmountToReceive,
             assetConfig,
-            transactionFee
+            transactionFeeUsd
         );
         const fiat_to_pay: FiatToPayPattern = this.generateFiatToPayPattern(
             conversionRate,
             local_currency,
             assetConfig,
-            fiatEquivalent
+            fiatAmountToPay
         );
 
         const selectedPaymentMethod = this.determineSelectedPaymentMethod(
@@ -409,8 +462,8 @@ class WhatsAppBotOnRampFlowService {
                 transaction_details: {
                     channel_id: selectedPaymentMethod.channelId,
                     token_amount: amount,
-                    transaction_fee: transactionFee.toString(),
-                    fiat_to_pay: fiatEquivalent.toString(),
+                    transaction_fee: transactionFeeUsd.toString(),
+                    fiat_to_pay: fiatAmountToPay.toString(),
                     external_wallet_address: wallet_address ?? '',
                     conversion_rate: conversionRate.toString(),
                     platform_fee_percentage: rawFeePercentage.toString(),
@@ -426,7 +479,63 @@ class WhatsAppBotOnRampFlowService {
         };
     }
 
-    private static async getPaymentScreenData(input: DataExchangePayload['TRANSACTION_SUMMARY']) {
+    private static calculateTransactionAmounts(params: {
+        conversionRate: number;
+        amount: number;
+        amountIsUsd: boolean;
+        feePercent: number;
+    }): {
+        tokenAmountToReceive: number;
+        transactionFeeUsd: number;
+        fiatAmountToPay: number
+    } {
+        const { conversionRate, amount, amountIsUsd, feePercent } = params;
+
+        if (amountIsUsd) {
+            const transactionFee = fixNumber(math.multiply(amount, feePercent), 3);
+            const totalAmount = fixNumber(math.add(amount, transactionFee), 3);
+            const fiatEquivalent = fixNumber(math.multiply(totalAmount, conversionRate), 2);
+
+            return {
+                tokenAmountToReceive: amount,
+                transactionFeeUsd: transactionFee,
+                fiatAmountToPay: fiatEquivalent
+            }
+        }
+
+        // Amount is in Fiat currency
+        const convertedAmountUsd = fixNumber(math.divide(amount, conversionRate), 6);
+        const transactionFeeUsd = fixNumber(math.multiply(convertedAmountUsd, feePercent), 3);
+
+        return {
+            fiatAmountToPay: amount,
+            tokenAmountToReceive: math.subtract(convertedAmountUsd, transactionFeeUsd),
+            transactionFeeUsd
+        }
+    }
+
+    private static async sendOnRampPaymentInstructions(params: { phoneNumber: string, accountNumber: string, fiatToPay: string }) {
+
+        const { phoneNumber, accountNumber, fiatToPay } = params;
+
+        await WhatsAppBotService.sendArbitraryTextMessage(
+            phoneNumber,
+            accountNumber
+        );
+
+        await WhatsAppBotService.sendArbitraryTextMessage(
+            phoneNumber,
+            fiatToPay
+        );
+
+        await WhatsAppBotService.sendArbitraryTextMessage(
+            phoneNumber,
+            `👆 *Long-press the account number or amount to copy.*\n\n🧾 Payment Instructions:\n\n 1. Please send the payment from *your own bank account*. \n\n 2. Make sure to send the *exact amount* to avoid any delays.`
+        );
+    }
+
+
+    private static async getPaymentScreenData(input: DataExchangePayload['TRANSACTION_SUMMARY'], flow_token: string) {
         const {
             asset_id,
             transaction_details,
@@ -525,7 +634,7 @@ class WhatsAppBotOnRampFlowService {
                     verifiedUserDetails.phoneNumber = fallbackRegionalPhoneNumber;
                 }
 
-                const onrampResponse = await FiatRampService.postOnRampTransaction({
+                await addOnRampRequestToQueue({
                     accountType: account_type,
                     userWalletAddress: buying_to_external_wallet
                         ? transaction_details.external_wallet_address
@@ -541,50 +650,20 @@ class WhatsAppBotOnRampFlowService {
                     conversionRate: parseFloat(transaction_details.conversion_rate),
                     usdAmount: parseFloat(transaction_details.token_amount),
                     transactionFeeUsd: parseFloat(transaction_details.transaction_fee),
-                });
-
-                if (onrampResponse.bankInfo === undefined) {
-                    return {
-                        screen: OnRampFlowScreens.ERROR_FEEDBACK,
-                        data: {
-                            message: 'Failed to retrieve payment details',
-                            status: 'failed',
-                            asset_id,
-                            is_on_ramp_transaction: true,
-                            icon_src: ERROR_FEEDBACK_ICON,
-                        } satisfies ScreenPayload['FEEDBACK_SCREEN'],
-                    };
-                }
-
-                const message = generateOnrampTransactionInitiatedMessage({
-                    tokenAmount: transaction_details.token_amount,
-                    assetNetwork: assetConfig.network,
-                    assetName: assetConfig.tokenName,
-                    bankInfo: onrampResponse.bankInfo,
                     localCurrency: local_currency,
-                    fiatToPay: transaction_details.fiat_to_pay,
+                    flowToken: flow_token!
                 });
-
-                void WhatsAppBotService.sendArbitraryTextMessage(
-                    verifiedUserDetails.phoneNumber,
-                    message
-                );
 
                 return {
-                    screen: OnRampFlowScreens.BANK_PAYMENT,
+                    screen: OnRampFlowScreens.PROCESSING_FEEDBACK,
                     data: {
-                        account_number: onrampResponse.bankInfo.accountNumber,
-                        bank_name: onrampResponse.bankInfo.name,
-                        account_name: onrampResponse.bankInfo.accountName,
+                        message:
+                            'Your transaction has been initiated. Click Done to view the account number and amount to complete your payment.',
+                        status: 'processing',
                         asset_id,
-                        amount: formatNumberAsCurrency(
-                            onrampResponse.convertedAmount,
-                            local_currency
-                        ),
-                        local_currency,
-                        sequence_id: onrampResponse.sequenceId,
-                        user_id,
-                    } satisfies ScreenPayload['BANK_PAYMENT'],
+                        is_on_ramp_transaction: true,
+                        icon_src: SUCCESS_FEEDBACK_ICON,
+                    } satisfies ScreenPayload['FEEDBACK_SCREEN'],
                 };
             }
         } catch (error) {
@@ -874,10 +953,22 @@ class WhatsAppBotOnRampFlowService {
                                 local_currency: localCurrency,
                                 payment_methods: paymentMethods,
                                 country_code: countryCode,
+                                amount_denomination_label: 'Provide amount in',
+                                amount_denominations: [
+                                    {
+                                        id: asset.tokenName,
+                                        title: asset.tokenName,
+                                    },
+                                    {
+                                        id: localCurrency,
+                                        title: localCurrency,
+                                    },
+                                ],
                                 init_values: {
                                     payment_method: paymentMethods[0].id,
+                                    amount_denomination: asset.tokenName
                                 },
-                                amount_input_label: `Amount (${asset.tokenName})`,
+                                amount_input_label: `Amount`,
                             } satisfies ScreenPayload['TRANSACTION_DETAILS'],
                         },
                     },
@@ -910,11 +1001,23 @@ class WhatsAppBotOnRampFlowService {
                     id: 'mobile_money',
                 },
             ],
+            amount_denomination_label: 'Provide amount in',
+            amount_denominations: [
+                {
+                    id: 'NGN',
+                    title: 'NGN',
+                },
+                {
+                    id: 'USDT',
+                    title: 'USDT',
+                },
+            ],
             country_code: 'NG',
             init_values: {
                 payment_method: 'bank_transfer',
+                amount_denomination: 'USDT',
             },
-            amount_input_label: 'Amount (USDT)',
+            amount_input_label: 'Amount',
         } satisfies ScreenPayload['TRANSACTION_DETAILS'];
 
         return {

@@ -3,6 +3,7 @@ import {
     TransferAssetTransactionDetails,
 } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
+import { UserIdentityInfo } from '@/app/User/userSchema';
 import {
     IncomingWhatsappMessage,
     PhoneNumberParams,
@@ -13,13 +14,13 @@ import { AssetConfig } from '@/resources/web3/core/tokens';
 
 export type FiatPayoutQueueResult =
     | {
-          sequenceId: string;
-          result: 'SENT';
-      }
+        sequenceId: string;
+        result: 'SENT';
+    }
     | {
-          error: string;
-          result: 'FAILED' | 'REFUNDING_CRYPTO';
-      };
+        error: string;
+        result: 'FAILED' | 'REFUNDING_CRYPTO';
+    };
 
 export type CryptoDebitConfirmationQueueResult = {
     status: 'success' | 'failed' | 'dropped';
@@ -27,16 +28,16 @@ export type CryptoDebitConfirmationQueueResult = {
 };
 export type UserTxPinSecurityQueueInput =
     | {
-          newPinHash: string;
-          userId: string;
-          encryptedSecurityQuestions: string;
-          whatsappParams: PhoneNumberParams;
-      }
+        newPinHash: string;
+        userId: string;
+        encryptedSecurityQuestions: string;
+        whatsappParams: PhoneNumberParams;
+    }
     | {
-          newPinHash: string;
-          userId: string;
-          whatsappParams: PhoneNumberParams;
-      };
+        newPinHash: string;
+        userId: string;
+        whatsappParams: PhoneNumberParams;
+    };
 export type UserTxPinSecurityQueueResult = {
     status: 'success' | 'failed';
 };
@@ -59,6 +60,7 @@ export enum QueueNames {
     handleSmileKycWebhook = 'handle-smile-kyc-webhook',
     handleSafeHavenTransactionStatusUpdate = 'handle-safehaven-transaction-status-update',
     generateAzzaWrapped = 'generate-azza-wrapped',
+    onRamp = 'onramp'
     blockradarAddressSwaps = 'blockradar-address-swaps',
     blockradarMasterWalletSwaps = 'blockradar-master-wallet-swaps',
 }
@@ -148,6 +150,24 @@ export type GenerateAzzaWrappedQueueInput = {
     userDisplayName: string;
     whatsappParams: PhoneNumberParams;
 };
+
+export type OnRampQueueInput = {
+    accountType: string;
+    userWalletAddress: string;
+    localAmount: number;
+    tokenName: string;
+    chainName: string;
+    channelId: string;
+    country: string;
+    userDetails: UserIdentityInfo
+    customerId: string;
+    platformFeePercentage: number;
+    conversionRate: number;
+    usdAmount: number;
+    transactionFeeUsd: number;
+    localCurrency: string;
+    flowToken : string
+}
 
 export type BlockradarAddressSwapQueueInput = {
     swapDetails: SwapTokensTransactionDetailsV2;

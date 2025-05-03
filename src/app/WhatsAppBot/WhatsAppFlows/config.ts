@@ -28,7 +28,7 @@ type FlowConfigs = {
 const flowConfigs: FlowConfigs = {
     ONRAMP: {
         [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
-            flowId: '457607423727887',
+            flowId: '1357797448894975',
             flowMode: 'published',
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
