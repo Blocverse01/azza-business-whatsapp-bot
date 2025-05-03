@@ -142,13 +142,6 @@ class FiatRampService {
                 []
             );
 
-            commonBanks.push({
-                channelId: 'fe8f4989-3bf6-41ca-9621-ffe2bc127569',
-                networkId: 'c11e35cf-d227-45e4-94e3-5a6c853c0be1',
-                seerbitId: '100033',
-                name: "PalmPay",
-            });
-
             return commonBanks;
         }
 
@@ -228,6 +221,11 @@ class FiatRampService {
         return await FiatRampsRpcService.getBeneficiary(beneficiaryId);
     }
 
+    public static async tryManualPayout(beneficiary: Beneficiary,
+        params: SendOfframpRequestPayload) {
+        return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
+    }
+
     public static async trySafeHavenPayout(
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload) {
@@ -245,6 +243,8 @@ class FiatRampService {
                 params
             );
         }
+
+        return null;
     }
 
     public static async tryBellPayout(beneficiary: Beneficiary, params: SendOfframpRequestPayload) {
@@ -262,6 +262,8 @@ class FiatRampService {
                 params
             );
         }
+
+        return null;
     }
 
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
@@ -283,11 +285,17 @@ class FiatRampService {
 
             if (NGNBankIsEnabled) {
                 if (safeHavenPayoutIsEnabled) {
-                    return await this.trySafeHavenPayout(beneficiary, params);
+                    const safehaven = await this.trySafeHavenPayout(beneficiary, params);
+                    if (!safehaven) {
+                        return await this.tryManualPayout(beneficiary, params);
+                    }
                 }
 
                 if (!isPalmPayBank) {
-                    return await this.tryBellPayout(beneficiary, params);
+                    const bell = await this.tryBellPayout(beneficiary, params);
+                    if (!bell) {
+                        return await this.tryManualPayout(beneficiary, params);
+                    }
                 }
 
                 return await this.trySafeHavenPayout(beneficiary, params);
@@ -299,7 +307,7 @@ class FiatRampService {
             }
 
             // Neither SafeHaven nor YellowCard is viable — fall back to manual processing
-            return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
+            return await this.tryManualPayout(beneficiary, params);
         }
 
         // Default path for non-NG countries — use YellowCard
@@ -465,7 +473,7 @@ class FiatRampService {
     private static async _prepareOfframpSettlementData(
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload,
-        processorIdentifier: ProcessorId,
+        processorIdentifier: ProcessorId
     ): Promise<ManualOfframpSettlement> {
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
         const localCurrencySymbol = beneficiary.country.currencySymbol;
@@ -530,21 +538,17 @@ class FiatRampService {
 
 
         if (!bellSettlementRecord.sequenceId) {
-            throw new Error('Failed to create safehaven settlement record');
+            throw new Error('Failed to create bell settlement record');
         }
 
         const { accountName, seerbitId, accountNumber, networkId, channelId, country } =
             settlementData.destination;
 
-        let _seerbitId = seerbitId;
-        if (!_seerbitId) {
-            await this.getSeerBitId({
-                networkId: networkId,
-                channelId: channelId as string,
-                countryCode: country as CountryCode
-            });
-        }
-
+        const _seerbitId = seerbitId ? seerbitId : (await this.getSeerBitId({
+            networkId: networkId,
+            channelId: channelId as string,
+            countryCode: country as CountryCode
+        })).seerbitId;
 
         await NigeriaBanksService.sendProcessingSettlementMessage({
             usdAmount: bellSettlementRecord!.usdAmount!,
@@ -559,13 +563,13 @@ class FiatRampService {
         const transaction = await BellService.processOffRampPaymentWithBell({
             amountToSend: settlementData.localAmount,
             senderName: accountName,
-            beneficiaryBankCode: _seerbitId as string,
+            beneficiaryBankCode: _seerbitId!,
             beneficiaryAccountNumber: accountNumber,
             sequenceId: bellSettlementRecord.sequenceId,
         });
 
         if (!transaction) {
-            throw new Error('Failed to process off-ramp settlement with safehaven');
+            throw new Error('Failed to process off-ramp settlement with bell');
         }
 
         const isUpdated = await bellSettlementRecord.update({
@@ -574,7 +578,7 @@ class FiatRampService {
         });
 
         if (!isUpdated) {
-            throw new Error('Failed to update safehaven off-ramp settlement status');
+            throw new Error('Failed to update bell off-ramp settlement status');
         }
 
         return transaction.sequenceId;

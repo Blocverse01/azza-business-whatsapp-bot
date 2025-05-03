@@ -11,15 +11,9 @@ import {
     BankAccountVerificationResponse,
     accountNameEnquirySchema,
     BankAccountBalance,
-    TransactionResponse,
-    SafeHavenOfframpSettlement,
+    TransactionResponse
 } from './SafeHaveSchema';
-import { BAD_REQUEST, NOT_FOUND, OK } from '@/constants/status-codes';
-import { dbClient } from '@/db/dbClient';
-import {
-    OfframpTransactionRecordSchema,
-    transactionStatusSchema,
-} from '../../FiatRamp/fiatRampSchema';
+import { BAD_REQUEST, OK } from '@/constants/status-codes';
 
 class SafeHavenService {
     private static readonly GRANT_TYPE = 'client_credentials';

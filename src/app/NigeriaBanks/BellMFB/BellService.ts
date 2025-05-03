@@ -16,7 +16,8 @@ class BellService {
     private static readonly BELL_CONSUMER_SECRET = env.BELL_CONSUMER_SECRET
     private static accessToken: string | null = null;
     private static tokenExpiry: number | null = null;
-    private static EXPIRY_BUFFER_SECONDS = 30
+    private static EXPIRY_BUFFER_SECONDS = 60;
+    private static VALIDITY_TIME = 60; //In Minutes
 
 
     public static async generateAccessToken(): Promise<AccessTokenResult> {
@@ -37,7 +38,7 @@ class BellService {
                         'Content-Type': 'application/json',
                         'consumerKey': this.BELL_CONSUMER_KEY,
                         'consumerSecret': this.BELL_CONSUMER_SECRET,
-                        'validityTime': 50
+                        'validityTime': this.VALIDITY_TIME
                     },
                 }
             );
@@ -45,7 +46,7 @@ class BellService {
             const { token, expiry } = response.data;
 
             this.accessToken = token;
-            this.tokenExpiry = Date.now() + Number(expiry) * 60 * 1000;
+            this.tokenExpiry = Date.now() + Number(expiry) * this.EXPIRY_BUFFER_SECONDS * 1000;
 
             return {
                 access_token: token

@@ -288,7 +288,7 @@ const tables = [
     ],
   },
   {
-    name: "safehaven_offramp_settlement_transaction",
+    name: "ngn_banks_offramp_settlement_transaction",
     columns: [
       { name: "paymentCurrency", type: "text" },
       { name: "localCurrencySymbol", type: "text" },
@@ -441,10 +441,10 @@ export type UserMessageRecord = UserMessage & XataRecord;
 export type ConversationSummary = InferredTypes["conversation_summary"];
 export type ConversationSummaryRecord = ConversationSummary & XataRecord;
 
-export type SafehavenOfframpSettlementTransaction =
-  InferredTypes["safehaven_offramp_settlement_transaction"];
-export type SafehavenOfframpSettlementTransactionRecord =
-  SafehavenOfframpSettlementTransaction & XataRecord;
+export type NgnBanksOfframpSettlementTransaction =
+  InferredTypes["ngn_banks_offramp_settlement_transaction"];
+export type NgnBanksOfframpSettlementTransactionRecord =
+  NgnBanksOfframpSettlementTransaction & XataRecord;
 
 export type FallbackRegionalPhoneNumber =
   InferredTypes["fallback_regional_phone_number"];
@@ -469,7 +469,7 @@ export type DatabaseSchema = {
   crypto_payout_v2: CryptoPayoutV2Record;
   user_message: UserMessageRecord;
   conversation_summary: ConversationSummaryRecord;
-  safehaven_offramp_settlement_transaction: SafehavenOfframpSettlementTransactionRecord;
+  ngn_banks_offramp_settlement_transaction: NgnBanksOfframpSettlementTransactionRecord;
   fallback_regional_phone_number: FallbackRegionalPhoneNumberRecord;
   gasless_withdrawal_counter: GaslessWithdrawalCounterRecord;
 };

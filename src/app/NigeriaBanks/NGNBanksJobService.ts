@@ -1,11 +1,12 @@
 import logger from '@/resources/logger';
-import SafeHavenService from './SafeHaven/SafeHavenService';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import { addSafeHavenTransactionUpdateJobToQueue } from './queue-utils';
 import NigeriaBanksService from './NigeriaBanksService';
+import { BELL_OFFRAMP_PAYMENT_PROCESSOR_ID, ProcessorId } from '../FiatRamp/config';
+import { validProcessors } from './NigeriaBanksSchema';
 
-class SafeHavenJobService {
+class NGNBankJobService {
     public static async execute() {
         try {
             const settlements = await NigeriaBanksService.getNGNBankOfframpProcessingTransactions();
@@ -17,10 +18,22 @@ class SafeHavenJobService {
             }
 
             settlements.map(async (settlement) => {
+
+                if (!settlement.processorName) {
+                    logger.warn(`Missing processorName for transaction, sequenceId :  ${settlement.sequenceId}`);
+                    return;
+                }
+
+                if ((!validProcessors.includes(settlement.processorName as ProcessorId))) {
+                    logger.warn(`Invalid processorName for transaction, sequenceId: ${settlement.sequenceId}`);
+                    return;
+                }
+
                 await addSafeHavenTransactionUpdateJobToQueue({
-                    transactionId: settlement.sequenceId as string,
-                    processorName: settlement.processorName as string
+                    transactionId: settlement.sequenceId,
+                    processorName: settlement.processorName
                 });
+
             });
         } catch (error) {
             throw new HttpException(
@@ -31,4 +44,4 @@ class SafeHavenJobService {
     }
 }
 
-export default SafeHavenJobService;
+export default NGNBankJobService;

@@ -11,7 +11,7 @@ import { NOT_FOUND } from "@/constants/status-codes";
 class NigeriaBanksService {
 
     private static readonly NGN_OFFRAMP_TRANSACTION_REPOSITORY =
-        dbClient.safehaven_offramp_settlement_transaction;
+        dbClient.ngn_banks_offramp_settlement_transaction;
 
     public static async createNGNOfframpSettlement(
         offrampTransaction: NGNoffRampSettlement
