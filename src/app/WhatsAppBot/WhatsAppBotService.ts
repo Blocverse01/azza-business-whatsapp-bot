@@ -150,15 +150,12 @@ class WhatsAppBotService {
 
             const responseData = await response.body.json();
 
-            console.log(responseData);
-
             if (response.statusCode !== OK) {
-                const error = new HttpException(response.statusCode, 'Error sending message', {
+                throw new HttpException(response.statusCode, 'Error sending message', {
                     responseData,
                     message,
                     businessPhoneNumberId,
                 });
-                throw error;
             }
 
             return { sent: true };
@@ -485,13 +482,7 @@ class WhatsAppBotService {
 
         try {
             const requestOptions = this.getRequestConfig();
-            const response = await axios.post(
-                `${env.CLOUD_API_URL}/${endpoint}`,
-                data,
-                requestOptions
-            );
-
-            console.log(`Message ${messageId}  marked as read`, response.data);
+            await axios.post(`${env.CLOUD_API_URL}/${endpoint}`, data, requestOptions);
         } catch (error) {
             await logServiceError(error, 'Error marking message as read:');
         }
@@ -1057,6 +1048,7 @@ class WhatsAppBotService {
         const { userPhoneNumber } = phoneParams;
         const { assetId, currencySymbol, countryCode } = params;
 
+        console.log('beginOnrampFlowMessage - Asset ID is: ', assetId);
         const asset = getAssetConfigOrThrow(assetId);
 
         const { paymentChannels } = await FiatRampService.getPaymentMethods(
@@ -1083,6 +1075,8 @@ class WhatsAppBotService {
             countryCode,
             paymentMethods,
         });
+
+        console.dir(flowMessage, { depth: Infinity });
 
         await this.sendWhatsappMessage(phoneParams.businessPhoneNumberId, flowMessage);
     }

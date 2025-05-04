@@ -108,32 +108,28 @@ export const addOnRampRequestToQueue = async (params: OnRampQueueInput) => {
     const jobId = `onramp-${relevantParts}`;
     return await queues.onRamp.add(jobId, params, {
         jobId,
-        delay: 6000
+        delay: 6000,
     });
-}
+};
 
-const sendOnRampPaymentInstructions = async (params: { phoneNumber: string, accountNumber: string, fiatToPay: string }) => {
-
+const sendOnRampPaymentInstructions = async (params: {
+    phoneNumber: string;
+    accountNumber: string;
+    fiatToPay: string;
+}) => {
     const { phoneNumber, accountNumber, fiatToPay } = params;
 
-    await WhatsAppBotService.sendArbitraryTextMessage(
-        phoneNumber,
-        accountNumber
-    );
+    await WhatsAppBotService.sendArbitraryTextMessage(phoneNumber, accountNumber);
 
-    await WhatsAppBotService.sendArbitraryTextMessage(
-        phoneNumber,
-        fiatToPay
-    );
+    await WhatsAppBotService.sendArbitraryTextMessage(phoneNumber, fiatToPay);
 
     await WhatsAppBotService.sendArbitraryTextMessage(
         phoneNumber,
         `🧾 *Payment Instructions:*\n\n 1. 👆 *Long-press* the account number or amount *to copy.*\n\n 2. Please send the payment from *your own bank account*. \n\n 3. Make sure to send the *exact amount* to avoid any delays.`
     );
-}
+};
 
 export const handleOnrampRequestInQueue = async (params: OnRampQueueInput) => {
-
     const onrampResponse = await FiatRampService.postOnRampTransaction({
         accountType: params.accountType as OnrampTransactionPayload['accountType'],
         userWalletAddress: params.userWalletAddress,
@@ -147,7 +143,7 @@ export const handleOnrampRequestInQueue = async (params: OnRampQueueInput) => {
         platformFeePercentage: params.platformFeePercentage,
         conversionRate: params.conversionRate,
         usdAmount: params.usdAmount,
-        transactionFeeUsd: params.transactionFeeUsd
+        transactionFeeUsd: params.transactionFeeUsd,
     });
 
     if (onrampResponse.bankInfo === undefined) {
@@ -167,20 +163,17 @@ export const handleOnrampRequestInQueue = async (params: OnRampQueueInput) => {
     });
 
     //send transaction initiated message
-    await WhatsAppBotService.sendArbitraryTextMessage(
-        params.userDetails.phoneNumber,
-        message
-    );
+    await WhatsAppBotService.sendArbitraryTextMessage(params.userDetails.phoneNumber, message);
 
     //send payment instruction message
     await sendOnRampPaymentInstructions({
         phoneNumber: params.userDetails.phoneNumber,
         accountNumber: onrampResponse.bankInfo?.accountNumber!,
-        fiatToPay: prettifyNumber(parseFloat(params.localAmount.toString()))
-    })
+        fiatToPay: prettifyNumber(parseFloat(params.localAmount.toString())),
+    });
 
-
-}
+    return onrampResponse;
+};
 
 export const createOnRampWorker = () => {
     return new Worker<OnRampQueueInput>(
