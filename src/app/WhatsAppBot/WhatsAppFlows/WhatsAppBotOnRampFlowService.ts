@@ -192,6 +192,9 @@ class WhatsAppBotOnRampFlowService {
     ): Promise<DataExchangeResponse> {
         const { action, screen, data, flow_token } = requestBody;
 
+        console.log('Receive DataExchange');
+        console.dir(requestBody, { depth: Infinity });
+
         if (action === 'INIT') {
             // Using Preview data because initialization should typically be done from `WhatsAppBotService.beginOnRampFlowMessage`
             return this.previewInitializationFlow(requestBody);
