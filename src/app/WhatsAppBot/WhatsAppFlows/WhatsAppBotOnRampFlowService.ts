@@ -531,6 +531,8 @@ class WhatsAppBotOnRampFlowService {
                     transaction_details.channel_id
                 );
 
+                console.log('getPaymentScreenData: Asset ID is: ', asset_id);
+
                 return {
                     screen: OnRampFlowScreens.MOMO_PAYMENT,
                     data: {
@@ -730,6 +732,8 @@ class WhatsAppBotOnRampFlowService {
             local_currency,
             mobile_providers,
         } = input;
+
+        console.log('getMomoPaymentFeedbackScreenData: Asset ID is: ', asset_id);
 
         if (buying_to_external_wallet) {
             if (!transaction_details.external_wallet_address) {
