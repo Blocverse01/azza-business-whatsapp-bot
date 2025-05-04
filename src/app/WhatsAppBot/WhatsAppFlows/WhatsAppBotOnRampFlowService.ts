@@ -1,4 +1,4 @@
-import { getMinimumOnrampUsdAmount, ONRAMP_MINIMUM_BY_CHAIN } from '@/app/FiatRamp/config';
+import { getMinimumOnrampUsdAmount } from '@/app/FiatRamp/config';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { addOnRampRequestToQueue } from '@/app/FiatRamp/queue-helpers';
@@ -17,10 +17,7 @@ import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-
 import { SIXTEEN, TWO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import {
-    generateOnrampTransactionInitiatedMessage,
-    generateOnrampTransactionInitiatedWithMomoPaymentMessage,
-} from '@/resources/utils/bot-message-utils';
+import { generateOnrampTransactionInitiatedWithMomoPaymentMessage } from '@/resources/utils/bot-message-utils';
 import {
     fixNumber,
     formatNumberAsCurrency,
@@ -34,7 +31,7 @@ import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { AssetConfig, TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
-import { CountryCode, PhoneNumber } from 'libphonenumber-js';
+import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
 
 enum OnRampFlowScreens {
@@ -375,7 +372,7 @@ class WhatsAppBotOnRampFlowService {
 
         let minLocalLimitUsed: number;
 
-        if (typeof hardUsdLimit === 'number' && typeof conversionRate === 'number') {
+        if (typeof hardUsdLimit === 'number') {
             minLocalLimitUsed = math.multiply(hardUsdLimit, conversionRate);
         } else {
             minLocalLimitUsed = minLocalLimit;
