@@ -192,9 +192,6 @@ class WhatsAppBotOnRampFlowService {
     ): Promise<DataExchangeResponse> {
         const { action, screen, data, flow_token } = requestBody;
 
-        console.log('Receive DataExchange');
-        console.dir(requestBody, { depth: Infinity });
-
         if (action === 'INIT') {
             // Using Preview data because initialization should typically be done from `WhatsAppBotService.beginOnRampFlowMessage`
             return this.previewInitializationFlow(requestBody);
@@ -534,8 +531,6 @@ class WhatsAppBotOnRampFlowService {
                     transaction_details.channel_id
                 );
 
-                console.log('getPaymentScreenData: Asset ID is: ', asset_id);
-
                 return {
                     screen: OnRampFlowScreens.MOMO_PAYMENT,
                     data: {
@@ -736,8 +731,6 @@ class WhatsAppBotOnRampFlowService {
             mobile_providers,
         } = input;
 
-        console.log('getMomoPaymentFeedbackScreenData: Asset ID is: ', asset_id);
-
         if (buying_to_external_wallet) {
             if (!transaction_details.external_wallet_address) {
                 return {
@@ -817,8 +810,8 @@ class WhatsAppBotOnRampFlowService {
                         },
                         init_values: {
                             mobile_provider: mobile_provider,
-                            first_name: verifiedUserDetails.firstName,
-                            last_name: verifiedUserDetails.lastName,
+                            first_name: input.first_name,
+                            last_name: input.last_name,
                             mobile_number: mobile_number,
                         },
                     } satisfies ScreenPayload['MOMO_PAYMENT'],
