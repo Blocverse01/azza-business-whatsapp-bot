@@ -540,7 +540,7 @@ class WhatsAppBotTransferToWalletFlowService {
             networkFee: number;
         }
     ) {
-        const { assetBalance, recipient, networkFee } = params;
+        const { assetBalance, recipient } = params;
 
         const { asset, balance } = assetBalance;
         const assetLabel = `${asset.tokenName} (${asset.network})`;
@@ -552,9 +552,9 @@ class WhatsAppBotTransferToWalletFlowService {
          * */
         let userBalanceMessage = `Your balance: ${balance} ${asset.tokenName}`;
 
-        if (networkFee > 0) {
-            userBalanceMessage = `Your balance: ${balance} ${asset.tokenName}\nYou can withdraw: ${balance - networkFee} ${asset.tokenName}\nGas: ${networkFee}${asset.tokenName}`;
-        }
+        // if (networkFee > 0) {
+        //     userBalanceMessage = `Your balance: ${balance} ${asset.tokenName}\nYou can withdraw: ${balance - networkFee} ${asset.tokenName}\nGas: ${networkFee}${asset.tokenName}`;
+        // }
 
         const flowMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
