@@ -608,28 +608,37 @@ class WhatsAppBotOnRampFlowService {
                     };
                 }
 
+                const messagingPhoneNumber = verifiedUserDetails.phoneNumber;
+
                 if (fallbackRegionalPhoneNumber) {
                     verifiedUserDetails.phoneNumber = fallbackRegionalPhoneNumber;
                 }
 
-                await addOnRampRequestToQueue({
-                    accountType: account_type,
-                    userWalletAddress: buying_to_external_wallet
-                        ? transaction_details.external_wallet_address
-                        : assetWallet.address,
-                    localAmount: parseFloat(transaction_details.fiat_to_pay),
-                    tokenName: assetConfig.tokenName,
-                    chainName: assetConfig.network.toUpperCase(),
-                    channelId: transaction_details.channel_id,
-                    country: country_code,
-                    userDetails: verifiedUserDetails,
-                    customerId: user_id,
-                    platformFeePercentage: parseFloat(transaction_details.platform_fee_percentage),
-                    conversionRate: parseFloat(transaction_details.conversion_rate),
-                    usdAmount: parseFloat(transaction_details.token_amount),
-                    transactionFeeUsd: parseFloat(transaction_details.transaction_fee),
-                    localCurrency: local_currency,
-                    flowToken: flow_token!,
+                await addOnRampRequestToQueue(`onramp-${flow_token}`, {
+                    transactionPayload: {
+                        accountType: account_type,
+                        userWalletAddress: buying_to_external_wallet
+                            ? transaction_details.external_wallet_address
+                            : assetWallet.address,
+                        localAmount: parseFloat(transaction_details.fiat_to_pay),
+                        tokenName: assetConfig.tokenName,
+                        chainName: assetConfig.network.toUpperCase(),
+                        channelId: transaction_details.channel_id,
+                        country: country_code,
+                        userDetails: verifiedUserDetails,
+                        customerId: user_id,
+                        platformFeePercentage: parseFloat(
+                            transaction_details.platform_fee_percentage
+                        ),
+                        conversionRate: parseFloat(transaction_details.conversion_rate),
+                        usdAmount: parseFloat(transaction_details.token_amount),
+                        transactionFeeUsd: parseFloat(transaction_details.transaction_fee),
+                        localCurrency: local_currency,
+                    },
+                    whatsappParams: {
+                        userPhoneNumber: messagingPhoneNumber,
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                    },
                 });
 
                 return {
