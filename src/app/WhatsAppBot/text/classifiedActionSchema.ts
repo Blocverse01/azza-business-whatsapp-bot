@@ -80,4 +80,10 @@ export const actionArgumentsSchema = {
     }),
     SHOW_FIAT_RATES: z.object({}),
     KYC_VERIFICATION: z.object({}),
+    REFERRAL: z.object({
+        code: z
+            .string()
+            .nullable()
+            .describe(`The referral code to invite new users`)
+    })
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

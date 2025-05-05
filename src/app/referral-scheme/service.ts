@@ -18,9 +18,11 @@ class ReferralSchemeService {
         }
 
         return await this.REFERRAL_SCHEME_REPOSITORY.filter({
-            code,
+            code: code.trim().toUpperCase(),
         }).getFirst();
     }
+
+    // public static async getRe
 }
 
 export default ReferralSchemeService;

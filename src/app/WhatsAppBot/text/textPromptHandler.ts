@@ -14,6 +14,7 @@ import {
     handleDepositRelatedPrompt,
     handleKycPrompt,
     handleRatesPrompt,
+    handleReferralPrompt,
     handleResetTransactionPinPrompt,
     handleSellCryptoForFiatPrompt,
     handleSwapCryptoPrompt,
@@ -179,6 +180,7 @@ export const textPromptHandler = async (
                 break;
             case 'SELL_CRYPTO_FOR_FIAT':
             case 'GET_FIAT_WITH_CRYPTO':
+                console.log('botParams----', extractedArguments);
                 responseMessage = await handleSellCryptoForFiatPrompt({
                     extractedArguments,
                     botParams,
@@ -195,6 +197,13 @@ export const textPromptHandler = async (
             case 'SHOW_FIAT_RATES':
                 responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
                 break;
+            // case 'REFERRAL':
+            //     responseMessage = await handleReferralPrompt({
+            //         extractedArguments,
+            //         botParams,
+            //         user,
+            //     });
+            //     break;
             case 'KYC_VERIFICATION':
                 responseMessage = await handleKycPrompt({
                     extractedArguments,
@@ -203,6 +212,7 @@ export const textPromptHandler = async (
                 });
                 break;
             default:
+                console.error('Unrecognized action class:', classifiedAction.class);
                 throw new Error('Action not supported');
         }
     }
