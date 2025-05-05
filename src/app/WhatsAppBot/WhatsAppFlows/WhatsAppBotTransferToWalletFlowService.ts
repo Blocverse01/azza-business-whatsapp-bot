@@ -242,29 +242,29 @@ class WhatsAppBotTransferToWalletFlowService {
               })
             : null;
 
-        if (asset.isNative) {
-            let walletAddress = data.wallet_address;
-
-            if (recipientType === 'azza-phone-number' && azzaUserRecipient) {
-                walletAddress = (
-                    await azzaWalletManager.getUserWallet(azzaUserRecipient.id, asset.network)
-                ).address;
-            }
-
-            const networkFeeInfo = await azzaWalletManager.getWithdrawNetworkFee({
-                amount: amount.toString(),
-                assetId: asset.listItemId,
-                recipient: walletAddress,
-                userId: data.user_id,
-            });
-
-            const withdrawableAmount =
-                Number(networkFeeInfo.nativeBalance) - Number(networkFeeInfo.networkFee);
-
-            if (Number(userBalance) < Number(withdrawableAmount)) {
-                errorMessages.amount = `To cover for gas which cost (${networkFeeInfo.networkFee} ${asset.tokenName}), the max you can withdraw is ${withdrawableAmount} ${asset.tokenName}`;
-            }
-        }
+        // if (asset.isNative) {
+        //     let walletAddress = data.wallet_address;
+        //
+        //     if (recipientType === 'azza-phone-number' && azzaUserRecipient) {
+        //         walletAddress = (
+        //             await azzaWalletManager.getUserWallet(azzaUserRecipient.id, asset.network)
+        //         ).address;
+        //     }
+        //
+        //     const networkFeeInfo = await azzaWalletManager.getWithdrawNetworkFee({
+        //         amount: amount.toString(),
+        //         assetId: asset.listItemId,
+        //         recipient: walletAddress,
+        //         userId: data.user_id,
+        //     });
+        //
+        //     const withdrawableAmount =
+        //         Number(networkFeeInfo.nativeBalance) - Number(networkFeeInfo.networkFee);
+        //
+        //     if (Number(userBalance) < Number(withdrawableAmount)) {
+        //         errorMessages.amount = `To cover for gas which cost (${networkFeeInfo.networkFee} ${asset.tokenName}), the max you can withdraw is ${withdrawableAmount} ${asset.tokenName}`;
+        //     }
+        // }
 
         if (Object.keys(errorMessages).length > 0) {
             return {
