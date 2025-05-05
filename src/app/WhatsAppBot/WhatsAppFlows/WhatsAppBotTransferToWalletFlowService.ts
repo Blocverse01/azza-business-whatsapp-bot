@@ -258,9 +258,10 @@ class WhatsAppBotTransferToWalletFlowService {
                 userId: data.user_id,
             });
 
-            const withdrawableAmount = networkFeeInfo.nativeBalance - networkFeeInfo.networkFee;
+            const withdrawableAmount =
+                Number(networkFeeInfo.nativeBalance) - Number(networkFeeInfo.networkFee);
 
-            if (userBalance < withdrawableAmount) {
+            if (Number(userBalance) < Number(withdrawableAmount)) {
                 errorMessages.amount = `To cover for gas which cost (${networkFeeInfo.networkFee} ${asset.tokenName}), the max you can withdraw is ${withdrawableAmount} ${asset.tokenName}`;
             }
         }
