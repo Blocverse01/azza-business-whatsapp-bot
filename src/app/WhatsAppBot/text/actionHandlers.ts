@@ -39,7 +39,7 @@ import {
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
-import { getSupportedAssetAndNetworksText } from '../utils';
+import { getPossibleBotActionsMessageText, getSupportedAssetAndNetworksText } from '../utils';
 import SumSubService from '@/app/SumSub/SumSubService';
 import ReferralSchemeService from '@/app/referral-scheme/service';
 import { extractReferralCodeFromMessage } from '@/app/referral-scheme/utils';
@@ -1326,13 +1326,7 @@ export const handleReferralPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
 
-    const { extractedArguments, botParams, user } = params;
-
-    const userKycStatus = userServiceV2.formatKycStatus(user.kycStatus);
-
-    const responseMessage = 'Handled';
-    //edited here
-    console.log('extractedArguments', botParams.userPhoneNumber);
+    const { extractedArguments, botParams } = params;
 
     const referralArguments = parseExtractedArguments(
         extractedArguments,
@@ -1343,9 +1337,64 @@ export const handleReferralPrompt = async (
 
     const validReferral = await ReferralSchemeService.getReferralSchemeByCode(referralCode as string);
 
-    if (validReferral) 
+    const existingReferral = await ReferralSchemeService.getRefereeByPhoneNumber(botParams.userPhoneNumber);
 
-    console.log('extractedArguments', validReferral)
+    if (validReferral && !validReferral.isActive) {
+        const responseMessage = `Invalid referral code. Please check and try again.`;
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+        );
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                botParams.userPhoneNumber,
+                getPossibleBotActionsMessageText()
+            )
+        );
+
+        return {
+            response: responseMessage,
+            resetSession: true,
+        };
+    }
+
+    if (validReferral?.isActive && existingReferral?.referralScheme?.code === referralCode) {
+
+        const responseMessage = `You’ve already been referred by another user. Each user can only be referred once. Thanks for being part of our community!`;
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+        );
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                botParams.userPhoneNumber,
+                getPossibleBotActionsMessageText()
+            )
+        );
+
+        return {
+            response: responseMessage,
+            resetSession: true,
+        };
+    }
+
+    const responseMessage = `Referral codes are only valid during the account creation process. As you already have an account, this code cannot be applied.`
+    await WhatsAppBotService.sendWhatsappMessage(
+        botParams.businessPhoneNumberId,
+        MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+    );
+
+    await WhatsAppBotService.sendWhatsappMessage(
+        botParams.businessPhoneNumberId,
+        MessageGenerators.generateTextMessage(
+            botParams.userPhoneNumber,
+            getPossibleBotActionsMessageText()
+        )
+    );
 
     return {
         response: responseMessage,

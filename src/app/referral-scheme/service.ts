@@ -13,16 +13,38 @@ class ReferralSchemeService {
     }
 
     public static async getReferralSchemeByCode(code: string) {
-        if (code.trim() === '') {
+        if (code === null) {
             return null;
         }
 
         return await this.REFERRAL_SCHEME_REPOSITORY.filter({
-            code: code.trim().toUpperCase(),
+            code: code,
         }).getFirst();
     }
 
-    // public static async getRe
+    public static async getReferralSchemeByUserId(userId: string) {
+        return await this.REFERRAL_SCHEME_REPOSITORY.filter({
+            user: userId,
+        }).getFirst();
+    }
+
+    public static async getRefereeByPhoneNumber(phoneNumber: string) {
+
+        if (phoneNumber) {
+            return null;
+        }
+
+        return await this.REFERRALS_REPOSITORY.filter({
+            'referee.primaryWhatsappPhoneNumber': phoneNumber,
+        }).select(['*', 'referee.*', 'referralScheme.*']).getFirst();
+    }
+
+    public static async createReferralCode(params: { code: string, userId: string }) {
+        return await this.REFERRAL_SCHEME_REPOSITORY.create({
+            code: params.code,
+            user: params.userId,
+        });
+    }
 }
 
 export default ReferralSchemeService;

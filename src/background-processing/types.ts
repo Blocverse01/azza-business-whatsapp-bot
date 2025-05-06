@@ -63,6 +63,7 @@ export enum QueueNames {
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
     blockradarMasterWalletSwaps = 'blockradar-master-wallet-swaps',
+    generateReferralCode = 'generate-referral-code',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -151,6 +152,11 @@ export type GenerateAzzaWrappedQueueInput = {
     whatsappParams: PhoneNumberParams;
 };
 
+export type GenerateReferralCodeQueueInput = {
+    userId: string;
+    whatsappParams: PhoneNumberParams;
+}
+
 export type OnRampQueueInput = {
     accountType: string;
     userWalletAddress: string;
@@ -166,7 +172,7 @@ export type OnRampQueueInput = {
     usdAmount: number;
     transactionFeeUsd: number;
     localCurrency: string;
-    flowToken : string
+    flowToken: string
 }
 
 export type BlockradarAddressSwapQueueInput = {

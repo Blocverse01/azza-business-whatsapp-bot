@@ -30,6 +30,7 @@ export const BOT_COMMANDS_REGEX = {
     PERFORM_KYC: /^\/verify_me$/,
     SUPPORT: /^\/support$/,
     WRAPPED: /^\/wrapped$/,
+    REFERRAL_CODE:/^\/referral_code$/,
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {

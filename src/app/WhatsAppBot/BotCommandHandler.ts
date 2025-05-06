@@ -30,6 +30,8 @@ import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains'
 import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
+import { addJobToReferralCodeQueue } from '../referral-scheme/queue-utils';
+import { randomUUID } from 'crypto';
 
 type BotCommand = keyof typeof BOT_COMMANDS_REGEX;
 
@@ -96,6 +98,9 @@ class BotCommandHandler {
             case 'WRAPPED':
                 await BotCommandHandler.handleWrapped(user, phoneParams, displayName);
                 break;
+            case 'REFERRAL_CODE':
+                await BotCommandHandler.getReferralCode(user, phoneParams);
+                break;
             default:
                 return {
                     handled: false,
@@ -145,15 +150,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`;
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -206,15 +211,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`;
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -668,6 +673,16 @@ class BotCommandHandler {
                     params: {},
                 };
         }
+    }
+
+    private static async getReferralCode(
+        user: UserV2Record,
+        params: PhoneNumberParams) {
+
+        return await addJobToReferralCodeQueue({
+            userId: user.id,
+            whatsappParams: params
+        });
     }
 }
 
