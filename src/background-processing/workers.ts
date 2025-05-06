@@ -19,8 +19,8 @@ import { createCryptoPayoutWorker } from '@/app/crypto-payouts-v2/utils';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
-import { createFiatPayoutV2Worker } from '@/app/FiatRamp/queue-helpers';
-import { createSafeHavenTransactionUpdateJobWorker } from '@/app/NigeriaBanks/queue-utils';
+import { createFiatPayoutV2Worker, createOnRampWorker } from '@/app/FiatRamp/queue-helpers';
+import { createSafeHavenTransactionUpdateJobWorker } from '@/app/SafeHaven/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
 import {
     createBlockradarAddressTokenSwapWorker,
@@ -468,6 +468,7 @@ prepareSchedulerQueue();
 createWhatsappBroadcastWorker();
 createEventDrivenOfframpWorker();
 createFiatPayoutV2Worker();
+createOnRampWorker();
 createSyncUserWalletWorker();
 createSafeHavenTransactionUpdateJobWorker();
 createBaseCashbackWorker();

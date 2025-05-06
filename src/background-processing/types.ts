@@ -3,6 +3,7 @@ import {
     TransferAssetTransactionDetails,
 } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
+import { OnrampTransactionPayload } from '@/app/FiatRamp/fiatRampSchema';
 import {
     IncomingWhatsappMessage,
     PhoneNumberParams,
@@ -59,6 +60,7 @@ export enum QueueNames {
     handleSmileKycWebhook = 'handle-smile-kyc-webhook',
     handleNGNBankTransactionStatusUpdate = 'handle-ngn-bank-transaction-status-update',
     generateAzzaWrapped = 'generate-azza-wrapped',
+    onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
     blockradarMasterWalletSwaps = 'blockradar-master-wallet-swaps',
 }
@@ -147,6 +149,13 @@ export type NGNBankTransactionQueueInput = {
 export type GenerateAzzaWrappedQueueInput = {
     userId: string;
     userDisplayName: string;
+    whatsappParams: PhoneNumberParams;
+};
+
+export type OnRampQueueInput = {
+    transactionPayload: OnrampTransactionPayload & {
+        localCurrency: string;
+    };
     whatsappParams: PhoneNumberParams;
 };
 

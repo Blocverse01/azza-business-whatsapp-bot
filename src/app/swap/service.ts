@@ -48,9 +48,7 @@ class SwapService {
 
     public static async getSwapTransactionByExternalReference(reference: string) {
         if (!reference.startsWith(this.EXTERNAL_REFERENCE_PREFIX)) {
-            throw new Error(
-                `Wrong reference format. Reference should begin with ${this.EXTERNAL_REFERENCE_PREFIX}`
-            );
+            return null;
         }
         const encodedId = reference.split(this.EXTERNAL_REFERENCE_PREFIX)[1];
         return this.getSwapTransactionById(encodedId);

@@ -23,6 +23,7 @@ import {
     EventDrivenOfframpQueueResult,
     FiatPayoutQueueResult,
     GenerateAzzaWrappedQueueInput,
+    OnRampQueueInput,
     QueueNames,
     NGNBankTransactionQueueInput,
     SyncUserWalletIdQueueInput,
@@ -124,6 +125,9 @@ export const queues = {
         }
     ),
     generateAzzaWrapped: new Queue<GenerateAzzaWrappedQueueInput>(QueueNames.generateAzzaWrapped, {
+        connection: connectionConfig,
+    }),
+    onRamp: new Queue<OnRampQueueInput>(QueueNames.onRamp, {
         connection: connectionConfig,
     }),
     blockradarAddressSwaps: new Queue<BlockradarAddressSwapQueueInput>(

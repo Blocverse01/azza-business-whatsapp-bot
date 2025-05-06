@@ -60,6 +60,7 @@ createBullBoard({
         new BullMQAdapter(queues.handleSmileKycWebhook),
         new BullMQAdapter(queues.handleNGNBankTransactionStatusUpdate),
         new BullMQAdapter(queues.generateAzzaWrapped),
+        new BullMQAdapter(queues.onRamp),
         new BullMQAdapter(queues.blockradarAddressSwaps),
         new BullMQAdapter(queues.blockradarMasterWalletSwaps),
     ],
