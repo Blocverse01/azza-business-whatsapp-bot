@@ -1164,13 +1164,14 @@ export const handleSwapCryptoPrompt = async (
             fromAssetId: fromTokenConfig.listItemId,
             toAssetId: toTokenConfig.listItemId,
             recipientAddress: toUserWallet.address,
+            userId: user.id,
         });
     } catch (error) {
         await logServiceError(error, 'Error getting swap quotes');
     }
 
     if (!quote) {
-        const responseMessage = 'An error occurred while trying to get a quote for your swap.';
+        const responseMessage = `Swapping ${fromTokenConfig.tokenName} (${fromTokenConfig.network}) to ${toTokenConfig.tokenName} (${toTokenConfig}) is temporarily unavailable`;
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
             MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, responseMessage)

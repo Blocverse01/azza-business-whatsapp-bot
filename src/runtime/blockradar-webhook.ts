@@ -4,7 +4,6 @@ import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashb
 import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-payouts-v2/utils';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
-import { addBlockradarMasterWalletTokenSwapJobToQueue } from '@/app/swap/queue-utils';
 import SwapService from '@/app/swap/service';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -117,17 +116,6 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const reference = data.data.reference;
 
         const reason = metadata?.reason;
-
-        if (reason === SwapService.SWAP_WITHDRAWAL_TX_REASON && data.data.hash) {
-            await addBlockradarMasterWalletTokenSwapJobToQueue(reference, {
-                swapDebitReferenceId: reference,
-                swapDebitTransactionHash: data.data.hash,
-                whatsappParams: {
-                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                },
-            });
-            return;
-        }
 
         if (reason === OFFRAMP) {
             const pendingOfframpId = reference.split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1];
@@ -293,7 +281,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             });
         }
     },
-    handleSwapSuccess: async (data, network) => {
+    handleSwapSuccess: async (data, _network) => {
         const reference = data.data.reference;
 
         const swapTransactionRecord =
@@ -319,7 +307,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             )
         );
     },
-    handleSwapFailed: async (data, network) => {
+    handleSwapFailed: async (data, _network) => {
         const reference = data.data.reference;
 
         const swapTransactionRecord =

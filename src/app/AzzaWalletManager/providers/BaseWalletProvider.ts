@@ -58,6 +58,7 @@ export type SwapAssetQuoteParams = {
     toAssetId: string;
     amount: string;
     recipientAddress?: string;
+    userId: string;
 };
 export type SwapAssetQuote = {
     amount: number;
@@ -72,6 +73,7 @@ export type ExecuteAssetSwapParams = {
     recipientAddress: string;
     reference: string;
     metadata?: Record<string, string>;
+    userId: string;
 };
 export type AssetSwapTransaction = {
     fromAsset: AssetConfig;
