@@ -1203,10 +1203,12 @@ export const handleSwapCryptoPrompt = async (
         `From Amount: *${prettifiedFromAmount} ${fromTokenConfig.tokenName}*`,
         `To Amount: *${prettifiedToAmount} ${toTokenConfig.tokenName}*\n`,
         `1 *${fromTokenConfig.tokenName}* = ${swapRate} *${toTokenConfig.tokenName}*`,
-        `Fee: *${prettifiedSwapFee} ${fromTokenConfig.tokenName}*\n`,
+        swapFee > 0 ? `Fee: *${prettifiedSwapFee} ${fromTokenConfig.tokenName}*\n` : '',
         ...chainMessages,
         `\n_Estimated Time: *${quote.estimatedArrivalTime}s*_`,
-    ].join('\n');
+    ]
+        .filter((value) => value.trim() !== '')
+        .join('\n');
 
     const transactionSummaryMessage =
         WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(

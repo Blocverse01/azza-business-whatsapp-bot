@@ -113,4 +113,4 @@ export const deriveUserFeatureAccessLevel = (accessLevelString: string) => {
     return FeatureAccessLevel.PRODUCTION;
 };
 
-export const FLAT_SWAP_FEE = 0.002; // 0.2 %
+export const FLAT_SWAP_FEE = 0; // 0 %

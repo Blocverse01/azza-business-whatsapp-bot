@@ -476,7 +476,9 @@ createKycEventJobWorker().on('error', async (error) => {
 });
 
 createAzzaWrappedWorker();
-createBlockradarAddressTokenSwapWorker(connectionConfig);
+createBlockradarAddressTokenSwapWorker(connectionConfig).on('error', async (error) => {
+    await logServiceError(error, 'Swap Worker Error');
+});
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {
