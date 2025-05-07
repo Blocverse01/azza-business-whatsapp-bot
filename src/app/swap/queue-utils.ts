@@ -44,7 +44,6 @@ const handleBlockradarAddressTokenSwapJob = async (
 
     const fromTokenConfig = getAssetConfigOrThrow(swapDetails.fromTokenId);
     const toTokenConfig = getAssetConfigOrThrow(swapDetails.toTokenId);
-
     const swapTransactionExecution = await azzaWalletManager.executeAssetSwap({
         fromAmount: decimalToString(amountToSwap),
         fromAssetId: fromTokenConfig.listItemId,

@@ -468,6 +468,8 @@ class BlockradarMasterWalletApiClient {
             body: JSON.stringify(bodyPayload),
         });
 
+        console.log(bodyPayload, response);
+
         if (response.statusCode !== OK) {
             throw new BlockradarMasterWalletApiClientError({
                 message: response.message,
