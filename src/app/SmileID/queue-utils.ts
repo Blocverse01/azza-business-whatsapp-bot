@@ -147,9 +147,7 @@ const compareUserDataWithBvnData = (
 
 const isValidStringData = (address: string): address is string => {
     if (address.trim() === '') return false;
-    if (address.toLowerCase() === NOT_AVAILABLE.toLowerCase()) return false;
-
-    return true;
+    return address.toLowerCase() !== NOT_AVAILABLE.toLowerCase();
 };
 
 export const createKycEventJobWorker = () => {
