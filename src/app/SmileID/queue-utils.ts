@@ -190,27 +190,12 @@ export const createKycEventJobWorker = () => {
                                 .map((error) => `- ${error.message}`)
                                 .join('\n');
 
-                            const shouldRetry = errors.length >= 2;
+                            const messageBody = `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease type and send /support to get help.`;
 
-                            const messageBody = shouldRetry
-                                ? `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease confirm your BVN number and click on 'Try Again'`
-                                : `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease contact support using the /support command.`;
-
-                            const message = shouldRetry
-                                ? BvnKycVerificationFlow.withPhoneNumberId(
-                                      env.WA_PHONE_NUMBER_ID
-                                  ).createBvnVerificationFlowMessage(user, {
-                                      messageBody: messageBody,
-                                      messageRecipient: user.primaryWhatsappPhoneNumber,
-                                      flowCTA: 'Try Again',
-                                      initialValues: {
-                                          email: user.email ?? undefined,
-                                      },
-                                  })
-                                : MessageGenerators.generateTextMessage(
-                                      user.primaryWhatsappPhoneNumber,
-                                      messageBody
-                                  );
+                            const message = MessageGenerators.generateTextMessage(
+                                user.primaryWhatsappPhoneNumber,
+                                messageBody
+                            );
 
                             await WhatsAppBotService.sendWhatsappMessage(
                                 env.WA_PHONE_NUMBER_ID,

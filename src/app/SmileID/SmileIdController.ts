@@ -24,7 +24,7 @@ class SmileIdController {
             ).safeParse(request.body);
 
             if (!bodyDataValidation.success) {
-                await logger.debug(`Invalid webhook payload`, {
+                await logger.debug(`Invalid SumSub webhook payload`, {
                     errors: bodyDataValidation.error,
                     payload: request.body,
                 });
