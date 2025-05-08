@@ -1192,7 +1192,7 @@ export const handleSwapCryptoPrompt = async (
     }
 
     if (!quote) {
-        const responseMessage = `Swapping ${fromTokenConfig.tokenName} (${fromTokenConfig.network}) to ${toTokenConfig.tokenName} (${toTokenConfig}) is temporarily unavailable`;
+        const responseMessage = `Swapping ${fromTokenConfig.tokenName} (${fromTokenConfig.network}) to ${toTokenConfig.tokenName} (${toTokenConfig.network}) is temporarily unavailable`;
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
             MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, responseMessage)
