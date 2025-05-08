@@ -15,7 +15,7 @@ import WhatsAppBotTransactionConfirmationFlowService from '@/app/WhatsAppBot/Wha
 import {
     canAccessFeature,
     deriveUserFeatureAccessLevel,
-    FeatureAccessLevel,
+    type FeatureAccessLevel,
     FLAT_SWAP_FEE,
 } from '@/config/whatsAppBot';
 import { SIX, ZERO } from '@/constants/numbers';
@@ -30,6 +30,7 @@ import {
 } from '@/resources/utils/currency';
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
+import { clipDecimal } from '@/resources/utils/transformers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import {
     isValidBlockchain,
@@ -963,12 +964,13 @@ export const handleSellCryptoForFiatPrompt = async (
 //       Swap Crypto Related Prompt Handler
 /////////////////////////////////////////////////////////
 export const handleSwapCryptoPrompt = async (
-    params: ActionHandlerParams
+    params: ActionHandlerParams,
+    minimumAccessLevel: FeatureAccessLevel
 ): Promise<PromptHandlerResponse> => {
     const { extractedArguments, botParams, user } = params;
 
     const userAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
-    if (!canAccessFeature(userAccessLevel, FeatureAccessLevel.STAGING)) {
+    if (!canAccessFeature(userAccessLevel, minimumAccessLevel)) {
         const responseMessage =
             "The swapping feature is currently not available! You'll be the first to know when it's back up.";
 
@@ -1043,7 +1045,7 @@ export const handleSwapCryptoPrompt = async (
         fromBlockchainNetwork,
         toCryptoCurrencySymbol,
         toBlockchainNetwork,
-        fromAmount,
+        fromAmount: rawFromAmount,
     } = swapArguments;
 
     if (
@@ -1103,6 +1105,25 @@ export const handleSwapCryptoPrompt = async (
 
         return {
             response: responseMessage,
+            resetSession: false,
+        };
+    }
+
+    const fromAmount = clipDecimal(rawFromAmount, 9);
+
+    if (fromAmount <= 0) {
+        const invalidAmountResponse = `Amount to swap must be greater than 0`;
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                invalidAmountResponse
+            )
+        );
+
+        return {
+            response: invalidAmountResponse,
             resetSession: false,
         };
     }

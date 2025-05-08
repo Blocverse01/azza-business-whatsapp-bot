@@ -27,3 +27,8 @@ export const truncate = (str: string, maxLength: number): string => {
     }
     return str;
 };
+
+export const clipDecimal = (num: number, decimals: number): number => {
+    const factor = 10 ** decimals;
+    return Math.trunc(num * factor) / factor;
+};

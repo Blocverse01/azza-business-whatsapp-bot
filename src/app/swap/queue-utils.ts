@@ -7,6 +7,7 @@ import { BlockradarAddressSwapQueueInput, QueueNames } from '@/background-proces
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { decimalToString } from '@/resources/utils/currency';
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
+import { clipDecimal } from '@/resources/utils/transformers';
 import azzaWalletManager from '@/runtime/wallet';
 import { ConnectionOptions, Worker } from 'bullmq';
 
@@ -30,7 +31,7 @@ const handleBlockradarAddressTokenSwapJob = async (
     const { swapDetails, whatsappParams } = data;
 
     const normalizedUserId = convertBase64ToAsciiString(swapDetails.userId);
-    const amountToSwap = swapDetails.fromAmount - swapDetails.transactionFee;
+    const amountToSwap = clipDecimal(swapDetails.fromAmount - swapDetails.transactionFee, 9);
 
     const swapTransactionRecord = await SwapService.createOrRecoverSwapTransaction(
         jobId,
