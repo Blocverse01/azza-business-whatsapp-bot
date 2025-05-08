@@ -480,9 +480,22 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             this.dataSources.blockradarAssetId(params.fromAssetId),
             this.dataSources.blockradarAssetId(params.toAssetId),
         ];
+        const userAddressId = await this.gracefullyGetUserAddressId(
+            params.userId,
+            fromAssetConfig.network
+        );
+        if (!userAddressId) {
+            throw new BlockradarWalletProviderError({
+                data: {
+                    userId: params.userId,
+                    network: fromAssetConfig.network,
+                },
+                message: `User address ID does not exist`,
+            });
+        }
 
         const walletClient = this.dataSources.blockradarMasterWalletClient(fromAssetConfig.network);
-        const rawQuotes = await walletClient.getSwapQuote({
+        const rawQuotes = await walletClient.getSwapQuote(userAddressId, {
             amount: params.amount,
             fromAssetId: blockradarFromAssetId,
             toAssetId: blockradarToAssetId,
@@ -507,9 +520,23 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             this.dataSources.blockradarAssetId(params.toAssetId),
         ];
 
+        const userAddressId = await this.gracefullyGetUserAddressId(
+            params.userId,
+            fromAssetConfig.network
+        );
+        if (!userAddressId) {
+            throw new BlockradarWalletProviderError({
+                data: {
+                    userId: params.userId,
+                    network: fromAssetConfig.network,
+                },
+                message: `User address ID does not exist`,
+            });
+        }
+
         const walletClient = this.dataSources.blockradarMasterWalletClient(fromAssetConfig.network);
 
-        const swapResponse = await walletClient.executeMasterWalletSwap({
+        const swapResponse = await walletClient.executeAddressSwapTransaction(userAddressId, {
             amount: params.fromAmount,
             reference: params.reference,
             recipientAddress: params.recipientAddress,

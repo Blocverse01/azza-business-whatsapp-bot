@@ -23,10 +23,10 @@ class SwapService {
         }).getFirst();
 
         if (existingTransaction) {
-            return `${this.EXTERNAL_REFERENCE_PREFIX}${existingTransaction.id}`;
+            return existingTransaction;
         }
 
-        const newRecord = await this.SWAPS_REPOSITORY.create({
+        return await this.SWAPS_REPOSITORY.create({
             jobId,
             fromAmount: params.fromAmount,
             quoteToAmount: params.toAmount,
@@ -39,7 +39,6 @@ class SwapService {
             user: params.userId,
             recipientAddress: params.recipientAddress,
         });
-        return `${this.EXTERNAL_REFERENCE_PREFIX}${newRecord.id}`;
     }
 
     public static async getSwapTransactionById(id: string) {

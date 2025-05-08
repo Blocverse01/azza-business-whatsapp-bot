@@ -23,10 +23,7 @@ import { createFiatPayoutV2Worker, createOnRampWorker } from '@/app/FiatRamp/que
 import { createReferralCodeWorker } from '@/app/referral-scheme/queue-utils';
 import { createSafeHavenTransactionUpdateJobWorker } from '@/app/SafeHaven/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
-import {
-    createBlockradarAddressTokenSwapWorker,
-    createBlockradarMasterWalletTokenSwapWorker,
-} from '@/app/swap/queue-utils';
+import { createBlockradarAddressTokenSwapWorker } from '@/app/swap/queue-utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     createWhatsappBroadcastWorker,
@@ -480,9 +477,10 @@ createKycEventJobWorker().on('error', async (error) => {
 });
 
 createAzzaWrappedWorker();
-createBlockradarAddressTokenSwapWorker(connectionConfig);
-createBlockradarMasterWalletTokenSwapWorker(connectionConfig);
 createReferralCodeWorker();
+createBlockradarAddressTokenSwapWorker(connectionConfig).on('error', async (error) => {
+    await logServiceError(error, 'Swap Worker Error');
+});
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

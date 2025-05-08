@@ -413,9 +413,12 @@ class BlockradarMasterWalletApiClient {
         return responseDataValidation.data;
     }
 
-    public async getSwapQuote(params: SwapQuoteRequestBody): Promise<SwapQuoteResponseData> {
-        const swapsResourceUrl = this.getResourceUrl(MasterWalletApiResources.SWAPS);
-        const url = `${swapsResourceUrl}/quote`;
+    public async getSwapQuote(
+        addressId: string,
+        params: SwapQuoteRequestBody
+    ): Promise<SwapQuoteResponseData> {
+        const addressResourceUrl = this.getResourceUrl(MasterWalletApiResources.ADDRESS);
+        const url = `${addressResourceUrl}/${addressId}/swaps/quote`;
 
         const bodyPayload = swapQuoteRequestBodySchema.parse(params);
 
@@ -450,11 +453,12 @@ class BlockradarMasterWalletApiClient {
         return responseDataValidation.data;
     }
 
-    public async executeMasterWalletSwap(
+    public async executeAddressSwapTransaction(
+        addressId: string,
         params: ExecuteSwapRequestBody
     ): Promise<ExecuteSwapResponseData> {
-        const swapsResourceUrl = this.getResourceUrl(MasterWalletApiResources.SWAPS);
-        const url = `${swapsResourceUrl}/execute`;
+        const addressResourceUrl = this.getResourceUrl(MasterWalletApiResources.ADDRESS);
+        const url = `${addressResourceUrl}/${addressId}/swaps/execute`;
 
         const bodyPayload = executeSwapRequestBodySchema.parse(params);
 

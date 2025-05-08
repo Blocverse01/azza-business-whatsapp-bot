@@ -13,7 +13,6 @@ import type {
 } from '@/background-processing/schema';
 import {
     BlockradarAddressSwapQueueInput,
-    BlockradarMasterWalletSwapsQueueInput,
     CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
     CryptoDebitQueueInput,
@@ -133,12 +132,6 @@ export const queues = {
     }),
     blockradarAddressSwaps: new Queue<BlockradarAddressSwapQueueInput>(
         QueueNames.blockradarAddressSwaps,
-        {
-            connection: connectionConfig,
-        }
-    ),
-    blockradarMasterWalletSwaps: new Queue<BlockradarMasterWalletSwapsQueueInput>(
-        QueueNames.blockradarMasterWalletSwaps,
         {
             connection: connectionConfig,
         }

@@ -24,6 +24,7 @@ import {
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import { FeatureAccessLevel } from '@/config/whatsAppBot';
 import { getDynamicMaintenanceMessage } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import logger from '@/resources/logger';
@@ -187,11 +188,14 @@ export const textPromptHandler = async (
                 });
                 break;
             case 'SWAP_CRYPTO':
-                responseMessage = await handleSwapCryptoPrompt({
-                    extractedArguments,
-                    botParams,
-                    user,
-                });
+                responseMessage = await handleSwapCryptoPrompt(
+                    {
+                        extractedArguments,
+                        botParams,
+                        user,
+                    },
+                    FeatureAccessLevel.PRODUCTION
+                );
                 break;
             case 'SHOW_FIAT_RATES':
                 responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
