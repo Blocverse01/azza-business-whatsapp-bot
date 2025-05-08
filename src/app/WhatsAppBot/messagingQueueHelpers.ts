@@ -124,9 +124,6 @@ const handleIncomingWhatsappMessageV2 = async (
         if (type === WhatsAppMessageType.TEXT) {
             const possibleReferralCode = extractReferralCodeFromMessage(text.body);
 
-            //edited here
-            console.log(possibleReferralCode);
-
             if (possibleReferralCode) {
                 const validReferralScheme =
                     await ReferralSchemeService.getReferralSchemeByCode(possibleReferralCode);
