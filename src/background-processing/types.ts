@@ -155,6 +155,7 @@ export type GenerateAzzaWrappedQueueInput = {
 export type GenerateReferralCodeQueueInput = {
     userId: string;
     whatsappParams: PhoneNumberParams;
+    displayName : string
 }
 
 export type OnRampQueueInput = {

@@ -368,6 +368,17 @@ const handleIncomingWhatsappMessageV2 = async (
 
                     throw new Error(`Unhandled asset action: ${assetAction}`);
                 }
+                case 'referral-stats': {
+                    
+                    await ReferralSchemeService.generateReferralStatsCard({
+                        user: userV2,
+                        phoneParams,
+                        displayName
+                    });
+
+                    return ActionExecuted.REFERRAL_STATS;
+
+                }
             }
         }
 

@@ -19,6 +19,7 @@ import { sendMessageUsingGo } from '@/app/WhatsAppBot/helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     getFirstTimeUserMessageText,
+    getUserReferralStatsMessageText,
     getWalletCreationSuccessMessageText,
 } from '@/app/WhatsAppBot/utils';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
@@ -349,9 +350,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                      title: 'More',
-                  } as const)
+                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                    title: 'More',
+                } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -460,6 +461,37 @@ class WhatsAppBotService {
                                     ? `${BaseInteractiveButtonIds.CREATE_WALLET}:${referralCode}`
                                     : BaseInteractiveButtonIds.CREATE_WALLET,
                                 title: 'Create wallet 🚀',
+                            },
+                        },
+                    ],
+                },
+            },
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: recipient,
+        };
+        await this.sendWhatsappMessage(businessPhoneNumberId, interactiveMessage);
+    }
+
+
+    public static async createReferralStatsMessage(
+        businessPhoneNumberId: string,
+        recipient: string,
+    ) {
+        const interactiveMessage: WhatsAppInteractiveMessage = {
+            type: 'interactive',
+            interactive: {
+                type: 'button',
+                body: {
+                    text: getUserReferralStatsMessageText(),
+                },
+                action: {
+                    buttons: [
+                        {
+                            type: 'reply',
+                            reply: {
+                                id: BaseInteractiveButtonIds.REFERRAL_STATS,
+                                title: 'Referral Stats 🏆',
                             },
                         },
                     ],
@@ -599,7 +631,7 @@ class WhatsAppBotService {
                     type: 'image',
                 }
             );
-        } catch (error) {}
+        } catch (error) { }
     }
 
     public static async depositAssetCommandHandler(
@@ -686,6 +718,10 @@ class WhatsAppBotService {
 
         if (interactiveButtonId.startsWith(MARK_AS_PAID_BUTTON_ID_PREFIX)) {
             return 'mark-manual-offramp-settlement-as-paid';
+        }
+
+        if (interactiveButtonId.startsWith(BaseInteractiveButtonIds.REFERRAL_STATS)) {
+            return 'referral-stats';
         }
 
         throw new HttpException(
@@ -843,9 +879,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                      id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
-                      title: 'More',
-                  }
+                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                    title: 'More',
+                }
                 : null;
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);

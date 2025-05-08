@@ -196,7 +196,8 @@ export const textPromptHandler = async (
             case 'SHOW_FIAT_RATES':
                 responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
                 break;
-            case 'REFERRAL':
+            case 'REFERRAL_REQUEST':
+            case 'REFERRAL_CODE':
                 responseMessage = await handleReferralPrompt({
                     extractedArguments,
                     botParams,

@@ -99,7 +99,7 @@ class BotCommandHandler {
                 await BotCommandHandler.handleWrapped(user, phoneParams, displayName);
                 break;
             case 'REFERRAL_CODE':
-                await BotCommandHandler.getReferralCode(user, phoneParams);
+                await BotCommandHandler.getReferralCode(user, phoneParams, displayName);
                 break;
             default:
                 return {
@@ -677,11 +677,14 @@ class BotCommandHandler {
 
     private static async getReferralCode(
         user: UserV2Record,
-        params: PhoneNumberParams) {
+        params: PhoneNumberParams,
+        displayName: string
+    ) {
 
         return await addJobToReferralCodeQueue({
             userId: user.id,
-            whatsappParams: params
+            whatsappParams: params,
+            displayName
         });
     }
 }

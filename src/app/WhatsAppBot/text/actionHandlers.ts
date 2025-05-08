@@ -1330,7 +1330,7 @@ export const handleReferralPrompt = async (
 
     const referralArguments = parseExtractedArguments(
         extractedArguments,
-        actionArgumentsSchema.REFERRAL
+        actionArgumentsSchema.REFERRAL_CODE
     );
 
     const referralCode = extractReferralCodeFromMessage(referralArguments.code as string);

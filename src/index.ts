@@ -79,6 +79,6 @@ app.listen(env.PORT, () => {
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 
-if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
-    CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
-}
+// if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
+//     CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
+// }

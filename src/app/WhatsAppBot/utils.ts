@@ -28,6 +28,12 @@ export function getSupportedAssetAndNetworksText(filter: SupportedAssetFilters =
         .join('\n');
 }
 
+export function getUserReferralStatsMessageText(displayName?: string) {
+    return [
+        `Click the button below to check your referral stats.`,
+    ].join('\n');
+}
+
 export function getFirstTimeUserMessageText(displayName: string) {
     return [
         `Hi ${displayName}!👋 Welcome to Azza.`,
