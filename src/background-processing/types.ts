@@ -62,6 +62,7 @@ export enum QueueNames {
     generateAzzaWrapped = 'generate-azza-wrapped',
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
+    generateReferralCode = 'generate-referral-code',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -149,6 +150,12 @@ export type GenerateAzzaWrappedQueueInput = {
     userDisplayName: string;
     whatsappParams: PhoneNumberParams;
 };
+
+export type GenerateReferralCodeQueueInput = {
+    userId: string;
+    whatsappParams: PhoneNumberParams;
+    displayName : string
+}
 
 export type OnRampQueueInput = {
     transactionPayload: OnrampTransactionPayload & {

@@ -33,6 +33,7 @@ import {
     WhatsAppBotMessagingQueueInput,
     WhatsAppBotMessagingQueueResult,
     WhatsappBroadcastQueueInput,
+    GenerateReferralCodeQueueInput
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -135,6 +136,12 @@ export const queues = {
             connection: connectionConfig,
         }
     ),
+    generateReferralCode: new Queue<GenerateReferralCodeQueueInput>(
+        QueueNames.generateReferralCode,
+        {
+            connection: connectionConfig,
+        }
+    )
 };
 
 export const defaultQueueRemoveOptions = {

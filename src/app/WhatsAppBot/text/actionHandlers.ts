@@ -40,14 +40,16 @@ import {
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
-import { getSupportedAssetAndNetworksText } from '../utils';
+import { getPossibleBotActionsMessageText, getSupportedAssetAndNetworksText } from '../utils';
 import SumSubService from '@/app/SumSub/SumSubService';
+import ReferralSchemeService from '@/app/referral-scheme/service';
+import { extractReferralCodeFromMessage } from '@/app/referral-scheme/utils';
 
 type ActionHandlerParams = {
     extractedArguments:
-        | z.infer<(typeof actionArgumentsSchema)[Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>]>
-        | null
-        | Record<string, unknown>;
+    | z.infer<(typeof actionArgumentsSchema)[Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>]>
+    | null
+    | Record<string, unknown>;
     botParams: PhoneNumberParams;
     user: UserV2Record;
 };
@@ -440,29 +442,29 @@ export const handleBalanceQueryPrompt = async (
     const targetAsset =
         cryptoCurrencySymbol && blockchainNetwork
             ? azzaWalletManager.searchAssets({
-                  tokenName: cryptoCurrencySymbol,
-                  network: blockchainNetwork,
-              })[ZERO]
+                tokenName: cryptoCurrencySymbol,
+                network: blockchainNetwork,
+            })[ZERO]
             : undefined;
 
     const balanceQueryMode = targetAsset
         ? {
-              type: 'asset on specific network' as const,
-              entity: targetAsset,
-          }
+            type: 'asset on specific network' as const,
+            entity: targetAsset,
+        }
         : blockchainNetwork
-          ? {
+            ? {
                 type: 'network' as const,
                 entity: normalizeBlockchainInput(blockchainNetwork),
             }
-          : cryptoCurrencySymbol
-            ? {
-                  type: 'asset on any network' as const,
-                  entity: cryptoCurrencySymbol,
-              }
-            : {
-                  type: 'all' as const,
-              };
+            : cryptoCurrencySymbol
+                ? {
+                    type: 'asset on any network' as const,
+                    entity: cryptoCurrencySymbol,
+                }
+                : {
+                    type: 'all' as const,
+                };
 
     const supportedAssets = azzaWalletManager.getSupportedAssets();
     switch (balanceQueryMode.type) {
@@ -1215,9 +1217,9 @@ export const handleSwapCryptoPrompt = async (
         fromBlockchainNetwork === toBlockchainNetwork
             ? [`Chain: *${typedFromBlockchainNetwork}*`]
             : [
-                  `From Chain: *${typedFromBlockchainNetwork}*`,
-                  `To Chain: *${typedToBlockchainNetwork}*`,
-              ];
+                `From Chain: *${typedFromBlockchainNetwork}*`,
+                `To Chain: *${typedToBlockchainNetwork}*`,
+            ];
 
     const transactionSummaryMessageBody = [
         `🔄 _Swap_ *_${fromTokenConfig.tokenName}_* to *_${toTokenConfig.tokenName}_*\n`,
@@ -1340,6 +1342,90 @@ export const handleKycPrompt = async (
     };
 };
 
+
+/////////////////////////////////////////////////////////
+//       Referral Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleReferralPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+
+    const { extractedArguments, botParams } = params;
+
+    const referralArguments = parseExtractedArguments(
+        extractedArguments,
+        actionArgumentsSchema.REFERRAL_CODE
+    );
+
+    const referralCode = extractReferralCodeFromMessage(referralArguments.code as string);
+
+    const validReferral = await ReferralSchemeService.getReferralSchemeByCode(referralCode as string);
+
+    const existingReferral = await ReferralSchemeService.getRefereeByPhoneNumber(botParams.userPhoneNumber);
+
+    if (validReferral && !validReferral.isActive) {
+        const responseMessage = `Invalid referral code. Please check and try again.`;
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+        );
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                botParams.userPhoneNumber,
+                getPossibleBotActionsMessageText()
+            )
+        );
+
+        return {
+            response: responseMessage,
+            resetSession: true,
+        };
+    }
+
+    if (validReferral?.isActive && existingReferral?.referralScheme?.code === referralCode) {
+
+        const responseMessage = `You’ve already been referred by another user. Each user can only be referred once. Thanks for being part of our community!`;
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+        );
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                botParams.userPhoneNumber,
+                getPossibleBotActionsMessageText()
+            )
+        );
+
+        return {
+            response: responseMessage,
+            resetSession: true,
+        };
+    }
+
+    const responseMessage = `Referral codes are only valid during the account creation process. As you already have an account, this code cannot be applied.`
+    await WhatsAppBotService.sendWhatsappMessage(
+        botParams.businessPhoneNumberId,
+        MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+    );
+
+    await WhatsAppBotService.sendWhatsappMessage(
+        botParams.businessPhoneNumberId,
+        MessageGenerators.generateTextMessage(
+            botParams.userPhoneNumber,
+            getPossibleBotActionsMessageText()
+        )
+    );
+
+    return {
+        response: responseMessage,
+        resetSession: true,
+    };
+}
+
 /////////////////////////////////////////////////////////
 //                   Helper Functions
 /////////////////////////////////////////////////////////
@@ -1352,13 +1438,12 @@ function parseExtractedArguments<T extends ZodSchema>(
 
 function getAssetChoiceMessage(action: 'deposit' | 'buy') {
     return `
-    Tell me what asset you want to ${action} and the chain it’s on.\n\nExample: “USDC on Base”\n\n*Supported Assets and Chains:*\n${
-        action === 'buy'
+    Tell me what asset you want to ${action} and the chain it’s on.\n\nExample: “USDC on Base”\n\n*Supported Assets and Chains:*\n${action === 'buy'
             ? getSupportedAssetAndNetworksText({
-                  action: ExploreAssetActions.BUY_ASSET,
-              })
+                action: ExploreAssetActions.BUY_ASSET,
+            })
             : getSupportedAssetAndNetworksText()
-    }`;
+        }`;
 }
 
 function getWithdrawalArgumentsGuideMessage(missingParams: {

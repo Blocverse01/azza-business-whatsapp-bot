@@ -20,6 +20,7 @@ import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { createFiatPayoutV2Worker, createOnRampWorker } from '@/app/FiatRamp/queue-helpers';
+import { createReferralCodeWorker } from '@/app/referral-scheme/queue-utils';
 import { createSafeHavenTransactionUpdateJobWorker } from '@/app/SafeHaven/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
 import { createBlockradarAddressTokenSwapWorker } from '@/app/swap/queue-utils';
@@ -476,6 +477,7 @@ createKycEventJobWorker().on('error', async (error) => {
 });
 
 createAzzaWrappedWorker();
+createReferralCodeWorker();
 createBlockradarAddressTokenSwapWorker(connectionConfig).on('error', async (error) => {
     await logServiceError(error, 'Swap Worker Error');
 });

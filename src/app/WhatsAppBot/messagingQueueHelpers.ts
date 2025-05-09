@@ -123,6 +123,7 @@ const handleIncomingWhatsappMessageV2 = async (
 
         if (type === WhatsAppMessageType.TEXT) {
             const possibleReferralCode = extractReferralCodeFromMessage(text.body);
+
             if (possibleReferralCode) {
                 const validReferralScheme =
                     await ReferralSchemeService.getReferralSchemeByCode(possibleReferralCode);
@@ -363,6 +364,17 @@ const handleIncomingWhatsappMessageV2 = async (
                     }
 
                     throw new Error(`Unhandled asset action: ${assetAction}`);
+                }
+                case 'referral-stats': {
+                    
+                    await ReferralSchemeService.generateReferralStatsCard({
+                        user: userV2,
+                        phoneParams,
+                        displayName
+                    });
+
+                    return ActionExecuted.REFERRAL_STATS;
+
                 }
             }
         }
