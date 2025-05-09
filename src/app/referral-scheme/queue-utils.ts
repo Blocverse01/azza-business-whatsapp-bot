@@ -6,8 +6,7 @@ import { GenerateReferralCodeQueueInput, QueueNames } from '@/background-process
 import { Worker } from 'bullmq';
 import ReferralSchemeService from './service';
 import { generateReferralCard, generateReferralStats } from './referral-generator';
-import QRCode from 'qrcode'
-
+import QRCode from 'qrcode';
 
 export enum ReferralRank {
     NO_REFERRALS = 'NO_REFERRALS',
@@ -17,10 +16,11 @@ export enum ReferralRank {
 }
 
 export const ReferralRankMessages: Record<ReferralRank, string> = {
-    [ReferralRank.NO_REFERRALS]: `🤷‍♂️ You still dey observe? \nOya na, refer make you chop your own share. \nNo dull! Money dey waka, join the movement! 💨💰`,
+    [ReferralRank.NO_REFERRALS]: `🤷‍♂️ You still dey observe? \nNo dull, join the movement! 💨💰`,
     [ReferralRank.TOP_10]: `👑 You don enter big league! \nNa you dey burst everywhere with referral! \nKeep am up 🚀🔥`,
     [ReferralRank.TOP_50]: `🙌 You dey climb steady! \nYour referral game dey make sense. \nContinue like this, champion level near you! 🧗‍♂️✨`,
-    [ReferralRank.TOP_100]: "🕺 You don enter top 100! 🔥 No be beans o – you sabi the road well well \n One more push and you go dey among the legends! 💪",
+    [ReferralRank.TOP_100]:
+        '🕺 You don enter top 100! 🔥 No be beans o – you sabi the road well well \n One more push and you go dey among the legends! 💪',
 };
 
 export function getReferralRank(position: number): ReferralRank {
@@ -30,7 +30,6 @@ export function getReferralRank(position: number): ReferralRank {
     if (position > 50 && position <= 100) return ReferralRank.TOP_100;
     throw new Error('Position out of tracked range');
 }
-
 
 export const addJobToReferralCodeQueue = async (data: GenerateReferralCodeQueueInput) => {
     return await queues.generateReferralCode.add(`user-referral-code-${data.userId}`, data, {
@@ -67,19 +66,23 @@ export const createReferralCodeWorker = () => {
 };
 
 const handleReferralCodeJob = async (data: GenerateReferralCodeQueueInput) => {
-    const { userId, whatsappParams: { businessPhoneNumberId, userPhoneNumber }, displayName } = data;
-
+    const {
+        userId,
+        whatsappParams: { businessPhoneNumberId, userPhoneNumber },
+        displayName,
+    } = data;
 
     const validReferralScheme = await ReferralSchemeService.getReferralSchemeByUserId(userId);
     const referralCode = await generateReferralCode();
 
     const _generatedReferralCode = validReferralScheme?.code
-        ? referralCode :
-        (await ReferralSchemeService.createReferralCode({
-            userId,
-            code: referralCode
-        })).code;
-
+        ? referralCode
+        : (
+              await ReferralSchemeService.createReferralCode({
+                  userId,
+                  code: referralCode,
+              })
+          ).code;
 
     const referralLink = `www.useazza.com/${_generatedReferralCode}`;
 
@@ -93,16 +96,15 @@ const handleReferralCodeJob = async (data: GenerateReferralCodeQueueInput) => {
     );
 
     try {
-
         const qrCode = await QRCode.toDataURL(referralLink, {
             errorCorrectionLevel: 'H',
             margin: 0, // 👈 removes the white padding
-        })
+        });
 
         const imageBinary = await generateReferralCard({
             displayName,
             referralCode: _generatedReferralCode,
-            qrCode
+            qrCode,
         });
         const imageFile = new File([imageBinary], 'referral_code_card.png', { type: 'image/png' });
         const mediaResponse = await WhatsAppBotService.uploadImageToWhatsapp(
@@ -126,33 +128,36 @@ const handleReferralCodeJob = async (data: GenerateReferralCodeQueueInput) => {
 
         //third referral message with stats button
         if (referralCard && referralCard.sent) {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            await WhatsAppBotService.createReferralStatsMessage(businessPhoneNumberId, userPhoneNumber);
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            await WhatsAppBotService.createReferralStatsMessage(
+                businessPhoneNumberId,
+                userPhoneNumber
+            );
         }
-
     } catch (error) {
         throw error;
     }
 };
 
 export const handelReferralStats = async (params: {
-    displayName: string,
-    businessPhoneNumberId: string,
-    totalReferred: string,
-    userPhoneNumber: string,
-    isNigeria: boolean
+    displayName: string;
+    businessPhoneNumberId: string;
+    totalReferred: string;
+    userPhoneNumber: string;
+    isNigeria: boolean;
 }) => {
-
-    const { displayName, businessPhoneNumberId, totalReferred, userPhoneNumber, isNigeria } = params;
+    const { displayName, businessPhoneNumberId, totalReferred, userPhoneNumber, isNigeria } =
+        params;
 
     const userRank = getReferralRank(parseInt(totalReferred));
-    const message = isNigeria ? ReferralRankMessages[userRank] : `Referral stats are here – keep up the amazing work!`;
+    const message = isNigeria
+        ? ReferralRankMessages[userRank]
+        : `Referral stats are here – keep up the amazing work!`;
 
     try {
-
         const imageBinary = await generateReferralStats({
             displayName,
-            totalReferred
+            totalReferred,
         });
 
         const imageFile = new File([imageBinary], 'referral_stats_card.png', { type: 'image/png' });
@@ -173,9 +178,7 @@ export const handelReferralStats = async (params: {
                 type: 'image',
             }
         );
-
     } catch (error) {
         throw error;
     }
-
-}
+};

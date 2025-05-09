@@ -60,7 +60,7 @@ createBullBoard({
         new BullMQAdapter(queues.generateAzzaWrapped),
         new BullMQAdapter(queues.onRamp),
         new BullMQAdapter(queues.blockradarAddressSwaps),
-        new BullMQAdapter(queues.generateReferralCode)
+        new BullMQAdapter(queues.generateReferralCode),
     ],
     serverAdapter: serverAdapter,
 });
@@ -78,6 +78,6 @@ app.listen(env.PORT, () => {
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 
-// if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
-//     CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
-// }
+if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
+    CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
+}
