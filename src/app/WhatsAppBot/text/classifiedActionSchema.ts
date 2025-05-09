@@ -9,13 +9,6 @@ const uniqueSupportedTokenNames = Array.from(new Set(supportedTokenNames));
 const BLOCKCHAIN_ARG_DESCRIPTION = `Supported blockchains: ${supportedChains.join(', ')}. Correct user typos when their input is closely related to any of the Supported blockchain options`;
 const CRYPTO_CURRENCY_SYMBOL_ARG_DESCRIPTION = `Supported symbols: ${uniqueSupportedTokenNames.join(', ')}. Correct user typos when their input is closely related to any of the Supported symbol options`;
 
-const referralCodeSchema = z.object({
-    code: z
-        .string()
-        .nullable()
-        .describe(`The referral code to invite new users`)
-})
-
 export const assetAndNetworkSchema = z.object({
     blockchainNetwork: z
         .string()
@@ -87,6 +80,6 @@ export const actionArgumentsSchema = {
     }),
     SHOW_FIAT_RATES: z.object({}),
     KYC_VERIFICATION: z.object({}),
-    REFERRAL_CODE: referralCodeSchema,
-    REFERRAL_REQUEST: referralCodeSchema
+    REFERRAL_CODE: z.object({}),
+    REFERRAL_REQUEST: z.object({}),
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

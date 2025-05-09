@@ -27,7 +27,7 @@ export function getReferralRank(position: number): ReferralRank {
     if (position === 0) return ReferralRank.NO_REFERRALS;
     if (position >= 1 && position <= 10) return ReferralRank.TOP_10;
     if (position > 10 && position <= 50) return ReferralRank.TOP_50;
-    if (position > 50 && position <= 100) return ReferralRank.TOP_100;
+    if (position > 50) return ReferralRank.TOP_100;
     throw new Error('Position out of tracked range');
 }
 
@@ -43,10 +43,10 @@ export const addJobToReferralCodeQueue = async (data: GenerateReferralCodeQueueI
     });
 };
 
-const generateReferralCode = async () => {
+const generateReferralCode = () => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let referralCode = '';
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 6; i++) {
         referralCode += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return referralCode.toUpperCase();
@@ -73,16 +73,16 @@ const handleReferralCodeJob = async (data: GenerateReferralCodeQueueInput) => {
     } = data;
 
     const validReferralScheme = await ReferralSchemeService.getReferralSchemeByUserId(userId);
-    const referralCode = await generateReferralCode();
+    const referralCode = generateReferralCode();
 
-    const _generatedReferralCode = validReferralScheme?.code
-        ? referralCode
-        : (
-              await ReferralSchemeService.createReferralCode({
-                  userId,
-                  code: referralCode,
-              })
-          ).code;
+    const _generatedReferralCode =
+        validReferralScheme?.code ??
+        (
+            await ReferralSchemeService.createReferralCode({
+                userId,
+                code: referralCode,
+            })
+        ).code;
 
     const referralLink = `www.useazza.com/${_generatedReferralCode}`;
 

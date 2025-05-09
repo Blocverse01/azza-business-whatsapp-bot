@@ -34,17 +34,18 @@ class ReferralSchemeService {
     }
 
     public static async getRefereeByPhoneNumber(phoneNumber: string) {
-
         if (phoneNumber) {
             return null;
         }
 
         return await this.REFERRALS_REPOSITORY.filter({
             'referee.primaryWhatsappPhoneNumber': phoneNumber,
-        }).select(['*', 'referee.*', 'referralScheme.*']).getFirst();
+        })
+            .select(['*', 'referee.*', 'referralScheme.*'])
+            .getFirst();
     }
 
-    public static async createReferralCode(params: { code: string, userId: string }) {
+    public static async createReferralCode(params: { code: string; userId: string }) {
         return await this.REFERRAL_SCHEME_REPOSITORY.create({
             code: params.code,
             user: params.userId,
@@ -52,39 +53,36 @@ class ReferralSchemeService {
     }
 
     public static async getTotalReferredByUserId(referralId: string): Promise<string> {
-
         const records = await this.REFERRALS_REPOSITORY.summarize({
             filter: { 'referralScheme.id': referralId },
             summaries: {
-                "totalReferred": { "count": "*" }
-            }
+                totalReferred: { count: '*' },
+            },
         });
 
         return records.summaries[0].totalReferred.toFixed();
     }
 
     public static async generateReferralStatsCard(params: {
-        user: UserV2Record,
-        phoneParams: PhoneNumberParams,
-        displayName: string
+        user: UserV2Record;
+        phoneParams: PhoneNumberParams;
+        displayName: string;
     }) {
-
-        const { phoneParams: { businessPhoneNumberId, userPhoneNumber },
-            displayName, user: { country, id: userId } } = params;
+        const {
+            phoneParams: { businessPhoneNumberId, userPhoneNumber },
+            displayName,
+            user: { country, id: userId },
+        } = params;
 
         const isNigeria = country?.includes('NG') ?? false;
 
-        const message =
-            isNigeria
-                ? `Oya! Hold your heart! 💓, your referral stats dey load! 🧾🔥 Wahala for who no refer!\n`
-                : `Brace yourself! 💓 Your referral stats are loading! 🧾🔥 Big wins for those spreading the word! 💖\n`;
+        const message = isNigeria
+            ? `Oya! Hold your heart! 💓, your referral stats dey load! 🧾🔥`
+            : `Brace yourself! 💓 Your referral stats are loading! 🧾🔥`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             businessPhoneNumberId,
-            MessageGenerators.generateTextMessage(
-                userPhoneNumber,
-                message
-            )
+            MessageGenerators.generateTextMessage(userPhoneNumber, message)
         );
 
         const totalReferred = await this.getTotalReferredByUserId(userId);
@@ -94,13 +92,9 @@ class ReferralSchemeService {
             businessPhoneNumberId,
             userPhoneNumber,
             totalReferred: totalReferred,
-            isNigeria: isNigeria
-        })
+            isNigeria: isNigeria,
+        });
     }
-
-
-
 }
 
 export default ReferralSchemeService;
-

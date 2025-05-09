@@ -193,6 +193,7 @@ const handleIncomingWhatsappMessageV2 = async (
             message: normalizedPrompt,
             user: userV2,
             phoneParams,
+            waDisplayName: displayName,
         });
         return result.classifiedAction.class;
     }
@@ -366,15 +367,13 @@ const handleIncomingWhatsappMessageV2 = async (
                     throw new Error(`Unhandled asset action: ${assetAction}`);
                 }
                 case 'referral-stats': {
-                    
                     await ReferralSchemeService.generateReferralStatsCard({
                         user: userV2,
                         phoneParams,
-                        displayName
+                        displayName,
                     });
 
                     return ActionExecuted.REFERRAL_STATS;
-
                 }
             }
         }

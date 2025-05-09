@@ -42,6 +42,7 @@ type TextPromptHandlerParams = {
     botParams: {
         userPhoneNumber: string;
         businessPhoneNumberId: string;
+        waDisplayName: string;
     };
     user: UserV2Record;
 };
