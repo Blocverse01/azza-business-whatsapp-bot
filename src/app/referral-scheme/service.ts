@@ -52,13 +52,15 @@ class ReferralSchemeService {
         });
     }
 
-    public static async getTotalReferredByUserId(referralId: string): Promise<string> {
+    public static async getTotalReferredByUserId(userId: string): Promise<string> {
         const records = await this.REFERRALS_REPOSITORY.summarize({
-            filter: { 'referralScheme.id': referralId },
+            filter: { 'referralScheme.user.id': userId },
             summaries: {
                 totalReferred: { count: '*' },
             },
         });
+
+        console.dir(records, { depth: Infinity });
 
         return records.summaries[0].totalReferred.toFixed();
     }
