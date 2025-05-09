@@ -60,8 +60,6 @@ class ReferralSchemeService {
             },
         });
 
-        console.dir(records, { depth: Infinity });
-
         return records.summaries[0].totalReferred.toFixed();
     }
 
