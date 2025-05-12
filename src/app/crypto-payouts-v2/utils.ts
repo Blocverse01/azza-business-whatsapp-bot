@@ -1,6 +1,8 @@
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
 import env from '@/constants/env';
+import { CryptoPayoutV2Record } from '@/db/xata';
 import { clipDecimal } from '@/resources/utils/transformers';
+import { SelectedPick } from '@xata.io/client';
 import crypto from 'node:crypto';
 import { CryptoPayoutParams, CryptoPayoutQueueInput } from './types';
 import platformWalletManager from '@/runtime/platform-wallets';
@@ -80,7 +82,7 @@ export const processCryptoPayout = async (
         userId: platformWalletUserId,
         assetId: params.assetId,
     });
-    const amountToTransfer = clipDecimal(params.amount, 8);
+    const amountToTransfer = clipDecimal(params.amount, 6);
 
     if (currentAssetBalance.balance < amountToTransfer) {
         const alertMessage = `*Crypto Payout Alert*\n\n_Insufficient ${params.assetId} balance for ${transactionType}._\n\nAvailable Balance: ${currentAssetBalance.balance}\nRequired Balance: ${amountToTransfer}`;
@@ -90,11 +92,19 @@ export const processCryptoPayout = async (
         throw new Error(alertMessage);
     }
 
-    const record = await storeCryptoPayout({
-        reference,
-        transactionType,
-        ...params,
-    });
+    let recordToProcess: SelectedPick<CryptoPayoutV2Record, ['*']>;
+
+    const existingRecord = await getCryptoPayoutRecord(reference);
+
+    if (existingRecord && existingRecord.status === 'created') {
+        recordToProcess = existingRecord;
+    } else {
+        recordToProcess = await storeCryptoPayout({
+            reference,
+            transactionType,
+            ...params,
+        });
+    }
 
     const transactionResponse = await platformWalletManager.withdrawAsset({
         assetId: params.assetId,
@@ -107,7 +117,7 @@ export const processCryptoPayout = async (
         },
     });
 
-    await record.update({
+    await recordToProcess.update({
         status: 'pending',
     });
 
