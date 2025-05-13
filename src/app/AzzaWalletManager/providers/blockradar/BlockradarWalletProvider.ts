@@ -14,6 +14,7 @@ import {
 } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { BlockradarWalletProviderError } from '@/app/AzzaWalletManager/providers/blockradar/resources/errors';
 import type BlockradarMasterWalletApiClient from '@/app/Blockradar/BlockradarMasterWalletApiClient';
+import logger from '@/resources/logger';
 import { delay } from '@/resources/utils/delay';
 import {
     AllSupportedBlockchains,
@@ -232,6 +233,8 @@ class BlockradarWalletProvider implements BaseWalletProvider {
                 },
             });
         }
+
+        await logger.debug('Blockradar Tx Payload', blockradarTransaction);
 
         return {
             asset: assetConfig,

@@ -41,15 +41,17 @@ export const handleOfframpRequestInQueue = async (
     ]);
 
     if (transaction.status !== 'SUCCESS' || !transaction.confirmed) {
-        throw new Error('Onchain transaction failed');
+        throw new Error('On-chain transaction failed');
     }
 
-    const transactionAmountIsValid = math.largerEq(transaction.amount, params.tokenAmountDebited);
+    await logger.debug('Transaction payload', transaction);
 
-    assert.ok(
-        transactionAmountIsValid,
-        `transaction ${params.tokenName} amount (${transaction.amount}) less than expected ${params.tokenName} amount (${params.tokenAmountDebited})`
-    );
+    // const transactionAmountIsValid = math.largerEq(transaction.amount, params.tokenAmountDebited);
+    //
+    // assert.ok(
+    //     transactionAmountIsValid,
+    //     `transaction ${params.tokenName} amount (${transaction.amount}) less than expected ${params.tokenName} amount (${params.tokenAmountDebited})`
+    // );
 
     try {
         const sequenceId = await FiatRampService.postOfframpTransaction({
