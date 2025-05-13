@@ -24,7 +24,6 @@ import {
     executeSwapResponseDataSchema,
 } from '@/app/Blockradar/schema';
 import { OK } from '@/constants/status-codes';
-import logger from '@/resources/logger';
 import { z } from 'zod';
 
 export type BlockradarMasterWalletApiClientConstructorParams = {
@@ -272,8 +271,6 @@ class BlockradarMasterWalletApiClient {
                 rawJsonResponse: response,
             });
         }
-
-        await logger.debug('Raw transaction payload', response.data as {});
 
         const validatedData = z.array(blockradarTransactionSchema).safeParse(response.data);
 

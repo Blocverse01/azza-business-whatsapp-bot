@@ -36,7 +36,8 @@ export const handleOfframpRequestInQueue = async (
     const [transaction] = await Promise.all([
         azzaWalletManager.getTransactionByHash(
             transactionHash,
-            normalizeBlockchainInput(params.chainName)
+            normalizeBlockchainInput(params.chainName),
+            'WITHDRAW'
         ),
     ]);
 
@@ -44,14 +45,12 @@ export const handleOfframpRequestInQueue = async (
         throw new Error('On-chain transaction failed');
     }
 
-    await logger.debug('Transaction payload', transaction);
+    const transactionAmountIsValid = math.largerEq(transaction.amount, params.tokenAmountDebited);
 
-    // const transactionAmountIsValid = math.largerEq(transaction.amount, params.tokenAmountDebited);
-    //
-    // assert.ok(
-    //     transactionAmountIsValid,
-    //     `transaction ${params.tokenName} amount (${transaction.amount}) less than expected ${params.tokenName} amount (${params.tokenAmountDebited})`
-    // );
+    assert.ok(
+        transactionAmountIsValid,
+        `transaction ${params.tokenName} amount (${transaction.amount}) less than expected ${params.tokenName} amount (${params.tokenAmountDebited})`
+    );
 
     try {
         const sequenceId = await FiatRampService.postOfframpTransaction({

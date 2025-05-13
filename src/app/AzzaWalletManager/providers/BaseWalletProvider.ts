@@ -1,3 +1,4 @@
+import { BlockradarTransactionType } from '@/app/Blockradar/schema';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import type { AssetConfig } from '@/resources/web3/core/tokens';
 
@@ -116,7 +117,8 @@ export abstract class BaseWalletProvider {
 
     public abstract getTransactionByHash(
         transactionHash: string,
-        network: AllSupportedBlockchains
+        network: AllSupportedBlockchains,
+        transactionType?: BlockradarTransactionType
     ): Promise<AssetTransaction>;
 
     public abstract withdrawAsset(params: WithdrawAssetParams): Promise<AssetTransaction>;
