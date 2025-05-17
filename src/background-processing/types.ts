@@ -7,6 +7,7 @@ import { OnrampTransactionPayload } from '@/app/FiatRamp/fiatRampSchema';
 import {
     IncomingWhatsappMessage,
     PhoneNumberParams,
+    WhatsAppMediaMessage,
     WhatsAppTextMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
@@ -108,7 +109,7 @@ export type WhatsAppBotMessagingQueueResult = {
 };
 
 export type WhatsappBroadcastQueueInput = {
-    message: WhatsAppTextMessage;
+    message: WhatsAppTextMessage | WhatsAppMediaMessage;
     businessPhoneNumberId: string;
 };
 
@@ -154,8 +155,8 @@ export type GenerateAzzaWrappedQueueInput = {
 export type GenerateReferralCodeQueueInput = {
     userId: string;
     whatsappParams: PhoneNumberParams;
-    displayName : string
-}
+    displayName: string;
+};
 
 export type OnRampQueueInput = {
     transactionPayload: OnrampTransactionPayload & {

@@ -71,6 +71,15 @@ export interface WhatsAppTextMessage extends WhatsAppMessageBase {
     };
 }
 
+export interface WhatsAppMediaMessage extends WhatsAppMessageBase {
+    type: 'image';
+    image?: {
+        id?: string;
+        link?: string;
+        caption?: string;
+    };
+}
+
 export interface WhatsAppCtaUrlButtonMessage extends WhatsAppMessageBase {
     type: 'interactive';
     interactive: {
@@ -97,9 +106,8 @@ export interface WhatsAppCtaUrlButtonMessage extends WhatsAppMessageBase {
 
 export enum BaseInteractiveButtonIds {
     CREATE_WALLET = 'create-wallet',
-    REFERRAL_STATS = 'referral-stats'
+    REFERRAL_STATS = 'referral-stats',
 }
-
 
 export enum AssetInteractiveButtonIds {
     ETH_BASE = 'eth-base',
@@ -293,7 +301,7 @@ export enum ActionExecuted {
     MARK_MANUAL_OFFRAMP_SETTLEMENT_PAID = 'MARK_MANUAL_OFFRAMP_SETTLEMENT_PAID',
     SEND_MAINTAINANCE_MESSAGE = 'SEND_MAINTAINANCE_MESSAGE',
     SEND_KYC_QUERY_RESPONSE = 'SEND_KYC_QUERY_RESPONSE',
-    REFERRAL_STATS = 'REFERRAL_STATS'
+    REFERRAL_STATS = 'REFERRAL_STATS',
 }
 
 export type IncomingWhatsappMessage = {
