@@ -2,7 +2,8 @@ import { sendWhatsappBroadcastMessage } from '../src/app/WhatsAppBot/messagingQu
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
 
-const currentMediaLink = 'https://asset.cloudinary.com/dltnruk3l/6fcdf52d17eb4a08a3f30862aa0c88e5';
+const currentMediaLink =
+    'https://res.cloudinary.com/dltnruk3l/image/upload/v1747496634/announcement_banner_omjxup.png';
 
 async function sendBroadcastMessage(message: string, onlyTo: string[] = []) {
     const allUsers =
