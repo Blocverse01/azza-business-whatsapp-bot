@@ -42,7 +42,10 @@ import {
     TRADE_ASSET_REGEX,
 } from '@/constants/regex';
 import { INTERNAL_SERVER_ERROR, OK } from '@/constants/status-codes';
-import { getTransactionMinimumDepositMessage } from '@/constants/strings';
+import {
+    getTransactionMinimumDepositMessage,
+    WITHDRAWAL_UNAVAILABLE_RESPONSE,
+} from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
@@ -350,9 +353,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                    title: 'More',
-                } as const)
+                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                      title: 'More',
+                  } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -473,10 +476,9 @@ class WhatsAppBotService {
         await this.sendWhatsappMessage(businessPhoneNumberId, interactiveMessage);
     }
 
-
     public static async createReferralStatsMessage(
         businessPhoneNumberId: string,
-        recipient: string,
+        recipient: string
     ) {
         const interactiveMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
@@ -631,7 +633,7 @@ class WhatsAppBotService {
                     type: 'image',
                 }
             );
-        } catch (error) { }
+        } catch (error) {}
     }
 
     public static async depositAssetCommandHandler(
@@ -879,9 +881,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
-                    title: 'More',
-                }
+                      id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                      title: 'More',
+                  }
                 : null;
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);
@@ -1039,6 +1041,22 @@ class WhatsAppBotService {
         phoneParams: PhoneNumberParams,
         assetId: AssetInteractiveButtonIds
     ) {
+        const isEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.WALLET_WITHDRAWALS
+        );
+
+        if (!isEnabled) {
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    phoneParams.userPhoneNumber,
+                    WITHDRAWAL_UNAVAILABLE_RESPONSE
+                )
+            );
+
+            return;
+        }
+
         const { userPhoneNumber } = phoneParams;
         const assetBalance = await azzaWalletManager.getAssetBalance({
             assetId,
@@ -1084,7 +1102,6 @@ class WhatsAppBotService {
         const { userPhoneNumber } = phoneParams;
         const { assetId, currencySymbol, countryCode } = params;
 
-        console.log('beginOnrampFlowMessage - Asset ID is: ', assetId);
         const asset = getAssetConfigOrThrow(assetId);
 
         const { paymentChannels } = await FiatRampService.getPaymentMethods(
@@ -1111,8 +1128,6 @@ class WhatsAppBotService {
             countryCode,
             paymentMethods,
         });
-
-        console.dir(flowMessage, { depth: Infinity });
 
         await this.sendWhatsappMessage(phoneParams.businessPhoneNumberId, flowMessage);
     }

@@ -1,5 +1,7 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { SwapAssetQuote } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
 import { addJobToReferralCodeQueue } from '@/app/referral-scheme/queue-utils';
@@ -20,7 +22,12 @@ import {
     FLAT_SWAP_FEE,
 } from '@/config/whatsAppBot';
 import { SIX, ZERO } from '@/constants/numbers';
-import { getTransactionMinimumDepositMessage, USD_SYMBOL } from '@/constants/strings';
+import {
+    getTransactionMinimumDepositMessage,
+    SWAP_UNAVAILABLE_RESPONSE,
+    USD_SYMBOL,
+    WITHDRAWAL_UNAVAILABLE_RESPONSE,
+} from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
@@ -182,6 +189,25 @@ export const handleWithdrawRelatedPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
     const { extractedArguments, botParams, user } = params;
+
+    const withdrawalsIsEnabled = await FeatureFlagService.isFeatureEnabled(
+        FeatureFlagKey.WALLET_WITHDRAWALS
+    );
+
+    if (!withdrawalsIsEnabled) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                WITHDRAWAL_UNAVAILABLE_RESPONSE
+            )
+        );
+
+        return {
+            response: WITHDRAWAL_UNAVAILABLE_RESPONSE,
+            resetSession: true,
+        };
+    }
 
     if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         const missingArgsPromptResponse = getWithdrawalArgumentsGuideMessage({
@@ -971,6 +997,23 @@ export const handleSwapCryptoPrompt = async (
     minimumAccessLevel: FeatureAccessLevel
 ): Promise<PromptHandlerResponse> => {
     const { extractedArguments, botParams, user } = params;
+
+    const isEnabled = await FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SWAPS);
+
+    if (!isEnabled) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                SWAP_UNAVAILABLE_RESPONSE
+            )
+        );
+
+        return {
+            response: SWAP_UNAVAILABLE_RESPONSE,
+            resetSession: true,
+        };
+    }
 
     const userAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
     if (!canAccessFeature(userAccessLevel, minimumAccessLevel)) {

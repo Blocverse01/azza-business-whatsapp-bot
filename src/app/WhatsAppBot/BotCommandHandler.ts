@@ -24,14 +24,13 @@ import {
     extractGroups,
     type TradeAssetBotCommandMatchGroups,
 } from '@/constants/regex';
-import { getDynamicMaintenanceMessage } from '@/constants/strings';
+import { getDynamicMaintenanceMessage, WITHDRAWAL_UNAVAILABLE_RESPONSE } from '@/constants/strings';
 import type { UserV2Record } from '@/db/xata';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { addJobToReferralCodeQueue } from '../referral-scheme/queue-utils';
-import { randomUUID } from 'crypto';
 
 type BotCommand = keyof typeof BOT_COMMANDS_REGEX;
 
@@ -150,15 +149,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                    {
-                        action: ExploreAssetActions.BUY_ASSET,
-                    }
-                )}`
+                      {
+                          action: ExploreAssetActions.BUY_ASSET,
+                      }
+                  )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                    {
-                        action: ExploreAssetActions.BUY_ASSET,
-                    }
-                )}`;
+                      {
+                          action: ExploreAssetActions.BUY_ASSET,
+                      }
+                  )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -211,15 +210,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                    {
-                        action: ExploreAssetActions.BUY_ASSET,
-                    }
-                )}`
+                      {
+                          action: ExploreAssetActions.BUY_ASSET,
+                      }
+                  )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                    {
-                        action: ExploreAssetActions.BUY_ASSET,
-                    }
-                )}`;
+                      {
+                          action: ExploreAssetActions.BUY_ASSET,
+                      }
+                  )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -338,22 +337,19 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
-        const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
-            FeatureFlagKey.CORE_MAINTAINANCE
+        const isEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.WALLET_WITHDRAWALS
         );
 
-        if (coreMaintainanceIsEnabled) {
-            const maintainanceMessage = getDynamicMaintenanceMessage('withdrawal', {
-                length: 3,
-                name: 'hours',
-            });
+        if (!isEnabled) {
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(
                     phoneParams.userPhoneNumber,
-                    maintainanceMessage
+                    WITHDRAWAL_UNAVAILABLE_RESPONSE
                 )
             );
+
             return;
         }
 
@@ -680,11 +676,10 @@ class BotCommandHandler {
         params: PhoneNumberParams,
         displayName: string
     ) {
-
         return await addJobToReferralCodeQueue({
             userId: user.id,
             whatsappParams: params,
-            displayName
+            displayName,
         });
     }
 }

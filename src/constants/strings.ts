@@ -61,3 +61,9 @@ export const getTransactionMinimumDepositMessage = (params: {
 
     return `👋 Just a heads-up — to sell ${tokenSymbol} on ${network}, the amount needs to be worth at least $${minimum.toFixed(2)}.`;
 };
+
+export const WITHDRAWAL_UNAVAILABLE_RESPONSE =
+    "ℹ️ Wallet withdrawals are paused for maintenance -- to allow us make it work better for you. We'll send an update once it's ready-to-go 💙";
+
+export const SWAP_UNAVAILABLE_RESPONSE =
+    "ℹ️ Swaps are paused for maintenance -- to allow us make it work better for you. We'll send an update once it's ready-to-go 💙";
