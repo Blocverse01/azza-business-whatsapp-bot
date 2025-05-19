@@ -70,6 +70,9 @@ export const calculateWithdrawalFees = async (params: WithdrawalNetworkFeeCalcul
         platformFee,
         feeInAssetToWithdraw,
         networkFeeUsd: feeUsdValue,
+        networkFeeInfo,
+        nativeTokenUsdPrice,
+        assetToWithdrawUsdPrice,
     });
 
     return {
