@@ -91,7 +91,6 @@ import SmileIdService from '../SmileID/SmileIdService';
 import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
 import { generateRatesCard } from '../rate-card/generators';
-import { getDefaultParamsForNetworkFeeQuery } from '../AzzaWalletManager/fallback-data';
 import cryptoAssetPriceService from '@/runtime/crypto-asset-price';
 
 class WhatsAppBotService {

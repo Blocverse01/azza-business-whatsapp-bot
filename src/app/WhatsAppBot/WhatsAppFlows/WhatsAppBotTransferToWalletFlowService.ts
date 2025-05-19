@@ -7,7 +7,6 @@ import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvid
 import { hasExceededLimit } from '@/app/limits/utils';
 import { calculateWithdrawalFees } from '@/app/transaction-fees/utils';
 import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
-import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -22,13 +21,11 @@ import { queues } from '@/background-processing/queues';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIX, SIXTEEN, TWO, ZERO } from '@/constants/numbers';
+import { SIX, SIXTEEN, ZERO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
-import { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import {
     decimalToString,
-    fixNumber,
     getUserCountryCodeFromPhoneNumberOrThrow,
 } from '@/resources/utils/currency';
 import { generateRandomHexString } from '@/resources/utils/encryption';

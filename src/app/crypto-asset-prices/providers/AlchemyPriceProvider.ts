@@ -1,4 +1,3 @@
-import { AssetConfig } from '@/resources/web3/core/tokens';
 import { CryptoAssetPriceProvider } from '../CryptoAssetPriceProvider';
 import { GetAssetPriceResponse, SupportedFiat } from '../types';
 import { CryptoAssetPriceProviderError } from './errors';

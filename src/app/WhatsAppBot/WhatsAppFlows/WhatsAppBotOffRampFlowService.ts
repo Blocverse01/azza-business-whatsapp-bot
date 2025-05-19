@@ -1,4 +1,3 @@
-import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
 import { BankBeneficiary, MobileMoneyBeneficiary } from '@/app/FiatRamp/fiatRampSchema';
