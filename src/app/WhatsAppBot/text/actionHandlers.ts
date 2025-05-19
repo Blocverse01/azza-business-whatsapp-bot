@@ -431,7 +431,7 @@ export const handleWithdrawRelatedPrompt = async (
         6
     );
 
-    const transactionSummaryMessage = `Please confirm the transfer details:\n\n- Cryptocurrency: ${targetAsset.tokenName}\n- Amount: ${withdrawArguments.amount}\n- Transaction Fee: ${clipDecimal(transactionFee.totalFee, 6)} ${targetAsset.tokenName}${hasExceededGaslessWithdrawalLimit ? '' : ' (💙Sponsored)'}\n- Recipient: ${recipient}\n- Amount to Receive: ${amountToReceive} ${targetAsset.tokenName}\n- Chain: ${targetAsset.network}\n\nReply "Yes" to confirm.\n\n_To edit any of the details, reply with the correct details. E.g: "Withdraw 2 USDC instead" or "Withdraw on Ethereum"_`;
+    const transactionSummaryMessage = `Please confirm the transfer details:\n\n- Amount: ${withdrawArguments.amount} ${targetAsset.tokenName}\n- Transaction Fee: ${clipDecimal(transactionFee.totalFee, 6)} ${targetAsset.tokenName}${hasExceededGaslessWithdrawalLimit ? '' : ' (💙Sponsored)'}\n- Amount to Receive: ${amountToReceive} ${targetAsset.tokenName}\n\n- Recipient: ${recipient}\n- Chain: ${targetAsset.network}\n\nReply "Yes" to confirm.\n\n_To edit any of the details, reply with the correct details. E.g: "Withdraw 2 USDC instead" or "Withdraw on Ethereum"_`;
 
     if (!withdrawArguments.hasConfirmedTransfer) {
         await WhatsAppBotService.sendWhatsappMessage(
