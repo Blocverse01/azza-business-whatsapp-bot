@@ -33,7 +33,7 @@ export async function createOrIncrementUsageCount(userId: string, feature: Limit
 export async function resetAllUsageLimits() {
     await sqlClient<
         Array<DailyFeatureLimitRecord>
-    >`UPDATE daily_feature_limit SET 'usageCount' = 0`;
+    >`UPDATE daily_feature_limit SET "usageCount" = 0`;
 }
 
 export const prepareLimitResetSchedulerQueue = async () => {
