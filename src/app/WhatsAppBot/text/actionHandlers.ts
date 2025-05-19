@@ -1,10 +1,16 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
+import { getDefaultParamsForNetworkFeeQuery } from '@/app/AzzaWalletManager/fallback-data';
 import { SwapAssetQuote } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
+import { hasExceededLimit } from '@/app/limits/utils';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
 import { addJobToReferralCodeQueue } from '@/app/referral-scheme/queue-utils';
+import {
+    aggregatePendingTransactionFeeTokenAmount,
+    calculateWithdrawalFees,
+} from '@/app/transaction-fees/utils';
 import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -321,9 +327,15 @@ export const handleWithdrawRelatedPrompt = async (
         userId: user.id,
         assetId: targetAsset.listItemId,
     });
+    const pendingFeeAggregate = await aggregatePendingTransactionFeeTokenAmount(
+        user.id,
+        targetAsset.listItemId
+    );
 
-    if (balanceInfo.balance < withdrawArguments.amount) {
-        const insufficientBalanceResponse = `Insufficient balance. You have ${balanceInfo.balance} ${targetAsset.tokenName}`;
+    const availableBalance = balanceInfo.balance - pendingFeeAggregate;
+
+    if (availableBalance < withdrawArguments.amount) {
+        const insufficientBalanceResponse = `Insufficient balance. You have ${availableBalance} ${targetAsset.tokenName}`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
@@ -383,31 +395,43 @@ export const handleWithdrawRelatedPrompt = async (
         ? AssetTransferRecipientType.PHONE_NUMBER
         : AssetTransferRecipientType.WALLET_ADDRESS;
 
-    const transactionFee = WalletAssetManagementService.calculateStableTokenTransferTransactionFee(
-        withdrawArguments.amount.toString(),
-        targetAsset.network
-    );
-    const totalAmount = withdrawArguments.amount + transactionFee;
+    const [transactionFee, hasExceededGaslessWithdrawalLimit] = await Promise.all([
+        calculateWithdrawalFees({
+            amount: withdrawArguments.amount,
+            assetId: targetAsset.listItemId,
+            userId: user.id,
+            recipient: getDefaultParamsForNetworkFeeQuery(targetAsset.network).recipient,
+        }),
+        hasExceededLimit(user.id, 'GASLESS_TRANSACTIONS'),
+    ]);
 
-    if (balanceInfo.balance < totalAmount) {
-        const amountDeficit = totalAmount - balanceInfo.balance;
-        const notEnoughBalanceResponse = `You need extra ${amountDeficit} ${targetAsset.tokenName} on ${targetAsset.network} to cover for transaction fee`;
-
+    if (
+        hasExceededGaslessWithdrawalLimit &&
+        transactionFee.totalFee > 0 &&
+        withdrawArguments.amount <= transactionFee.totalFee
+    ) {
+        const minAmountResponse = `Minimum withdrawal amount is ${transactionFee.totalFee + withdrawArguments.amount} ${targetAsset.tokenName}`;
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
             MessageGenerators.generateTextMessage(
                 params.botParams.userPhoneNumber,
-                notEnoughBalanceResponse
+                minAmountResponse
             )
         );
-
         return {
-            response: notEnoughBalanceResponse,
+            response: minAmountResponse,
             resetSession: false,
         };
     }
 
-    const transactionSummaryMessage = `Please confirm the transfer details:\n\n- Cryptocurrency: ${targetAsset.tokenName}\n- Amount: ${withdrawArguments.amount} ${targetAsset.tokenName}\n- Recipient: ${recipient}\n- Chain: ${targetAsset.network}\n\nReply "Yes" to confirm.\n\n_To edit any of the details, reply with the correct details. E.g: "Withdraw 2 usdc instead" or "Withdraw on Ethereum"_`;
+    const amountToReceive = clipDecimal(
+        hasExceededGaslessWithdrawalLimit
+            ? withdrawArguments.amount - transactionFee.totalFee
+            : withdrawArguments.amount,
+        6
+    );
+
+    const transactionSummaryMessage = `Please confirm the transfer details:\n\n- Cryptocurrency: ${targetAsset.tokenName}\n- Amount: ${withdrawArguments.amount}\n- Transaction Fee: ${clipDecimal(transactionFee.totalFee, 6)} ${targetAsset.tokenName}${hasExceededGaslessWithdrawalLimit ? '' : ' (💙Sponsored)'}\n- Recipient: ${recipient}\n- Amount to Receive: ${amountToReceive} ${targetAsset.tokenName}\n- Chain: ${targetAsset.network}\n\nReply "Yes" to confirm.\n\n_To edit any of the details, reply with the correct details. E.g: "Withdraw 2 USDC instead" or "Withdraw on Ethereum"_`;
 
     if (!withdrawArguments.hasConfirmedTransfer) {
         await WhatsAppBotService.sendWhatsappMessage(
@@ -433,9 +457,10 @@ export const handleWithdrawRelatedPrompt = async (
             transactionType: 'SEND',
             recipient,
             recipientType,
-            amount: withdrawArguments.amount,
+            amount: amountToReceive,
             assetId: targetAsset.listItemId,
-            transactionFee,
+            transactionFee: transactionFee.totalFee,
+            transactionFeeUsd: transactionFee.totalFeeUsd,
             userId: convertAsciiStringToBase64(user.id),
         },
     });

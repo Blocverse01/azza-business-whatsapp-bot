@@ -5,7 +5,11 @@ import {
 } from '@/app/azza/lib/azza.lib.transaction';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { createOrIncrementUsageCount, hasExceededLimit } from '@/app/limits/utils';
-import { calculateWithdrawalFees, recordTransactionFeeCharge } from '@/app/transaction-fees/utils';
+import {
+    aggregatePendingTransactionFeeTokenAmount,
+    calculateWithdrawalFees,
+    recordTransactionFeeCharge,
+} from '@/app/transaction-fees/utils';
 import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -174,6 +178,12 @@ class WhatsAppBotTransferToWalletFlowService {
                       assetId: data.asset_id,
                   })
               ).balance;
+        const pendingFeeAggregate = await aggregatePendingTransactionFeeTokenAmount(
+            data.user_id,
+            data.asset_id
+        );
+        const userAvailableBalance = userBalance - pendingFeeAggregate;
+
         const amount = parseFloat(data.amount);
 
         let azzaUserRecipient: UserV2Record | null = null;
@@ -201,8 +211,8 @@ class WhatsAppBotTransferToWalletFlowService {
         if (withdrawalMinimum && amount <= withdrawalMinimum) {
             errorMessages.amount = `Minimum withdrawal amount is ${withdrawalMinimum} ${asset.tokenName}`;
         }
-        if (userBalance < amount) {
-            errorMessages.amount = `Insufficient balance, you have only ${userBalance} ${asset.tokenName}`;
+        if (userAvailableBalance < amount) {
+            errorMessages.amount = `Insufficient balance, you have only ${userAvailableBalance} ${asset.tokenName}`;
         }
         if (!recipientType) {
             errorMessages.wallet_address = 'Please provide a wallet address or Azza phone number';
@@ -247,14 +257,21 @@ class WhatsAppBotTransferToWalletFlowService {
             }
             return walletAddress;
         })();
-        const transactionFee = await calculateWithdrawalFees({
-            amount: amount,
-            assetId: asset.listItemId,
-            recipient: recipientWalletAddress,
-            userId: data.user_id,
-        });
+        const [transactionFee, exceededGaslessLimit] = await Promise.all([
+            calculateWithdrawalFees({
+                amount: amount,
+                assetId: asset.listItemId,
+                recipient: recipientWalletAddress,
+                userId: data.user_id,
+            }),
+            hasExceededLimit(data.user_id, 'GASLESS_TRANSACTIONS'),
+        ]);
 
-        if (transactionFee.totalFee > 0 && amount <= transactionFee.totalFee) {
+        if (
+            exceededGaslessLimit &&
+            transactionFee.totalFee > 0 &&
+            amount <= transactionFee.totalFee
+        ) {
             errorMessages.amount = `Minimum withdrawal amount is ${transactionFee.totalFee + amount} ${asset.tokenName}`;
         }
 
@@ -286,8 +303,8 @@ class WhatsAppBotTransferToWalletFlowService {
             screen: TransferToWalletFlowScreens.TRANSACTION_SUMMARY,
             data: {
                 ...data,
-                transaction_fee: decimalToString(transactionFee.totalFee),
-                transaction_fee_usd: decimalToString(transactionFee.totalFeeUsd),
+                transaction_fee: `${decimalToString(clipDecimal(transactionFee.totalFee, 6))} ${asset.tokenName} ${exceededGaslessLimit ? '' : ' (💙Sponsored)'}`,
+                transaction_fee_usd: decimalToString(clipDecimal(transactionFee.totalFeeUsd, 6)),
                 asset_label: `${asset.tokenName} (${asset.network})`,
                 recipient_type: recipientType,
                 azza_phone_number: azzaRecipientPhoneNumber ?? data.azza_phone_number,
@@ -308,9 +325,11 @@ class WhatsAppBotTransferToWalletFlowService {
             hasExceededLimit(data.user_id, 'GASLESS_TRANSACTIONS'),
         ]);
 
+        const assetConfig = getAssetConfigOrThrow(data.asset_id);
         const assetBalance = userAssetInfo.balance;
 
-        const transactionFee = parseFloat(data.transaction_fee);
+        const transactionFeeParts = data.transaction_fee.split(assetConfig.tokenName);
+        const transactionFee = parseFloat(transactionFeeParts[0].trim());
         const amount = parseFloat(data.amount);
 
         const amountToReceive = hasExceededGaslessTxLimit

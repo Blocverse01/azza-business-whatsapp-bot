@@ -8,7 +8,9 @@ import {
     sendTransferAssetTransaction,
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
+import { createOrIncrementUsageCount } from '@/app/limits/utils';
 import { addBlockradarAddressTokenSwapJobToQueue } from '@/app/swap/queue-utils';
+import { recordTransactionFeeCharge } from '@/app/transaction-fees/utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -169,6 +171,18 @@ class WhatsAppBotTransactionConfirmationFlowService {
                     transactionResponse = transaction;
                 } catch (error) {
                     await logServiceError(error, `Withdrawal error.`);
+                } finally {
+                    await Promise.all([
+                        createOrIncrementUsageCount(unmaskedUserId, 'GASLESS_TRANSACTIONS'),
+                        recordTransactionFeeCharge({
+                            amount: transaction_details.transactionFee,
+                            amountUsd: transaction_details.transactionFeeUsd ?? 0,
+                            assetId: transaction_details.assetId,
+                            userId: unmaskedUserId,
+                            transactionType: 'withdrawal',
+                            txReference: `withdrawal-${flowToken}`,
+                        }),
+                    ]);
                 }
 
                 const assetDetails = getAssetConfigOrThrow(transaction_details.assetId);
