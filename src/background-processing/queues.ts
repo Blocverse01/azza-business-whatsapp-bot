@@ -146,6 +146,9 @@ export const queues = {
     feeCollection: new Queue<CollectFeeQueueInput>(QueueNames.feeCollection, {
         connection: connectionConfig,
     }),
+    resetFeatureUsageLimit: new Queue(QueueNames.resetFeatureUsageLimit, {
+        connection: connectionConfig,
+    }),
 };
 
 export const defaultQueueRemoveOptions = {

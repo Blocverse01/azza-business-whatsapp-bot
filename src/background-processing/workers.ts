@@ -20,6 +20,10 @@ import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { createFiatPayoutV2Worker, createOnRampWorker } from '@/app/FiatRamp/queue-helpers';
+import {
+    createResetFeatureUsageLimitWorker,
+    prepareLimitResetSchedulerQueue,
+} from '@/app/limits/utils';
 import { createReferralCodeWorker } from '@/app/referral-scheme/queue-utils';
 import { createSafeHavenTransactionUpdateJobWorker } from '@/app/SafeHaven/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
@@ -463,6 +467,7 @@ const userTxPinSecurityWorker = new Worker<
 );
 
 prepareSchedulerQueue();
+prepareLimitResetSchedulerQueue();
 
 createWhatsappBroadcastWorker();
 createEventDrivenOfframpWorker();
@@ -483,6 +488,7 @@ createBlockradarAddressTokenSwapWorker(connectionConfig).on('error', async (erro
     await logServiceError(error, 'Swap Worker Error');
 });
 createFeeCollectionWorker(connectionConfig);
+createResetFeatureUsageLimitWorker(connectionConfig);
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

@@ -65,6 +65,7 @@ export enum QueueNames {
     blockradarAddressSwaps = 'blockradar-address-swaps',
     generateReferralCode = 'generate-referral-code',
     feeCollection = 'fee-collection',
+    resetFeatureUsageLimit = 'reset-feature-usage-limit',
 }
 
 export type UserWalletMigrationQueueInput = {
