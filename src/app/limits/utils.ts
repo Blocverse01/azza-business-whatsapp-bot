@@ -23,10 +23,18 @@ export async function hasExceededLimit(userId: string, feature: LimitedFeature) 
 export async function createOrIncrementUsageCount(userId: string, feature: LimitedFeature) {
     const generatedId = `${userId}_${feature.toLowerCase()}`;
 
-    return await dbClient.daily_feature_limit.createOrUpdate(generatedId, {
-        user: userId,
+    const userLimit = await dbClient.daily_feature_limit.read(generatedId);
+
+    if (!userLimit) {
+        return await dbClient.daily_feature_limit.create(generatedId, {
+            user: userId,
+            usageCount: 1,
+            feature,
+        });
+    }
+
+    return await userLimit.update({
         usageCount: { $increment: 1 },
-        feature,
     });
 }
 
