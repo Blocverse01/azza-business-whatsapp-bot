@@ -64,6 +64,14 @@ export const calculateWithdrawalFees = async (params: WithdrawalNetworkFeeCalcul
     const platformFee = params.amount * PLATFORM_FEE_PERCENTAGE;
     const totalFee = feeInAssetToWithdraw + platformFee;
 
+    console.log({
+        networkFee: networkFeeInfo.networkFee,
+        totalFee,
+        platformFee,
+        feeInAssetToWithdraw,
+        networkFeeUsd: feeUsdValue,
+    });
+
     return {
         networkFee: feeInAssetToWithdraw,
         networkFeeUsd: feeUsdValue,
