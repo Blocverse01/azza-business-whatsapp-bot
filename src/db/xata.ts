@@ -119,7 +119,7 @@ const tables = [
     revLinks: [
       { column: "user", table: "user_blockradar_wallet" },
       { column: "user", table: "fallback_regional_phone_number" },
-      { column: "user", table: "gasless_withdrawal_counter" },
+      { column: "user", table: "daily_feature_limit" },
       { column: "user", table: "referral_scheme" },
       { column: "referee", table: "referrals" },
       { column: "user", table: "swap_transactions" },
@@ -300,17 +300,11 @@ const tables = [
     ],
   },
   {
-    name: "gasless_withdrawal_counter",
+    name: "daily_feature_limit",
     columns: [
-      {
-        name: "transactionCount",
-        type: "int",
-        notNull: true,
-        defaultValue: "0",
-      },
-      { name: "chain", type: "text", notNull: true, defaultValue: "" },
+      { name: "usageCount", type: "int", notNull: true, defaultValue: "0" },
+      { name: "feature", type: "text", notNull: true, defaultValue: "" },
       { name: "user", type: "link", link: { table: "user_v2" } },
-      { name: "maxLimit", type: "int", notNull: true, defaultValue: "10" },
     ],
   },
   {
@@ -509,10 +503,8 @@ export type FallbackRegionalPhoneNumber =
 export type FallbackRegionalPhoneNumberRecord = FallbackRegionalPhoneNumber &
   XataRecord;
 
-export type GaslessWithdrawalCounter =
-  InferredTypes["gasless_withdrawal_counter"];
-export type GaslessWithdrawalCounterRecord = GaslessWithdrawalCounter &
-  XataRecord;
+export type DailyFeatureLimit = InferredTypes["daily_feature_limit"];
+export type DailyFeatureLimitRecord = DailyFeatureLimit & XataRecord;
 
 export type SafehavenOfframpSettlementTransaction =
   InferredTypes["safehaven_offramp_settlement_transaction"];
@@ -542,7 +534,7 @@ export type DatabaseSchema = {
   user_message: UserMessageRecord;
   conversation_summary: ConversationSummaryRecord;
   fallback_regional_phone_number: FallbackRegionalPhoneNumberRecord;
-  gasless_withdrawal_counter: GaslessWithdrawalCounterRecord;
+  daily_feature_limit: DailyFeatureLimitRecord;
   safehaven_offramp_settlement_transaction: SafehavenOfframpSettlementTransactionRecord;
   referral_scheme: ReferralSchemeRecord;
   referrals: ReferralsRecord;

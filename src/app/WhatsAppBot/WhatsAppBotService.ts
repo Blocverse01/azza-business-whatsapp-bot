@@ -15,7 +15,6 @@ import SumSubService, {
     NG_KYC_LEVEL_NAME,
 } from '@/app/SumSub/SumSubService';
 import { UserAssetItem } from '@/app/User/userSchema';
-import { sendMessageUsingGo } from '@/app/WhatsAppBot/helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     getFirstTimeUserMessageText,
@@ -98,7 +97,6 @@ import cryptoAssetPriceService from '@/runtime/crypto-asset-price';
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
     private static readonly SHOULD_REQUEST_KYC_FOR_OFFRAMP = true;
-    private static readonly USE_SENDER_SCRIPT = false;
 
     private static getRequestConfig() {
         return {
@@ -108,32 +106,6 @@ class WhatsAppBotService {
                 Authorization: `Bearer ${env.CLOUD_API_ACCESS_TOKEN}`,
             },
         };
-    }
-
-    public static async sendMessageUsingGo(businessPhoneNumberId: string, message: object) {
-        try {
-            const response = await sendMessageUsingGo({
-                message: JSON.stringify(message),
-                token: env.CLOUD_API_ACCESS_TOKEN,
-                url: env.CLOUD_API_URL,
-                id: businessPhoneNumberId,
-            });
-
-            if (response.statusCode !== OK) {
-                await logServiceError(
-                    new HttpException(response.statusCode, 'Error sending message', {
-                        response: response.responseBody,
-                        message,
-                    }),
-                    'Error sending message'
-                );
-
-                return;
-            }
-        } catch (error) {
-            await logServiceError(error, 'Error sending message');
-            throw error;
-        }
     }
 
     public static async sendMessageUsingApi(businessPhoneNumberId: string, message: object) {
@@ -236,10 +208,6 @@ class WhatsAppBotService {
     }
 
     public static async sendWhatsappMessage(businessPhoneNumberId: string, data: object) {
-        if (this.USE_SENDER_SCRIPT) {
-            return await this.sendMessageUsingGo(businessPhoneNumberId, data);
-        }
-
         return await this.sendMessageUsingApi(businessPhoneNumberId, data);
     }
 
@@ -583,7 +551,10 @@ class WhatsAppBotService {
             recipient: userPhoneNumber,
             fiatConversionRate: rate,
             transactionFee: fee,
-            assetUsdPrice: await cryptoAssetPriceService.getAssetPrice(assetBalance.asset, 'USD'),
+            assetUsdPrice: await cryptoAssetPriceService.getAssetPrice(
+                assetBalance.asset.tokenName,
+                'USD'
+            ),
         });
 
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
@@ -1062,28 +1033,12 @@ class WhatsAppBotService {
             assetId,
             userId: user.id,
         });
-        let withdrawNetworkFee = 0;
-
-        const assetConfig = getAssetConfigOrThrow(assetId);
-        if (assetConfig.isNative) {
-            const defaultParams = getDefaultParamsForNetworkFeeQuery(assetConfig.network);
-
-            const networkFeeInfo = await azzaWalletManager.getWithdrawNetworkFee({
-                amount: defaultParams.amount.toString(),
-                recipient: defaultParams.recipient,
-                assetId,
-                userId: user.id,
-            });
-
-            withdrawNetworkFee = networkFeeInfo.networkFee;
-        }
 
         const message = WhatsAppBotTransferToWalletFlowService.generateTransferToWalletInitMessage(
             user,
             {
                 recipient: userPhoneNumber,
                 assetBalance: assetBalance,
-                networkFee: withdrawNetworkFee,
             }
         );
 

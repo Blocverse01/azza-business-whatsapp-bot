@@ -4,6 +4,8 @@ import {
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { hasExceededLimit } from '@/app/limits/utils';
+import { calculateWithdrawalFees } from '@/app/transaction-fees/utils';
 import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
 import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -20,7 +22,7 @@ import { queues } from '@/background-processing/queues';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIXTEEN, TWO, ZERO } from '@/constants/numbers';
+import { SIX, SIXTEEN, TWO, ZERO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
 import { logSync } from '@/resources/logger';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
@@ -32,6 +34,7 @@ import {
 import { generateRandomHexString } from '@/resources/utils/encryption';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { cleanPhoneNumberInput, standardizePhoneNumber } from '@/resources/utils/phone-numbers';
+import { clipDecimal } from '@/resources/utils/transformers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
@@ -160,16 +163,9 @@ class WhatsAppBotTransferToWalletFlowService {
         const asset = getAssetConfigOrThrow(data.asset_id);
         const withdrawalMinimum = getWithdrawalMinimum(asset.listItemId);
 
-        const transactionFee =
-            WalletAssetManagementService.calculateStableTokenTransferTransactionFee(
-                data.amount,
-                asset.network
-            );
-
         const assetLabel = `${asset.tokenName} (${asset.network})`;
 
         const userBalanceMatch = data.user_balance.match(this.USER_BALANCE_PATTERN);
-        logSync('debug', 'User balance match', { userBalanceMatch });
 
         const userBalance = userBalanceMatch
             ? parseFloat(userBalanceMatch[1])
@@ -242,30 +238,6 @@ class WhatsAppBotTransferToWalletFlowService {
               })
             : null;
 
-        // if (asset.isNative) {
-        //     let walletAddress = data.wallet_address;
-        //
-        //     if (recipientType === 'azza-phone-number' && azzaUserRecipient) {
-        //         walletAddress = (
-        //             await azzaWalletManager.getUserWallet(azzaUserRecipient.id, asset.network)
-        //         ).address;
-        //     }
-        //
-        //     const networkFeeInfo = await azzaWalletManager.getWithdrawNetworkFee({
-        //         amount: amount.toString(),
-        //         assetId: asset.listItemId,
-        //         recipient: walletAddress,
-        //         userId: data.user_id,
-        //     });
-        //
-        //     const withdrawableAmount =
-        //         Number(networkFeeInfo.nativeBalance) - Number(networkFeeInfo.networkFee);
-        //
-        //     if (Number(userBalance) < Number(withdrawableAmount)) {
-        //         errorMessages.amount = `To cover for gas which cost (${networkFeeInfo.networkFee} ${asset.tokenName}), the max you can withdraw is ${withdrawableAmount} ${asset.tokenName}`;
-        //     }
-        // }
-
         if (Object.keys(errorMessages).length > 0) {
             return {
                 screen: TransferToWalletFlowScreens.TRANSACTION_DETAILS,
@@ -290,11 +262,28 @@ class WhatsAppBotTransferToWalletFlowService {
             throw new Error('Recipient type is missing');
         }
 
+        const recipientWalletAddress = await (async () => {
+            let walletAddress = data.wallet_address;
+
+            if (recipientType === 'azza-phone-number' && azzaUserRecipient) {
+                walletAddress = (
+                    await azzaWalletManager.getUserWallet(azzaUserRecipient.id, asset.network)
+                ).address;
+            }
+            return walletAddress;
+        })();
+        const transactionFee = await calculateWithdrawalFees({
+            amount: amount,
+            assetId: asset.listItemId,
+            recipient: recipientWalletAddress,
+            userId: data.user_id,
+        });
+
         return {
             screen: TransferToWalletFlowScreens.TRANSACTION_SUMMARY,
             data: {
                 ...data,
-                transaction_fee: decimalToString(transactionFee),
+                transaction_fee: decimalToString(transactionFee.totalFee),
                 asset_label: `${asset.tokenName} (${asset.network})`,
                 recipient_type: recipientType,
                 azza_phone_number: azzaRecipientPhoneNumber ?? data.azza_phone_number,
@@ -306,20 +295,21 @@ class WhatsAppBotTransferToWalletFlowService {
         data: DataExchangePayload['TRANSACTION_SUMMARY'],
         flowToken: string
     ) {
-        const [userAssetInfo, user] = await Promise.all([
+        const [userAssetInfo, user, hasExceededGaslessTxLimit] = await Promise.all([
             azzaWalletManager.getAssetBalance({
                 userId: data.user_id,
                 assetId: data.asset_id,
             }),
             userServiceV2.getUserById(data.user_id),
+            hasExceededLimit(data.user_id, 'GASLESS_TRANSACTIONS'),
         ]);
 
         const assetBalance = userAssetInfo.balance;
 
         const transactionFee = parseFloat(data.transaction_fee);
         const amount = parseFloat(data.amount);
-        const totalAmount = WalletAssetManagementService.SHOULD_CHARGE_TRANSACTION_FEE
-            ? fixNumber(amount + transactionFee, TWO)
+        const amountToReceive = hasExceededGaslessTxLimit
+            ? clipDecimal(amount - transactionFee, SIX)
             : amount;
 
         let azzaUserRecipient: UserV2Record | null = null;
@@ -359,8 +349,8 @@ class WhatsAppBotTransferToWalletFlowService {
             }
         }
 
-        if (assetBalance < totalAmount) {
-            const insufficientBalanceMessage = `You're trying to pay: ${totalAmount} ${userAssetInfo.asset.tokenName}\nYou have only: ${assetBalance} ${userAssetInfo.asset.tokenName}`;
+        if (assetBalance < amount) {
+            const insufficientBalanceMessage = `You're trying to pay: ${amount} ${userAssetInfo.asset.tokenName}\nYou have only: ${assetBalance} ${userAssetInfo.asset.tokenName}`;
 
             return {
                 screen: TransferToWalletFlowScreens.FEEDBACK,
@@ -445,7 +435,7 @@ class WhatsAppBotTransferToWalletFlowService {
                 const [transaction, txError] = await sendTransferAssetTransaction(
                     {
                         transactionType: 'SEND',
-                        amount: Number(data.amount),
+                        amount: Number(amountToReceive),
                         recipient: walletAddress,
                         recipientType: AssetTransferRecipientType.WALLET_ADDRESS,
                         assetId: data.asset_id,
@@ -537,7 +527,6 @@ class WhatsAppBotTransferToWalletFlowService {
         params: {
             recipient: string;
             assetBalance: AssetBalance;
-            networkFee: number;
         }
     ) {
         const { assetBalance, recipient } = params;
@@ -551,10 +540,6 @@ class WhatsAppBotTransferToWalletFlowService {
          * Updating this will require updating the regex pattern in `this.USER_BALANCE_PATTERN`
          * */
         let userBalanceMessage = `Your balance: ${balance} ${asset.tokenName}`;
-
-        // if (networkFee > 0) {
-        //     userBalanceMessage = `Your balance: ${balance} ${asset.tokenName}\nYou can withdraw: ${balance - networkFee} ${asset.tokenName}\nGas: ${networkFee}${asset.tokenName}`;
-        // }
 
         const flowMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
