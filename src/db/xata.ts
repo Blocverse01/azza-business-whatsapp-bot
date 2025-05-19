@@ -302,9 +302,9 @@ const tables = [
   {
     name: "daily_feature_limit",
     columns: [
-      { name: "usageCount", type: "int", notNull: true, defaultValue: "0" },
       { name: "feature", type: "text", notNull: true, defaultValue: "" },
       { name: "user", type: "link", link: { table: "user_v2" } },
+      { name: "usageCount", type: "int", notNull: true, defaultValue: "0" },
     ],
   },
   {

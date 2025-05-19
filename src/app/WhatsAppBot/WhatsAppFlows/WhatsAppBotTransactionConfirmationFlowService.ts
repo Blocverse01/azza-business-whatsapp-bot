@@ -1,6 +1,5 @@
 import {
     SwapTokensOnBaseTransactionDetails,
-    SwapTokensTransactionDetails,
     SwapTokensTransactionDetailsV2,
     TransferAssetTransactionDetails,
 } from '@/app/azza/azza.schema';
@@ -8,7 +7,7 @@ import {
     sendTransferAssetTransaction,
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
-import { createOrIncrementUsageCount } from '@/app/limits/utils';
+import { createOrIncrementUsageCount, hasExceededLimit } from '@/app/limits/utils';
 import { addBlockradarAddressTokenSwapJobToQueue } from '@/app/swap/queue-utils';
 import { recordTransactionFeeCharge } from '@/app/transaction-fees/utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
@@ -139,7 +138,12 @@ class WhatsAppBotTransactionConfirmationFlowService {
         }
 
         switch (transaction_details.transactionType) {
-            case 'SEND':
+            case 'SEND': {
+                const hasExceededGaslessTxLimit = await hasExceededLimit(
+                    unmaskedUserId,
+                    'GASLESS_TRANSACTIONS'
+                );
+
                 const userPhoneNumber = user.primaryWhatsappPhoneNumber;
                 let transactionResponse: SendTransferTransactionResponse | null = null;
 
@@ -172,17 +176,18 @@ class WhatsAppBotTransactionConfirmationFlowService {
                 } catch (error) {
                     await logServiceError(error, `Withdrawal error.`);
                 } finally {
-                    await Promise.all([
-                        createOrIncrementUsageCount(unmaskedUserId, 'GASLESS_TRANSACTIONS'),
-                        recordTransactionFeeCharge({
+                    if (hasExceededGaslessTxLimit) {
+                        await recordTransactionFeeCharge({
                             amount: transaction_details.transactionFee,
                             amountUsd: transaction_details.transactionFeeUsd ?? 0,
                             assetId: transaction_details.assetId,
                             userId: unmaskedUserId,
                             transactionType: 'withdrawal',
                             txReference: `withdrawal-${flowToken}`,
-                        }),
-                    ]);
+                        });
+                    } else {
+                        await createOrIncrementUsageCount(unmaskedUserId, 'GASLESS_TRANSACTIONS');
+                    }
                 }
 
                 const assetDetails = getAssetConfigOrThrow(transaction_details.assetId);
@@ -206,6 +211,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
                     });
                 }
                 break;
+            }
 
             case 'SWAP_TOKENS': {
                 await addBlockradarAddressTokenSwapJobToQueue(`swap_req_${flowToken}`, {

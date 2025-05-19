@@ -503,17 +503,18 @@ class WhatsAppBotTransferToWalletFlowService {
             } catch (error) {
                 await logServiceError(error, `Withdrawal error.`);
             } finally {
-                await Promise.all([
-                    createOrIncrementUsageCount(data.user_id, 'GASLESS_TRANSACTIONS'),
-                    recordTransactionFeeCharge({
+                if (hasExceededGaslessTxLimit) {
+                    await recordTransactionFeeCharge({
                         amount: transactionFee,
                         amountUsd: Number(data.transaction_fee_usd),
                         assetId: data.asset_id,
                         userId: data.user_id,
                         transactionType: 'withdrawal',
                         txReference: `withdrawal-${flowToken}`,
-                    }),
-                ]);
+                    });
+                } else {
+                    await createOrIncrementUsageCount(data.user_id, 'GASLESS_TRANSACTIONS');
+                }
             }
 
             const assetLabel = `${userAssetInfo.asset.tokenName} (${userAssetInfo.blockchainNetwork})`;
