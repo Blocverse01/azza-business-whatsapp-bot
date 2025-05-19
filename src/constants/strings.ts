@@ -52,6 +52,9 @@ export const BASE_CASHBACK_REASON = 'base-cashback';
 
 export const CRYPTO_PAYOUT_REFERENCE_PREFIX = 'azza-pay';
 
+export const FEE_COLLECTION_REFERENCE_PREFIX = 'fee';
+export const WITHDRAWAL_REFERENCE_PREFIX = 'withdrawal';
+
 export const getTransactionMinimumDepositMessage = (params: {
     minimum: number;
     tokenSymbol: string;

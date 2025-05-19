@@ -99,10 +99,8 @@ export const sendTransferAssetTransaction = async (
         ];
     }
 
-    const totalAmount = amount + transactionFee;
-
     const assetTransaction = await azzaWalletManager.withdrawAsset({
-        amount: totalAmount.toString(),
+        amount: amount.toString(),
         recipient: transferProcessingConfig.resolvedRecipient,
         assetId: assetId,
         userId: userId,
@@ -123,6 +121,8 @@ export const sendTransferAssetTransaction = async (
             },
         ];
     }
+
+    const totalAmount = amount + transactionFee;
 
     return [
         {

@@ -453,6 +453,28 @@ const tables = [
       { name: "jobId", type: "text", notNull: true, defaultValue: "" },
     ],
   },
+  {
+    name: "transaction_fee_logs",
+    columns: [
+      {
+        name: "tokenAmount",
+        type: "float",
+        notNull: true,
+        defaultValue: "0.0",
+      },
+      { name: "usdAmount", type: "float", notNull: true, defaultValue: "0.0" },
+      { name: "assetId", type: "text", notNull: true, defaultValue: "" },
+      { name: "userId", type: "text", notNull: true, defaultValue: "" },
+      { name: "status", type: "text", notNull: true, defaultValue: "logged" },
+      {
+        name: "transactionType",
+        type: "text",
+        notNull: true,
+        defaultValue: "",
+      },
+      { name: "collectionTxHash", type: "text" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -520,6 +542,9 @@ export type ReferralsRecord = Referrals & XataRecord;
 export type SwapTransactions = InferredTypes["swap_transactions"];
 export type SwapTransactionsRecord = SwapTransactions & XataRecord;
 
+export type TransactionFeeLogs = InferredTypes["transaction_fee_logs"];
+export type TransactionFeeLogsRecord = TransactionFeeLogs & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -539,6 +564,7 @@ export type DatabaseSchema = {
   referral_scheme: ReferralSchemeRecord;
   referrals: ReferralsRecord;
   swap_transactions: SwapTransactionsRecord;
+  transaction_fee_logs: TransactionFeeLogsRecord;
 };
 
 const DatabaseClient = buildClient();

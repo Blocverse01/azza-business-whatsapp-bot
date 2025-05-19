@@ -5,6 +5,11 @@ import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-pa
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
 import SwapService from '@/app/swap/service';
+import { addFeeCollectionJobToQueue } from '@/app/transaction-fees/background-processing';
+import {
+    getDeterministicIdFromTxReference,
+    getTransactionFeeLogById,
+} from '@/app/transaction-fees/utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
@@ -14,8 +19,10 @@ import env from '@/constants/env';
 import {
     BASE_CASHBACK_REFERENCE_PREFIX,
     CRYPTO_PAYOUT_REFERENCE_PREFIX,
+    FEE_COLLECTION_REFERENCE_PREFIX,
     OFFRAMP,
     OFFRAMP_WITHDRAW_REFERENCE_PREFIX,
+    WITHDRAWAL_REFERENCE_PREFIX,
 } from '@/constants/strings';
 import { dbClient } from '@/db/dbClient';
 import logger from '@/resources/logger';
@@ -169,6 +176,25 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             return;
         }
 
+        if (reference.startsWith(WITHDRAWAL_REFERENCE_PREFIX)) {
+            await addFeeCollectionJobToQueue(reference);
+            return;
+        }
+
+        if (reference.startsWith(FEE_COLLECTION_REFERENCE_PREFIX)) {
+            const deterministicId = getDeterministicIdFromTxReference(reference);
+            const transactionFeeLog = await getTransactionFeeLogById(deterministicId);
+            if (!transactionFeeLog) {
+                return;
+            }
+
+            await transactionFeeLog.update({
+                status: 'collected',
+                collectionTxHash: data.data.hash,
+            });
+            return;
+        }
+
         if (reference.startsWith(CRYPTO_PAYOUT_REFERENCE_PREFIX)) {
             const cryptoPayoutRecord = await getCryptoPayoutRecord(reference);
 
@@ -268,6 +294,20 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 cryptoTransactionStatus: liveTransactionData.status,
             });
 
+            return;
+        }
+
+        if (reference.startsWith(FEE_COLLECTION_REFERENCE_PREFIX)) {
+            const deterministicId = getDeterministicIdFromTxReference(reference);
+            const transactionFeeLog = await getTransactionFeeLogById(deterministicId);
+            if (!transactionFeeLog) {
+                return;
+            }
+
+            await transactionFeeLog.update({
+                status: 'collection_failed',
+                collectionTxHash: data.data.hash,
+            });
             return;
         }
 

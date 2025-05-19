@@ -83,7 +83,7 @@ class AzzaWalletManager implements BaseWalletProvider {
 
     public getWithdrawNetworkFee(
         params: Pick<WithdrawAssetParams, 'amount' | 'assetId' | 'userId' | 'recipient'>
-    ): Promise<{ nativeBalance: number; networkFee: number }> {
+    ): Promise<{ nativeBalance: number; networkFee: number; networkFeeInUsd: number }> {
         return this.walletProvider.getWithdrawNetworkFee(params);
     }
 

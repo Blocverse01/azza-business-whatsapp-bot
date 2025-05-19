@@ -128,6 +128,7 @@ export abstract class BaseWalletProvider {
     ): Promise<{
         nativeBalance: number;
         networkFee: number;
+        networkFeeInUsd: number;
     }>;
 
     public abstract getSwapQuote(params: SwapAssetQuoteParams): Promise<SwapAssetQuote>;

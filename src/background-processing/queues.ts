@@ -33,7 +33,8 @@ import {
     WhatsAppBotMessagingQueueInput,
     WhatsAppBotMessagingQueueResult,
     WhatsappBroadcastQueueInput,
-    GenerateReferralCodeQueueInput
+    GenerateReferralCodeQueueInput,
+    CollectFeeQueueInput,
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -141,7 +142,10 @@ export const queues = {
         {
             connection: connectionConfig,
         }
-    )
+    ),
+    feeCollection: new Queue<CollectFeeQueueInput>(QueueNames.feeCollection, {
+        connection: connectionConfig,
+    }),
 };
 
 export const defaultQueueRemoveOptions = {

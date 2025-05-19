@@ -64,6 +64,7 @@ export enum QueueNames {
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
     generateReferralCode = 'generate-referral-code',
+    feeCollection = 'fee-collection',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -168,4 +169,8 @@ export type OnRampQueueInput = {
 export type BlockradarAddressSwapQueueInput = {
     swapDetails: SwapTokensTransactionDetailsV2;
     whatsappParams: PhoneNumberParams;
+};
+
+export type CollectFeeQueueInput = {
+    txReference: string;
 };

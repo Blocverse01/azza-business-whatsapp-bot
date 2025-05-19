@@ -61,6 +61,7 @@ createBullBoard({
         new BullMQAdapter(queues.onRamp),
         new BullMQAdapter(queues.blockradarAddressSwaps),
         new BullMQAdapter(queues.generateReferralCode),
+        new BullMQAdapter(queues.feeCollection),
     ],
     serverAdapter: serverAdapter,
 });

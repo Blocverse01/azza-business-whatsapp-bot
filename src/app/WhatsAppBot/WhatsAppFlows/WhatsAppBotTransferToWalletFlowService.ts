@@ -4,8 +4,8 @@ import {
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import { hasExceededLimit } from '@/app/limits/utils';
-import { calculateWithdrawalFees } from '@/app/transaction-fees/utils';
+import { createOrIncrementUsageCount, hasExceededLimit } from '@/app/limits/utils';
+import { calculateWithdrawalFees, recordTransactionFeeCharge } from '@/app/transaction-fees/utils';
 import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -71,6 +71,7 @@ type ScreenDataPayload = {
         recipient_type: TransferRecipientType;
         asset_label: string;
         transaction_fee: string;
+        transaction_fee_usd: string;
         transaction_pin?: string;
         error_messages?: {
             transaction_pin?: string;
@@ -98,6 +99,7 @@ type DataExchangePayload = {
         azza_phone_number: string;
         recipient_type: TransferRecipientType;
         transaction_fee: string;
+        transaction_fee_usd: string;
         transaction_pin: string;
     };
 };
@@ -235,6 +237,27 @@ class WhatsAppBotTransferToWalletFlowService {
               })
             : null;
 
+        const recipientWalletAddress = await (async () => {
+            let walletAddress = data.wallet_address;
+
+            if (recipientType === 'azza-phone-number' && azzaUserRecipient) {
+                walletAddress = (
+                    await azzaWalletManager.getUserWallet(azzaUserRecipient.id, asset.network)
+                ).address;
+            }
+            return walletAddress;
+        })();
+        const transactionFee = await calculateWithdrawalFees({
+            amount: amount,
+            assetId: asset.listItemId,
+            recipient: recipientWalletAddress,
+            userId: data.user_id,
+        });
+
+        if (transactionFee.totalFee > 0 && amount <= transactionFee.totalFee) {
+            errorMessages.amount = `Minimum withdrawal amount is ${transactionFee.totalFee + amount} ${asset.tokenName}`;
+        }
+
         if (Object.keys(errorMessages).length > 0) {
             return {
                 screen: TransferToWalletFlowScreens.TRANSACTION_DETAILS,
@@ -259,28 +282,12 @@ class WhatsAppBotTransferToWalletFlowService {
             throw new Error('Recipient type is missing');
         }
 
-        const recipientWalletAddress = await (async () => {
-            let walletAddress = data.wallet_address;
-
-            if (recipientType === 'azza-phone-number' && azzaUserRecipient) {
-                walletAddress = (
-                    await azzaWalletManager.getUserWallet(azzaUserRecipient.id, asset.network)
-                ).address;
-            }
-            return walletAddress;
-        })();
-        const transactionFee = await calculateWithdrawalFees({
-            amount: amount,
-            assetId: asset.listItemId,
-            recipient: recipientWalletAddress,
-            userId: data.user_id,
-        });
-
         return {
             screen: TransferToWalletFlowScreens.TRANSACTION_SUMMARY,
             data: {
                 ...data,
                 transaction_fee: decimalToString(transactionFee.totalFee),
+                transaction_fee_usd: decimalToString(transactionFee.totalFeeUsd),
                 asset_label: `${asset.tokenName} (${asset.network})`,
                 recipient_type: recipientType,
                 azza_phone_number: azzaRecipientPhoneNumber ?? data.azza_phone_number,
@@ -305,9 +312,23 @@ class WhatsAppBotTransferToWalletFlowService {
 
         const transactionFee = parseFloat(data.transaction_fee);
         const amount = parseFloat(data.amount);
+
         const amountToReceive = hasExceededGaslessTxLimit
             ? clipDecimal(amount - transactionFee, SIX)
             : amount;
+
+        if (amountToReceive <= 0) {
+            return {
+                screen: TransferToWalletFlowScreens.FEEDBACK,
+                data: {
+                    feedback_title: 'An error occurred',
+                    feedback_message: 'Amount to receive cannot be 0',
+                    feedback_sub_message: 'Confirm the amount and try again',
+                    footer_cta_text: 'Try again',
+                    icon_src: ERROR_FEEDBACK_ICON,
+                } satisfies ScreenDataPayload['FEEDBACK'],
+            };
+        }
 
         let azzaUserRecipient: UserV2Record | null = null;
 
@@ -390,6 +411,7 @@ class WhatsAppBotTransferToWalletFlowService {
                     recipient_type: data.recipient_type,
                     asset_label: `${userAssetInfo.asset.tokenName} (${userAssetInfo.blockchainNetwork})`,
                     transaction_fee: data.transaction_fee,
+                    transaction_fee_usd: data.transaction_fee_usd,
                     transaction_pin: data.transaction_pin,
                     error_messages: {
                         transaction_pin: 'Incorrect transaction pin',
@@ -461,6 +483,18 @@ class WhatsAppBotTransferToWalletFlowService {
                 transactionResponse = transaction;
             } catch (error) {
                 await logServiceError(error, `Withdrawal error.`);
+            } finally {
+                await Promise.all([
+                    createOrIncrementUsageCount(data.user_id, 'GASLESS_TRANSACTIONS'),
+                    recordTransactionFeeCharge({
+                        amount: transactionFee,
+                        amountUsd: Number(data.transaction_fee_usd),
+                        assetId: data.asset_id,
+                        userId: data.user_id,
+                        transactionType: 'withdrawal',
+                        txReference: `withdrawal-${flowToken}`,
+                    }),
+                ]);
             }
 
             const assetLabel = `${userAssetInfo.asset.tokenName} (${userAssetInfo.blockchainNetwork})`;

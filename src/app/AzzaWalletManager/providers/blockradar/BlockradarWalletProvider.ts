@@ -417,6 +417,7 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         return {
             networkFee: Number(networkFeeInfo.networkFee),
             nativeBalance: Number(networkFeeInfo.nativeBalance),
+            networkFeeInUsd: Number(networkFeeInfo.networkFeeInUSD),
         };
     }
 

@@ -164,6 +164,7 @@ export const withdrawAssetResponseDataSchema = commonTransactionFieldsSchema
 export const withdrawNetworkFeeResponseDataSchema = z.object({
     networkFee: z.string(),
     nativeBalance: z.string(),
+    networkFeeInUSD: z.string(),
 });
 
 ////////////////////////
