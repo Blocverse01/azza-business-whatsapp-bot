@@ -165,6 +165,9 @@ class WhatsAppBotTransactionConfirmationFlowService {
                             userId: unmaskedUserId,
                             transactionPin: transaction_pin,
                             reference: `withdrawal-${flowToken}`,
+                            metadata: {
+                                isFree: !hasExceededGaslessTxLimit,
+                            },
                         },
                         true,
                         'new'

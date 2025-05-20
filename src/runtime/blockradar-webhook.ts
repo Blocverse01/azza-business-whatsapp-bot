@@ -176,7 +176,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             return;
         }
 
-        if (reference.startsWith(WITHDRAWAL_REFERENCE_PREFIX)) {
+        if (reference.startsWith(WITHDRAWAL_REFERENCE_PREFIX) && !data.data.metadata?.isFree) {
             await addFeeCollectionJobToQueue(reference);
             return;
         }
