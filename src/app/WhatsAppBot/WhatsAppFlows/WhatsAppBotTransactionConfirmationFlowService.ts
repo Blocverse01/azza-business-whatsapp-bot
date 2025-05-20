@@ -147,6 +147,17 @@ class WhatsAppBotTransactionConfirmationFlowService {
                 const userPhoneNumber = user.primaryWhatsappPhoneNumber;
                 let transactionResponse: SendTransferTransactionResponse | null = null;
 
+                if (hasExceededGaslessTxLimit) {
+                    await recordTransactionFeeCharge({
+                        amount: transaction_details.transactionFee,
+                        amountUsd: transaction_details.transactionFeeUsd ?? 0,
+                        assetId: transaction_details.assetId,
+                        userId: unmaskedUserId,
+                        transactionType: 'withdrawal',
+                        txReference: `withdrawal-${flowToken}`,
+                    });
+                }
+
                 try {
                     const [transaction, error] = await sendTransferAssetTransaction(
                         {
@@ -176,16 +187,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
                 } catch (error) {
                     await logServiceError(error, `Withdrawal error.`);
                 } finally {
-                    if (hasExceededGaslessTxLimit) {
-                        await recordTransactionFeeCharge({
-                            amount: transaction_details.transactionFee,
-                            amountUsd: transaction_details.transactionFeeUsd ?? 0,
-                            assetId: transaction_details.assetId,
-                            userId: unmaskedUserId,
-                            transactionType: 'withdrawal',
-                            txReference: `withdrawal-${flowToken}`,
-                        });
-                    } else {
+                    if (!hasExceededGaslessTxLimit) {
                         await createOrIncrementUsageCount(unmaskedUserId, 'GASLESS_TRANSACTIONS');
                     }
                 }

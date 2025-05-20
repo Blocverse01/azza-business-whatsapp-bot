@@ -469,6 +469,17 @@ class WhatsAppBotTransferToWalletFlowService {
 
             let transactionResponse: SendTransferTransactionResponse | null = null;
 
+            if (hasExceededGaslessTxLimit) {
+                await recordTransactionFeeCharge({
+                    amount: transactionFee,
+                    amountUsd: Number(data.transaction_fee_usd),
+                    assetId: data.asset_id,
+                    userId: data.user_id,
+                    transactionType: 'withdrawal',
+                    txReference: `withdrawal-${flowToken}`,
+                });
+            }
+
             try {
                 const [transaction, txError] = await sendTransferAssetTransaction(
                     {
@@ -503,16 +514,7 @@ class WhatsAppBotTransferToWalletFlowService {
             } catch (error) {
                 await logServiceError(error, `Withdrawal error.`);
             } finally {
-                if (hasExceededGaslessTxLimit) {
-                    await recordTransactionFeeCharge({
-                        amount: transactionFee,
-                        amountUsd: Number(data.transaction_fee_usd),
-                        assetId: data.asset_id,
-                        userId: data.user_id,
-                        transactionType: 'withdrawal',
-                        txReference: `withdrawal-${flowToken}`,
-                    });
-                } else {
+                if (!hasExceededGaslessTxLimit) {
                     await createOrIncrementUsageCount(data.user_id, 'GASLESS_TRANSACTIONS');
                 }
             }
