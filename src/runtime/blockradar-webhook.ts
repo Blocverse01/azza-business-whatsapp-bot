@@ -182,8 +182,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         }
 
         if (reference.startsWith(FEE_COLLECTION_REFERENCE_PREFIX)) {
-            const deterministicId = getDeterministicIdFromTxReference(reference);
-            const transactionFeeLog = await getTransactionFeeLogById(deterministicId);
+            const transactionFeeLog = await getTransactionFeeLogById(reference);
             if (!transactionFeeLog) {
                 return;
             }
@@ -298,8 +297,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         }
 
         if (reference.startsWith(FEE_COLLECTION_REFERENCE_PREFIX)) {
-            const deterministicId = getDeterministicIdFromTxReference(reference);
-            const transactionFeeLog = await getTransactionFeeLogById(deterministicId);
+            const transactionFeeLog = await getTransactionFeeLogById(reference);
             if (!transactionFeeLog) {
                 return;
             }
