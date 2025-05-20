@@ -1,6 +1,6 @@
 import {
     createCleanupOldMessagesWorker,
-    prepareSchedulerQueue,
+    //prepareSchedulerQueue,
 } from '@/app/aiAgent/conversation-manager';
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import {
@@ -22,7 +22,7 @@ import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { createFiatPayoutV2Worker, createOnRampWorker } from '@/app/FiatRamp/queue-helpers';
 import {
     createResetFeatureUsageLimitWorker,
-    prepareLimitResetSchedulerQueue,
+    //prepareLimitResetSchedulerQueue,
 } from '@/app/limits/utils';
 import { createReferralCodeWorker } from '@/app/referral-scheme/queue-utils';
 import { createSafeHavenTransactionUpdateJobWorker } from '@/app/SafeHaven/queue-utils';
@@ -466,8 +466,8 @@ const userTxPinSecurityWorker = new Worker<
     }
 );
 
-prepareSchedulerQueue();
-prepareLimitResetSchedulerQueue();
+//prepareSchedulerQueue();
+//prepareLimitResetSchedulerQueue();
 
 createWhatsappBroadcastWorker();
 createEventDrivenOfframpWorker();
