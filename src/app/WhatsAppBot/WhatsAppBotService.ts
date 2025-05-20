@@ -1073,6 +1073,7 @@ class WhatsAppBotService {
                 userPhoneNumber,
                 `Sorry, we currently do not support buying crypto for ${currencySymbol}.`
             );
+            return;
         }
 
         const flowMessage = WhatsAppBotOnRampFlowService.generateOnRampFlowInitMessage(user, {
