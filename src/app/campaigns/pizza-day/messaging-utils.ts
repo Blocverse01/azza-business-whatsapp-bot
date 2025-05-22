@@ -438,7 +438,7 @@ export const handleBuyPizzaPrompt = async (
         `💰 *₦${args.fiatAmount.toLocaleString()}*`,
         `🏦 *${targetBank.name} — ${args.destinationAccountNumber}*`,
         `🧾 *Account Name: ${nameValidation.accountName}*`,
-        `💳 *Debit: ${amountToDebit} ${paymentAsset.asset.tokenName}*`,
+        `💳 *Debit: ${amountToDebit} ${paymentAsset.asset.tokenName} (${paymentAsset.asset.network})*`,
         ``,
         `✅ To confirm, reply "Yes"`,
         ``,
