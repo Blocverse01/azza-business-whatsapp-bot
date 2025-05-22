@@ -100,6 +100,11 @@ class BotCommandHandler {
             case 'REFERRAL_CODE':
                 await BotCommandHandler.getReferralCode(user, phoneParams, displayName);
                 break;
+            case 'BUY_PIZZA':
+                /// Allows us fallback to use LLM which is expected behaviour
+                return {
+                    handled: false,
+                };
             default:
                 return {
                     handled: false,

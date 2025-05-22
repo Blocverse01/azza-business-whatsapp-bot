@@ -1,6 +1,7 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { getDefaultParamsForNetworkFeeQuery } from '@/app/AzzaWalletManager/fallback-data';
 import { SwapAssetQuote } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { handleBuyPizzaPrompt } from '@/app/campaigns/pizza-day/messaging-utils';
 import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
@@ -1426,6 +1427,31 @@ export const handleReferralPrompt = async (
     return {
         response: 'Handled Referral prompt',
         resetSession: true,
+    };
+};
+
+/////////////////////////////////////////////////////////
+//       Buy Pizza Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleBuyPizzaRelatedPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const response = await handleBuyPizzaPrompt({
+        whatsappParams: params.botParams,
+        user: params.user,
+        args: parseExtractedArguments(params.extractedArguments, actionArgumentsSchema.BUY_PIZZA),
+    });
+
+    if (response.botResponseMessage) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            params.botParams.businessPhoneNumberId,
+            response.botResponseMessage
+        );
+    }
+
+    return {
+        response: response.rawText,
+        resetSession: response.resetSession,
     };
 };
 

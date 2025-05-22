@@ -1,3 +1,4 @@
+import { BuyPizzaPromptArgsSchema } from '@/app/campaigns/pizza-day/schema';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
 import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
@@ -82,4 +83,5 @@ export const actionArgumentsSchema = {
     KYC_VERIFICATION: z.object({}),
     REFERRAL_CODE: z.object({}),
     REFERRAL_REQUEST: z.object({}),
+    BUY_PIZZA: BuyPizzaPromptArgsSchema,
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

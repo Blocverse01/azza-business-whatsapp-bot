@@ -18,7 +18,8 @@ const actions = [
     'SHOW_FIAT_RATES',
     'KYC_VERIFICATION',
     'REFERRAL_REQUEST',
-    'REFERRAL_CODE'
+    'REFERRAL_CODE',
+    'BUY_PIZZA',
 ] as const;
 const actionClassSchema = z.enum(actions);
 

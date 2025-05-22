@@ -64,16 +64,18 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         const blockradarAssetId = this.dataSources.blockradarAssetId(params.assetId);
 
         const walletClient = this.dataSources.blockradarMasterWalletClient(assetConfig.network);
-        const userAddressId = await this.gracefullyGetUserAddressId(
+        const userAddressId = await this.dataSources.userAddressId(
             params.userId,
             assetConfig.network
         );
 
         if (!userAddressId) {
-            throw new BlockradarWalletProviderError({
-                data: params,
-                message: `User address ID does not exist`,
-            });
+            return {
+                asset: assetConfig,
+                balance: 0,
+                blockchainNetwork: assetConfig.network,
+                convertedBalanceUsd: 0,
+            };
         }
 
         const assetBalance = await walletClient.getBalance(userAddressId, blockradarAssetId);
@@ -93,16 +95,10 @@ class BlockradarWalletProvider implements BaseWalletProvider {
         const allNetworkAssets = this.dataSources
             .platformAssetConfigs()
             .filter((config) => config.network === network);
-        const userAddressId = await this.gracefullyGetUserAddressId(userId, network);
+        const userAddressId = await this.dataSources.userAddressId(userId, network);
 
         if (!userAddressId) {
-            throw new BlockradarWalletProviderError({
-                data: {
-                    userId,
-                    network,
-                },
-                message: `User address ID does not exist`,
-            });
+            return [];
         }
 
         const walletClient = this.dataSources.blockradarMasterWalletClient(network);

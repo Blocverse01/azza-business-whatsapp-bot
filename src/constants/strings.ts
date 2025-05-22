@@ -68,5 +68,8 @@ export const getTransactionMinimumDepositMessage = (params: {
 export const WITHDRAWAL_UNAVAILABLE_RESPONSE =
     "ℹ️ Wallet withdrawals are paused for maintenance -- to allow us make it work better for you. We'll send an update once it's ready-to-go 💙";
 
+export const PIZZA_CAMPAIGN_ENDED_RESPONSE =
+    'ℹ️ Buy Pizza campaign has ended -- looking forward to your participation on the next one 💙';
+
 export const SWAP_UNAVAILABLE_RESPONSE =
     "ℹ️ Swaps are paused for maintenance -- to allow us make it work better for you. We'll send an update once it's ready-to-go 💙";

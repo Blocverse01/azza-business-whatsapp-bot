@@ -10,6 +10,7 @@ import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     handleBalanceQueryPrompt,
     handleBuyCryptoWithFiatPrompt,
+    handleBuyPizzaRelatedPrompt,
     handleChangeTransactionPinPrompt,
     handleDepositRelatedPrompt,
     handleKycPrompt,
@@ -202,6 +203,13 @@ export const textPromptHandler = async (
                 responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
                 break;
             case 'REFERRAL_REQUEST':
+            case 'BUY_PIZZA':
+                responseMessage = await handleBuyPizzaRelatedPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
             case 'REFERRAL_CODE':
                 responseMessage = await handleReferralPrompt({
                     extractedArguments,

@@ -7,6 +7,8 @@ import {
     sendTransferAssetTransaction,
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
+import { addPaymentJobForProcessing } from '@/app/campaigns/pizza-day/messaging-utils';
+import { PaymentTransactionDetails } from '@/app/campaigns/pizza-day/types';
 import { createOrIncrementUsageCount, hasExceededLimit } from '@/app/limits/utils';
 import { addBlockradarAddressTokenSwapJobToQueue } from '@/app/swap/queue-utils';
 import { recordTransactionFeeCharge } from '@/app/transaction-fees/utils';
@@ -37,7 +39,8 @@ enum TransactionConfirmationFlowScreens {
 type TransactionDetails =
     | TransferAssetTransactionDetails
     | SwapTokensOnBaseTransactionDetails
-    | SwapTokensTransactionDetailsV2;
+    | SwapTokensTransactionDetailsV2
+    | PaymentTransactionDetails;
 
 type ScreenDataPayload = {
     ENTER_TRANSACTION_PIN: {
@@ -138,6 +141,17 @@ class WhatsAppBotTransactionConfirmationFlowService {
         }
 
         switch (transaction_details.transactionType) {
+            case 'PAYMENT': {
+                const userPhoneNumber = user.primaryWhatsappPhoneNumber;
+                await addPaymentJobForProcessing(
+                    transaction_pin,
+                    userPhoneNumber,
+                    `payment-${flowToken}`,
+                    transaction_details
+                );
+
+                break;
+            }
             case 'SEND': {
                 const hasExceededGaslessTxLimit = await hasExceededLimit(
                     unmaskedUserId,
