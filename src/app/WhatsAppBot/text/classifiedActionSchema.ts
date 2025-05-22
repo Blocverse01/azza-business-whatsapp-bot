@@ -83,5 +83,6 @@ export const actionArgumentsSchema = {
     KYC_VERIFICATION: z.object({}),
     REFERRAL_CODE: z.object({}),
     REFERRAL_REQUEST: z.object({}),
+    CANCEL_CURRENT_ACTION: z.object({}),
     BUY_PIZZA: BuyPizzaPromptArgsSchema,
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

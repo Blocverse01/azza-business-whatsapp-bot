@@ -90,6 +90,8 @@ export const textPromptHandler = async (
 
     runtimeMessages.push({ role: 'user', content: prompt.trim(), sessionId: '' });
 
+    console.dir(runtimeMessages);
+
     let classifiedAction: Action;
     try {
         classifiedAction = await classifyAction(runtimeMessages);
@@ -110,6 +112,19 @@ export const textPromptHandler = async (
             classifiedAction: { class: 'NO_PREDEFINED_ACTION', confidence: 1 },
             prompt,
             promptHandlerResponse: { response: promptResponse, resetSession: false },
+        };
+    }
+
+    if (classifiedAction.class === 'CANCEL_CURRENT_ACTION') {
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, 'Request cancelled')
+        );
+        return {
+            handledTextPrompt: true,
+            classifiedAction,
+            prompt,
+            promptHandlerResponse: { response: 'Request cancelled', resetSession: true },
         };
     }
 

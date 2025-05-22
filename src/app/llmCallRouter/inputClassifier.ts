@@ -3,6 +3,8 @@ import { CoreMessage, generateObject } from 'ai';
 import { z, ZodSchema } from 'zod';
 
 const actions = [
+    'CANCEL_CURRENT_ACTION',
+    'BUY_PIZZA',
     'SHOW_WALLET_ADDRESS',
     'QUERY_WALLET_BALANCE',
     'TRANSFER_CRYPTO',
@@ -19,7 +21,6 @@ const actions = [
     'KYC_VERIFICATION',
     'REFERRAL_REQUEST',
     'REFERRAL_CODE',
-    'BUY_PIZZA',
 ] as const;
 const actionClassSchema = z.enum(actions);
 
