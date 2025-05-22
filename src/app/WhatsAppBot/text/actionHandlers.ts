@@ -1438,7 +1438,9 @@ export const handleBuyPizzaRelatedPrompt = async (
     const response = await handleBuyPizzaPrompt({
         whatsappParams: params.botParams,
         user: params.user,
-        args: parseExtractedArguments(params.extractedArguments, actionArgumentsSchema.BUY_PIZZA),
+        args: params.extractedArguments
+            ? parseExtractedArguments(params.extractedArguments, actionArgumentsSchema.BUY_PIZZA)
+            : null,
     });
 
     if (response.botResponseMessage) {
