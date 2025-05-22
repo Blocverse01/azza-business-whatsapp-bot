@@ -158,7 +158,7 @@ export const handleBuyPizzaPrompt = async (
 
     const setArgumentKeys = Object.keys(args ?? {});
 
-    console.log('Debug arg keys: ', setArgumentKeys);
+    console.dir(args);
 
     // Check if no args or only hasConfirmedPayment is set
     if (
@@ -431,8 +431,10 @@ export const handleBuyPizzaPrompt = async (
     // Find the selected asset with disambiguation support
     const assetSelection = findSelectedAsset(possiblePaymentBalances, args);
 
+    console.dir(assetSelection);
+
     // Handle ambiguous asset selection
-    if (assetSelection.isAmbiguous) {
+    if (!args.hasConfirmedPayment && assetSelection.isAmbiguous) {
         const disambiguationMessage = generateDisambiguationMessage(
             assetSelection.matches,
             args.selectedAssetToken!
