@@ -185,7 +185,11 @@ export const generateOfframpReceipt = async (offrampTransaction: OfframpTransact
                 network.toLowerCase() === offrampTransaction.blockchainNetwork.toLowerCase()
         );
 
-    const transaction = await azzaWalletManager.getTransactionByHash(transactionHash, network!);
+    const transaction = await azzaWalletManager.getTransactionByHash(
+        transactionHash,
+        network!,
+        'WITHDRAW'
+    );
     return transaction.reference?.endsWith(PIZZA_CAMPAIGN_PAYMENT_SUFFIX)
         ? await generatePizzaPaymentReceipt(offrampTransaction)
         : await generateOfframpToBankRecipientReceipt(offrampTransaction);

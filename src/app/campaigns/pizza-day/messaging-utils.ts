@@ -46,6 +46,59 @@ type BuyPizzaPromptResponse = {
 const PAYMENT_PROMPT_EXAMPLE = 'Pay *NGN 10,000* to 0123456789 Moniepoint';
 const MIN_BUY = 5000;
 
+// Helper function to generate progressive summary
+const generateProgressiveSummary = (args: BuyPizzaPromptArgs): string[] => {
+    const summary: string[] = [];
+
+    if (args.fiatAmount !== null && args.fiatCurrency !== null) {
+        summary.push(`✅ Amount: *${args.fiatCurrency} ${args.fiatAmount.toLocaleString()}*`);
+    }
+
+    if (args.destinationBankName !== null) {
+        summary.push(`✅ Bank: *${args.destinationBankName}*`);
+    }
+
+    if (args.destinationAccountNumber !== null) {
+        summary.push(`✅ Account: *${args.destinationAccountNumber}*`);
+    }
+
+    return summary;
+};
+
+// Helper function to identify missing fields
+const getMissingFields = (args: BuyPizzaPromptArgs | null): string[] => {
+    if (!args) return ['amount', 'bank', 'account'];
+
+    const missing: string[] = [];
+
+    if (args.fiatAmount === null) missing.push('amount');
+    if (args.destinationBankName === null) missing.push('bank');
+    if (args.destinationAccountNumber === null) missing.push('account');
+    if (args.fiatCurrency === null) missing.push('currency');
+
+    return missing;
+};
+
+// Helper function to generate multi-field prompt
+const generateMultiFieldPrompt = (missingFields: string[]): string => {
+    const fieldPrompts: { [key: string]: string } = {
+        amount: "1️⃣ How much you're paying (e.g. 5000)",
+        bank: '2️⃣ The bank name (e.g. Moniepoint)',
+        account: '3️⃣ The account number (e.g. 0123456789)',
+        currency: '4️⃣ The currency (NGN for naira)',
+    };
+
+    const promptLines = missingFields.map((field) => fieldPrompts[field]).filter(Boolean);
+
+    return [
+        `🍕 Let's get your pizza payment ready!`,
+        `Please tell me:`,
+        ...promptLines,
+        ``,
+        `You can provide all details in one message like: "${PAYMENT_PROMPT_EXAMPLE}"`,
+    ].join('\n');
+};
+
 /////////////////////////////////////////////////////////
 // Deterministic execution flow for /buy_pizza command
 /////////////////////////////////////////////////////////
@@ -106,16 +159,13 @@ export const handleBuyPizzaPrompt = async (
 
     console.log('Debug arg keys: ', setArgumentKeys);
 
+    // Check if no args or only hasConfirmedPayment is set
     if (
         args === null ||
         setArgumentKeys.length === 0 ||
         (setArgumentKeys.length === 1 && setArgumentKeys[0] === 'hasConfirmedPayment')
     ) {
-        const missingArgsPromptResponse = [
-            `🍕 Let's get your pizza payment sorted!`,
-            `Please tell me how much you're paying and which bank account should receive it.`,
-            `Example: "${PAYMENT_PROMPT_EXAMPLE}"`,
-        ].join('\n');
+        const missingArgsPromptResponse = generateMultiFieldPrompt(['amount', 'bank', 'account']);
 
         return {
             rawText: missingArgsPromptResponse,
@@ -127,11 +177,41 @@ export const handleBuyPizzaPrompt = async (
         };
     }
 
-    if (args.fiatAmount === null) {
-        const missingAmountPromptResponse = [
-            `💰 I need to know how much you're paying for the pizza.`,
-            `Please reply with the amount in naira. For example: "${PAYMENT_PROMPT_EXAMPLE}"`,
+    // Get missing fields and progressive summary
+    const missingFields = getMissingFields(args);
+    const progressSummary = generateProgressiveSummary(args);
+
+    // Handle multiple missing fields with combined prompt
+    if (missingFields.length > 1) {
+        const combinedPrompt = [
+            ...progressSummary,
+            progressSummary.length > 0 ? '' : '',
+            `🔜 Still need:`,
+            ...getMissingFields(args).map((field, index) => {
+                const fieldPrompts: { [key: string]: string } = {
+                    amount: `${index + 1}️⃣ Payment amount (e.g. 5000)`,
+                    bank: `${index + 1}️⃣ Bank name (e.g. Moniepoint)`,
+                    account: `${index + 1}️⃣ Account number (e.g. 0123456789)`,
+                    currency: `${index + 1}️⃣ Currency (NGN for naira)`,
+                };
+                return fieldPrompts[field];
+            }),
         ].join('\n');
+
+        return {
+            rawText: combinedPrompt,
+            resetSession: false,
+            botResponseMessage: MessageGenerators.generateTextMessage(
+                whatsappParams.userPhoneNumber,
+                combinedPrompt
+            ),
+        };
+    }
+
+    // Handle individual missing fields with adaptive prompting
+    if (args.fiatAmount === null) {
+        const summary = progressSummary.length > 0 ? progressSummary.join('\n') + '\n\n' : '';
+        const missingAmountPromptResponse = `${summary}💰 Got it — now how much are you paying? Just the amount in naira (e.g. 5000).`;
 
         return {
             rawText: missingAmountPromptResponse,
@@ -142,11 +222,10 @@ export const handleBuyPizzaPrompt = async (
             ),
         };
     }
+
     if (args.destinationAccountNumber === null) {
-        const missingAccountPromptResponse = [
-            `🏦 I need the bank account number where the pizza payment should go.`,
-            `Please include it like this: "${PAYMENT_PROMPT_EXAMPLE}"`,
-        ].join('\n');
+        const summary = progressSummary.length > 0 ? progressSummary.join('\n') + '\n\n' : '';
+        const missingAccountPromptResponse = `${summary}🔢 Perfect! Now I need the account number (e.g. 0123456789).`;
 
         return {
             rawText: missingAccountPromptResponse,
@@ -157,11 +236,10 @@ export const handleBuyPizzaPrompt = async (
             ),
         };
     }
+
     if (args.destinationBankName === null) {
-        const missingBankPromptResponse = [
-            `🏦 I need the name of the bank receiving the payment.`,
-            `Please include it in your message like this: "${PAYMENT_PROMPT_EXAMPLE}"`,
-        ].join('\n');
+        const summary = progressSummary.length > 0 ? progressSummary.join('\n') + '\n\n' : '';
+        const missingBankPromptResponse = `${summary}🏦 Great! Which bank should receive the payment? (e.g. Moniepoint, Access Bank)`;
 
         return {
             rawText: missingBankPromptResponse,
@@ -172,11 +250,10 @@ export const handleBuyPizzaPrompt = async (
             ),
         };
     }
+
     if (args.fiatCurrency === null) {
-        const missingCurrencyPromptResponse = [
-            `💱 What currency are you paying in?`,
-            `Please include it in your message. For example: "${PAYMENT_PROMPT_EXAMPLE}"`,
-        ].join('\n');
+        const summary = progressSummary.length > 0 ? progressSummary.join('\n') + '\n\n' : '';
+        const missingCurrencyPromptResponse = `${summary}💱 Almost there! What currency are you paying in? (Reply "NGN" for naira)`;
 
         return {
             rawText: missingCurrencyPromptResponse,
@@ -187,10 +264,12 @@ export const handleBuyPizzaPrompt = async (
             ),
         };
     }
+
+    // Validation checks
     if (args.fiatAmount < MIN_BUY) {
         const belowMinAmountPromptResponse = [
-            `🚫 The amount you're trying to pay is too low.`,
-            `The minimum payment allowed is ₦${MIN_BUY.toLocaleString()}. Please enter an amount equal to or above that.`,
+            `🚫 The amount is too low for pizza payment.`,
+            `Minimum amount: ₦${MIN_BUY.toLocaleString()}. Please enter a higher amount.`,
         ].join('\n');
 
         return {
@@ -202,10 +281,11 @@ export const handleBuyPizzaPrompt = async (
             ),
         };
     }
+
     if (args.fiatCurrency.toUpperCase() !== 'NGN') {
         const unsupportedCurrencyPromptResponse = [
-            `❌ Sorry, we currently only accept payments in NGN (Nigerian Naira).`,
-            `Please update your request to use NGN. For example: "${PAYMENT_PROMPT_EXAMPLE}"`,
+            `❌ Sorry, we currently only accept Nigerian Naira (NGN).`,
+            `Please reply with "NGN" as your currency.`,
         ].join('\n');
 
         return {
@@ -242,8 +322,8 @@ export const handleBuyPizzaPrompt = async (
 
     if (!targetBank) {
         const noBankFoundMessage = [
-            `Hmm, I couldn't match that bank name to any of the supported options.`,
-            `Please double-check the spelling or try again with the full bank name, like "Moniepoint" or "Access Bank".`,
+            `🔍 Hmm, I couldn't find that bank name.`,
+            `Please double-check the spelling or try the full name (e.g. "Moniepoint", "Access Bank", "GTBank").`,
         ].join('\n');
 
         return {
@@ -262,10 +342,11 @@ export const handleBuyPizzaPrompt = async (
         seerbitId: targetBank.seerbitId!,
         countryCode: NIGERIAN_COUNTRY_CODE,
     });
+
     if (!nameValidation) {
         const accountNameValidationFailedMessage = [
-            `I couldn't verify the account name for that bank account.`,
-            `Please make sure the account number and bank name are correct and try again.`,
+            `❌ I couldn't verify that account number with ${targetBank.name}.`,
+            `Please double-check both the account number and bank name, then try again.`,
         ].join('\n');
 
         return {
@@ -317,20 +398,21 @@ export const handleBuyPizzaPrompt = async (
 
     if (possiblePaymentBalances.length === 0) {
         const balanceLines = sellableBalances.map((balance) => {
-            const tokenName = balance.asset.tokenName; // e.g., 'USDC'
-            const networkName = balance.asset.network; // e.g., 'Base'
+            const tokenName = balance.asset.tokenName;
+            const networkName = balance.asset.network;
             const formattedBalance = fixNumber(balance.convertedBalanceUsd ?? 0, 2);
             return `- ${tokenName} (${networkName}): $${formattedBalance}`;
         });
 
         const noPaymentBalanceMessage = [
-            `You need approximately $${amountToDebit} to pay for your pizza (including a $${feeConfig.feeUsd} fee).`,
+            `💳 Insufficient balance for this pizza payment.`,
             ``,
-            `Here’s what you currently have in *sellable* assets:`,
+            `Required: *$${amountToDebit}* (including $${feeConfig.feeUsd} fee)`,
+            ``,
+            `Your sellable assets:`,
             ...balanceLines,
             ``,
-            `Other assets in your wallet may not be eligible for selling right now.`,
-            `To continue, please fund your wallet with a supported asset using the /deposit command.`,
+            `💡 Use /deposit to add funds to your wallet.`,
         ].join('\n');
 
         return {
@@ -347,7 +429,21 @@ export const handleBuyPizzaPrompt = async (
 
     const transactionSummary = `Pay ${args.fiatCurrency} ${prettifyNumber(args.fiatAmount, 2)} to ${args.destinationAccountNumber} ${args.destinationBankName}.\n\n*Account Name: ${nameValidation.accountName}*\n\nDebit Amount: ${amountToDebit} ${paymentAsset.asset.tokenName}`;
 
-    const transactionSummaryMessage = `${transactionSummary}\n\nReply "Yes" to confirm.\n\n_To edit any of the details, reply with the correct details. E.g: "Pay NGN 5,000 instead" or "Pay to Access Bank"_`;
+    // Enhanced confirmation message with structured editing options
+    const transactionSummaryMessage = [
+        `📋 **Review your pizza payment details:**`,
+        `💰 *₦${args.fiatAmount.toLocaleString()}*`,
+        `🏦 *${args.destinationBankName} — ${args.destinationAccountNumber}*`,
+        `🧾 *Account Name: ${nameValidation.accountName}*`,
+        `💳 *Debit: ${amountToDebit} ${paymentAsset.asset.tokenName}*`,
+        ``,
+        `✅ To confirm, reply "Yes"`,
+        ``,
+        `✏️ To edit, reply with:`,
+        `• "Change amount to 7000"`,
+        `• "Use Access Bank instead"`,
+        `• "Account number is 1234567890"`,
+    ].join('\n');
 
     if (!args.hasConfirmedPayment) {
         return {
@@ -443,6 +539,7 @@ export const addPaymentJobForProcessing = async (
                 userPhoneNumber: userPhoneNumber,
                 businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
             },
+            isPizzaPayment: true,
         },
         {
             ...defaultQueueRemoveOptions,
