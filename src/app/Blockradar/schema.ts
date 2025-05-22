@@ -106,7 +106,7 @@ const commonTransactionFieldsSchema = z.object({
     gasUsed: z.string().optional().nullable(),
     hash: z.string().optional().nullable(),
     id: z.string(),
-    metadata: z.record(z.string()).optional().nullable(),
+    metadata: z.record(z.string().or(z.boolean())).optional().nullable(),
     network: blockradarNetworkSchema,
     note: z.string().optional().nullable(),
     reason: z.string().optional().nullable(),
@@ -187,7 +187,7 @@ export const blockradarWebhookPayloadSchema = z.object({
         amount: z.string(),
         amountPaid: z.string(),
         network: blockradarNetworkSchema,
-        metadata: z.record(z.string()).nullable(),
+        metadata: z.record(z.string().or(z.boolean())).nullable(),
         asset: blockradarAssetSchema,
         address: blockradarAddressSchema,
         blockchain: blockradarBlockchainSchema,
@@ -211,7 +211,7 @@ export const swapQuoteResponseDataSchema = z.object({
 
 export const executeSwapRequestBodySchema = swapQuoteRequestBodySchema.extend({
     reference: z.string(),
-    metadata: z.record(z.string()).optional().nullable(),
+    metadata: z.record(z.string().or(z.boolean())).optional().nullable(),
 });
 export const executeSwapResponseDataSchema = z.object({
     amount: z.string(),
