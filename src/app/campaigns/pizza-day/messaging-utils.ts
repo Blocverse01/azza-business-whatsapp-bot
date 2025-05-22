@@ -158,7 +158,7 @@ export const handleBuyPizzaPrompt = async (
     if (args.destinationBankName === null) {
         const missingBankPromptResponse = [
             `🏦 I need the name of the bank receiving the payment.`,
-            `Please include it in your message like this: "${PIZZA_CAMPAIGN_ENDED_RESPONSE}"`,
+            `Please include it in your message like this: "${PAYMENT_PROMPT_EXAMPLE}"`,
         ].join('\n');
 
         return {
@@ -203,7 +203,7 @@ export const handleBuyPizzaPrompt = async (
     if (args.fiatCurrency.toUpperCase() !== 'NGN') {
         const unsupportedCurrencyPromptResponse = [
             `❌ Sorry, we currently only accept payments in NGN (Nigerian Naira).`,
-            `Please update yourObject.keys(args).length === 0 request to use NGN. For example: "${PIZZA_CAMPAIGN_ENDED_RESPONSE}"`,
+            `Please update your request to use NGN. For example: "${PAYMENT_PROMPT_EXAMPLE}"`,
         ].join('\n');
 
         return {
@@ -322,7 +322,7 @@ export const handleBuyPizzaPrompt = async (
         });
 
         const noPaymentBalanceMessage = [
-            `You need approximately $${amountToDebit} to pay for this pizza (including a ${feePercentage * 100}% fee).`,
+            `You need approximately $${amountToDebit} to pay for your pizza (including a $${feeConfig.feeUsd} fee).`,
             ``,
             `Here’s what you currently have in *sellable* assets:`,
             ...balanceLines,
