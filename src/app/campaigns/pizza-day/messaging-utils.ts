@@ -482,7 +482,8 @@ export const handleBuyPizzaPrompt = async (
                   args,
                   possiblePaymentBalances,
                   amountToDebit,
-                  nameValidation
+                  nameValidation,
+                  paymentAsset
               )
             : [
                   `*Review your pizza payment:*`,
@@ -491,7 +492,7 @@ export const handleBuyPizzaPrompt = async (
                   `🏦 To: *${args.destinationBankName} — ${args.destinationAccountNumber}*`,
                   `👤 Name: *${nameValidation.accountName}*`,
                   ``,
-                  `💳 **Payment Method:**`,
+                  `💳 *Payment Method:*`,
                   `✅ ${paymentAsset.asset.tokenName} (${paymentAsset.asset.network})`,
                   `Debit: ${fixNumber(amountToDebit, 4)} ${paymentAsset.asset.tokenName}`,
                   ``,
@@ -794,11 +795,15 @@ const generateAssetConfirmation = (
     args: BuyPizzaPromptArgs,
     allAssets: AssetBalance[],
     amountToDebit: number,
-    nameValidation: NonNullable<Awaited<ReturnType<typeof FiatRampService.resolveBankAccount>>>
+    nameValidation: NonNullable<Awaited<ReturnType<typeof FiatRampService.resolveBankAccount>>>,
+    selectedAsset: AssetBalance // Add selectedAsset as a parameter
 ): string => {
-    const primary = allAssets[0];
-    const alternatives = allAssets.slice(1, 4); // Limit to 3 alternatives
-    const hasMore = allAssets.length > 4;
+    const alternatives = allAssets.filter(
+        (asset) =>
+            asset.asset.listItemId !== selectedAsset.asset.listItemId &&
+            allAssets.indexOf(asset) < 3 // Limit to 3 alternatives
+    );
+    const hasMore = allAssets.length - 1 > alternatives.length;
 
     return [
         `*Review your pizza payment:*`,
@@ -807,16 +812,18 @@ const generateAssetConfirmation = (
         `🏦 To: *${args.destinationBankName} — ${args.destinationAccountNumber}*`,
         `👤 Name: *${nameValidation.accountName}*`,
         ``,
-        `💳 **Payment Method:**`,
-        `✅ ${primary.asset.tokenName} (${primary.asset.network})`,
-        `Debit: ${fixNumber(amountToDebit, 4)} ${primary.asset.tokenName}`,
+        `💳 *Payment Method:*`,
+        `✅ <span class="math-inline">\{selectedAsset\.asset\.tokenName\} \(</span>{selectedAsset.asset.network})`,
+        `Debit: ${fixNumber(amountToDebit, 4)} ${selectedAsset.asset.tokenName}`,
         ``,
-        alternatives.length > 0 ? `🔄 **Or pay with:**` : 'skip',
+        alternatives.length > 0 ? `🔄 *Or pay with:*` : 'skip',
         ...alternatives.map((asset) => formatAssetOption(asset)),
         hasMore ? `• "Show more options" for additional assets` : 'skip',
         ``,
         `✅ Reply "Yes" to confirm`,
-        `🔄 Reply "Pay with ${alternatives[0]?.asset.tokenName} ${alternatives[0]?.asset.network}" to switch payment method`,
+        alternatives.length > 0
+            ? `🔄 Reply "Pay with ${alternatives[0]?.asset.tokenName} ${alternatives[0]?.asset.network}" to switch payment method`
+            : 'skip',
         `✏️ Reply "Change amount to X" to edit details`,
     ]
         .filter((line) => line !== 'skip')
