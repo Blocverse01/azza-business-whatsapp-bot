@@ -336,12 +336,14 @@ export const handleBuyPizzaPrompt = async (
         };
     }
 
-    const nameValidation = await FiatRampService.resolveBankAccount({
-        networkId: targetBank.networkId,
-        accountNumber: args.destinationAccountNumber,
-        seerbitId: targetBank.seerbitId!,
-        countryCode: NIGERIAN_COUNTRY_CODE,
-    });
+    const nameValidation = await tryOrNull(
+        FiatRampService.resolveBankAccount({
+            networkId: targetBank.networkId,
+            accountNumber: args.destinationAccountNumber,
+            seerbitId: targetBank.seerbitId!,
+            countryCode: NIGERIAN_COUNTRY_CODE,
+        })
+    );
 
     if (!nameValidation) {
         const accountNameValidationFailedMessage = [
@@ -593,4 +595,12 @@ const bankSearcher = async (
     });
 
     return result.object.bankQueryResult ?? null;
+};
+
+const tryOrNull = async <T>(promise: Promise<T>): Promise<T | null> => {
+    try {
+        return await promise;
+    } catch (e) {
+        return null;
+    }
 };
