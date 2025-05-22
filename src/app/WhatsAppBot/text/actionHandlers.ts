@@ -13,7 +13,6 @@ import {
     calculateWithdrawalFees,
 } from '@/app/transaction-fees/utils';
 import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
-import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
