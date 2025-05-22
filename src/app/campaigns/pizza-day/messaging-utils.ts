@@ -813,7 +813,7 @@ const generateAssetConfirmation = (
         `👤 Name: *${nameValidation.accountName}*`,
         ``,
         `💳 *Payment Method:*`,
-        `✅ <span class="math-inline">\{selectedAsset\.asset\.tokenName\} \(</span>{selectedAsset.asset.network})`,
+        `✅${selectedAsset.asset.tokenName} (${selectedAsset.asset.network})`,
         `Debit: ${fixNumber(amountToDebit, 4)} ${selectedAsset.asset.tokenName}`,
         ``,
         alternatives.length > 0 ? `🔄 *Or pay with:*` : 'skip',
