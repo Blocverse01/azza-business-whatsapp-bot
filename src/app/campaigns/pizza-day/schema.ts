@@ -26,6 +26,16 @@ export const BuyPizzaPromptArgsSchema = z.object({
         .boolean()
         .describe('Boolean to track if the user has confirmed the payment details')
         .default(false),
+    selectedAssetToken: z
+        .string()
+        .describe("An identifier for the token to debit from the user's wallet")
+        .nullable(),
+    selectedAssetIndex: z
+        .number()
+        .describe(
+            'An index that indicates the position of an asset option from the list of payment options provided to the user.'
+        )
+        .nullable(),
 });
 
 export type BuyPizzaPromptArgs = z.infer<typeof BuyPizzaPromptArgsSchema>;

@@ -1,3 +1,4 @@
+import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { BuyPizzaPromptArgs } from '@/app/campaigns/pizza-day/schema';
 import { PaymentTransactionDetails } from '@/app/campaigns/pizza-day/types';
 import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
@@ -427,26 +428,76 @@ export const handleBuyPizzaPrompt = async (
         };
     }
 
-    const paymentAsset = possiblePaymentBalances[0];
+    // Find the selected asset with disambiguation support
+    const assetSelection = findSelectedAsset(possiblePaymentBalances, args);
+
+    // Handle ambiguous asset selection
+    if (assetSelection.isAmbiguous) {
+        const disambiguationMessage = generateDisambiguationMessage(
+            assetSelection.matches,
+            args.selectedAssetToken!
+        );
+
+        return {
+            rawText: disambiguationMessage,
+            resetSession: false,
+            botResponseMessage: MessageGenerators.generateTextMessage(
+                whatsappParams.userPhoneNumber,
+                disambiguationMessage
+            ),
+        };
+    }
+
+    const paymentAsset = assetSelection.asset;
+
+    // Verify the selected asset exists and has sufficient balance
+    if (!paymentAsset || (paymentAsset.convertedBalanceUsd ?? 0) < amountToDebit) {
+        const invalidAssetMessage = args.selectedAssetToken
+            ? [
+                  `❌ ${args.selectedAssetToken} doesn't have sufficient balance or isn't available.`,
+                  ``,
+                  `💰 Available options:`,
+                  ...possiblePaymentBalances.slice(0, 3).map((asset) => formatAssetOption(asset)),
+                  ``,
+                  `💡 Try specifying the chain too, like "USDC Base" or "ETH Ethereum"`,
+              ].join('\n')
+            : `❌ No valid payment asset found. Please try again.`;
+
+        return {
+            rawText: invalidAssetMessage,
+            resetSession: false,
+            botResponseMessage: MessageGenerators.generateTextMessage(
+                whatsappParams.userPhoneNumber,
+                invalidAssetMessage
+            ),
+        };
+    }
 
     const transactionSummary = `Pay ${args.fiatCurrency} ${prettifyNumber(args.fiatAmount, 2)} to ${args.destinationAccountNumber} ${args.destinationBankName}.\n\n*Account Name: ${nameValidation.accountName}*\n\nDebit Amount: ${amountToDebit} ${paymentAsset.asset.tokenName}`;
 
     // Enhanced confirmation message with structured editing options
-    const transactionSummaryMessage = [
-        `*Review your pizza payment details:*`,
-        ``,
-        `💰 *₦${args.fiatAmount.toLocaleString()}*`,
-        `🏦 *${targetBank.name} — ${args.destinationAccountNumber}*`,
-        `🧾 *Account Name: ${nameValidation.accountName}*`,
-        `💳 *Debit: ${amountToDebit} ${paymentAsset.asset.tokenName} (${paymentAsset.asset.network})*`,
-        ``,
-        `✅ To confirm, reply "Yes"`,
-        ``,
-        `✏️ To edit, reply with:`,
-        `• "Change amount to 7000"`,
-        `• "Use Access Bank instead"`,
-        `• "Account number is 1234567890"`,
-    ].join('\n');
+    const transactionSummaryMessage =
+        possiblePaymentBalances.length > 1
+            ? generateAssetConfirmation(
+                  args,
+                  possiblePaymentBalances,
+                  amountToDebit,
+                  nameValidation
+              )
+            : [
+                  `*Review your pizza payment:*`,
+                  ``,
+                  `💰 Amount: *₦${args.fiatAmount.toLocaleString()}*`,
+                  `🏦 To: *${args.destinationBankName} — ${args.destinationAccountNumber}*`,
+                  `👤 Name: *${nameValidation.accountName}*`,
+                  ``,
+                  `💳 **Payment Method:**`,
+                  `✅ ${paymentAsset.asset.tokenName} (${paymentAsset.asset.network})`,
+                  `   Debit: ${fixNumber(amountToDebit, 4)} ${paymentAsset.asset.tokenName}`,
+                  ``,
+                  `✅ Reply "Yes" to confirm`,
+                  `✏️ Reply "Change amount to X" to edit details`,
+              ].join('\n');
 
     if (!args.hasConfirmedPayment) {
         return {
@@ -595,6 +646,181 @@ const bankSearcher = async (
     });
 
     return result.object.bankQueryResult ?? null;
+};
+
+const formatAssetOption = (balance: AssetBalance): string => {
+    const formattedBalance = fixNumber(balance.convertedBalanceUsd ?? 0, 2);
+    return `• ${balance.asset.tokenName} (${balance.asset.network}) - ${formattedBalance}`;
+};
+
+// Helper function to find selected asset based on user input
+const findSelectedAsset = (
+    possibleAssets: AssetBalance[],
+    args: BuyPizzaPromptArgs | null
+): { asset: AssetBalance; isAmbiguous: boolean; matches: AssetBalance[] } => {
+    if (!args || (!args.selectedAssetToken && args.selectedAssetIndex === null)) {
+        return {
+            asset: possibleAssets[0],
+            isAmbiguous: false,
+            matches: [],
+        };
+    }
+
+    // Handle numbered selection (1, 2, 3, etc.)
+    if (args.selectedAssetIndex !== null && args.selectedAssetIndex !== undefined) {
+        const index = args.selectedAssetIndex - 1; // Convert to 0-based index
+        if (index >= 0 && index < possibleAssets.length) {
+            return {
+                asset: possibleAssets[index],
+                isAmbiguous: false,
+                matches: [],
+            };
+        }
+    }
+
+    if (!args.selectedAssetToken) {
+        return {
+            asset: possibleAssets[0],
+            isAmbiguous: false,
+            matches: [],
+        };
+    }
+
+    const userInput = args.selectedAssetToken.toLowerCase().trim();
+
+    // Strategy 1: Exact match with chain (e.g., "usdc base", "eth ethereum")
+    const exactWithChain = possibleAssets.find((item) => {
+        const tokenName = item.asset.tokenName.toLowerCase();
+        const networkName = item.asset.network.toLowerCase();
+        return userInput.includes(tokenName) && userInput.includes(networkName);
+    });
+
+    if (exactWithChain) {
+        return {
+            asset: exactWithChain,
+            isAmbiguous: false,
+            matches: [],
+        };
+    }
+
+    // Strategy 2: Token symbol matches
+    const tokenMatches = possibleAssets.filter(
+        (item) => item.asset.tokenName.toLowerCase() === userInput
+    );
+
+    // If only one match, return it
+    if (tokenMatches.length === 1) {
+        return {
+            asset: tokenMatches[0],
+            isAmbiguous: false,
+            matches: [],
+        };
+    }
+
+    // If multiple matches, it's ambiguous
+    if (tokenMatches.length > 1) {
+        // Prioritize by balance (highest first) as a tie-breaker
+        const sortedMatches = tokenMatches.sort(
+            (a, b) => (b.convertedBalanceUsd ?? 0) - (a.convertedBalanceUsd ?? 0)
+        );
+
+        return {
+            asset: sortedMatches[0], // Return highest balance as default
+            isAmbiguous: true,
+            matches: sortedMatches,
+        };
+    }
+
+    // Strategy 3: Partial network name matching (e.g., "base" matches "Base")
+    const networkMatch = possibleAssets.find(
+        (item) =>
+            item.asset.network.toLowerCase().includes(userInput) ||
+            userInput.includes(item.asset.network.toLowerCase())
+    );
+
+    if (networkMatch) {
+        return {
+            asset: networkMatch,
+            isAmbiguous: false,
+            matches: [],
+        };
+    }
+
+    // Strategy 4: Fuzzy matching for typos
+    const fuzzyMatches = possibleAssets
+        .map((item) => ({
+            asset: item,
+            tokenSimilarity: stringSimilarity(userInput, item.asset.tokenName.toLowerCase()),
+            networkSimilarity: stringSimilarity(userInput, item.asset.network.toLowerCase()),
+        }))
+        .filter((match) => match.tokenSimilarity > 0.7 || match.networkSimilarity > 0.7)
+        .sort(
+            (a, b) =>
+                Math.max(b.tokenSimilarity, b.networkSimilarity) -
+                Math.max(a.tokenSimilarity, a.networkSimilarity)
+        );
+
+    if (fuzzyMatches.length > 0) {
+        return {
+            asset: fuzzyMatches[0].asset,
+            isAmbiguous: false,
+            matches: [],
+        };
+    }
+
+    // Fallback to first asset
+    return {
+        asset: possibleAssets[0],
+        isAmbiguous: false,
+        matches: [],
+    };
+};
+
+// Helper function to generate disambiguation message
+const generateDisambiguationMessage = (matches: AssetBalance[], userInput: string): string => {
+    return [
+        `🤔 I found multiple ${userInput.toUpperCase()} tokens. Which one did you mean?`,
+        ``,
+        ...matches.map(
+            (item, index) =>
+                `${index + 1}️⃣ ${item.asset.tokenName} on ${item.asset.network} (${fixNumber(item.convertedBalanceUsd ?? 0, 2)})`
+        ),
+        ``,
+        `Reply with the number or specify like "${userInput} ${matches[0].asset.network.toLowerCase()}"`,
+    ].join('\n');
+};
+
+const generateAssetConfirmation = (
+    args: BuyPizzaPromptArgs,
+    allAssets: AssetBalance[],
+    amountToDebit: number,
+    nameValidation: NonNullable<Awaited<ReturnType<typeof FiatRampService.resolveBankAccount>>>
+): string => {
+    const primary = allAssets[0];
+    const alternatives = allAssets.slice(1, 4); // Limit to 3 alternatives
+    const hasMore = allAssets.length > 4;
+
+    return [
+        `*Review your pizza payment:*`,
+        ``,
+        `💰 Amount: *₦${args.fiatAmount!.toLocaleString()}*`,
+        `🏦 To: *${args.destinationBankName} — ${args.destinationAccountNumber}*`,
+        `👤 Name: *${nameValidation.accountName}*`,
+        ``,
+        `💳 **Payment Method:**`,
+        `✅ ${primary.asset.tokenName} (${primary.asset.network})`,
+        `   Debit: ${fixNumber(amountToDebit, 4)} ${primary.asset.tokenName}`,
+        ``,
+        alternatives.length > 0 ? `🔄 **Or pay with:**` : '',
+        ...alternatives.map((asset) => formatAssetOption(asset)),
+        hasMore ? `• "Show more options" for additional assets` : '',
+        ``,
+        `✅ Reply "Yes" to confirm`,
+        `🔄 Reply "Pay with ${alternatives[0]?.asset.tokenName} ${alternatives[0]?.asset.network}" to switch payment method`,
+        `✏️ Reply "Change amount to X" to edit details`,
+    ]
+        .filter((line) => line !== '')
+        .join('\n');
 };
 
 const tryOrNull = async <T>(promise: Promise<T>): Promise<T | null> => {
