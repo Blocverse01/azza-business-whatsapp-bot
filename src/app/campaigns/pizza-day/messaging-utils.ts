@@ -431,7 +431,8 @@ export const handleBuyPizzaPrompt = async (
 
     // Enhanced confirmation message with structured editing options
     const transactionSummaryMessage = [
-        `📋 **Review your pizza payment details:**`,
+        `*Review your pizza payment details:*`,
+        ``,
         `💰 *₦${args.fiatAmount.toLocaleString()}*`,
         `🏦 *${args.destinationBankName} — ${args.destinationAccountNumber}*`,
         `🧾 *Account Name: ${nameValidation.accountName}*`,
