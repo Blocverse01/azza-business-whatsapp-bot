@@ -459,7 +459,7 @@ export const handleBuyPizzaPrompt = async (
                   `💰 Available options:`,
                   ...possiblePaymentBalances.slice(0, 3).map((asset) => formatAssetOption(asset)),
                   ``,
-                  `💡 Try specifying the chain too, like "USDC Base" or "ETH Ethereum"`,
+                  `💡 Try specifying the chain too, like "USDC Base" or "USDT Bep20"`,
               ].join('\n')
             : `❌ No valid payment asset found. Please try again.`;
 
