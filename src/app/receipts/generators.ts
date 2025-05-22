@@ -1,3 +1,4 @@
+import { addPizzaDayCashbackJobToQueue } from '@/app/campaigns/pizza-day/cashbacks/utils';
 import { OfframpTransactionRecord, OnrampTransactionRecord } from '@/app/FiatRamp/fiatRampSchema';
 import { PIZZA_CAMPAIGN_PAYMENT_SUFFIX } from '@/constants/strings';
 import { prettifyNumber } from '@/resources/utils/currency';
@@ -190,6 +191,21 @@ export const generateOfframpReceipt = async (offrampTransaction: OfframpTransact
         network!,
         'WITHDRAW'
     );
+
+    if (transaction.reference?.endsWith(PIZZA_CAMPAIGN_PAYMENT_SUFFIX)) {
+        await addPizzaDayCashbackJobToQueue({
+            transactionId: offrampTransaction.sequenceId,
+            transactionType: (() => {
+                if (offrampTransaction.sequenceId.includes('safehaven')) {
+                    return 'safehaven-offramp';
+                }
+                if (offrampTransaction.sequenceId.startsWith('azza-mp')) {
+                    return 'manual-offramp';
+                }
+                return 'offramp';
+            })(),
+        });
+    }
     return transaction.reference?.endsWith(PIZZA_CAMPAIGN_PAYMENT_SUFFIX)
         ? await generatePizzaPaymentReceipt(offrampTransaction)
         : await generateOfframpToBankRecipientReceipt(offrampTransaction);

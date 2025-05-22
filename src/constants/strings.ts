@@ -51,6 +51,9 @@ export const getDynamicMaintenanceMessage = (
 export const BASE_CASHBACK_REFERENCE_PREFIX = 'base-cb-';
 export const BASE_CASHBACK_REASON = 'base-cashback';
 
+export const PIZZA_DAY_CASHBACK_REFERENCE_PREFIX = 'pizza-cb-';
+export const PIZZA_DAY_CASHBACK_REASON = 'pizza-cashback';
+
 export const CRYPTO_PAYOUT_REFERENCE_PREFIX = 'azza-pay';
 
 export const FEE_COLLECTION_REFERENCE_PREFIX = 'fee_';

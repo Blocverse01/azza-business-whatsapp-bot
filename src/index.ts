@@ -63,6 +63,7 @@ createBullBoard({
         new BullMQAdapter(queues.generateReferralCode),
         new BullMQAdapter(queues.feeCollection),
         new BullMQAdapter(queues.resetFeatureUsageLimit),
+        new BullMQAdapter(queues.pizzaDayCashback),
     ],
     serverAdapter: serverAdapter,
 });

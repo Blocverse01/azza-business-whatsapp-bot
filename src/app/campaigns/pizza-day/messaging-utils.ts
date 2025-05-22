@@ -431,13 +431,13 @@ export const handleBuyPizzaPrompt = async (
     // Find the selected asset with disambiguation support
     const assetSelection = findSelectedAsset(possiblePaymentBalances, args);
 
-    console.dir(assetSelection);
+    console.dir(assetSelection, { depth: Infinity });
 
     // Handle ambiguous asset selection
     if (!args.hasConfirmedPayment && assetSelection.isAmbiguous) {
         const disambiguationMessage = generateDisambiguationMessage(
             assetSelection.matches,
-            args.selectedAssetToken!
+            args.selectedAsset?.tokenName ?? args.selectedAsset?.blockchainNetwork ?? ''
         );
 
         return {
@@ -454,9 +454,9 @@ export const handleBuyPizzaPrompt = async (
 
     // Verify the selected asset exists and has sufficient balance
     if (!paymentAsset || (paymentAsset.convertedBalanceUsd ?? 0) < amountToDebit) {
-        const invalidAssetMessage = args.selectedAssetToken
+        const invalidAssetMessage = args.selectedAsset?.tokenName
             ? [
-                  `❌ ${args.selectedAssetToken} doesn't have sufficient balance or isn't available.`,
+                  `❌ ${args.selectedAsset?.tokenName} doesn't have sufficient balance or isn't available.`,
                   ``,
                   `💰 Available options:`,
                   ...possiblePaymentBalances.slice(0, 3).map((asset) => formatAssetOption(asset)),
@@ -661,7 +661,7 @@ const findSelectedAsset = (
     possibleAssets: AssetBalance[],
     args: BuyPizzaPromptArgs | null
 ): { asset: AssetBalance; isAmbiguous: boolean; matches: AssetBalance[] } => {
-    if (!args || (!args.selectedAssetToken && args.selectedAssetIndex === null)) {
+    if (!args || (!args.selectedAssetIndex && args.selectedAssetIndex === null)) {
         return {
             asset: possibleAssets[0],
             isAmbiguous: false,
@@ -681,7 +681,7 @@ const findSelectedAsset = (
         }
     }
 
-    if (!args.selectedAssetToken) {
+    if (!args.selectedAsset) {
         return {
             asset: possibleAssets[0],
             isAmbiguous: false,
@@ -689,13 +689,16 @@ const findSelectedAsset = (
         };
     }
 
-    const userInput = args.selectedAssetToken.toLowerCase().trim();
+    const userInput = args.selectedAsset;
 
     // Strategy 1: Exact match with chain (e.g., "usdc base", "eth ethereum")
     const exactWithChain = possibleAssets.find((item) => {
         const tokenName = item.asset.tokenName.toLowerCase();
         const networkName = item.asset.network.toLowerCase();
-        return userInput.includes(tokenName) && userInput.includes(networkName);
+        return (
+            userInput.tokenName.toLowerCase() === tokenName &&
+            userInput.blockchainNetwork?.toLowerCase() === networkName
+        );
     });
 
     if (exactWithChain) {
@@ -708,7 +711,7 @@ const findSelectedAsset = (
 
     // Strategy 2: Token symbol matches
     const tokenMatches = possibleAssets.filter(
-        (item) => item.asset.tokenName.toLowerCase() === userInput
+        (item) => item.asset.tokenName.toLowerCase() === userInput.tokenName.toLowerCase()
     );
 
     // If only one match, return it
@@ -737,8 +740,8 @@ const findSelectedAsset = (
     // Strategy 3: Partial network name matching (e.g., "base" matches "Base")
     const networkMatch = possibleAssets.find(
         (item) =>
-            item.asset.network.toLowerCase().includes(userInput) ||
-            userInput.includes(item.asset.network.toLowerCase())
+            item.asset.network.toLowerCase() === userInput.tokenName.toLowerCase() ||
+            userInput.blockchainNetwork?.toLowerCase() === item.asset.network.toLowerCase()
     );
 
     if (networkMatch) {
@@ -753,8 +756,14 @@ const findSelectedAsset = (
     const fuzzyMatches = possibleAssets
         .map((item) => ({
             asset: item,
-            tokenSimilarity: stringSimilarity(userInput, item.asset.tokenName.toLowerCase()),
-            networkSimilarity: stringSimilarity(userInput, item.asset.network.toLowerCase()),
+            tokenSimilarity: stringSimilarity(
+                userInput.tokenName.toLowerCase(),
+                item.asset.tokenName.toLowerCase()
+            ),
+            networkSimilarity: stringSimilarity(
+                userInput.blockchainNetwork?.toLowerCase() ?? '',
+                item.asset.network.toLowerCase()
+            ),
         }))
         .filter((match) => match.tokenSimilarity > 0.7 || match.networkSimilarity > 0.7)
         .sort(

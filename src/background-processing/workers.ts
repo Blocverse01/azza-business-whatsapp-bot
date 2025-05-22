@@ -15,6 +15,7 @@ import {
 } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
 import { createAzzaWrappedWorker } from '@/app/campaigns/azza-wrapped/queue-utils';
 import { createBaseCashbackWorker } from '@/app/campaigns/base-cashbacks/utils';
+import { createPizzaDayCashbackWorker } from '@/app/campaigns/pizza-day/cashbacks/utils';
 import { createCryptoPayoutWorker } from '@/app/crypto-payouts-v2/utils';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
@@ -476,6 +477,7 @@ createOnRampWorker();
 createSyncUserWalletWorker();
 createSafeHavenTransactionUpdateJobWorker();
 createBaseCashbackWorker();
+createPizzaDayCashbackWorker();
 createCryptoPayoutWorker();
 createCleanupOldMessagesWorker();
 createKycEventJobWorker().on('error', async (error) => {

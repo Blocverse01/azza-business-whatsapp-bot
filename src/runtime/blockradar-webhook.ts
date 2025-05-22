@@ -1,6 +1,7 @@
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
 import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashbacks/utils';
+import { sendPizzaDayDepositMessageWithCashbackBanner } from '@/app/campaigns/pizza-day/cashbacks/utils';
 import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-payouts-v2/utils';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
@@ -20,6 +21,7 @@ import {
     OFFRAMP,
     OFFRAMP_WITHDRAW_REFERENCE_PREFIX,
     PIZZA_CAMPAIGN_PAYMENT_SUFFIX,
+    PIZZA_DAY_CASHBACK_REFERENCE_PREFIX,
     WITHDRAWAL_REFERENCE_PREFIX,
 } from '@/constants/strings';
 import { dbClient } from '@/db/dbClient';
@@ -89,6 +91,12 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
 
                 if (reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX)) {
                     await sendDepositMessageWithCashbackBanner(message, {
+                        userPhoneNumber,
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                    });
+                    return;
+                } else if (reference?.startsWith(PIZZA_DAY_CASHBACK_REFERENCE_PREFIX)) {
+                    await sendPizzaDayDepositMessageWithCashbackBanner(message, {
                         userPhoneNumber,
                         businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                     });

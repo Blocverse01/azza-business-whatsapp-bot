@@ -66,6 +66,7 @@ export enum QueueNames {
     generateReferralCode = 'generate-referral-code',
     feeCollection = 'fee-collection',
     resetFeatureUsageLimit = 'reset-feature-usage-limit',
+    pizzaDayCashback = 'pizza-day-cashback',
 }
 
 export type UserWalletMigrationQueueInput = {
