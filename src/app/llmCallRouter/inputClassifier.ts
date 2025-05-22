@@ -40,12 +40,13 @@ const choiceString = getChoiceString(actions);
 
 export const classifyAction = async (messages: Array<CoreMessage>): Promise<Action> => {
     const result = await generateObject({
-        model: openai('gpt-4o-mini'),
+        model: openai('gpt-4o'),
         system: `Some choices are given below. It is provided in a numbered list, where each item in the list corresponds to a followup task to be performed.\n----------------\n${choiceString}\n----------------\nUsing only the choices above and not prior knowledge, return the top choice that is most relevant to the given input. If none of the choices are relevant, return 'NO_PREDEFINED_ACTION'.`,
         messages: messages,
         schema: z.object({
             action: actionSchema.optional().nullable(),
         }),
+        temperature: 0,
     });
 
     return result.object.action ?? { class: 'NO_PREDEFINED_ACTION', confidence: 1 };
@@ -68,6 +69,7 @@ export const extractActionArgumentsFromMessages = async <T extends ZodSchema>(
                     "An object that contains the arguments to extracted from the user's messages"
                 ),
         }),
+        temperature: 0,
     });
 
     return result.object.args ? (result.object.args as z.infer<T>) : null;
