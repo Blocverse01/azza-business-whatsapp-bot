@@ -23,7 +23,11 @@ import { FOUR, THREE } from '@/constants/numbers';
 import { PIZZA_CAMPAIGN_ENDED_RESPONSE } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import { fixNumber, prettifyNumber } from '@/resources/utils/currency';
-import { convertAsciiStringToBase64, encryptWithAES } from '@/resources/utils/encryption';
+import {
+    convertAsciiStringToBase64,
+    convertBase64ToAsciiString,
+    encryptWithAES,
+} from '@/resources/utils/encryption';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { openai } from '@ai-sdk/openai';
@@ -566,7 +570,10 @@ export const addPaymentJobForProcessing = async (
 ) => {
     const assetConfig = getAssetConfigOrThrow(params.assetId);
     const [userWallet, hotWalletAddress] = await Promise.all([
-        azzaWalletManager.getUserWallet(params.userId, assetConfig.network),
+        azzaWalletManager.getUserWallet(
+            convertBase64ToAsciiString(params.userId),
+            assetConfig.network
+        ),
         FiatRampService.getHotWalletForNetwork(assetConfig.network),
     ]);
 
