@@ -11,7 +11,10 @@ export const BuyPizzaPromptArgsSchema = z.object({
     fiatCurrency: z
         .string()
         .nullable()
-        .describe('Fiat currency to make payment in, supported currencies: NGN.'),
+        .describe(
+            'Fiat currency to make payment in, supported currencies: NGN. If no one is specified default to NGN'
+        )
+        .default('NGN'),
     destinationAccountNumber: z
         .string()
         .min(10)
@@ -21,7 +24,8 @@ export const BuyPizzaPromptArgsSchema = z.object({
     destinationBankName: z.string().nullable().describe('Bank name input provided by the user.'),
     hasConfirmedPayment: z
         .boolean()
-        .describe('Boolean to track if the user has confirmed the payment details'),
+        .describe('Boolean to track if the user has confirmed the payment details')
+        .default(false),
 });
 
 export type BuyPizzaPromptArgs = z.infer<typeof BuyPizzaPromptArgsSchema>;
