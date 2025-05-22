@@ -102,7 +102,13 @@ export const handleBuyPizzaPrompt = async (
         };
     }
 
-    if (args === null || Object.keys(args).length === 0) {
+    const setArgumentKeys = Object.keys(args ?? {});
+
+    if (
+        args === null ||
+        setArgumentKeys.length === 0 ||
+        (setArgumentKeys.length === 1 && setArgumentKeys[0] === 'hasConfirmedPayment')
+    ) {
         const missingArgsPromptResponse = [
             `🍕 Let's get your pizza payment sorted!`,
             `Please tell me how much you're paying and which bank account should receive it.`,
@@ -122,7 +128,7 @@ export const handleBuyPizzaPrompt = async (
     if (args.fiatAmount === null) {
         const missingAmountPromptResponse = [
             `💰 I need to know how much you're paying for the pizza.`,
-            `Please reply with the amount in naira. For example: "Pay 10,000 to 0123456789 Moniepoint"`,
+            `Please reply with the amount in naira. For example: "${PAYMENT_PROMPT_EXAMPLE}"`,
         ].join('\n');
 
         return {
@@ -197,7 +203,7 @@ export const handleBuyPizzaPrompt = async (
     if (args.fiatCurrency.toUpperCase() !== 'NGN') {
         const unsupportedCurrencyPromptResponse = [
             `❌ Sorry, we currently only accept payments in NGN (Nigerian Naira).`,
-            `Please update your request to use NGN. For example: "${PIZZA_CAMPAIGN_ENDED_RESPONSE}"`,
+            `Please update yourObject.keys(args).length === 0 request to use NGN. For example: "${PIZZA_CAMPAIGN_ENDED_RESPONSE}"`,
         ].join('\n');
 
         return {
