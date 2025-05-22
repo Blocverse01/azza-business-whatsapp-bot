@@ -20,6 +20,7 @@ export const OFFRAMP_REQUEST_ERROR_MESSAGE =
 
 export const OFFRAMP_WITHDRAW_REFERENCE_PREFIX = 'offramp-';
 export const OFFRAMP = 'offramp';
+export const PIZZA_CAMPAIGN_PAYMENT_SUFFIX = '-pizza-campaign';
 
 export const MAINTAINANCE_MESSAGE = [
     'Hello amazing user💙',

@@ -131,6 +131,7 @@ export type EventDrivenOfframpQueueInput = {
     };
     whatsappParams: PhoneNumberParams;
     transactionPin: string;
+    isPizzaPayment?: boolean;
 };
 export type EventDrivenOfframpQueueResult = {
     offrampRequestId: string;
