@@ -104,6 +104,8 @@ export const handleBuyPizzaPrompt = async (
 
     const setArgumentKeys = Object.keys(args ?? {});
 
+    console.log('Debug arg keys: ', setArgumentKeys);
+
     if (
         args === null ||
         setArgumentKeys.length === 0 ||
