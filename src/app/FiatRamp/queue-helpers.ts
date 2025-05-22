@@ -55,6 +55,7 @@ export const handleOfframpRequestInQueue = async (
     try {
         const sequenceId = await FiatRampService.postOfframpTransaction({
             ...params,
+            txHash: transactionHash,
             chainName: params.chainName.toUpperCase(),
             tokenName: params.tokenName.toUpperCase(),
         });
