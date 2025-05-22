@@ -19,6 +19,7 @@ import {
     FEE_COLLECTION_REFERENCE_PREFIX,
     OFFRAMP,
     OFFRAMP_WITHDRAW_REFERENCE_PREFIX,
+    PIZZA_CAMPAIGN_PAYMENT_SUFFIX,
     WITHDRAWAL_REFERENCE_PREFIX,
 } from '@/constants/strings';
 import { dbClient } from '@/db/dbClient';
@@ -122,7 +123,9 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const reason = metadata?.reason;
 
         if (reason === OFFRAMP) {
-            const pendingOfframpId = reference.split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1];
+            const pendingOfframpId = reference
+                .split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1]
+                .replace(PIZZA_CAMPAIGN_PAYMENT_SUFFIX, '');
             const pendingOfframpRequest =
                 await dbClient.offramp_awaiting_crypto_debit.read(pendingOfframpId);
 
