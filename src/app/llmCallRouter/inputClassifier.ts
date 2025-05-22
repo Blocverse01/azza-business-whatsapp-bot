@@ -26,6 +26,29 @@ const actionClassSchema = z.enum(actions);
 
 type ActionClass = z.infer<typeof actionClassSchema>;
 
+const actionDescriptions: Record<ActionClass, string> = {
+    CANCEL_CURRENT_ACTION: 'Cancel the currently ongoing action or request.',
+    BUY_PIZZA:
+        'Buy pizza during a campaign or promotion. Payment is typically in fiat (e.g., NGN). The message usually references pizza, account numbers, or naira payments.',
+    SHOW_WALLET_ADDRESS: 'Show the user their crypto wallet address for receiving funds.',
+    QUERY_WALLET_BALANCE: 'Check the balance of the user’s wallet.',
+    TRANSFER_CRYPTO: 'Send cryptocurrency to another wallet address.',
+    WITHDRAW_CRYPTO:
+        'Withdraw crypto from the wallet to an external account. May include “send,” “cash out,” or similar language.',
+    CHANGE_TRANSACTION_PIN: 'Change the user’s transaction PIN.',
+    RESET_TRANSACTION_PIN: 'Reset the user’s transaction PIN.',
+    DEPOSIT_CRYPTO_TO_WALLET: 'Receive or deposit crypto into the wallet.',
+    BUY_CRYPTO_WITH_FIAT: 'Buy crypto using fiat currency like NGN.',
+    SELL_CRYPTO_FOR_FIAT: 'Sell crypto to receive fiat currency.',
+    SWAP_CRYPTO: 'Swap one crypto asset for another.',
+    GET_FIAT_WITH_CRYPTO: 'Exchange crypto to get fiat. Overlaps with sell.',
+    GET_CRYPTO_WITH_FIAT: 'Exchange fiat to get crypto. Overlaps with buy.',
+    SHOW_FIAT_RATES: 'Show current exchange rates between fiat and crypto.',
+    KYC_VERIFICATION: 'Start or check the KYC verification process.',
+    REFERRAL_REQUEST: 'Request a referral link or details.',
+    REFERRAL_CODE: 'Request a referral link or details. Overlaps with referral request',
+};
+
 const actionSchema = z.object({
     class: actionClassSchema.or(z.literal('NO_PREDEFINED_ACTION')),
     confidence: z.number(),
@@ -36,12 +59,24 @@ const getChoiceString = (choices: readonly string[]): string => {
     return choices.map((choice, index) => `${index + 1}. ${choice}`).join('\n');
 };
 
-const choiceString = getChoiceString(actions);
+const formattedChoiceString = getChoiceString(
+    actions.map((a) => `${a} - ${actionDescriptions[a]}`)
+);
 
 export const classifyAction = async (messages: Array<CoreMessage>): Promise<Action> => {
     const result = await generateObject({
         model: openai('gpt-4o'),
-        system: `Some choices are given below. It is provided in a numbered list, where each item in the list corresponds to a followup task to be performed.\n----------------\n${choiceString}\n----------------\nUsing only the choices above and not prior knowledge, return the top choice that is most relevant to the given input. If none of the choices are relevant, return 'NO_PREDEFINED_ACTION'.`,
+        system: `You're a smart assistant that must classify user intent based on a set of predefined actions. Each action has a description. Classify ONLY based on these descriptions — do not use assumptions or unrelated prior knowledge.
+
+        ----------------
+        ${formattedChoiceString}
+        ---------------- 
+
+        Guidelines:
+        - If none of the choices are relevant, return 'NO_PREDEFINED_ACTION'.
+        
+        Now, from the conversation below, choose the most relevant action.
+        `,
         messages: messages,
         schema: z.object({
             action: actionSchema.optional().nullable(),
