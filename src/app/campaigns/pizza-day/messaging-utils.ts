@@ -493,7 +493,7 @@ export const handleBuyPizzaPrompt = async (
                   ``,
                   `💳 **Payment Method:**`,
                   `✅ ${paymentAsset.asset.tokenName} (${paymentAsset.asset.network})`,
-                  `   Debit: ${fixNumber(amountToDebit, 4)} ${paymentAsset.asset.tokenName}`,
+                  `Debit: ${fixNumber(amountToDebit, 4)} ${paymentAsset.asset.tokenName}`,
                   ``,
                   `✅ Reply "Yes" to confirm`,
                   `✏️ Reply "Change amount to X" to edit details`,
@@ -809,17 +809,17 @@ const generateAssetConfirmation = (
         ``,
         `💳 **Payment Method:**`,
         `✅ ${primary.asset.tokenName} (${primary.asset.network})`,
-        `   Debit: ${fixNumber(amountToDebit, 4)} ${primary.asset.tokenName}`,
+        `Debit: ${fixNumber(amountToDebit, 4)} ${primary.asset.tokenName}`,
         ``,
-        alternatives.length > 0 ? `🔄 **Or pay with:**` : '',
+        alternatives.length > 0 ? `🔄 **Or pay with:**` : 'skip',
         ...alternatives.map((asset) => formatAssetOption(asset)),
-        hasMore ? `• "Show more options" for additional assets` : '',
+        hasMore ? `• "Show more options" for additional assets` : 'skip',
         ``,
         `✅ Reply "Yes" to confirm`,
         `🔄 Reply "Pay with ${alternatives[0]?.asset.tokenName} ${alternatives[0]?.asset.network}" to switch payment method`,
         `✏️ Reply "Change amount to X" to edit details`,
     ]
-        .filter((line) => line !== '')
+        .filter((line) => line !== 'skip')
         .join('\n');
 };
 
