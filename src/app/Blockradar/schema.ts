@@ -50,7 +50,7 @@ export const blockradarAddressSchema = z
         name: z.string().nullable(),
         derivationPath: z.string(),
         configurations: blockradarAddressConfigurationsSchema,
-        metadata: z.record(z.string()).nullable(),
+        metadata: z.record(z.unknown()).nullable(),
     })
     .merge(datesSchema);
 
@@ -106,7 +106,7 @@ const commonTransactionFieldsSchema = z.object({
     gasUsed: z.string().optional().nullable(),
     hash: z.string().optional().nullable(),
     id: z.string(),
-    metadata: z.record(z.string().or(z.boolean())).optional().nullable(),
+    metadata: z.record(z.unknown()).optional().nullable(),
     network: blockradarNetworkSchema,
     note: z.string().optional().nullable(),
     reason: z.string().optional().nullable(),
@@ -136,7 +136,7 @@ export const generateAddressRequestBodySchema = z.object({
     enableGaslessWithdraw: z.boolean().optional(),
     name: z.string().optional(),
     showPrivateKey: z.boolean().optional(),
-    metadata: z.record(z.string()).optional(),
+    metadata: z.record(z.unknown()).optional(),
 });
 export const updateAddressRequestBodySchema = z.object({
     disableAutoSweep: z.boolean().optional(),
@@ -187,7 +187,7 @@ export const blockradarWebhookPayloadSchema = z.object({
         amount: z.string(),
         amountPaid: z.string(),
         network: blockradarNetworkSchema,
-        metadata: z.record(z.string().or(z.boolean())).nullable(),
+        metadata: z.record(z.unknown()).nullable(),
         asset: blockradarAssetSchema,
         address: blockradarAddressSchema,
         blockchain: blockradarBlockchainSchema,
@@ -211,7 +211,7 @@ export const swapQuoteResponseDataSchema = z.object({
 
 export const executeSwapRequestBodySchema = swapQuoteRequestBodySchema.extend({
     reference: z.string(),
-    metadata: z.record(z.string().or(z.boolean())).optional().nullable(),
+    metadata: z.record(z.unknown()).optional().nullable(),
 });
 export const executeSwapResponseDataSchema = z.object({
     amount: z.string(),

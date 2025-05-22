@@ -493,7 +493,7 @@ class WhatsAppBotTransferToWalletFlowService {
                         transactionPin: data.transaction_pin,
                         reference: `withdrawal-${flowToken}`,
                         metadata: {
-                            isFree: !hasExceededGaslessTxLimit ? 'true' : 'false',
+                            isFree: !hasExceededGaslessTxLimit,
                         },
                     },
                     true,

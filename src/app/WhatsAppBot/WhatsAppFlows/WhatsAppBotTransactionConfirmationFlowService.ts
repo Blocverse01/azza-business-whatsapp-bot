@@ -180,7 +180,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
                             transactionPin: transaction_pin,
                             reference: `withdrawal-${flowToken}`,
                             metadata: {
-                                isFree: !hasExceededGaslessTxLimit ? 'true' : 'false',
+                                isFree: !hasExceededGaslessTxLimit,
                             },
                         },
                         true,
