@@ -193,18 +193,18 @@ export const generateOfframpReceipt = async (offrampTransaction: OfframpTransact
     );
 
     if (transaction.reference?.endsWith(PIZZA_CAMPAIGN_PAYMENT_SUFFIX)) {
-        await addPizzaDayCashbackJobToQueue({
-            transactionId: offrampTransaction.sequenceId,
-            transactionType: (() => {
-                if (offrampTransaction.sequenceId.includes('safehaven')) {
-                    return 'safehaven-offramp';
-                }
-                if (offrampTransaction.sequenceId.startsWith('azza-mp')) {
-                    return 'manual-offramp';
-                }
-                return 'offramp';
-            })(),
-        });
+        // await addPizzaDayCashbackJobToQueue({
+        //     transactionId: offrampTransaction.sequenceId,
+        //     transactionType: (() => {
+        //         if (offrampTransaction.sequenceId.includes('safehaven')) {
+        //             return 'safehaven-offramp';
+        //         }
+        //         if (offrampTransaction.sequenceId.startsWith('azza-mp')) {
+        //             return 'manual-offramp';
+        //         }
+        //         return 'offramp';
+        //     })(),
+        // });
     }
     return transaction.reference?.endsWith(PIZZA_CAMPAIGN_PAYMENT_SUFFIX)
         ? await generatePizzaPaymentReceipt(offrampTransaction)

@@ -49,7 +49,7 @@ type BuyPizzaPromptResponse = {
 };
 
 const PAYMENT_PROMPT_EXAMPLE = 'Pay *NGN 10,000* to 0123456789 Moniepoint';
-const MIN_BUY = 5000;
+const MIN_BUY = 1800;
 
 // Helper function to generate progressive summary
 const generateProgressiveSummary = (args: BuyPizzaPromptArgs): string[] => {
