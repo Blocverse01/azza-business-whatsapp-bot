@@ -707,12 +707,16 @@ export const handleBalanceQueryPrompt = async (
                         })
                         .join('\n');
 
-                    const network = networkGroup[0].blockchainNetwork;
+                    if (!networkGroup[0]) {
+                        return ``;
+                    }
+                    const network = networkGroup[0]?.blockchainNetwork;
 
                     const emoji = getNetworkEmoji(network);
 
                     return `*${emoji ? emoji : ''} ${network}*\n${assetBalances}`;
                 })
+                .filter((value) => value !== '')
                 .join('\n\n');
 
             const allBalancesMessage = `*Your balances on different networks:*\n\n${networkBalancesMessage}`;
