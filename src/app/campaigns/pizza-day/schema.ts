@@ -21,10 +21,8 @@ export const BuyPizzaPromptArgsSchema = z.object({
         .default('NGN'),
     destinationAccountNumber: z
         .string()
-        .min(10)
-        .max(10)
         .nullable()
-        .describe('Account number to receive payment for Pizza.'),
+        .describe('Account number to receive payment for Pizza. Usually 10 digits'),
     destinationBankName: z.string().nullable().describe('Bank name input provided by the user.'),
     hasConfirmedPayment: z
         .boolean()

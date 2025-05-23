@@ -162,8 +162,6 @@ export const handleBuyPizzaPrompt = async (
 
     const setArgumentKeys = Object.keys(args ?? {});
 
-    console.dir(args);
-
     // Check if no args or only hasConfirmedPayment is set
     if (
         args === null ||
@@ -238,6 +236,19 @@ export const handleBuyPizzaPrompt = async (
             botResponseMessage: MessageGenerators.generateTextMessage(
                 whatsappParams.userPhoneNumber,
                 missingAccountPromptResponse
+            ),
+        };
+    }
+
+    if (args.destinationAccountNumber.length < 10 || args.destinationAccountNumber.length > 10) {
+        const incorrectAccountPromptResponse = `Please cross-check the account number to ensure correctness, it's  usually 10-digits.`;
+
+        return {
+            rawText: incorrectAccountPromptResponse,
+            resetSession: false,
+            botResponseMessage: MessageGenerators.generateTextMessage(
+                whatsappParams.userPhoneNumber,
+                incorrectAccountPromptResponse
             ),
         };
     }
