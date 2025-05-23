@@ -635,7 +635,7 @@ const bankSearcher = async (
     bankNameInput: string
 ): Promise<BankSearchResult | null> => {
     // === Fuzzy Match First ===
-    const matchedBank = banks.find((b) => stringSimilarity(bankNameInput, b.name) >= 0.5);
+    const matchedBank = banks.find((b) => stringSimilarity(bankNameInput, b.name) >= 0.9);
 
     if (matchedBank) {
         return {
