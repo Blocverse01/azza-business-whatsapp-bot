@@ -446,8 +446,6 @@ export const handleBuyPizzaPrompt = async (
     // Find the selected asset with disambiguation support
     const assetSelection = findSelectedAsset(possiblePaymentBalances, args);
 
-    console.dir(assetSelection, { depth: Infinity });
-
     // Handle ambiguous asset selection
     if (!args.hasConfirmedPayment && assetSelection.isAmbiguous) {
         const disambiguationMessage = generateDisambiguationMessage(
@@ -626,7 +624,7 @@ export const addPaymentJobForProcessing = async (
 const bankSchema = z.object({
     bankName: z.string(),
     networkId: z.string(),
-    confidence: z.number(),
+    confidence: z.number().optional().nullable().default(1),
 });
 export type BankSearchResult = z.infer<typeof bankSchema>;
 
@@ -658,7 +656,7 @@ const bankSearcher = async (
         ${banksString}
         ----------------
 
-        Given a user’s input (e.g. a bank name or part of one), find the most relevant entry from the list above. Return the exact "bankName" and "networkId" as they appear in the list. If no good match is found, return null.`,
+        Given a user’s input (e.g. a bank name or part of one), find the most relevant entry from the list above. Return the exact "bankName" and "networkId" as they appear in the list, including a "confidence" parameter. If no good match is found, return null.`,
         prompt: bankNameInput,
         schema: z.object({
             bankQueryResult: bankSchema.optional().nullable(),
