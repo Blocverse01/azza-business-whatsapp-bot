@@ -714,7 +714,7 @@ const findSelectedAsset = (
         const tokenName = item.asset.tokenName.toLowerCase();
         const networkName = item.asset.network.toLowerCase();
         return (
-            userInput.tokenName.toLowerCase() === tokenName &&
+            userInput.tokenName?.toLowerCase() === tokenName &&
             userInput.blockchainNetwork?.toLowerCase() === networkName
         );
     });
@@ -729,7 +729,7 @@ const findSelectedAsset = (
 
     // Strategy 2: Token symbol matches
     const tokenMatches = possibleAssets.filter(
-        (item) => item.asset.tokenName.toLowerCase() === userInput.tokenName.toLowerCase()
+        (item) => item.asset.tokenName.toLowerCase() === userInput.tokenName?.toLowerCase()
     );
 
     // If only one match, return it
@@ -758,7 +758,7 @@ const findSelectedAsset = (
     // Strategy 3: Partial network name matching (e.g., "base" matches "Base")
     const networkMatch = possibleAssets.find(
         (item) =>
-            item.asset.network.toLowerCase() === userInput.tokenName.toLowerCase() ||
+            item.asset.network.toLowerCase() === userInput.tokenName?.toLowerCase() ||
             userInput.blockchainNetwork?.toLowerCase() === item.asset.network.toLowerCase()
     );
 
@@ -775,7 +775,7 @@ const findSelectedAsset = (
         .map((item) => ({
             asset: item,
             tokenSimilarity: stringSimilarity(
-                userInput.tokenName.toLowerCase(),
+                userInput.tokenName?.toLowerCase() ?? '',
                 item.asset.tokenName.toLowerCase()
             ),
             networkSimilarity: stringSimilarity(

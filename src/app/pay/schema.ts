@@ -34,20 +34,25 @@ export const PayPromptArgsSchema = z.object({
                 .string()
                 .describe(
                     "An identifier for the token to debit from the user's wallet. Supported values: USDT, USDC. Correct user typos when their input is closely related to any of the Supported symbol options"
-                ),
+                )
+                .optional()
+                .nullable(),
             blockchainNetwork: z
                 .string()
+                .optional()
                 .nullable()
                 .describe(
                     `The blockchain to use for the selected token. ${BLOCKCHAIN_ARG_DESCRIPTION}`
                 ),
         })
+        .optional()
         .nullable(),
     selectedAssetIndex: z
         .number()
         .describe(
             'An index that indicates the position of an asset option from the list of payment options provided to the user.'
         )
+        .optional()
         .nullable(),
 });
 
