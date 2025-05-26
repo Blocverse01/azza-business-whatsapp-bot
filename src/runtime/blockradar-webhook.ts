@@ -1,7 +1,7 @@
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
 import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashbacks/utils';
-import { sendPizzaDayDepositMessageWithCashbackBanner } from '@/app/campaigns/pizza-day/cashbacks/utils';
+import { sendPizzaDayDepositMessageWithCashbackBanner } from '@/app/pay/cashbacks/utils';
 import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-payouts-v2/utils';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
