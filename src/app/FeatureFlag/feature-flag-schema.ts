@@ -7,4 +7,5 @@ export enum FeatureFlagKey {
     SWAPS = 'SWAPS',
     WALLET_WITHDRAWALS = 'WALLET_WITHDRAWALS',
     PIZZA_DAY_CAMPAIGN = 'PIZZA_DAY_CAMPAIGN',
+    NGN_PAY = 'NGN_PAY',
 }

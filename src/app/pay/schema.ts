@@ -4,7 +4,7 @@ import { z } from 'zod';
 const supportedChains = azzaWalletManager.getSupportedNetworks();
 const BLOCKCHAIN_ARG_DESCRIPTION = `Supported blockchains: ${supportedChains.join(', ')}. Correct user typos when their input is closely related to any of the Supported blockchain options`;
 
-export const BuyPizzaPromptArgsSchema = z.object({
+export const PayPromptArgsSchema = z.object({
     fiatAmount: z
         .number()
         .positive()
@@ -51,4 +51,4 @@ export const BuyPizzaPromptArgsSchema = z.object({
         .nullable(),
 });
 
-export type BuyPizzaPromptArgs = z.infer<typeof BuyPizzaPromptArgsSchema>;
+export type PayPromptArgs = z.infer<typeof PayPromptArgsSchema>;

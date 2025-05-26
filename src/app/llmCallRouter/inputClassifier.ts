@@ -4,7 +4,7 @@ import { z, ZodSchema } from 'zod';
 
 const actions = [
     'CANCEL_CURRENT_ACTION',
-    'BUY_PIZZA',
+    'PAY_TO_BANK_ACCOUNT',
     'SHOW_WALLET_ADDRESS',
     'QUERY_WALLET_BALANCE',
     'TRANSFER_CRYPTO',
@@ -28,8 +28,8 @@ type ActionClass = z.infer<typeof actionClassSchema>;
 
 const actionDescriptions: Record<ActionClass, string> = {
     CANCEL_CURRENT_ACTION: 'Cancel the currently ongoing action or request.',
-    BUY_PIZZA:
-        'Buy pizza during a campaign or promotion. Payment is typically in fiat (e.g., NGN). The message usually references pizza, account numbers, or naira payments.',
+    PAY_TO_BANK_ACCOUNT:
+        'Make a fiat payment to a bank account using crypto assets. Involves converting cryptocurrency to Nigerian Naira (NGN) and transferring to specified bank account details. Messages typically mention payment amounts, bank names, account numbers, or naira transfers.',
     SHOW_WALLET_ADDRESS: 'Show the user their crypto wallet address for receiving funds.',
     QUERY_WALLET_BALANCE: 'Check the balance of the user’s wallet.',
     TRANSFER_CRYPTO: 'Send cryptocurrency to another wallet address.',

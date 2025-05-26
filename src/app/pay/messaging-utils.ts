@@ -1,6 +1,6 @@
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import { BuyPizzaPromptArgs } from '@/app/campaigns/pizza-day/schema';
-import { PaymentTransactionDetails } from '@/app/campaigns/pizza-day/types';
+import { PayPromptArgs } from '@/app/pay/schema';
+import { PaymentTransactionDetails } from '@/app/pay/types';
 import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
@@ -20,7 +20,6 @@ import { defaultQueueRemoveOptions, queues } from '@/background-processing/queue
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { FOUR, THREE } from '@/constants/numbers';
-import { PIZZA_CAMPAIGN_ENDED_RESPONSE } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import { fixNumber, prettifyNumber } from '@/resources/utils/currency';
 import {
@@ -36,23 +35,26 @@ import { CountryCode } from 'libphonenumber-js/types';
 import * as math from 'mathjs';
 import stringSimilarity from 'string-similarity-js';
 import { z } from 'zod';
+import { PAY_FEATURE_UNAVAILABLE_RESPONSE } from '@/constants/strings';
 
-type BuyPizzaPromptParams = {
+type PayPromptParams = {
     whatsappParams: PhoneNumberParams;
     user: UserV2Record;
-    args: BuyPizzaPromptArgs | null;
+    args: PayPromptArgs | null;
 };
-type BuyPizzaPromptResponse = {
+type PayPromptResponse = {
     rawText: string;
     botResponseMessage?: WhatsAppTextMessage | WhatsAppMediaMessage | WhatsAppInteractiveMessage;
     resetSession: boolean;
 };
 
 const PAYMENT_PROMPT_EXAMPLE = 'Pay *NGN 10,000* to 0123456789 Moniepoint';
-const MIN_BUY = 1800;
+const MIN_PAY = {
+    NGN: 1800,
+};
 
 // Helper function to generate progressive summary
-const generateProgressiveSummary = (args: BuyPizzaPromptArgs): string[] => {
+const generateProgressiveSummary = (args: PayPromptArgs): string[] => {
     const summary: string[] = [];
 
     if (args.fiatAmount !== null && args.fiatCurrency !== null) {
@@ -71,7 +73,7 @@ const generateProgressiveSummary = (args: BuyPizzaPromptArgs): string[] => {
 };
 
 // Helper function to identify missing fields
-const getMissingFields = (args: BuyPizzaPromptArgs | null): string[] => {
+const getMissingFields = (args: PayPromptArgs | null): string[] => {
     if (!args) return ['amount', 'bank', 'account'];
 
     const missing: string[] = [];
@@ -96,7 +98,7 @@ const generateMultiFieldPrompt = (missingFields: string[]): string => {
     const promptLines = missingFields.map((field) => fieldPrompts[field]).filter(Boolean);
 
     return [
-        `🍕 Let's get your pizza payment ready!`,
+        `💵 Let's get your payment ready!`,
         `Please tell me:`,
         ...promptLines,
         ``,
@@ -105,24 +107,20 @@ const generateMultiFieldPrompt = (missingFields: string[]): string => {
 };
 
 /////////////////////////////////////////////////////////
-// Deterministic execution flow for /buy_pizza command
+// Deterministic execution flow for /pay command
 /////////////////////////////////////////////////////////
-export const handleBuyPizzaPrompt = async (
-    params: BuyPizzaPromptParams
-): Promise<BuyPizzaPromptResponse> => {
+export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromptResponse> => {
     const { args, user, whatsappParams } = params;
 
-    const campaignIsEnabled = await FeatureFlagService.isFeatureEnabled(
-        FeatureFlagKey.PIZZA_DAY_CAMPAIGN
-    );
+    const featureIsEnabled = await FeatureFlagService.isFeatureEnabled(FeatureFlagKey.NGN_PAY);
 
-    if (!campaignIsEnabled) {
+    if (!featureIsEnabled) {
         return {
-            rawText: PIZZA_CAMPAIGN_ENDED_RESPONSE,
+            rawText: PAY_FEATURE_UNAVAILABLE_RESPONSE,
             resetSession: true,
             botResponseMessage: MessageGenerators.generateTextMessage(
                 whatsappParams.userPhoneNumber,
-                PIZZA_CAMPAIGN_ENDED_RESPONSE
+                PAY_FEATURE_UNAVAILABLE_RESPONSE
             ),
         };
     }
@@ -138,25 +136,30 @@ export const handleBuyPizzaPrompt = async (
 
         return {
             rawText: 'Sent KYC verification init message',
-            resetSession: false,
+            resetSession: true,
         };
     }
 
     if (userKycStatus === 'in_review') {
-        const bvnVerificationMessageText =
-            'One last step to complete your KYC verification. Please verify your BVN.';
-        const bvnVerificationMessage = BvnKycVerificationFlow.withPhoneNumberId(
-            whatsappParams.businessPhoneNumberId as PhoneNumberId
-        ).createBvnVerificationFlowMessage(user, {
-            messageBody: bvnVerificationMessageText,
-            messageRecipient: whatsappParams.userPhoneNumber,
-            flowCTA: 'Verify BVN',
-        });
+        const isNgUser = user?.country?.toUpperCase().startsWith('NG');
+        const messageText = isNgUser
+            ? 'One last step to complete your KYC verification. Please verify your BVN.'
+            : `Your KYC verification is currently under review. Please wait for it to be completed before proceeding with payments.\n\n If you need assistance, please send /support.`;
+
+        const botResponseMessage = isNgUser
+            ? BvnKycVerificationFlow.withPhoneNumberId(
+                  whatsappParams.businessPhoneNumberId as PhoneNumberId
+              ).createBvnVerificationFlowMessage(user, {
+                  messageBody: messageText,
+                  messageRecipient: whatsappParams.userPhoneNumber,
+                  flowCTA: 'Verify BVN',
+              })
+            : MessageGenerators.generateTextMessage(whatsappParams.userPhoneNumber, messageText);
 
         return {
-            rawText: bvnVerificationMessageText,
-            resetSession: false,
-            botResponseMessage: bvnVerificationMessage,
+            botResponseMessage,
+            rawText: messageText,
+            resetSession: true,
         };
     }
 
@@ -188,7 +191,7 @@ export const handleBuyPizzaPrompt = async (
     if (missingFields.length > 1) {
         const combinedPrompt = [
             ...progressSummary,
-            progressSummary.length > 0 ? '' : '',
+            '',
             `🔜 Still need:`,
             ...getMissingFields(args).map((field, index) => {
                 const fieldPrompts: { [key: string]: string } = {
@@ -281,23 +284,6 @@ export const handleBuyPizzaPrompt = async (
         };
     }
 
-    // Validation checks
-    if (args.fiatAmount < MIN_BUY) {
-        const belowMinAmountPromptResponse = [
-            `🚫 The amount is too low for pizza payment.`,
-            `Minimum amount: ₦${MIN_BUY.toLocaleString()}. Please enter a higher amount.`,
-        ].join('\n');
-
-        return {
-            rawText: belowMinAmountPromptResponse,
-            resetSession: false,
-            botResponseMessage: MessageGenerators.generateTextMessage(
-                whatsappParams.userPhoneNumber,
-                belowMinAmountPromptResponse
-            ),
-        };
-    }
-
     if (args.fiatCurrency.toUpperCase() !== 'NGN') {
         const unsupportedCurrencyPromptResponse = [
             `❌ Sorry, we currently only accept Nigerian Naira (NGN).`,
@@ -310,6 +296,23 @@ export const handleBuyPizzaPrompt = async (
             botResponseMessage: MessageGenerators.generateTextMessage(
                 whatsappParams.userPhoneNumber,
                 unsupportedCurrencyPromptResponse
+            ),
+        };
+    }
+
+    // Validation checks
+    if (args.fiatAmount < MIN_PAY.NGN) {
+        const belowMinAmountPromptResponse = [
+            `🚫 The amount is too low for payment.`,
+            `Minimum amount: ₦${MIN_PAY.NGN.toLocaleString()}. Please enter a higher amount.`,
+        ].join('\n');
+
+        return {
+            rawText: belowMinAmountPromptResponse,
+            resetSession: false,
+            botResponseMessage: MessageGenerators.generateTextMessage(
+                whatsappParams.userPhoneNumber,
+                belowMinAmountPromptResponse
             ),
         };
     }
@@ -423,7 +426,7 @@ export const handleBuyPizzaPrompt = async (
         });
 
         const noPaymentBalanceMessage = [
-            `💳 Insufficient balance for this pizza payment.`,
+            `💳 Insufficient balance for this payment.`,
             ``,
             `Required: *$${amountToDebit}* (including $${feeConfig.feeUsd} fee)`,
             ``,
@@ -501,7 +504,7 @@ export const handleBuyPizzaPrompt = async (
                   paymentAsset
               )
             : [
-                  `*Review your pizza payment:*`,
+                  `*Review your payment:*`,
                   ``,
                   `💰 Amount: *₦${args.fiatAmount.toLocaleString()}*`,
                   `🏦 To: *${args.destinationBankName} — ${args.destinationAccountNumber}*`,
@@ -612,7 +615,6 @@ export const addPaymentJobForProcessing = async (
                 userPhoneNumber: userPhoneNumber,
                 businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
             },
-            isPizzaPayment: true,
         },
         {
             ...defaultQueueRemoveOptions,
@@ -669,13 +671,13 @@ const bankSearcher = async (
 
 const formatAssetOption = (balance: AssetBalance): string => {
     const formattedBalance = fixNumber(balance.convertedBalanceUsd ?? 0, 2);
-    return `• ${balance.asset.tokenName} (${balance.asset.network}) - ${formattedBalance}`;
+    return `• ${balance.asset.tokenName} (${balance.asset.network}) - ${formattedBalance} ${balance.asset.tokenName}`;
 };
 
 // Helper function to find selected asset based on user input
 const findSelectedAsset = (
     possibleAssets: AssetBalance[],
-    args: BuyPizzaPromptArgs | null
+    args: PayPromptArgs | null
 ): { asset: AssetBalance; isAmbiguous: boolean; matches: AssetBalance[] } => {
     if (!args || (!args.selectedAssetIndex && args.selectedAssetIndex === null)) {
         return {
@@ -819,7 +821,7 @@ const generateDisambiguationMessage = (matches: AssetBalance[], userInput: strin
 };
 
 const generateAssetConfirmation = (
-    args: BuyPizzaPromptArgs,
+    args: PayPromptArgs,
     allAssets: AssetBalance[],
     amountToDebit: number,
     nameValidation: NonNullable<Awaited<ReturnType<typeof FiatRampService.resolveBankAccount>>>,
@@ -833,7 +835,7 @@ const generateAssetConfirmation = (
     const hasMore = allAssets.length - 1 > alternatives.length;
 
     return [
-        `*Review your pizza payment:*`,
+        `*Review your payment:*`,
         ``,
         `💰 Amount: *₦${args.fiatAmount!.toLocaleString()}*`,
         `🏦 To: *${args.destinationBankName} — ${args.destinationAccountNumber}*`,

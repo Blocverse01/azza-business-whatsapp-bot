@@ -31,7 +31,7 @@ export const BOT_COMMANDS_REGEX = {
     SUPPORT: /^\/support$/,
     WRAPPED: /^\/wrapped$/,
     REFERRAL_CODE: /^\/referral_code$/,
-    BUY_PIZZA: /^\/buy_pizza$/,
+    PAY: /^\/pay$/,
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {

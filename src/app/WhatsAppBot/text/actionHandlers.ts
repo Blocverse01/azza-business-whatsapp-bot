@@ -1,7 +1,7 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { getDefaultParamsForNetworkFeeQuery } from '@/app/AzzaWalletManager/fallback-data';
 import { SwapAssetQuote } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
-import { handleBuyPizzaPrompt } from '@/app/campaigns/pizza-day/messaging-utils';
+import { handlePayPrompt } from '@/app/pay/messaging-utils';
 import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
@@ -714,7 +714,7 @@ export const handleBalanceQueryPrompt = async (
 
                     const emoji = getNetworkEmoji(network);
 
-                    return `*${emoji ? emoji : ''} ${network}*\n${assetBalances}`;
+                    return `*${emoji ?? ''} ${network}*\n${assetBalances}`;
                 })
                 .filter((value) => value !== '')
                 .join('\n\n');
@@ -1434,16 +1434,19 @@ export const handleReferralPrompt = async (
 };
 
 /////////////////////////////////////////////////////////
-//       Buy Pizza Prompt Handler
+//       Pay Prompt Handler
 /////////////////////////////////////////////////////////
-export const handleBuyPizzaRelatedPrompt = async (
+export const handlePayRelatedPrompt = async (
     params: ActionHandlerParams
 ): Promise<PromptHandlerResponse> => {
-    const response = await handleBuyPizzaPrompt({
+    const response = await handlePayPrompt({
         whatsappParams: params.botParams,
         user: params.user,
         args: params.extractedArguments
-            ? parseExtractedArguments(params.extractedArguments, actionArgumentsSchema.BUY_PIZZA)
+            ? parseExtractedArguments(
+                  params.extractedArguments,
+                  actionArgumentsSchema.PAY_TO_BANK_ACCOUNT
+              )
             : null,
     });
 

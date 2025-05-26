@@ -1,4 +1,4 @@
-import { BuyPizzaPromptArgsSchema } from '@/app/campaigns/pizza-day/schema';
+import { PayPromptArgsSchema } from '@/app/pay/schema';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
 import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
@@ -84,5 +84,5 @@ export const actionArgumentsSchema = {
     REFERRAL_CODE: z.object({}),
     REFERRAL_REQUEST: z.object({}),
     CANCEL_CURRENT_ACTION: z.object({}),
-    BUY_PIZZA: BuyPizzaPromptArgsSchema,
+    PAY_TO_BANK_ACCOUNT: PayPromptArgsSchema,
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;
