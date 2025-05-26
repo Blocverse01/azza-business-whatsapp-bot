@@ -551,7 +551,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
         whatsappParams.businessPhoneNumberId as PhoneNumberId
     ).createTransactionConfirmationFlowMessage({
         transactionSummary: transactionSummary.replaceAll('*', ''),
-        transactionMessageBody: `Click on the button below to enter your transaction PIN and complete your transaction.\n\nTransaction Summary: ${transactionSummary}`,
+        transactionMessageBody: `Click on "Confirm Transaction" to enter your transaction PIN.\n\nTransaction Summary: ${transactionSummary}`,
         msgRecipient: whatsappParams.userPhoneNumber,
         transactionDetails: {
             transactionType: 'PAYMENT',
