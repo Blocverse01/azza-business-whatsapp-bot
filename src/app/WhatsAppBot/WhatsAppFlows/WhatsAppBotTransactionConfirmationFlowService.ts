@@ -7,8 +7,8 @@ import {
     sendTransferAssetTransaction,
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
-import { addPaymentJobForProcessing } from '@/app/campaigns/pizza-day/messaging-utils';
-import { PaymentTransactionDetails } from '@/app/campaigns/pizza-day/types';
+import { addPaymentJobForProcessing } from '@/app/pay/messaging-utils';
+import { PaymentTransactionDetails } from '@/app/pay/types';
 import { createOrIncrementUsageCount, hasExceededLimit } from '@/app/limits/utils';
 import { addBlockradarAddressTokenSwapJobToQueue } from '@/app/swap/queue-utils';
 import { recordTransactionFeeCharge } from '@/app/transaction-fees/utils';
