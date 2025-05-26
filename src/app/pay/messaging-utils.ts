@@ -497,7 +497,10 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
     const transactionSummaryMessage =
         possiblePaymentBalances.length > 1
             ? generateAssetConfirmation(
-                  args,
+                  {
+                      ...args,
+                      destinationBankName: targetBank.name,
+                  },
                   possiblePaymentBalances,
                   amountToDebit,
                   nameValidation,
@@ -507,7 +510,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
                   `*Review your payment:*`,
                   ``,
                   `💰 Amount: *₦${args.fiatAmount.toLocaleString()}*`,
-                  `🏦 To: *${args.destinationBankName} — ${args.destinationAccountNumber}*`,
+                  `🏦 To: *${targetBank.name} — ${args.destinationAccountNumber}*`,
                   `👤 Name: *${nameValidation.accountName}*`,
                   ``,
                   `💳 *Payment Method:*`,
