@@ -149,6 +149,9 @@ export const queues = {
     resetFeatureUsageLimit: new Queue(QueueNames.resetFeatureUsageLimit, {
         connection: connectionConfig,
     }),
+    pizzaDayCashback: new Queue<PercentageCashbackQueueInput>(QueueNames.pizzaDayCashback, {
+        connection: connectionConfig,
+    }),
 };
 
 export const defaultQueueRemoveOptions = {

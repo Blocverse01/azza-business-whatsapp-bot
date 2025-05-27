@@ -1,15 +1,13 @@
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
 import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashbacks/utils';
+import { sendPizzaDayDepositMessageWithCashbackBanner } from '@/app/pay/cashbacks/utils';
 import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-payouts-v2/utils';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
 import SwapService from '@/app/swap/service';
 import { addFeeCollectionJobToQueue } from '@/app/transaction-fees/background-processing';
-import {
-    getDeterministicIdFromTxReference,
-    getTransactionFeeLogById,
-} from '@/app/transaction-fees/utils';
+import { getTransactionFeeLogById } from '@/app/transaction-fees/utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
@@ -22,6 +20,8 @@ import {
     FEE_COLLECTION_REFERENCE_PREFIX,
     OFFRAMP,
     OFFRAMP_WITHDRAW_REFERENCE_PREFIX,
+    PIZZA_CAMPAIGN_PAYMENT_SUFFIX,
+    PIZZA_DAY_CASHBACK_REFERENCE_PREFIX,
     WITHDRAWAL_REFERENCE_PREFIX,
 } from '@/constants/strings';
 import { dbClient } from '@/db/dbClient';
@@ -34,7 +34,7 @@ import azzaWalletManager from '@/runtime/wallet';
 const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
     // Todo: Move handler implementation to appropriate service
     handleDepositSuccess: async (data, network) => {
-        const userId = data.data.metadata?.userId;
+        const userId = data.data.metadata?.userId as string;
         const blockradarAsset = data.data.asset;
         const platformAssetConfig = azzaWalletManager.searchAssets({
             tokenName: blockradarAsset.symbol,
@@ -95,6 +95,12 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                         businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                     });
                     return;
+                } else if (reference?.startsWith(PIZZA_DAY_CASHBACK_REFERENCE_PREFIX)) {
+                    await sendPizzaDayDepositMessageWithCashbackBanner(message, {
+                        userPhoneNumber,
+                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                    });
+                    return;
                 }
             }
         } catch (error) {
@@ -125,7 +131,9 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const reason = metadata?.reason;
 
         if (reason === OFFRAMP) {
-            const pendingOfframpId = reference.split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1];
+            const pendingOfframpId = reference
+                .split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1]
+                .replace(PIZZA_CAMPAIGN_PAYMENT_SUFFIX, '');
             const pendingOfframpRequest =
                 await dbClient.offramp_awaiting_crypto_debit.read(pendingOfframpId);
 

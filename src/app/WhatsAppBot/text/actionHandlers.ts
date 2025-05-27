@@ -1,6 +1,7 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { getDefaultParamsForNetworkFeeQuery } from '@/app/AzzaWalletManager/fallback-data';
 import { SwapAssetQuote } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { handlePayPrompt } from '@/app/pay/messaging-utils';
 import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
@@ -12,7 +13,6 @@ import {
     calculateWithdrawalFees,
 } from '@/app/transaction-fees/utils';
 import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
-import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -707,12 +707,16 @@ export const handleBalanceQueryPrompt = async (
                         })
                         .join('\n');
 
-                    const network = networkGroup[0].blockchainNetwork;
+                    if (!networkGroup[0]) {
+                        return ``;
+                    }
+                    const network = networkGroup[0]?.blockchainNetwork;
 
                     const emoji = getNetworkEmoji(network);
 
-                    return `*${emoji ? emoji : ''} ${network}*\n${assetBalances}`;
+                    return `*${emoji ?? ''} ${network}*\n${assetBalances}`;
                 })
+                .filter((value) => value !== '')
                 .join('\n\n');
 
             const allBalancesMessage = `*Your balances on different networks:*\n\n${networkBalancesMessage}`;
@@ -1426,6 +1430,36 @@ export const handleReferralPrompt = async (
     return {
         response: 'Handled Referral prompt',
         resetSession: true,
+    };
+};
+
+/////////////////////////////////////////////////////////
+//       Pay Prompt Handler
+/////////////////////////////////////////////////////////
+export const handlePayRelatedPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const response = await handlePayPrompt({
+        whatsappParams: params.botParams,
+        user: params.user,
+        args: params.extractedArguments
+            ? parseExtractedArguments(
+                  params.extractedArguments,
+                  actionArgumentsSchema.PAY_TO_BANK_ACCOUNT
+              )
+            : null,
+    });
+
+    if (response.botResponseMessage) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            params.botParams.businessPhoneNumberId,
+            response.botResponseMessage
+        );
+    }
+
+    return {
+        response: response.rawText,
+        resetSession: response.resetSession,
     };
 };
 

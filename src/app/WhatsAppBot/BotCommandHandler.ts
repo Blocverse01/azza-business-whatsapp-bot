@@ -167,7 +167,7 @@ class BotCommandHandler {
             return;
         }
 
-        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+        const supportedAsset = searchAssetForward ?? searchAssetBackward;
 
         if (!supportedAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
             const responseMessage = `Selling ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
@@ -228,7 +228,7 @@ class BotCommandHandler {
             return;
         }
 
-        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+        const supportedAsset = searchAssetForward ?? searchAssetBackward;
 
         if (!supportedAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
             const responseMessage = `Buying ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
@@ -377,7 +377,7 @@ class BotCommandHandler {
             return;
         }
 
-        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+        const supportedAsset = searchAssetForward ?? searchAssetBackward;
 
         return await WhatsAppBotService.handleWithdrawAssetAction(
             user,

@@ -8,7 +8,7 @@ import {
     OfframpTransactionRecord,
     OfframpTransactionRecordSchema,
 } from '@/app/FiatRamp/fiatRampSchema';
-import { generateOfframpToBankRecipientReceipt } from '@/app/receipts/generators';
+import { generateOfframpReceipt } from '@/app/receipts/generators';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { dbClient } from '@/db/dbClient';
@@ -204,7 +204,7 @@ class ManualOfframpSettlementService {
             });
         }
 
-        const receiptBuffer = await generateOfframpToBankRecipientReceipt(
+        const receiptBuffer = await generateOfframpReceipt(
             OfframpTransactionRecordSchema.parse({
                 ...settlement,
                 destination: {

@@ -10,6 +10,7 @@ import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     handleBalanceQueryPrompt,
     handleBuyCryptoWithFiatPrompt,
+    handlePayRelatedPrompt,
     handleChangeTransactionPinPrompt,
     handleDepositRelatedPrompt,
     handleKycPrompt,
@@ -89,6 +90,8 @@ export const textPromptHandler = async (
 
     runtimeMessages.push({ role: 'user', content: prompt.trim(), sessionId: '' });
 
+    console.dir(runtimeMessages);
+
     let classifiedAction: Action;
     try {
         classifiedAction = await classifyAction(runtimeMessages);
@@ -109,6 +112,19 @@ export const textPromptHandler = async (
             classifiedAction: { class: 'NO_PREDEFINED_ACTION', confidence: 1 },
             prompt,
             promptHandlerResponse: { response: promptResponse, resetSession: false },
+        };
+    }
+
+    if (classifiedAction.class === 'CANCEL_CURRENT_ACTION') {
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, 'Request cancelled')
+        );
+        return {
+            handledTextPrompt: true,
+            classifiedAction,
+            prompt,
+            promptHandlerResponse: { response: 'Request cancelled', resetSession: true },
         };
     }
 
@@ -202,6 +218,13 @@ export const textPromptHandler = async (
                 responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
                 break;
             case 'REFERRAL_REQUEST':
+            case 'PAY_TO_BANK_ACCOUNT':
+                responseMessage = await handlePayRelatedPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
             case 'REFERRAL_CODE':
                 responseMessage = await handleReferralPrompt({
                     extractedArguments,

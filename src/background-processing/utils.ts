@@ -13,7 +13,11 @@ import {
 } from '@/background-processing/types';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
-import { OFFRAMP, OFFRAMP_WITHDRAW_REFERENCE_PREFIX } from '@/constants/strings';
+import {
+    OFFRAMP,
+    OFFRAMP_WITHDRAW_REFERENCE_PREFIX,
+    PIZZA_CAMPAIGN_PAYMENT_SUFFIX,
+} from '@/constants/strings';
 import { dbClient } from '@/db/dbClient';
 import { convertBase64ToAsciiString, decryptWithAES } from '@/resources/utils/encryption';
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
@@ -49,7 +53,7 @@ export const createEventDrivenOfframpWorker = () => {
 
             const tokenAmountToDebit = job.data.offrampParams.tokenAmountToDebit;
 
-            const reference = `${OFFRAMP_WITHDRAW_REFERENCE_PREFIX}${pendingOfframp.id}`;
+            const reference = `${OFFRAMP_WITHDRAW_REFERENCE_PREFIX}${pendingOfframp.id}${job.data.isPizzaPayment ? PIZZA_CAMPAIGN_PAYMENT_SUFFIX : ''}`;
 
             const [sendCryptoTxResponse, txError] = await sendTransferAssetTransaction(
                 {

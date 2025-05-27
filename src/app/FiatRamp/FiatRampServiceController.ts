@@ -5,10 +5,7 @@ import {
 import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
-import {
-    generateOfframpToBankRecipientReceipt,
-    generateOnrampReceipt,
-} from '@/app/receipts/generators';
+import { generateOfframpReceipt, generateOnrampReceipt } from '@/app/receipts/generators';
 import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
@@ -111,7 +108,7 @@ class FiatRampServiceController {
                     });
                 }
 
-                const receiptBuffer = await generateOfframpToBankRecipientReceipt(transaction);
+                const receiptBuffer = await generateOfframpReceipt(transaction);
                 const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
                     env.WA_PHONE_NUMBER_ID,
                     new File([Buffer.from(receiptBuffer)], `receipt-${sequenceId}.png`, {

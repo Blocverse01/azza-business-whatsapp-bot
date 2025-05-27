@@ -66,6 +66,7 @@ export enum QueueNames {
     generateReferralCode = 'generate-referral-code',
     feeCollection = 'fee-collection',
     resetFeatureUsageLimit = 'reset-feature-usage-limit',
+    pizzaDayCashback = 'pizza-day-cashback',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -131,6 +132,7 @@ export type EventDrivenOfframpQueueInput = {
     };
     whatsappParams: PhoneNumberParams;
     transactionPin: string;
+    isPizzaPayment?: boolean;
 };
 export type EventDrivenOfframpQueueResult = {
     offrampRequestId: string;
