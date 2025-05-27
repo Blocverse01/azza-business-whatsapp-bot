@@ -192,54 +192,6 @@ class HoneyCoinService {
         }
     }
 
-    public static async processMobileMoneyOnRampPaymentWithHoneyCoin(data: {
-        amountToDebit: number,
-        phoneNumber: string,
-        sequenceId: string,
-    }) {
-
-        const {
-            amountToDebit,
-            phoneNumber,
-            sequenceId
-        } = data;
-
-        const payload = {
-            amount: amountToDebit,
-            currency: 'KES',
-            externalReference: sequenceId,
-            phoneNumber: phoneNumber.startsWith('+') ? phoneNumber.slice(1) : phoneNumber
-        };
-
-        try {
-            const authTokenData = await this.generateAccessToken();
-            const response = await axios.post<HoneyCoinPayoutResponse>(
-                `${this.HONEYCOIN_BASE_URL}/fiat/deposit/momo`,
-                payload,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${authTokenData.token}`
-                    },
-                }
-            );
-            const { success, message } = response.data;
-            void logger.info(
-                `Processing honeycoin on-ramp transaction of ${amountToDebit} KES, sequenceId : ${sequenceId}`
-            );
-            if (!success) throw new HttpException(INTERNAL_SERVER_ERROR, message as string);
-
-            return {
-                sequenceId
-            };
-
-        } catch (error) {
-            await logServiceError(error, 'Error processing on-ramp payment with HoneyCoin');
-            throw error;
-        }
-
-    }
-
     public static async processMobileMoneyOffRampPaymentWithHoneyCoin(data: {
         amountToSend: number,
         beneficiaryAccountNumber: string,
