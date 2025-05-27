@@ -106,11 +106,13 @@ class FiatRampService {
             );
 
         if (honeyCoinKESMobileMoneyPayoutIsEnabled && isKenya && isOfframp) {
-            const recommendedChannel = recommendedOffRampChannelForKenya;
+            const { paymentChannels: recommendedChannels, countryFiatLimits } = recommendedOffRampChannelForKenya;
 
             const updatedChannels = [
-                ...paymentChannels.filter(c => c.channelName !== recommendedChannel.channelName),
-                recommendedChannel
+                ...paymentChannels.filter(
+                    c => !recommendedChannels.some(rc => rc.channelName === c.channelName)
+                ),
+                ...recommendedChannels
             ];
 
             return {
