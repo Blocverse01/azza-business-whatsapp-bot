@@ -67,6 +67,8 @@ export const ENABLED_ASSETS = [
 export const getAssetConfigOrThrow = (listItemId: string): AssetConfig => {
     const assetConfig = ENABLED_ASSETS.find((asset) => asset.listItemId === listItemId);
 
+    console.log('assetConfig', assetConfig);
+
     if (!assetConfig) {
         throw new Error(`Asset with list item id ${listItemId} not found`);
     }
