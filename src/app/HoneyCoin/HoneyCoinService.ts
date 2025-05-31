@@ -250,7 +250,7 @@ class HoneyCoinService {
             void logger.info(
                 `Processing honeycoin off-ramp transaction of ${amountToSend} KES to beneficiary account: ${beneficiaryAccountNumber}, sequenceId : ${sequenceId}`
             );
-            if (!success) throw new HttpException(INTERNAL_SERVER_ERROR, message as string);
+            if (!success) throw new HttpException(response.status, message);
             void logger.info(
                 `Successfully sent ${amountToSend} KES to beneficiary account: ${beneficiaryAccountNumber}, sequenceId: ${sequenceId}`
             );
