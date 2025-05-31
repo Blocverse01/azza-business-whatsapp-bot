@@ -28,7 +28,7 @@ class HoneyCoinService {
     private static readonly HONEYCOIN_PUBLIC_KEY = env.HONEYCOIN_PUBLIC_KEY;
     private static accessToken: string | null = null;
     private static tokenExpiry: number | null = null;
-    private static HONEYCOIN_OFFRAMP_TRANSACTION_REPOSITORY =
+    private static readonly HONEYCOIN_OFFRAMP_TRANSACTION_REPOSITORY =
         dbClient.honeycoin_offramp_settlement_transaction;
 
     public static async generateAccessToken(): Promise<AuthTokenResult> {
