@@ -217,7 +217,9 @@ class HoneyCoinService {
     }) {
         const { amountToSend, beneficiaryAccountNumber, sequenceId, beneficiaryAccountName } = data;
 
-        console.log({ beneficiaryAccountNumber });
+        const cleanKEPhoneNumber = beneficiaryAccountNumber.startsWith('254254')
+            ? beneficiaryAccountNumber.slice(3)
+            : beneficiaryAccountNumber;
 
         const payload = {
             amount: amountToSend,
@@ -226,7 +228,7 @@ class HoneyCoinService {
             externalReference: sequenceId,
             payoutMethod: {
                 accountName: beneficiaryAccountName,
-                accountNumber: beneficiaryAccountNumber,
+                accountNumber: cleanKEPhoneNumber,
             },
             destination: 'MoMo',
             // debitCurrency: 'NGN'
