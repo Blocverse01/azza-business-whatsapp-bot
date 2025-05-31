@@ -519,6 +519,8 @@ class FiatRampService {
             );
         }
 
+        console.log('Beneficiary for Honeycoin: ', beneficiary);
+
         const honeycoinSettlementRecord =
             await HoneyCoinService.createHoneyCoinMobileMoneyOfframpSettlement(settlementData);
 
@@ -528,6 +530,7 @@ class FiatRampService {
 
         const { country, accountNumber, accountName } = settlementData.destination;
 
+        console.log('Beneficiary AccountNumber for Honeycoin: ', accountNumber);
         const transaction = await HoneyCoinService.processMobileMoneyOffRampPaymentWithHoneyCoin({
             amountToSend: settlementData.localAmount,
             beneficiaryAccountNumber: accountNumber.startsWith('+')
