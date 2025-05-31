@@ -17,7 +17,9 @@ export const getMinimumOfframpUsdAmount = (chain: AllSupportedBlockchains): numb
 
 export const SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID = 'safehaven' as const;
 export const MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID = 'mp' as const;
+export const HONEYCOIN_OFFRAMP_PAYMENT_PROCESSOR_ID = 'honeycoin' as const;
 
 export type ProcessorId =
     | typeof SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
-    | typeof MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID;
+    | typeof MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID
+    | typeof HONEYCOIN_OFFRAMP_PAYMENT_PROCESSOR_ID;

@@ -111,6 +111,14 @@ const envSchema = z.object({
         .enum(['true', 'false'])
         .default('false')
         .transform((data) => data === 'true'),
+
+    ///////////////////////
+    /// HoneyCoin
+    ///////////////////////
+    HONEYCOIN_API_KEY: notEmptyStringSchema('HONEYCOIN_API_KEY'),
+    HONEYCOIN_PUBLIC_KEY: notEmptyStringSchema('HONEYCOIN_PUBLIC_KEY'),
+    HONEYCOIN_BASE_URL: notEmptyStringSchema('HONEYCOIN_BASE_URL').and(z.string().url()),
+    HONEYCOIN_WEBHOOK_SECRET: notEmptyStringSchema('HONEYCOIN_WEBHOOK_SECRET')
 });
 
 const env = envSchema.parse(process.env);

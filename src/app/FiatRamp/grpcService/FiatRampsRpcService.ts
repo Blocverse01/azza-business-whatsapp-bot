@@ -14,7 +14,6 @@ import {
     sendOnrampTransactionResponseSchema,
     supportedCountry,
     supportedPaymentNetworkSchema,
-    supportedPaymentNetworkType,
 } from '@/app/FiatRamp/fiatRampSchema';
 import redis from '@/cache/redis';
 import { HUNDRED } from '@/constants/numbers';
@@ -65,9 +64,6 @@ import ResolveBankAccountRequest = fiatramps.v1.ResolveBankAccountRequest;
 import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
 import UpdatePaymentTransactionStatusRequest = fiatramps.v1.UpdatePaymentTransactionStatusRequest;
 import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
-import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
-import slugify from 'slugify';
-import env from '@/constants/env';
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {

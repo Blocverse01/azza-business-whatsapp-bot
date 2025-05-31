@@ -475,6 +475,31 @@ const tables = [
       { name: "collectionTxHash", type: "text" },
     ],
   },
+  {
+    name: "honeycoin_offramp_settlement_transaction",
+    columns: [
+      { name: "country", type: "text" },
+      { name: "blockchainNetwork", type: "text" },
+      { name: "fromWalletAddress", type: "text" },
+      { name: "hotWalletAddress", type: "text" },
+      { name: "localAmount", type: "float" },
+      { name: "ownerId", type: "text" },
+      { name: "tokenAddress", type: "text" },
+      { name: "tokenSymbol", type: "text" },
+      { name: "transactionFeeUsd", type: "float" },
+      { name: "transactionHash", type: "text" },
+      { name: "usdAmount", type: "float" },
+      { name: "processingStatus", type: "text" },
+      { name: "destinationAccountName", type: "text" },
+      { name: "destinationNetworkName", type: "text" },
+      { name: "paymentCurrency", type: "text" },
+      { name: "platformFeePercentage", type: "float" },
+      { name: "localCurrencySymbol", type: "text" },
+      { name: "conversionRate", type: "float" },
+      { name: "destinationAccountNumber", type: "text" },
+      { name: "referenceId", type: "text" },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -545,6 +570,11 @@ export type SwapTransactionsRecord = SwapTransactions & XataRecord;
 export type TransactionFeeLogs = InferredTypes["transaction_fee_logs"];
 export type TransactionFeeLogsRecord = TransactionFeeLogs & XataRecord;
 
+export type HoneycoinOfframpSettlementTransaction =
+  InferredTypes["honeycoin_offramp_settlement_transaction"];
+export type HoneycoinOfframpSettlementTransactionRecord =
+  HoneycoinOfframpSettlementTransaction & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -565,6 +595,7 @@ export type DatabaseSchema = {
   referrals: ReferralsRecord;
   swap_transactions: SwapTransactionsRecord;
   transaction_fee_logs: TransactionFeeLogsRecord;
+  honeycoin_offramp_settlement_transaction: HoneycoinOfframpSettlementTransactionRecord;
 };
 
 const DatabaseClient = buildClient();

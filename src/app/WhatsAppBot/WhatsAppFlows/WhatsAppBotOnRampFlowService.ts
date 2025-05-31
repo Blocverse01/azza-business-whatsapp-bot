@@ -775,6 +775,7 @@ class WhatsAppBotOnRampFlowService {
 
         try {
             const assetConfig = getAssetConfigOrThrow(asset_id);
+
             const [assetWallet, verifiedUserDetails] = await Promise.all([
                 azzaWalletManager.getUserWallet(user_id, getAssetConfigOrThrow(asset_id).network),
                 userServiceV2.getWhatsappUserIdentityInfo(user_id),

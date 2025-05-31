@@ -18,6 +18,7 @@ import { CRYPTO_PAYOUT_REFERENCE_PREFIX } from '@/constants/strings';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import logger from '@/resources/logger';
 import SafeHavenService from '../SafeHaven/SafeHavenService';
+import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -145,6 +146,9 @@ export const createCryptoPayoutWorker = () => {
                 if (transactionType === 'offramp-safehaven-refund') {
                     return await SafeHavenService.getSafeHavenOfframpTransaction(transactionId);
                 }
+                if (transactionType === 'offramp-honeycoin-refund') {
+                    return await HoneyCoinService.getHoneyCoinOfframpTransaction(transactionId); 
+                }  
                 if (transactionType === 'onramp-payout') {
                     return await FiatRampService.getOnrampTransaction(transactionId);
                 }

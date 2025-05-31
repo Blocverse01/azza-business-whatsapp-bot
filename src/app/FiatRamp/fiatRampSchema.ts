@@ -189,7 +189,7 @@ export const transactionStatusSchema = z.enum([
     'process',
     'recorded',
     'sent',
-    'retried',
+    'retried'
 ]);
 
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;

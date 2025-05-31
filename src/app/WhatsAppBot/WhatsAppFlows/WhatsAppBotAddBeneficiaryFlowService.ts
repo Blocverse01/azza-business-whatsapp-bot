@@ -346,6 +346,8 @@ class WhatsAppBotAddBeneficiaryFlowService {
             selectedAccountType.channelId
         );
 
+        console.log('supportedProviders---', supportedProviders)
+
         return {
             screen: AddBeneficiaryFlowScreens.MOBILE_MONEY_FORM,
             data: {
@@ -484,9 +486,9 @@ class WhatsAppBotAddBeneficiaryFlowService {
                         nameEnquiryReference:
                             country_code === 'NG'
                                 ? extractIdFromString({
-                                      input: network_id,
-                                      key: 'nameEnquiryReference',
-                                  })
+                                    input: network_id,
+                                    key: 'nameEnquiryReference',
+                                })
                                 : '',
                         channelId: channel_id,
                         countryId: country.id,
