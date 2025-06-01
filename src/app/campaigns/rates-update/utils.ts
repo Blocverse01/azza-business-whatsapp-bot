@@ -126,7 +126,7 @@ export const prepareRatesUpdateQueue = async () => {
     await queues.dailyRatesUpdate.upsertJobScheduler(
         'daily-rates-update',
         {
-            pattern: '0 12 * * *',
+            pattern: '0 11 * * *',
         },
         {
             name: 'daily-rates-update',
