@@ -5,7 +5,6 @@ import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { WhatsAppMessageType } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { queues } from '@/background-processing/queues';
 import { QueueNames } from '@/background-processing/types';
-import { TECHNICAL_SUPPORT_NUMBERS } from '@/config/support';
 import env from '@/constants/env';
 import { TWO } from '@/constants/numbers';
 import { dbClient } from '@/db/dbClient';
@@ -80,14 +79,7 @@ const handleRatesUpdate = async () => {
     const rates = await FiatRampService.getAllRates();
     const [ratesByLocaleGroup, users] = await Promise.all([
         prepareRateCardAndMesssageForLocaleGroups(rates),
-        dbClient.user_v2
-            .filter({
-                primaryWhatsappPhoneNumber: {
-                    $any: TECHNICAL_SUPPORT_NUMBERS,
-                },
-            })
-            .select(['primaryWhatsappPhoneNumber', 'firstName'])
-            .getAll(),
+        dbClient.user_v2.select(['primaryWhatsappPhoneNumber', 'firstName']).getAll(),
     ]);
 
     const messages = users.map(
@@ -134,8 +126,7 @@ export const prepareRatesUpdateQueue = async () => {
     await queues.dailyRatesUpdate.upsertJobScheduler(
         'daily-rates-update',
         {
-            every: 5 * 60 * 1000, // Job will repeat every 5 minutes for testing
-            //pattern: '0 12 * * *'
+            pattern: '0 12 * * *',
         },
         {
             name: 'daily-rates-update',
