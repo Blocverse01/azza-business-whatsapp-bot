@@ -54,7 +54,7 @@ import {
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
-import { getSupportedAssetAndNetworksText } from '../utils';
+import { getSupportContactsMessageText, getSupportedAssetAndNetworksText } from '../utils';
 import SumSubService from '@/app/SumSub/SumSubService';
 
 type ActionHandlerParams = {
@@ -1460,6 +1460,25 @@ export const handlePayRelatedPrompt = async (
     return {
         response: response.rawText,
         resetSession: response.resetSession,
+    };
+};
+
+/////////////////////////////////////////////////////////
+//       Support Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleSupportRelatedPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const responseMessage = getSupportContactsMessageText();
+
+    const { botParams } = params;
+    await WhatsAppBotService.sendWhatsappMessage(
+        botParams.businessPhoneNumberId,
+        MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+    );
+    return {
+        response: responseMessage,
+        resetSession: true,
     };
 };
 

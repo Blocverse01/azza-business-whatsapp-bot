@@ -21,6 +21,7 @@ const actions = [
     'KYC_VERIFICATION',
     'REFERRAL_REQUEST',
     'REFERRAL_CODE',
+    'REQUEST_SUPPORT',
 ] as const;
 const actionClassSchema = z.enum(actions);
 
@@ -47,6 +48,7 @@ const actionDescriptions: Record<ActionClass, string> = {
     KYC_VERIFICATION: 'Start or check the KYC verification process.',
     REFERRAL_REQUEST: 'Request a referral link or details.',
     REFERRAL_CODE: 'Request a referral link or details. Overlaps with referral request',
+    REQUEST_SUPPORT: 'Request support or assistance with an issue.',
 };
 
 const actionSchema = z.object({
@@ -65,7 +67,7 @@ const formattedChoiceString = getChoiceString(
 
 export const classifyAction = async (messages: Array<CoreMessage>): Promise<Action> => {
     const result = await generateObject({
-        model: openai('gpt-4o'),
+        model: openai('gpt-4o-mini'),
         system: `You're a smart assistant that must classify user intent based on a set of predefined actions. Each action has a description. Classify ONLY based on these descriptions — do not use assumptions or unrelated prior knowledge.
 
         ----------------

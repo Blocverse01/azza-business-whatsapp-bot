@@ -21,6 +21,7 @@ import {
     handleSwapCryptoPrompt,
     handleWithdrawRelatedPrompt,
     PromptHandlerResponse,
+    handleSupportRelatedPrompt,
 } from '@/app/WhatsAppBot/text/actionHandlers';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
@@ -234,6 +235,13 @@ export const textPromptHandler = async (
                 break;
             case 'KYC_VERIFICATION':
                 responseMessage = await handleKycPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'REQUEST_SUPPORT':
+                responseMessage = await handleSupportRelatedPrompt({
                     extractedArguments,
                     botParams,
                     user,
