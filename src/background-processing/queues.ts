@@ -152,6 +152,9 @@ export const queues = {
     pizzaDayCashback: new Queue<PercentageCashbackQueueInput>(QueueNames.pizzaDayCashback, {
         connection: connectionConfig,
     }),
+    dailyRatesUpdate: new Queue(QueueNames.dailyRatesUpdate, {
+        connection: connectionConfig,
+    }),
 };
 
 export const defaultQueueRemoveOptions = {

@@ -67,6 +67,7 @@ export enum QueueNames {
     feeCollection = 'fee-collection',
     resetFeatureUsageLimit = 'reset-feature-usage-limit',
     pizzaDayCashback = 'pizza-day-cashback',
+    dailyRatesUpdate = 'daily-rates-update',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -112,7 +113,7 @@ export type WhatsAppBotMessagingQueueResult = {
 };
 
 export type WhatsappBroadcastQueueInput = {
-    message: WhatsAppTextMessage | WhatsAppMediaMessage;
+    message: object;
     businessPhoneNumberId: string;
 };
 

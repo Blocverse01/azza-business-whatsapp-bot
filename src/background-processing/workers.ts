@@ -72,6 +72,10 @@ import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
+import {
+    prepareRatesUpdateQueue,
+    createRatesUpdateWorker,
+} from '@/app/campaigns/rates-update/utils';
 
 ///////////////////////
 // Worker Instances
@@ -491,6 +495,8 @@ createBlockradarAddressTokenSwapWorker(connectionConfig).on('error', async (erro
 });
 createFeeCollectionWorker(connectionConfig);
 createResetFeatureUsageLimitWorker(connectionConfig);
+prepareRatesUpdateQueue();
+createRatesUpdateWorker(connectionConfig);
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

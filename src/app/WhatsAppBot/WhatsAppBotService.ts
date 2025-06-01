@@ -585,7 +585,9 @@ class WhatsAppBotService {
 
         try {
             const imageBinary = await generateRatesCard(rates);
-            const imageFile = new File([imageBinary], 'rates_card.png', { type: 'image/png' });
+            const imageFile = new File([Buffer.from(imageBinary)], 'rates_card.png', {
+                type: 'image/png',
+            });
             const mediaResponse = await this.uploadImageToWhatsapp(
                 businessPhoneNumberId,
                 imageFile
