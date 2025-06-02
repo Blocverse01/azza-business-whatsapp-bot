@@ -87,7 +87,8 @@ const handleRatesUpdate = async () => {
             new Promise((resolve) => {
                 const phoneNumber = user.primaryWhatsappPhoneNumber;
                 const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(phoneNumber);
-                const rateConfig = ratesByLocaleGroup[userCountryCode];
+                const rateConfig =
+                    ratesByLocaleGroup[userCountryCode] ?? Object.values(ratesByLocaleGroup)[0];
                 const firstName = getFirstNameOnly(user.firstName ?? '');
                 const personalizedText = rateConfig?.ratesText.replace('{{firstName}}', firstName);
 
