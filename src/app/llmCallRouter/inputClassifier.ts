@@ -67,7 +67,7 @@ const formattedChoiceString = getChoiceString(
 
 export const classifyAction = async (messages: Array<CoreMessage>): Promise<Action> => {
     const result = await generateObject({
-        model: openai('gpt-4o-mini'),
+        model: openai('gpt-4o'),
         system: `You're a smart assistant that must classify user intent based on a set of predefined actions. Each action has a description. Classify ONLY based on these descriptions — do not use assumptions or unrelated prior knowledge.
 
         ----------------
