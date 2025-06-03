@@ -9,12 +9,12 @@ export const PayPromptArgsSchema = z.object({
         .number()
         .positive()
         .nullable()
-        .describe(
-            'Amount to pay for pizza specified in a fiat currency, supported currencies: NGN'
-        ),
+        .describe('Amount to pay for pizza specified in a fiat currency, supported currencies: NGN')
+        .default(null),
     fiatCurrency: z
         .string()
         .nullable()
+        .optional()
         .describe(
             'Fiat currency to make payment in, supported currencies: NGN. If no one is specified default to NGN'
         )
@@ -22,8 +22,13 @@ export const PayPromptArgsSchema = z.object({
     destinationAccountNumber: z
         .string()
         .nullable()
+        .default(null)
         .describe('Account number to receive payment for Pizza. Usually 10 digits'),
-    destinationBankName: z.string().nullable().describe('Bank name input provided by the user.'),
+    destinationBankName: z
+        .string()
+        .nullable()
+        .default(null)
+        .describe('Bank name input provided by the user.'),
     hasConfirmedPayment: z
         .boolean()
         .describe('Boolean to track if the user has confirmed the payment details')
