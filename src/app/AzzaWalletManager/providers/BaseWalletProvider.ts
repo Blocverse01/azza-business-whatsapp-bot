@@ -1,3 +1,4 @@
+import { BlockradarTransactionType } from '@/app/Blockradar/schema';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import type { AssetConfig } from '@/resources/web3/core/tokens';
 
@@ -58,6 +59,7 @@ export type SwapAssetQuoteParams = {
     toAssetId: string;
     amount: string;
     recipientAddress?: string;
+    userId: string;
 };
 export type SwapAssetQuote = {
     amount: number;
@@ -72,6 +74,7 @@ export type ExecuteAssetSwapParams = {
     recipientAddress: string;
     reference: string;
     metadata?: Record<string, string>;
+    userId: string;
 };
 export type AssetSwapTransaction = {
     fromAsset: AssetConfig;
@@ -114,7 +117,8 @@ export abstract class BaseWalletProvider {
 
     public abstract getTransactionByHash(
         transactionHash: string,
-        network: AllSupportedBlockchains
+        network: AllSupportedBlockchains,
+        transactionType?: BlockradarTransactionType
     ): Promise<AssetTransaction>;
 
     public abstract withdrawAsset(params: WithdrawAssetParams): Promise<AssetTransaction>;
@@ -124,6 +128,7 @@ export abstract class BaseWalletProvider {
     ): Promise<{
         nativeBalance: number;
         networkFee: number;
+        networkFeeInUsd: number;
     }>;
 
     public abstract getSwapQuote(params: SwapAssetQuoteParams): Promise<SwapAssetQuote>;

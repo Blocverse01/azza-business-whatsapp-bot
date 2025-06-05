@@ -2,7 +2,8 @@ import { sendWhatsappBroadcastMessage } from '../src/app/WhatsAppBot/messagingQu
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
 
-const mediaId = '1145583560637144';
+const currentMediaLink =
+    'https://res.cloudinary.com/dltnruk3l/image/upload/v1747496634/announcement_banner_omjxup.png';
 
 async function sendBroadcastMessage(message: string, onlyTo: string[] = []) {
     const allUsers =
@@ -30,7 +31,7 @@ async function sendBroadcastMessage(message: string, onlyTo: string[] = []) {
                             to: phoneNumber,
                             type: 'image',
                             image: {
-                                id: mediaId,
+                                link: currentMediaLink,
                                 caption: message,
                             },
                         },
@@ -51,8 +52,9 @@ async function runScript() {
     const onlyTo = onlyToString ? onlyToString.split(',') : [];
 
     const message = [
-        'You are now qualified to earn *1%* *cashback* every time you buy or sell *USDC* on *BASE*.This offer is only available on *AZZA*\n',
-        'Start trading now and earn cashback on every transaction! 🚀',
+        '🚀 Base Transactions Are Back Online!\n',
+        'Great news — transactions on Base are now back up and running smoothly! If you had any pending or failed transactions earlier, feel free to retry them now. Everything should process without issues.\n',
+        'Thanks for your patience and happy transacting! 💙',
     ].join('\n');
 
     await sendBroadcastMessage(message, onlyTo);

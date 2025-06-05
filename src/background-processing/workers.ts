@@ -1,6 +1,6 @@
 import {
     createCleanupOldMessagesWorker,
-    prepareSchedulerQueue,
+    //prepareSchedulerQueue,
 } from '@/app/aiAgent/conversation-manager';
 import { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import {
@@ -15,17 +15,21 @@ import {
 } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
 import { createAzzaWrappedWorker } from '@/app/campaigns/azza-wrapped/queue-utils';
 import { createBaseCashbackWorker } from '@/app/campaigns/base-cashbacks/utils';
+import { createPizzaDayCashbackWorker } from '@/app/pay/cashbacks/utils';
 import { createCryptoPayoutWorker } from '@/app/crypto-payouts-v2/utils';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { createFiatPayoutV2Worker, createOnRampWorker } from '@/app/FiatRamp/queue-helpers';
+import {
+    createResetFeatureUsageLimitWorker,
+    //prepareLimitResetSchedulerQueue,
+} from '@/app/limits/utils';
+import { createReferralCodeWorker } from '@/app/referral-scheme/queue-utils';
 import { createSafeHavenTransactionUpdateJobWorker } from '@/app/SafeHaven/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
-import {
-    createBlockradarAddressTokenSwapWorker,
-    createBlockradarMasterWalletTokenSwapWorker,
-} from '@/app/swap/queue-utils';
+import { createBlockradarAddressTokenSwapWorker } from '@/app/swap/queue-utils';
+import { createFeeCollectionWorker } from '@/app/transaction-fees/background-processing';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     createWhatsappBroadcastWorker,
@@ -68,6 +72,10 @@ import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
+import {
+    prepareRatesUpdateQueue,
+    createRatesUpdateWorker,
+} from '@/app/campaigns/rates-update/utils';
 
 ///////////////////////
 // Worker Instances
@@ -463,7 +471,8 @@ const userTxPinSecurityWorker = new Worker<
     }
 );
 
-prepareSchedulerQueue();
+//prepareSchedulerQueue();
+//prepareLimitResetSchedulerQueue();
 
 createWhatsappBroadcastWorker();
 createEventDrivenOfframpWorker();
@@ -472,6 +481,7 @@ createOnRampWorker();
 createSyncUserWalletWorker();
 createSafeHavenTransactionUpdateJobWorker();
 createBaseCashbackWorker();
+createPizzaDayCashbackWorker();
 createCryptoPayoutWorker();
 createCleanupOldMessagesWorker();
 createKycEventJobWorker().on('error', async (error) => {
@@ -479,8 +489,14 @@ createKycEventJobWorker().on('error', async (error) => {
 });
 
 createAzzaWrappedWorker();
-createBlockradarAddressTokenSwapWorker(connectionConfig);
-createBlockradarMasterWalletTokenSwapWorker(connectionConfig);
+createReferralCodeWorker();
+createBlockradarAddressTokenSwapWorker(connectionConfig).on('error', async (error) => {
+    await logServiceError(error, 'Swap Worker Error');
+});
+createFeeCollectionWorker(connectionConfig);
+createResetFeatureUsageLimitWorker(connectionConfig);
+prepareRatesUpdateQueue();
+createRatesUpdateWorker(connectionConfig);
 
 // Start 10 whatsapp messaging workers
 for (let i = 0; i < 10; i++) {

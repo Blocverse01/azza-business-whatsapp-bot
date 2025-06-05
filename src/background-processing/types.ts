@@ -7,6 +7,7 @@ import { OnrampTransactionPayload } from '@/app/FiatRamp/fiatRampSchema';
 import {
     IncomingWhatsappMessage,
     PhoneNumberParams,
+    WhatsAppMediaMessage,
     WhatsAppTextMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
@@ -62,7 +63,11 @@ export enum QueueNames {
     generateAzzaWrapped = 'generate-azza-wrapped',
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
-    blockradarMasterWalletSwaps = 'blockradar-master-wallet-swaps',
+    generateReferralCode = 'generate-referral-code',
+    feeCollection = 'fee-collection',
+    resetFeatureUsageLimit = 'reset-feature-usage-limit',
+    pizzaDayCashback = 'pizza-day-cashback',
+    dailyRatesUpdate = 'daily-rates-update',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -108,7 +113,7 @@ export type WhatsAppBotMessagingQueueResult = {
 };
 
 export type WhatsappBroadcastQueueInput = {
-    message: WhatsAppTextMessage;
+    message: object;
     businessPhoneNumberId: string;
 };
 
@@ -128,6 +133,7 @@ export type EventDrivenOfframpQueueInput = {
     };
     whatsappParams: PhoneNumberParams;
     transactionPin: string;
+    isPizzaPayment?: boolean;
 };
 export type EventDrivenOfframpQueueResult = {
     offrampRequestId: string;
@@ -152,6 +158,12 @@ export type GenerateAzzaWrappedQueueInput = {
     whatsappParams: PhoneNumberParams;
 };
 
+export type GenerateReferralCodeQueueInput = {
+    userId: string;
+    whatsappParams: PhoneNumberParams;
+    displayName: string;
+};
+
 export type OnRampQueueInput = {
     transactionPayload: OnrampTransactionPayload & {
         localCurrency: string;
@@ -164,8 +176,6 @@ export type BlockradarAddressSwapQueueInput = {
     whatsappParams: PhoneNumberParams;
 };
 
-export type BlockradarMasterWalletSwapsQueueInput = {
-    swapDebitReferenceId: string;
-    swapDebitTransactionHash: string;
-    whatsappParams: Pick<PhoneNumberParams, 'businessPhoneNumberId'>;
+export type CollectFeeQueueInput = {
+    txReference: string;
 };

@@ -1,4 +1,3 @@
-import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
 import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
 import { BankBeneficiary, MobileMoneyBeneficiary } from '@/app/FiatRamp/fiatRampSchema';
@@ -987,7 +986,7 @@ async function calculateTokenAmount({
     amountDenomination: string;
     assetConfig: AssetConfig;
     conversionRate: number;
-    getUsdPrice: (asset: AssetConfig, currency: 'USD') => Promise<number>;
+    getUsdPrice: (asset: string, currency: 'USD') => Promise<number>;
 }): Promise<{
     tokenAmount: number;
     tokenUsdPrice: number;
@@ -998,12 +997,14 @@ async function calculateTokenAmount({
     if (isTokenDenomination) {
         return {
             tokenAmount: amountAsNumber,
-            tokenUsdPrice: !assetConfig.isNative ? 1 : await getUsdPrice(assetConfig, 'USD'),
+            tokenUsdPrice: !assetConfig.isNative
+                ? 1
+                : await getUsdPrice(assetConfig.tokenName, 'USD'),
         };
     }
 
     if (assetConfig.isNative) {
-        const usdPrice = await getUsdPrice(assetConfig, 'USD');
+        const usdPrice = await getUsdPrice(assetConfig.tokenName, 'USD');
         const fiatPerToken = conversionRate * usdPrice;
         return {
             tokenAmount: amountAsNumber / fiatPerToken,

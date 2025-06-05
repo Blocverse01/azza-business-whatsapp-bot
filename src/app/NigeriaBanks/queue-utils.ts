@@ -8,7 +8,7 @@ import { prettifyNumber } from '@/resources/utils/currency';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
-import { generateOfframpToBankRecipientReceipt } from '../receipts/generators';
+import { generateOfframpReceipt } from '../receipts/generators';
 import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { addCryptoPayoutJobToQueue } from '../crypto-payouts-v2/utils';
@@ -79,7 +79,7 @@ export const createSafeHavenTransactionUpdateJobWorker = () => {
                     });
                 }
 
-                const receiptBuffer = await generateOfframpToBankRecipientReceipt({
+                const receiptBuffer = await generateOfframpReceipt({
                     status: 'complete',
                     blockchainNetwork: settlement.blockchainNetwork!,
                     usdAmount: settlement.usdAmount!,

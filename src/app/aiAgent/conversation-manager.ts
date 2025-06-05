@@ -37,7 +37,7 @@ export const storeUserMessage = async (params: {
             ).records;
 
             if (messages.length > 0) {
-                await generateAndStoreSummary(thread.id);
+                //await generateAndStoreSummary(thread.id);
 
                 // Soft delete the old messages
                 await sqlClient({
@@ -83,7 +83,7 @@ export const generateAndStoreSummary = async (threadId: string) => {
 
     if (messages.length === 0) return;
 
-    const textToSummarize = messages.map((m) => m.content).join('\n');
+    const textToSummarize = messages.map((m) => m.content).join('\n\n');
 
     const { text: summaryText } = await generateText({
         model: openai('gpt-4o-mini'),

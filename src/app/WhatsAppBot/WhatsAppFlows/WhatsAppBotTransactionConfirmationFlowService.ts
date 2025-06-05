@@ -1,6 +1,5 @@
 import {
     SwapTokensOnBaseTransactionDetails,
-    SwapTokensTransactionDetails,
     SwapTokensTransactionDetailsV2,
     TransferAssetTransactionDetails,
 } from '@/app/azza/azza.schema';
@@ -8,7 +7,11 @@ import {
     sendTransferAssetTransaction,
     SendTransferTransactionResponse,
 } from '@/app/azza/lib/azza.lib.transaction';
+import { addPaymentJobForProcessing } from '@/app/pay/messaging-utils';
+import { PaymentTransactionDetails } from '@/app/pay/types';
+import { createOrIncrementUsageCount, hasExceededLimit } from '@/app/limits/utils';
 import { addBlockradarAddressTokenSwapJobToQueue } from '@/app/swap/queue-utils';
+import { recordTransactionFeeCharge } from '@/app/transaction-fees/utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -36,7 +39,8 @@ enum TransactionConfirmationFlowScreens {
 type TransactionDetails =
     | TransferAssetTransactionDetails
     | SwapTokensOnBaseTransactionDetails
-    | SwapTokensTransactionDetailsV2;
+    | SwapTokensTransactionDetailsV2
+    | PaymentTransactionDetails;
 
 type ScreenDataPayload = {
     ENTER_TRANSACTION_PIN: {
@@ -137,9 +141,36 @@ class WhatsAppBotTransactionConfirmationFlowService {
         }
 
         switch (transaction_details.transactionType) {
-            case 'SEND':
+            case 'PAYMENT': {
+                const userPhoneNumber = user.primaryWhatsappPhoneNumber;
+                await addPaymentJobForProcessing(
+                    transaction_pin,
+                    userPhoneNumber,
+                    `payment-${flowToken}`,
+                    transaction_details
+                );
+
+                break;
+            }
+            case 'SEND': {
+                const hasExceededGaslessTxLimit = await hasExceededLimit(
+                    unmaskedUserId,
+                    'GASLESS_TRANSACTIONS'
+                );
+
                 const userPhoneNumber = user.primaryWhatsappPhoneNumber;
                 let transactionResponse: SendTransferTransactionResponse | null = null;
+
+                if (hasExceededGaslessTxLimit) {
+                    await recordTransactionFeeCharge({
+                        amount: transaction_details.transactionFee,
+                        amountUsd: transaction_details.transactionFeeUsd ?? 0,
+                        assetId: transaction_details.assetId,
+                        userId: unmaskedUserId,
+                        transactionType: 'withdrawal',
+                        txReference: `withdrawal-${flowToken}`,
+                    });
+                }
 
                 try {
                     const [transaction, error] = await sendTransferAssetTransaction(
@@ -148,6 +179,9 @@ class WhatsAppBotTransactionConfirmationFlowService {
                             userId: unmaskedUserId,
                             transactionPin: transaction_pin,
                             reference: `withdrawal-${flowToken}`,
+                            metadata: {
+                                isFree: !hasExceededGaslessTxLimit,
+                            },
                         },
                         true,
                         'new'
@@ -169,6 +203,10 @@ class WhatsAppBotTransactionConfirmationFlowService {
                     transactionResponse = transaction;
                 } catch (error) {
                     await logServiceError(error, `Withdrawal error.`);
+                } finally {
+                    if (!hasExceededGaslessTxLimit) {
+                        await createOrIncrementUsageCount(unmaskedUserId, 'GASLESS_TRANSACTIONS');
+                    }
                 }
 
                 const assetDetails = getAssetConfigOrThrow(transaction_details.assetId);
@@ -192,6 +230,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
                     });
                 }
                 break;
+            }
 
             case 'SWAP_TOKENS': {
                 await addBlockradarAddressTokenSwapJobToQueue(`swap_req_${flowToken}`, {

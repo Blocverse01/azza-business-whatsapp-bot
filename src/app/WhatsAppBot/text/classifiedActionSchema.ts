@@ -1,3 +1,4 @@
+import { PayPromptArgsSchema } from '@/app/pay/schema';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
 import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
@@ -80,4 +81,9 @@ export const actionArgumentsSchema = {
     }),
     SHOW_FIAT_RATES: z.object({}),
     KYC_VERIFICATION: z.object({}),
+    REFERRAL_CODE: z.object({}),
+    REFERRAL_REQUEST: z.object({}),
+    CANCEL_CURRENT_ACTION: z.object({}),
+    PAY_TO_BANK_ACCOUNT: PayPromptArgsSchema,
+    REQUEST_SUPPORT: z.object({}),
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

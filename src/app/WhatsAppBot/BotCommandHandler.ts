@@ -24,12 +24,13 @@ import {
     extractGroups,
     type TradeAssetBotCommandMatchGroups,
 } from '@/constants/regex';
-import { getDynamicMaintenanceMessage } from '@/constants/strings';
+import { getDynamicMaintenanceMessage, WITHDRAWAL_UNAVAILABLE_RESPONSE } from '@/constants/strings';
 import type { UserV2Record } from '@/db/xata';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
+import { addJobToReferralCodeQueue } from '../referral-scheme/queue-utils';
 
 type BotCommand = keyof typeof BOT_COMMANDS_REGEX;
 
@@ -95,6 +96,9 @@ class BotCommandHandler {
                 break;
             case 'WRAPPED':
                 await BotCommandHandler.handleWrapped(user, phoneParams, displayName);
+                break;
+            case 'REFERRAL_CODE':
+                await BotCommandHandler.getReferralCode(user, phoneParams, displayName);
                 break;
             default:
                 return {
@@ -163,7 +167,7 @@ class BotCommandHandler {
             return;
         }
 
-        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+        const supportedAsset = searchAssetForward ?? searchAssetBackward;
 
         if (!supportedAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
             const responseMessage = `Selling ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
@@ -224,7 +228,7 @@ class BotCommandHandler {
             return;
         }
 
-        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+        const supportedAsset = searchAssetForward ?? searchAssetBackward;
 
         if (!supportedAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
             const responseMessage = `Buying ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
@@ -333,22 +337,19 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups
     ) {
-        const coreMaintainanceIsEnabled = await FeatureFlagService.isFeatureEnabled(
-            FeatureFlagKey.CORE_MAINTAINANCE
+        const isEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.WALLET_WITHDRAWALS
         );
 
-        if (coreMaintainanceIsEnabled) {
-            const maintainanceMessage = getDynamicMaintenanceMessage('withdrawal', {
-                length: 3,
-                name: 'hours',
-            });
+        if (!isEnabled) {
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
                 MessageGenerators.generateTextMessage(
                     phoneParams.userPhoneNumber,
-                    maintainanceMessage
+                    WITHDRAWAL_UNAVAILABLE_RESPONSE
                 )
             );
+
             return;
         }
 
@@ -376,7 +377,7 @@ class BotCommandHandler {
             return;
         }
 
-        const supportedAsset = searchAssetForward ? searchAssetForward : searchAssetBackward;
+        const supportedAsset = searchAssetForward ?? searchAssetBackward;
 
         return await WhatsAppBotService.handleWithdrawAssetAction(
             user,
@@ -668,6 +669,18 @@ class BotCommandHandler {
                     params: {},
                 };
         }
+    }
+
+    private static async getReferralCode(
+        user: UserV2Record,
+        params: PhoneNumberParams,
+        displayName: string
+    ) {
+        return await addJobToReferralCodeQueue({
+            userId: user.id,
+            whatsappParams: params,
+            displayName,
+        });
     }
 }
 

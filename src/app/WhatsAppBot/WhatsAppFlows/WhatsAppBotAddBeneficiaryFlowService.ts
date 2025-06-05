@@ -346,6 +346,8 @@ class WhatsAppBotAddBeneficiaryFlowService {
             selectedAccountType.channelId
         );
 
+        console.log('supportedProviders---', supportedProviders)
+
         return {
             screen: AddBeneficiaryFlowScreens.MOBILE_MONEY_FORM,
             data: {

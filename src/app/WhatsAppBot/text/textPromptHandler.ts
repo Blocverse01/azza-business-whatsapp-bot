@@ -10,19 +10,23 @@ import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     handleBalanceQueryPrompt,
     handleBuyCryptoWithFiatPrompt,
+    handlePayRelatedPrompt,
     handleChangeTransactionPinPrompt,
     handleDepositRelatedPrompt,
     handleKycPrompt,
     handleRatesPrompt,
+    handleReferralPrompt,
     handleResetTransactionPinPrompt,
     handleSellCryptoForFiatPrompt,
     handleSwapCryptoPrompt,
     handleWithdrawRelatedPrompt,
     PromptHandlerResponse,
+    handleSupportRelatedPrompt,
 } from '@/app/WhatsAppBot/text/actionHandlers';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
+import { FeatureAccessLevel } from '@/config/whatsAppBot';
 import { getDynamicMaintenanceMessage } from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import logger from '@/resources/logger';
@@ -40,6 +44,7 @@ type TextPromptHandlerParams = {
     botParams: {
         userPhoneNumber: string;
         businessPhoneNumberId: string;
+        waDisplayName: string;
     };
     user: UserV2Record;
 };
@@ -86,6 +91,8 @@ export const textPromptHandler = async (
 
     runtimeMessages.push({ role: 'user', content: prompt.trim(), sessionId: '' });
 
+    console.dir(runtimeMessages);
+
     let classifiedAction: Action;
     try {
         classifiedAction = await classifyAction(runtimeMessages);
@@ -106,6 +113,19 @@ export const textPromptHandler = async (
             classifiedAction: { class: 'NO_PREDEFINED_ACTION', confidence: 1 },
             prompt,
             promptHandlerResponse: { response: promptResponse, resetSession: false },
+        };
+    }
+
+    if (classifiedAction.class === 'CANCEL_CURRENT_ACTION') {
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(botParams.userPhoneNumber, 'Request cancelled')
+        );
+        return {
+            handledTextPrompt: true,
+            classifiedAction,
+            prompt,
+            promptHandlerResponse: { response: 'Request cancelled', resetSession: true },
         };
     }
 
@@ -186,14 +206,32 @@ export const textPromptHandler = async (
                 });
                 break;
             case 'SWAP_CRYPTO':
-                responseMessage = await handleSwapCryptoPrompt({
+                responseMessage = await handleSwapCryptoPrompt(
+                    {
+                        extractedArguments,
+                        botParams,
+                        user,
+                    },
+                    FeatureAccessLevel.PRODUCTION
+                );
+                break;
+            case 'SHOW_FIAT_RATES':
+                responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
+                break;
+            case 'REFERRAL_REQUEST':
+            case 'PAY_TO_BANK_ACCOUNT':
+                responseMessage = await handlePayRelatedPrompt({
                     extractedArguments,
                     botParams,
                     user,
                 });
                 break;
-            case 'SHOW_FIAT_RATES':
-                responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
+            case 'REFERRAL_CODE':
+                responseMessage = await handleReferralPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
                 break;
             case 'KYC_VERIFICATION':
                 responseMessage = await handleKycPrompt({
@@ -202,7 +240,15 @@ export const textPromptHandler = async (
                     user,
                 });
                 break;
+            case 'REQUEST_SUPPORT':
+                responseMessage = await handleSupportRelatedPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
             default:
+                console.error('Unrecognized action class:', classifiedAction.class);
                 throw new Error('Action not supported');
         }
     }

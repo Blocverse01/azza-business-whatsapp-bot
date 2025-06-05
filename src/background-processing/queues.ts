@@ -13,7 +13,6 @@ import type {
 } from '@/background-processing/schema';
 import {
     BlockradarAddressSwapQueueInput,
-    BlockradarMasterWalletSwapsQueueInput,
     CryptoDebitConfirmationQueueInput,
     CryptoDebitConfirmationQueueResult,
     CryptoDebitQueueInput,
@@ -34,6 +33,8 @@ import {
     WhatsAppBotMessagingQueueInput,
     WhatsAppBotMessagingQueueResult,
     WhatsappBroadcastQueueInput,
+    GenerateReferralCodeQueueInput,
+    CollectFeeQueueInput,
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -136,12 +137,24 @@ export const queues = {
             connection: connectionConfig,
         }
     ),
-    blockradarMasterWalletSwaps: new Queue<BlockradarMasterWalletSwapsQueueInput>(
-        QueueNames.blockradarMasterWalletSwaps,
+    generateReferralCode: new Queue<GenerateReferralCodeQueueInput>(
+        QueueNames.generateReferralCode,
         {
             connection: connectionConfig,
         }
     ),
+    feeCollection: new Queue<CollectFeeQueueInput>(QueueNames.feeCollection, {
+        connection: connectionConfig,
+    }),
+    resetFeatureUsageLimit: new Queue(QueueNames.resetFeatureUsageLimit, {
+        connection: connectionConfig,
+    }),
+    pizzaDayCashback: new Queue<PercentageCashbackQueueInput>(QueueNames.pizzaDayCashback, {
+        connection: connectionConfig,
+    }),
+    dailyRatesUpdate: new Queue(QueueNames.dailyRatesUpdate, {
+        connection: connectionConfig,
+    }),
 };
 
 export const defaultQueueRemoveOptions = {

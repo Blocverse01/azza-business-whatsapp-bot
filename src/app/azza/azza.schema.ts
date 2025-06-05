@@ -30,6 +30,10 @@ export const transferAssetTransactionDetailsSchema = z.object({
     amount: z.number().describe('The amount of cryptocurrency to transfer.'),
     assetId: z.string().describe('The ID of the asset to transfer.'),
     transactionFee: z.coerce.number().describe('The transaction fee for the transfer.'),
+    transactionFeeUsd: z.coerce
+        .number()
+        .describe('The transaction fee for the transfer.')
+        .optional(),
     userId: z.string().describe('The ID of the user initiating the transfer.'),
     transactionPin: transactionPinSchema.optional(),
     metadata: z.record(z.unknown()).optional(),

@@ -25,7 +25,7 @@ app.use(compression());
 app.use(
     express.json({
         limit: '10mb',
-        verify: (req: Request, res, buf) => {
+        verify: (req: Request, _res, buf) => {
             req.rawBody = buf.toString();
         },
     })
@@ -62,7 +62,11 @@ createBullBoard({
         new BullMQAdapter(queues.generateAzzaWrapped),
         new BullMQAdapter(queues.onRamp),
         new BullMQAdapter(queues.blockradarAddressSwaps),
-        new BullMQAdapter(queues.blockradarMasterWalletSwaps),
+        new BullMQAdapter(queues.generateReferralCode),
+        new BullMQAdapter(queues.feeCollection),
+        new BullMQAdapter(queues.resetFeatureUsageLimit),
+        //new BullMQAdapter(queues.pizzaDayCashback),
+        new BullMQAdapter(queues.dailyRatesUpdate),
     ],
     serverAdapter: serverAdapter,
 });

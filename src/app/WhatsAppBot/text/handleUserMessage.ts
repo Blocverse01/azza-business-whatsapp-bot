@@ -13,8 +13,9 @@ export const handleUserMessage = async (params: {
     message: string;
     user: UserV2Record;
     phoneParams: PhoneNumberParams;
+    waDisplayName: string;
 }) => {
-    const { message, user, phoneParams } = params;
+    const { message, user, phoneParams, waDisplayName } = params;
 
     // Retrieve conversation history including summaries
     const [conversationHistory, messageThread] = await Promise.all([
@@ -47,7 +48,10 @@ export const handleUserMessage = async (params: {
         storedMessages,
         lastSessionId: messageThread.lastSessionId,
         prompt: message,
-        botParams: phoneParams,
+        botParams: {
+            ...phoneParams,
+            waDisplayName,
+        },
         user: user,
     });
 

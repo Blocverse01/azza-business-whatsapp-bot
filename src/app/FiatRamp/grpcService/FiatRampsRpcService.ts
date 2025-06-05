@@ -14,7 +14,6 @@ import {
     sendOnrampTransactionResponseSchema,
     supportedCountry,
     supportedPaymentNetworkSchema,
-    supportedPaymentNetworkType,
 } from '@/app/FiatRamp/fiatRampSchema';
 import redis from '@/cache/redis';
 import { HUNDRED } from '@/constants/numbers';
@@ -65,9 +64,6 @@ import ResolveBankAccountRequest = fiatramps.v1.ResolveBankAccountRequest;
 import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
 import UpdatePaymentTransactionStatusRequest = fiatramps.v1.UpdatePaymentTransactionStatusRequest;
 import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
-import SafeHavenService from '@/app/NigeriaBanks/SafeHaven/SafeHavenService';
-import slugify from 'slugify';
-import env from '@/constants/env';
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -297,21 +293,21 @@ class FiatRampsRpcService {
         const beneficiaryDetails =
             'firstName' in params.beneficiary
                 ? (() => ({
-                    accountName: `${params.beneficiary.firstName.trim()} ${params.beneficiary.lastName.trim()}`,
-                    accountType: accountType,
-                    accountNumber: params.beneficiary.mobileNumber,
-                    networkName: params.beneficiary.mobileProvider,
-                    nameEnquiryReference: '',
-                    seerbitId: '',
-                }))()
+                      accountName: `${params.beneficiary.firstName.trim()} ${params.beneficiary.lastName.trim()}`,
+                      accountType: accountType,
+                      accountNumber: params.beneficiary.mobileNumber,
+                      networkName: params.beneficiary.mobileProvider,
+                      nameEnquiryReference: '',
+                      seerbitId: '',
+                  }))()
                 : (() => ({
-                    accountName: params.beneficiary.accountName,
-                    accountType: accountType,
-                    accountNumber: params.beneficiary.accountNumber,
-                    networkName: params.beneficiary.bankName,
-                    nameEnquiryReference: params.beneficiary.nameEnquiryReference,
-                    seerbitId: params.beneficiary.seerbitId,
-                }))();
+                      accountName: params.beneficiary.accountName,
+                      accountType: accountType,
+                      accountNumber: params.beneficiary.accountNumber,
+                      networkName: params.beneficiary.bankName,
+                      nameEnquiryReference: params.beneficiary.nameEnquiryReference,
+                      seerbitId: params.beneficiary.seerbitId,
+                  }))();
 
         const request = new AddBeneficiaryRequest({
             account_name: beneficiaryDetails.accountName

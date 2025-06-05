@@ -20,6 +20,7 @@ export const OFFRAMP_REQUEST_ERROR_MESSAGE =
 
 export const OFFRAMP_WITHDRAW_REFERENCE_PREFIX = 'offramp-';
 export const OFFRAMP = 'offramp';
+export const PIZZA_CAMPAIGN_PAYMENT_SUFFIX = '-pizza-campaign';
 
 export const MAINTAINANCE_MESSAGE = [
     'Hello amazing user💙',
@@ -50,7 +51,13 @@ export const getDynamicMaintenanceMessage = (
 export const BASE_CASHBACK_REFERENCE_PREFIX = 'base-cb-';
 export const BASE_CASHBACK_REASON = 'base-cashback';
 
+export const PIZZA_DAY_CASHBACK_REFERENCE_PREFIX = 'pizza-cb-';
+export const PIZZA_DAY_CASHBACK_REASON = 'pizza-cashback';
+
 export const CRYPTO_PAYOUT_REFERENCE_PREFIX = 'azza-pay';
+
+export const FEE_COLLECTION_REFERENCE_PREFIX = 'fee_';
+export const WITHDRAWAL_REFERENCE_PREFIX = 'withdrawal';
 
 export const getTransactionMinimumDepositMessage = (params: {
     minimum: number;
@@ -61,3 +68,12 @@ export const getTransactionMinimumDepositMessage = (params: {
 
     return `👋 Just a heads-up — to sell ${tokenSymbol} on ${network}, the amount needs to be worth at least $${minimum.toFixed(2)}.`;
 };
+
+export const WITHDRAWAL_UNAVAILABLE_RESPONSE =
+    "ℹ️ Wallet withdrawals are paused for maintenance -- to allow us make it work better for you. We'll send an update once it's ready-to-go 💙";
+
+export const PAY_FEATURE_UNAVAILABLE_RESPONSE =
+    "ℹ️ The Pay feature is paused for maintenance -- to allow us make it work better for you. We'll send an update once it's ready-to-go 💙";
+
+export const SWAP_UNAVAILABLE_RESPONSE =
+    "ℹ️ Swaps are paused for maintenance -- to allow us make it work better for you. We'll send an update once it's ready-to-go 💙";

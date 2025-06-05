@@ -5,6 +5,7 @@ import ManualOfframpSettlementService, {
 } from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 import {
     BELL_OFFRAMP_PAYMENT_PROCESSOR_ID,
+    HONEYCOIN_OFFRAMP_PAYMENT_PROCESSOR_ID,
     MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID,
     ProcessorId,
     SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID,
@@ -38,6 +39,7 @@ import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
 import crypto from 'node:crypto';
 import slugify from 'slugify';
+import { mobileMoneyOffRampProvidersForKenya } from '@/app/HoneyCoin/whiteListedMobileMoneyChannel';
 
 import {
     YellowCardOfframpEvent,
@@ -49,6 +51,8 @@ import {
 import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
 import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 import BellService from '../NigeriaBanks/BellMFB/BellService';
+import { recommendedOffRampChannelForKenya } from '../HoneyCoin/whiteListedMobileMoneyChannel';
+import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
@@ -92,7 +96,36 @@ class FiatRampService {
     public static async getPaymentMethods(countryCode: CountryCode, route: 'onramp' | 'offramp') {
         const args = [countryCode, route] as const;
 
-        return await FiatRampsRpcService.getPaymentMethods(...args);
+        const isKenya = countryCode === 'KE';
+        const isOfframp = route === 'offramp';
+
+        const { paymentChannels, countryFiatLimits } = await FiatRampsRpcService.getPaymentMethods(
+            ...args
+        );
+
+        //check if HoneyCoin mobile money payout is enabled for kenya
+        const honeyCoinKESMobileMoneyPayoutIsEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.HONEYCOIN_OFFRAMP
+        );
+
+        if (honeyCoinKESMobileMoneyPayoutIsEnabled && isKenya && isOfframp) {
+            const { paymentChannels: recommendedChannels, countryFiatLimits } =
+                recommendedOffRampChannelForKenya;
+
+            const updatedChannels = [
+                ...paymentChannels.filter(
+                    (c) => !recommendedChannels.some((rc) => rc.channelName === c.channelName)
+                ),
+                ...recommendedChannels,
+            ];
+
+            return {
+                paymentChannels: updatedChannels,
+                countryFiatLimits,
+            };
+        }
+
+        return { paymentChannels, countryFiatLimits };
     }
 
     public static formatPaymentMethodName(channelName: string, route: 'onramp' | 'offramp') {
@@ -103,6 +136,13 @@ class FiatRampService {
     }
 
     public static async getSupportedMobileProviders(countryCode: CountryCode, channelId: string) {
+        if (countryCode === 'KE') {
+            const honeyCoinKESMobileMoneyPayoutIsEnabled =
+                await FeatureFlagService.isFeatureEnabled(FeatureFlagKey.HONEYCOIN_OFFRAMP);
+            if (honeyCoinKESMobileMoneyPayoutIsEnabled) {
+                return mobileMoneyOffRampProvidersForKenya;
+            }
+        }
         return await FiatRampsRpcService.getPaymentNetworks(countryCode, channelId);
     }
 
@@ -125,7 +165,7 @@ class FiatRampService {
                             safeHavenBank.bankCode === bank.seerbitId ||
                             (env.WEB3_ENVIRONMENT === 'testnet' &&
                                 safeHavenBank.slug ===
-                                slugify(bank.name, { lower: true, replacement: '-' }))
+                                    slugify(bank.name, { lower: true, replacement: '-' }))
                         );
                     });
 
@@ -169,13 +209,12 @@ class FiatRampService {
         countryCode: CountryCode;
         channelId: string;
     }) {
-
         const { networkId, countryCode, channelId } = data;
 
         const bank = await this.getBankNetwork({ networkId, countryCode, channelId });
 
         return {
-            seerbitId: bank.seerbitId
+            seerbitId: bank.seerbitId,
         };
     }
 
@@ -221,14 +260,17 @@ class FiatRampService {
         return await FiatRampsRpcService.getBeneficiary(beneficiaryId);
     }
 
-    public static async tryManualPayout(beneficiary: Beneficiary,
-        params: SendOfframpRequestPayload) {
+    public static async tryManualPayout(
+        beneficiary: Beneficiary,
+        params: SendOfframpRequestPayload
+    ) {
         return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
     }
 
     public static async trySafeHavenPayout(
         beneficiary: Beneficiary,
-        params: SendOfframpRequestPayload) {
+        params: SendOfframpRequestPayload
+    ) {
         const balance = await SafeHavenService.getSafeHavenAccountBalance();
         const transferableBalance = balance - NGN_BANK_BALANCE_FOR_TRANSACTION_FEE;
 
@@ -238,10 +280,7 @@ class FiatRampService {
 
         if (withinLimits) {
             // SafeHaven is available, sufficiently funded, and within withdrawal limits — use it.
-            return await FiatRampService.passOfframpTransactionToSafeHaven(
-                beneficiary,
-                params
-            );
+            return await FiatRampService.passOfframpTransactionToSafeHaven(beneficiary, params);
         }
 
         return null;
@@ -257,10 +296,7 @@ class FiatRampService {
 
         if (withinLimits) {
             // Bell is available, sufficiently funded, and within withdrawal limits — use it.
-            return await FiatRampService.passOfframpTransactionToBell(
-                beneficiary,
-                params
-            );
+            return await FiatRampService.passOfframpTransactionToBell(beneficiary, params);
         }
 
         return null;
@@ -268,20 +304,28 @@ class FiatRampService {
 
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
         // Fetch beneficiary and feature flag statuses concurrently
-        const [beneficiary, yellowCardPayoutIsEnabled, NGNBankIsEnabled, safeHavenPayoutIsEnabled] =
-            await Promise.all([
-                FiatRampService.getBeneficiary(params.beneficiaryId),
-                FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS),
-                FeatureFlagService.isFeatureEnabled(FeatureFlagKey.NGN_BANKS_PAYOUTS),
-                FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAFEHAVEN_BANK),
-            ]);
+        const [
+            beneficiary,
+            yellowCardPayoutIsEnabled,
+            NGNBankIsEnabled,
+            safeHavenPayoutIsEnabled,
+            honeycoinPayoutIsEnabled,
+        ] = await Promise.all([
+            FiatRampService.getBeneficiary(params.beneficiaryId),
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS),
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.NGN_BANKS_PAYOUTS),
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAFEHAVEN_BANK),
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.HONEYCOIN_OFFRAMP),
+        ]);
 
         // Special handling for Nigeria (NG) beneficiaries
         if (beneficiary.country.code === 'NG') {
-
             const isPalmPayBank =
-                ('seerbitId' in beneficiary && beneficiary.seerbitId === PALM_PAY_BANK_SEERBIT_ID) ||
-                ('bankName' in beneficiary && typeof beneficiary.bankName === 'string' && beneficiary.bankName.includes('PalmPay'));
+                ('seerbitId' in beneficiary &&
+                    beneficiary.seerbitId === PALM_PAY_BANK_SEERBIT_ID) ||
+                ('bankName' in beneficiary &&
+                    typeof beneficiary.bankName === 'string' &&
+                    beneficiary.bankName.includes('PalmPay'));
 
             if (NGNBankIsEnabled) {
                 if (safeHavenPayoutIsEnabled) {
@@ -308,6 +352,18 @@ class FiatRampService {
 
             // Neither SafeHaven nor YellowCard is viable — fall back to manual processing
             return await this.tryManualPayout(beneficiary, params);
+        }
+
+        // Special handling for Kenya (KES) Mobile Money beneficiaries
+        if (
+            beneficiary.country.code === 'KE' &&
+            'mobileProvider' in beneficiary &&
+            honeycoinPayoutIsEnabled
+        ) {
+            return await FiatRampService.passMobileMoneyOfframpTransactionToHoneyCoin(
+                beneficiary,
+                params
+            );
         }
 
         // Default path for non-NG countries — use YellowCard
@@ -478,10 +534,6 @@ class FiatRampService {
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
         const localCurrencySymbol = beneficiary.country.currencySymbol;
 
-        if (localCurrencySymbol !== 'NGN') {
-            throw new Error(`Feature not available for currency: ${localCurrencySymbol}`);
-        }
-
         return {
             localCurrencySymbol,
             localAmount: validatedParams.localAmount,
@@ -518,7 +570,7 @@ class FiatRampService {
                     'bankName' in beneficiary ? beneficiary.nameEnquiryReference : '',
                 networkId: beneficiary.networkId,
                 country: beneficiary.country.code,
-                channelId: beneficiary.channelId
+                channelId: beneficiary.channelId,
             },
         };
     }
@@ -536,7 +588,6 @@ class FiatRampService {
         const bellSettlementRecord =
             await NigeriaBanksService.createNGNOfframpSettlement(settlementData);
 
-
         if (!bellSettlementRecord.sequenceId) {
             throw new Error('Failed to create bell settlement record');
         }
@@ -544,20 +595,24 @@ class FiatRampService {
         const { accountName, seerbitId, accountNumber, networkId, channelId, country } =
             settlementData.destination;
 
-        const _seerbitId = seerbitId ? seerbitId : (await this.getSeerBitId({
-            networkId: networkId,
-            channelId: channelId as string,
-            countryCode: country as CountryCode
-        })).seerbitId;
+        const _seerbitId =
+            seerbitId ??
+            (
+                await this.getSeerBitId({
+                    networkId: networkId,
+                    channelId: channelId as string,
+                    countryCode: country as CountryCode,
+                })
+            ).seerbitId;
 
         await NigeriaBanksService.sendProcessingSettlementMessage({
-            usdAmount: bellSettlementRecord!.usdAmount!,
-            transactionFeeUsd: bellSettlementRecord.transactionFeeUsd!,
-            ownerId: bellSettlementRecord.ownerId!,
-            tokenSymbol: bellSettlementRecord.tokenSymbol!,
-            blockchainNetwork: bellSettlementRecord.blockchainNetwork!,
+            usdAmount: bellSettlementRecord.usdAmount,
+            transactionFeeUsd: bellSettlementRecord.transactionFeeUsd,
+            ownerId: bellSettlementRecord.ownerId,
+            tokenSymbol: bellSettlementRecord.tokenSymbol,
+            blockchainNetwork: bellSettlementRecord.blockchainNetwork,
             localCurrencySymbol: bellSettlementRecord.localCurrencySymbol!,
-            localAmount: bellSettlementRecord.localAmount!,
+            localAmount: bellSettlementRecord.localAmount,
         });
 
         const transaction = await BellService.processOffRampPaymentWithBell({
@@ -584,6 +639,47 @@ class FiatRampService {
         return transaction.sequenceId;
     }
 
+    private static async passMobileMoneyOfframpTransactionToHoneyCoin(
+        beneficiary: Beneficiary,
+        params: SendOfframpRequestPayload
+    ) {
+        const settlementData = await this._prepareOfframpSettlementData(
+            beneficiary,
+            params,
+            HONEYCOIN_OFFRAMP_PAYMENT_PROCESSOR_ID
+        );
+
+        if (settlementData.localCurrencySymbol !== 'KES') {
+            throw new Error(
+                `Feature not available for currency: ${settlementData.localCurrencySymbol}`
+            );
+        }
+
+        const honeycoinSettlementRecord =
+            await HoneyCoinService.createHoneyCoinMobileMoneyOfframpSettlement(settlementData);
+
+        if (!honeycoinSettlementRecord.referenceId) {
+            throw new Error('Failed to create honeycoin settlement record');
+        }
+
+        const { accountNumber, accountName } = settlementData.destination;
+
+        const transaction = await HoneyCoinService.processMobileMoneyOffRampPaymentWithHoneyCoin({
+            amountToSend: settlementData.localAmount,
+            beneficiaryAccountNumber: accountNumber.startsWith('+')
+                ? accountNumber.slice(1)
+                : accountNumber,
+            beneficiaryAccountName: accountName,
+            sequenceId: honeycoinSettlementRecord.referenceId,
+        });
+
+        if (!transaction) {
+            throw new Error('Failed to process off-ramp settlement with honeycoin');
+        }
+
+        return transaction.sequenceId;
+    }
+
     private static async passOfframpTransactionToSafeHaven(
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload
@@ -593,6 +689,12 @@ class FiatRampService {
             params,
             SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
         );
+
+        if (settlementData.localCurrencySymbol !== 'NGN') {
+            throw new Error(
+                `Feature not available for currency: ${settlementData.localCurrencySymbol}`
+            );
+        }
 
         const safeHavenSettlementRecord =
             await NigeriaBanksService.createNGNOfframpSettlement(settlementData);
@@ -619,21 +721,19 @@ class FiatRampService {
         }
 
         await NigeriaBanksService.sendProcessingSettlementMessage({
-            usdAmount: safeHavenSettlementRecord!.usdAmount!,
-            transactionFeeUsd: safeHavenSettlementRecord.transactionFeeUsd!,
-            ownerId: safeHavenSettlementRecord.ownerId!,
-            tokenSymbol: safeHavenSettlementRecord.tokenSymbol!,
-            blockchainNetwork: safeHavenSettlementRecord.blockchainNetwork!,
+            usdAmount: safeHavenSettlementRecord.usdAmount,
+            transactionFeeUsd: safeHavenSettlementRecord.transactionFeeUsd,
+            ownerId: safeHavenSettlementRecord.ownerId,
+            tokenSymbol: safeHavenSettlementRecord.tokenSymbol,
+            blockchainNetwork: safeHavenSettlementRecord.blockchainNetwork,
             localCurrencySymbol: safeHavenSettlementRecord.localCurrencySymbol!,
-            localAmount: safeHavenSettlementRecord.localAmount!,
+            localAmount: safeHavenSettlementRecord.localAmount,
         });
 
         const transaction = await SafeHavenService.processOffRampPaymentWithSaveHaven({
-            nameEnquiryReference: nameEnquiryReference
-                ? nameEnquiryReference
-                : accountNameEnquiry.nameEnquiryReference,
+            nameEnquiryReference: nameEnquiryReference ?? accountNameEnquiry.nameEnquiryReference,
             amountToSend: settlementData.localAmount,
-            beneficiaryBankCode: seerbitId ? seerbitId : accountNameEnquiry.seerbitId,
+            beneficiaryBankCode: seerbitId ?? accountNameEnquiry.seerbitId,
             beneficiaryAccountNumber: accountNumber,
             sequenceId: safeHavenSettlementRecord.sequenceId,
         });
@@ -663,6 +763,12 @@ class FiatRampService {
             params,
             MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID
         );
+
+        if (settlementData.localCurrencySymbol !== 'NGN') {
+            throw new Error(
+                `Feature not available for currency: ${settlementData.localCurrencySymbol}`
+            );
+        }
 
         const manualSettlementRecord =
             await ManualOfframpSettlementService.createManualOfframpSettlement(settlementData);

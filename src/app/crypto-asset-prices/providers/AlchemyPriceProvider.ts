@@ -1,4 +1,3 @@
-import { AssetConfig } from '@/resources/web3/core/tokens';
 import { CryptoAssetPriceProvider } from '../CryptoAssetPriceProvider';
 import { GetAssetPriceResponse, SupportedFiat } from '../types';
 import { CryptoAssetPriceProviderError } from './errors';
@@ -21,8 +20,8 @@ class AlchemyPriceProvider implements CryptoAssetPriceProvider {
         this.alchemyApiKey = alchemyApiKey;
     }
 
-    public async getAssetPrice(asset: AssetConfig): Promise<GetAssetPriceResponse> {
-        const requestUrl = `${this.alchemyApiUrl}/${this.alchemyApiKey}/tokens/by-symbol?symbols=${asset.tokenName}`;
+    public async getAssetPrice(assetSymbol: string): Promise<GetAssetPriceResponse> {
+        const requestUrl = `${this.alchemyApiUrl}/${this.alchemyApiKey}/tokens/by-symbol?symbols=${assetSymbol}`;
 
         const response = await fetch(requestUrl);
 
@@ -30,7 +29,7 @@ class AlchemyPriceProvider implements CryptoAssetPriceProvider {
 
         if (!response.ok) {
             throw new CryptoAssetPriceProviderError({
-                message: `Failed to fetch price for ${asset.tokenName} from Alchemy. Status: ${response.status}`,
+                message: `Failed to fetch price for ${assetSymbol} from Alchemy. Status: ${response.status}`,
                 data: {
                     status: response.status,
                     statusText: response.statusText,
@@ -48,11 +47,11 @@ class AlchemyPriceProvider implements CryptoAssetPriceProvider {
             };
 
             const targetAsset = parsedData.data.find(
-                (item) => item.symbol.toUpperCase() === asset.tokenName.toUpperCase()
+                (item) => item.symbol.toUpperCase() === assetSymbol.toUpperCase()
             );
             if (!targetAsset) {
                 throw new CryptoAssetPriceProviderError({
-                    message: `Failed to find asset ${asset.tokenName} in Alchemy response`,
+                    message: `Failed to find asset ${assetSymbol} in Alchemy response`,
                     data: parsedData,
                 });
             }
@@ -65,7 +64,7 @@ class AlchemyPriceProvider implements CryptoAssetPriceProvider {
             return prices;
         } catch (error) {
             throw new CryptoAssetPriceProviderError({
-                message: `Failed to parse response from Alchemy for ${asset.tokenName}. Error: ${error}`,
+                message: `Failed to parse response from Alchemy for ${assetSymbol}. Error: ${error}`,
                 data: error,
             });
         }

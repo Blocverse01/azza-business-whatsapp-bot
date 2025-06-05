@@ -15,10 +15,10 @@ import SumSubService, {
     NG_KYC_LEVEL_NAME,
 } from '@/app/SumSub/SumSubService';
 import { UserAssetItem } from '@/app/User/userSchema';
-import { sendMessageUsingGo } from '@/app/WhatsAppBot/helpers';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
     getFirstTimeUserMessageText,
+    getUserReferralStatsMessageText,
     getWalletCreationSuccessMessageText,
 } from '@/app/WhatsAppBot/utils';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
@@ -41,7 +41,10 @@ import {
     TRADE_ASSET_REGEX,
 } from '@/constants/regex';
 import { INTERNAL_SERVER_ERROR, OK } from '@/constants/status-codes';
-import { getTransactionMinimumDepositMessage } from '@/constants/strings';
+import {
+    getTransactionMinimumDepositMessage,
+    WITHDRAWAL_UNAVAILABLE_RESPONSE,
+} from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
@@ -88,13 +91,11 @@ import SmileIdService from '../SmileID/SmileIdService';
 import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
 import { generateRatesCard } from '../rate-card/generators';
-import { getDefaultParamsForNetworkFeeQuery } from '../AzzaWalletManager/fallback-data';
 import cryptoAssetPriceService from '@/runtime/crypto-asset-price';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
     private static readonly SHOULD_REQUEST_KYC_FOR_OFFRAMP = true;
-    private static readonly USE_SENDER_SCRIPT = false;
 
     private static getRequestConfig() {
         return {
@@ -104,32 +105,6 @@ class WhatsAppBotService {
                 Authorization: `Bearer ${env.CLOUD_API_ACCESS_TOKEN}`,
             },
         };
-    }
-
-    public static async sendMessageUsingGo(businessPhoneNumberId: string, message: object) {
-        try {
-            const response = await sendMessageUsingGo({
-                message: JSON.stringify(message),
-                token: env.CLOUD_API_ACCESS_TOKEN,
-                url: env.CLOUD_API_URL,
-                id: businessPhoneNumberId,
-            });
-
-            if (response.statusCode !== OK) {
-                await logServiceError(
-                    new HttpException(response.statusCode, 'Error sending message', {
-                        response: response.responseBody,
-                        message,
-                    }),
-                    'Error sending message'
-                );
-
-                return;
-            }
-        } catch (error) {
-            await logServiceError(error, 'Error sending message');
-            throw error;
-        }
     }
 
     public static async sendMessageUsingApi(businessPhoneNumberId: string, message: object) {
@@ -232,10 +207,6 @@ class WhatsAppBotService {
     }
 
     public static async sendWhatsappMessage(businessPhoneNumberId: string, data: object) {
-        if (this.USE_SENDER_SCRIPT) {
-            return await this.sendMessageUsingGo(businessPhoneNumberId, data);
-        }
-
         return await this.sendMessageUsingApi(businessPhoneNumberId, data);
     }
 
@@ -472,6 +443,36 @@ class WhatsAppBotService {
         await this.sendWhatsappMessage(businessPhoneNumberId, interactiveMessage);
     }
 
+    public static async createReferralStatsMessage(
+        businessPhoneNumberId: string,
+        recipient: string
+    ) {
+        const interactiveMessage: WhatsAppInteractiveMessage = {
+            type: 'interactive',
+            interactive: {
+                type: 'button',
+                body: {
+                    text: getUserReferralStatsMessageText(),
+                },
+                action: {
+                    buttons: [
+                        {
+                            type: 'reply',
+                            reply: {
+                                id: BaseInteractiveButtonIds.REFERRAL_STATS,
+                                title: 'Referral Stats 🏆',
+                            },
+                        },
+                    ],
+                },
+            },
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: recipient,
+        };
+        await this.sendWhatsappMessage(businessPhoneNumberId, interactiveMessage);
+    }
+
     public static async markMassageAsRead(businessPhoneNumberId: string, messageId: string) {
         const endpoint = `${businessPhoneNumberId}/messages`;
         const data = {
@@ -549,7 +550,10 @@ class WhatsAppBotService {
             recipient: userPhoneNumber,
             fiatConversionRate: rate,
             transactionFee: fee,
-            assetUsdPrice: await cryptoAssetPriceService.getAssetPrice(assetBalance.asset, 'USD'),
+            assetUsdPrice: await cryptoAssetPriceService.getAssetPrice(
+                assetBalance.asset.tokenName,
+                'USD'
+            ),
         });
 
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
@@ -581,7 +585,9 @@ class WhatsAppBotService {
 
         try {
             const imageBinary = await generateRatesCard(rates);
-            const imageFile = new File([imageBinary], 'rates_card.png', { type: 'image/png' });
+            const imageFile = new File([Buffer.from(imageBinary)], 'rates_card.png', {
+                type: 'image/png',
+            });
             const mediaResponse = await this.uploadImageToWhatsapp(
                 businessPhoneNumberId,
                 imageFile
@@ -686,6 +692,10 @@ class WhatsAppBotService {
 
         if (interactiveButtonId.startsWith(MARK_AS_PAID_BUTTON_ID_PREFIX)) {
             return 'mark-manual-offramp-settlement-as-paid';
+        }
+
+        if (interactiveButtonId.startsWith(BaseInteractiveButtonIds.REFERRAL_STATS)) {
+            return 'referral-stats';
         }
 
         throw new HttpException(
@@ -1003,33 +1013,33 @@ class WhatsAppBotService {
         phoneParams: PhoneNumberParams,
         assetId: AssetInteractiveButtonIds
     ) {
+        const isEnabled = await FeatureFlagService.isFeatureEnabled(
+            FeatureFlagKey.WALLET_WITHDRAWALS
+        );
+
+        if (!isEnabled) {
+            await WhatsAppBotService.sendWhatsappMessage(
+                phoneParams.businessPhoneNumberId,
+                MessageGenerators.generateTextMessage(
+                    phoneParams.userPhoneNumber,
+                    WITHDRAWAL_UNAVAILABLE_RESPONSE
+                )
+            );
+
+            return;
+        }
+
         const { userPhoneNumber } = phoneParams;
         const assetBalance = await azzaWalletManager.getAssetBalance({
             assetId,
             userId: user.id,
         });
-        let withdrawNetworkFee = 0;
-
-        const assetConfig = getAssetConfigOrThrow(assetId);
-        if (assetConfig.isNative) {
-            const defaultParams = getDefaultParamsForNetworkFeeQuery(assetConfig.network);
-
-            const networkFeeInfo = await azzaWalletManager.getWithdrawNetworkFee({
-                amount: defaultParams.amount.toString(),
-                recipient: defaultParams.recipient,
-                assetId,
-                userId: user.id,
-            });
-
-            withdrawNetworkFee = networkFeeInfo.networkFee;
-        }
 
         const message = WhatsAppBotTransferToWalletFlowService.generateTransferToWalletInitMessage(
             user,
             {
                 recipient: userPhoneNumber,
                 assetBalance: assetBalance,
-                networkFee: withdrawNetworkFee,
             }
         );
 
@@ -1048,7 +1058,6 @@ class WhatsAppBotService {
         const { userPhoneNumber } = phoneParams;
         const { assetId, currencySymbol, countryCode } = params;
 
-        console.log('beginOnrampFlowMessage - Asset ID is: ', assetId);
         const asset = getAssetConfigOrThrow(assetId);
 
         const { paymentChannels } = await FiatRampService.getPaymentMethods(
@@ -1066,6 +1075,7 @@ class WhatsAppBotService {
                 userPhoneNumber,
                 `Sorry, we currently do not support buying crypto for ${currencySymbol}.`
             );
+            return;
         }
 
         const flowMessage = WhatsAppBotOnRampFlowService.generateOnRampFlowInitMessage(user, {
@@ -1075,8 +1085,6 @@ class WhatsAppBotService {
             countryCode,
             paymentMethods,
         });
-
-        console.dir(flowMessage, { depth: Infinity });
 
         await this.sendWhatsappMessage(phoneParams.businessPhoneNumberId, flowMessage);
     }

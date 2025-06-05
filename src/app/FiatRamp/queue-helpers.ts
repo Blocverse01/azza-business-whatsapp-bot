@@ -36,12 +36,13 @@ export const handleOfframpRequestInQueue = async (
     const [transaction] = await Promise.all([
         azzaWalletManager.getTransactionByHash(
             transactionHash,
-            normalizeBlockchainInput(params.chainName)
+            normalizeBlockchainInput(params.chainName),
+            'WITHDRAW'
         ),
     ]);
 
     if (transaction.status !== 'SUCCESS' || !transaction.confirmed) {
-        throw new Error('Onchain transaction failed');
+        throw new Error('On-chain transaction failed');
     }
 
     const transactionAmountIsValid = math.largerEq(transaction.amount, params.tokenAmountDebited);

@@ -1,9 +1,18 @@
 import { AssetTransferRecipientType } from '@/app/azza/azza.schema';
+import { getDefaultParamsForNetworkFeeQuery } from '@/app/AzzaWalletManager/fallback-data';
 import { SwapAssetQuote } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { handlePayPrompt } from '@/app/pay/messaging-utils';
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
+import { hasExceededLimit } from '@/app/limits/utils';
 import { Action } from '@/app/llmCallRouter/inputClassifier';
+import { addJobToReferralCodeQueue } from '@/app/referral-scheme/queue-utils';
+import {
+    aggregatePendingTransactionFeeTokenAmount,
+    calculateWithdrawalFees,
+} from '@/app/transaction-fees/utils';
 import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
-import WalletAssetManagementService from '@/app/WalletAssetManagement/WalletAssetManagementService';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -15,11 +24,16 @@ import WhatsAppBotTransactionConfirmationFlowService from '@/app/WhatsAppBot/Wha
 import {
     canAccessFeature,
     deriveUserFeatureAccessLevel,
-    FeatureAccessLevel,
+    type FeatureAccessLevel,
     FLAT_SWAP_FEE,
 } from '@/config/whatsAppBot';
 import { SIX, ZERO } from '@/constants/numbers';
-import { getTransactionMinimumDepositMessage, USD_SYMBOL } from '@/constants/strings';
+import {
+    getTransactionMinimumDepositMessage,
+    SWAP_UNAVAILABLE_RESPONSE,
+    USD_SYMBOL,
+    WITHDRAWAL_UNAVAILABLE_RESPONSE,
+} from '@/constants/strings';
 import { UserV2Record } from '@/db/xata';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { getNetworkEmoji } from '@/resources/utils/bot-message-utils';
@@ -30,6 +44,7 @@ import {
 } from '@/resources/utils/currency';
 import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { cleanPhoneNumberInput } from '@/resources/utils/phone-numbers';
+import { clipDecimal } from '@/resources/utils/transformers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import {
     isValidBlockchain,
@@ -39,7 +54,7 @@ import {
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
-import { getSupportedAssetAndNetworksText } from '../utils';
+import { getSupportContactsMessageText, getSupportedAssetAndNetworksText } from '../utils';
 import SumSubService from '@/app/SumSub/SumSubService';
 
 type ActionHandlerParams = {
@@ -47,7 +62,9 @@ type ActionHandlerParams = {
         | z.infer<(typeof actionArgumentsSchema)[Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>]>
         | null
         | Record<string, unknown>;
-    botParams: PhoneNumberParams;
+    botParams: PhoneNumberParams & {
+        waDisplayName: string;
+    };
     user: UserV2Record;
 };
 
@@ -179,6 +196,25 @@ export const handleWithdrawRelatedPrompt = async (
 ): Promise<PromptHandlerResponse> => {
     const { extractedArguments, botParams, user } = params;
 
+    const withdrawalsIsEnabled = await FeatureFlagService.isFeatureEnabled(
+        FeatureFlagKey.WALLET_WITHDRAWALS
+    );
+
+    if (!withdrawalsIsEnabled) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                WITHDRAWAL_UNAVAILABLE_RESPONSE
+            )
+        );
+
+        return {
+            response: WITHDRAWAL_UNAVAILABLE_RESPONSE,
+            resetSession: true,
+        };
+    }
+
     if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         const missingArgsPromptResponse = getWithdrawalArgumentsGuideMessage({
             amount: true,
@@ -291,9 +327,15 @@ export const handleWithdrawRelatedPrompt = async (
         userId: user.id,
         assetId: targetAsset.listItemId,
     });
+    const pendingFeeAggregate = await aggregatePendingTransactionFeeTokenAmount(
+        user.id,
+        targetAsset.listItemId
+    );
 
-    if (balanceInfo.balance < withdrawArguments.amount) {
-        const insufficientBalanceResponse = `Insufficient balance. You have ${balanceInfo.balance} ${targetAsset.tokenName}`;
+    const availableBalance = balanceInfo.balance - pendingFeeAggregate;
+
+    if (availableBalance < withdrawArguments.amount) {
+        const insufficientBalanceResponse = `Insufficient balance. You have ${availableBalance} ${targetAsset.tokenName}`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
@@ -353,31 +395,43 @@ export const handleWithdrawRelatedPrompt = async (
         ? AssetTransferRecipientType.PHONE_NUMBER
         : AssetTransferRecipientType.WALLET_ADDRESS;
 
-    const transactionFee = WalletAssetManagementService.calculateStableTokenTransferTransactionFee(
-        withdrawArguments.amount.toString(),
-        targetAsset.network
-    );
-    const totalAmount = withdrawArguments.amount + transactionFee;
+    const [transactionFee, hasExceededGaslessWithdrawalLimit] = await Promise.all([
+        calculateWithdrawalFees({
+            amount: withdrawArguments.amount,
+            assetId: targetAsset.listItemId,
+            userId: user.id,
+            recipient: getDefaultParamsForNetworkFeeQuery(targetAsset.network).recipient,
+        }),
+        hasExceededLimit(user.id, 'GASLESS_TRANSACTIONS'),
+    ]);
 
-    if (balanceInfo.balance < totalAmount) {
-        const amountDeficit = totalAmount - balanceInfo.balance;
-        const notEnoughBalanceResponse = `You need extra ${amountDeficit} ${targetAsset.tokenName} on ${targetAsset.network} to cover for transaction fee`;
-
+    if (
+        hasExceededGaslessWithdrawalLimit &&
+        transactionFee.totalFee > 0 &&
+        withdrawArguments.amount <= transactionFee.totalFee
+    ) {
+        const minAmountResponse = `Minimum withdrawal amount is ${transactionFee.totalFee + withdrawArguments.amount} ${targetAsset.tokenName}`;
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
             MessageGenerators.generateTextMessage(
                 params.botParams.userPhoneNumber,
-                notEnoughBalanceResponse
+                minAmountResponse
             )
         );
-
         return {
-            response: notEnoughBalanceResponse,
+            response: minAmountResponse,
             resetSession: false,
         };
     }
 
-    const transactionSummaryMessage = `Please confirm the transfer details:\n\n- Cryptocurrency: ${targetAsset.tokenName}\n- Amount: ${withdrawArguments.amount} ${targetAsset.tokenName}\n- Recipient: ${recipient}\n- Chain: ${targetAsset.network}\n\nReply "Yes" to confirm.\n\n_To edit any of the details, reply with the correct details. E.g: "Withdraw 2 usdc instead" or "Withdraw on Ethereum"_`;
+    const amountToReceive = clipDecimal(
+        hasExceededGaslessWithdrawalLimit
+            ? withdrawArguments.amount - transactionFee.totalFee
+            : withdrawArguments.amount,
+        6
+    );
+
+    const transactionSummaryMessage = `Please confirm the transfer details:\n\n- Amount: ${withdrawArguments.amount} ${targetAsset.tokenName}\n- Transaction Fee: ${clipDecimal(transactionFee.totalFee, 6)} ${targetAsset.tokenName}${hasExceededGaslessWithdrawalLimit ? '' : ' (💙Sponsored)'}\n- Amount to Receive: ${amountToReceive} ${targetAsset.tokenName}\n\n- Recipient: ${recipient}\n- Chain: ${targetAsset.network}\n\nReply "Yes" to confirm.\n\n_To edit any of the details, reply with the correct details. E.g: "Withdraw 2 USDC instead" or "Withdraw on Ethereum"_`;
 
     if (!withdrawArguments.hasConfirmedTransfer) {
         await WhatsAppBotService.sendWhatsappMessage(
@@ -403,9 +457,10 @@ export const handleWithdrawRelatedPrompt = async (
             transactionType: 'SEND',
             recipient,
             recipientType,
-            amount: withdrawArguments.amount,
+            amount: amountToReceive,
             assetId: targetAsset.listItemId,
-            transactionFee,
+            transactionFee: transactionFee.totalFee,
+            transactionFeeUsd: transactionFee.totalFeeUsd,
             userId: convertAsciiStringToBase64(user.id),
         },
     });
@@ -652,12 +707,16 @@ export const handleBalanceQueryPrompt = async (
                         })
                         .join('\n');
 
-                    const network = networkGroup[0].blockchainNetwork;
+                    if (!networkGroup[0]) {
+                        return ``;
+                    }
+                    const network = networkGroup[0]?.blockchainNetwork;
 
                     const emoji = getNetworkEmoji(network);
 
-                    return `*${emoji ? emoji : ''} ${network}*\n${assetBalances}`;
+                    return `*${emoji ?? ''} ${network}*\n${assetBalances}`;
                 })
+                .filter((value) => value !== '')
                 .join('\n\n');
 
             const allBalancesMessage = `*Your balances on different networks:*\n\n${networkBalancesMessage}`;
@@ -963,12 +1022,30 @@ export const handleSellCryptoForFiatPrompt = async (
 //       Swap Crypto Related Prompt Handler
 /////////////////////////////////////////////////////////
 export const handleSwapCryptoPrompt = async (
-    params: ActionHandlerParams
+    params: ActionHandlerParams,
+    minimumAccessLevel: FeatureAccessLevel
 ): Promise<PromptHandlerResponse> => {
     const { extractedArguments, botParams, user } = params;
 
+    const isEnabled = await FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SWAPS);
+
+    if (!isEnabled) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                SWAP_UNAVAILABLE_RESPONSE
+            )
+        );
+
+        return {
+            response: SWAP_UNAVAILABLE_RESPONSE,
+            resetSession: true,
+        };
+    }
+
     const userAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
-    if (!canAccessFeature(userAccessLevel, FeatureAccessLevel.STAGING)) {
+    if (!canAccessFeature(userAccessLevel, minimumAccessLevel)) {
         const responseMessage =
             "The swapping feature is currently not available! You'll be the first to know when it's back up.";
 
@@ -1043,7 +1120,7 @@ export const handleSwapCryptoPrompt = async (
         fromBlockchainNetwork,
         toCryptoCurrencySymbol,
         toBlockchainNetwork,
-        fromAmount,
+        fromAmount: rawFromAmount,
     } = swapArguments;
 
     if (
@@ -1107,6 +1184,25 @@ export const handleSwapCryptoPrompt = async (
         };
     }
 
+    const fromAmount = clipDecimal(rawFromAmount, 9);
+
+    if (fromAmount <= 0) {
+        const invalidAmountResponse = `Amount to swap must be greater than 0`;
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                invalidAmountResponse
+            )
+        );
+
+        return {
+            response: invalidAmountResponse,
+            resetSession: false,
+        };
+    }
+
     const fromTokenBalance = await azzaWalletManager.getAssetBalance({
         assetId: fromTokenConfig.listItemId,
         userId: user.id,
@@ -1164,13 +1260,14 @@ export const handleSwapCryptoPrompt = async (
             fromAssetId: fromTokenConfig.listItemId,
             toAssetId: toTokenConfig.listItemId,
             recipientAddress: toUserWallet.address,
+            userId: user.id,
         });
     } catch (error) {
         await logServiceError(error, 'Error getting swap quotes');
     }
 
     if (!quote) {
-        const responseMessage = 'An error occurred while trying to get a quote for your swap.';
+        const responseMessage = `Swapping ${fromTokenConfig.tokenName} (${fromTokenConfig.network}) to ${toTokenConfig.tokenName} (${toTokenConfig.network}) is temporarily unavailable`;
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
             MessageGenerators.generateTextMessage(params.botParams.userPhoneNumber, responseMessage)
@@ -1202,10 +1299,12 @@ export const handleSwapCryptoPrompt = async (
         `From Amount: *${prettifiedFromAmount} ${fromTokenConfig.tokenName}*`,
         `To Amount: *${prettifiedToAmount} ${toTokenConfig.tokenName}*\n`,
         `1 *${fromTokenConfig.tokenName}* = ${swapRate} *${toTokenConfig.tokenName}*`,
-        `Fee: *${prettifiedSwapFee} ${fromTokenConfig.tokenName}*\n`,
+        swapFee > 0 ? `Fee: *${prettifiedSwapFee} ${fromTokenConfig.tokenName}*\n` : '',
         ...chainMessages,
         `\n_Estimated Time: *${quote.estimatedArrivalTime}s*_`,
-    ].join('\n');
+    ]
+        .filter((value) => value.trim() !== '')
+        .join('\n');
 
     const transactionSummaryMessage =
         WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
@@ -1312,6 +1411,73 @@ export const handleKycPrompt = async (
 
     return {
         response: 'Handled KYC prompt',
+        resetSession: true,
+    };
+};
+
+/////////////////////////////////////////////////////////
+//       Referral Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleReferralPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    await addJobToReferralCodeQueue({
+        userId: params.user.id,
+        whatsappParams: params.botParams,
+        displayName: params.botParams.waDisplayName,
+    });
+
+    return {
+        response: 'Handled Referral prompt',
+        resetSession: true,
+    };
+};
+
+/////////////////////////////////////////////////////////
+//       Pay Prompt Handler
+/////////////////////////////////////////////////////////
+export const handlePayRelatedPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const response = await handlePayPrompt({
+        whatsappParams: params.botParams,
+        user: params.user,
+        args: params.extractedArguments
+            ? parseExtractedArguments(
+                  params.extractedArguments,
+                  actionArgumentsSchema.PAY_TO_BANK_ACCOUNT
+              )
+            : null,
+    });
+
+    if (response.botResponseMessage) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            params.botParams.businessPhoneNumberId,
+            response.botResponseMessage
+        );
+    }
+
+    return {
+        response: response.rawText,
+        resetSession: response.resetSession,
+    };
+};
+
+/////////////////////////////////////////////////////////
+//       Support Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleSupportRelatedPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const responseMessage = getSupportContactsMessageText();
+
+    const { botParams } = params;
+    await WhatsAppBotService.sendWhatsappMessage(
+        botParams.businessPhoneNumberId,
+        MessageGenerators.generateTextMessage(botParams.userPhoneNumber, responseMessage)
+    );
+    return {
+        response: responseMessage,
         resetSession: true,
     };
 };

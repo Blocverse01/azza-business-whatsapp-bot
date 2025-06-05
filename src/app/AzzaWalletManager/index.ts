@@ -13,9 +13,9 @@ import {
     type UserWallet,
     type WithdrawAssetParams,
 } from '@/app/AzzaWalletManager/providers/BaseWalletProvider';
+import { BlockradarTransactionType } from '@/app/Blockradar/schema';
 import type { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import type { AssetConfig } from '@/resources/web3/core/tokens';
-import { undefined } from 'zod';
 
 class AzzaWalletManager implements BaseWalletProvider {
     private readonly walletProvider: BaseWalletProvider;
@@ -51,9 +51,10 @@ class AzzaWalletManager implements BaseWalletProvider {
 
     public async getTransactionByHash(
         transactionHash: string,
-        network: AllSupportedBlockchains
+        network: AllSupportedBlockchains,
+        transactionType?: BlockradarTransactionType
     ): Promise<AssetTransaction> {
-        return this.walletProvider.getTransactionByHash(transactionHash, network);
+        return this.walletProvider.getTransactionByHash(transactionHash, network, transactionType);
     }
 
     public async withdrawAsset(params: WithdrawAssetParams): Promise<AssetTransaction> {
@@ -82,7 +83,7 @@ class AzzaWalletManager implements BaseWalletProvider {
 
     public getWithdrawNetworkFee(
         params: Pick<WithdrawAssetParams, 'amount' | 'assetId' | 'userId' | 'recipient'>
-    ): Promise<{ nativeBalance: number; networkFee: number }> {
+    ): Promise<{ nativeBalance: number; networkFee: number; networkFeeInUsd: number }> {
         return this.walletProvider.getWithdrawNetworkFee(params);
     }
 
