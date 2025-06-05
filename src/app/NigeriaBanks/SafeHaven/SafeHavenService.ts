@@ -11,7 +11,7 @@ import {
     BankAccountVerificationResponse,
     accountNameEnquirySchema,
     BankAccountBalance,
-    TransactionResponse
+    TransactionResponse,
 } from './SafeHaveSchema';
 import { BAD_REQUEST, OK } from '@/constants/status-codes';
 
@@ -24,7 +24,7 @@ class SafeHavenService {
     private static readonly SAVEHAVEN_CLIENT_ASSERTION = env.SAFEHAVEN_CLIENT_ASSERTION;
     private static readonly SAVEHAVEN_ACCOUNT_NUMBER = '0117226117';
     private static readonly SAVEHEVEN_ACCOUNT_ID = '67c8b8242a82110024bcaf97';
-  
+
     private static accessToken: string | null = null;
     private static tokenExpiry: number | null = null;
     private static ibsClientId: string | null = null;
@@ -140,7 +140,6 @@ class SafeHavenService {
 
     public static async accountNameEnquiry(params: { bankCode: string; accountNumber: string }) {
         try {
-
             const { bankCode, accountNumber } = params;
 
             const authTokenData = await this.generateAccessToken();
@@ -170,7 +169,7 @@ class SafeHavenService {
 
             const { data, statusCode, message } = response.data;
 
-            console.log(response.data)
+            console.log(response.data);
 
             if (statusCode != OK) throw new HttpException(statusCode, `${message}`);
 
@@ -180,8 +179,6 @@ class SafeHavenService {
                 accountNumber: data.accountNumber,
                 accountName: data.accountName,
             };
-
-
         } catch (error) {
             await logServiceError(error, 'Error fetching user account name');
             throw error;
@@ -220,6 +217,7 @@ class SafeHavenService {
         amountToSend: number;
         beneficiaryAccountNumber: string;
         sequenceId: string;
+        narration?: string;
     }) {
         try {
             const {
@@ -239,7 +237,7 @@ class SafeHavenService {
                 beneficiaryBankCode: beneficiaryBankCode,
                 beneficiaryAccountNumber: beneficiaryAccountNumber,
                 amount: amountToSend,
-                narration: 'AZZA',
+                narration: params.narration ?? 'AZZA',
                 paymentReference: sequenceId,
             };
 
@@ -272,7 +270,6 @@ class SafeHavenService {
             throw error;
         }
     }
-
 }
 
 export default SafeHavenService;

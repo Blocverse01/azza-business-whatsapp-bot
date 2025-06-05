@@ -23,7 +23,6 @@ import logger from '@/resources/logger';
 import { defaultAmountFixer } from '@/resources/utils/currency';
 import { transformKeysToCamelCase } from '@/resources/utils/transformers';
 import { PlatformAddressIdNetworkTag } from '@/runtime/platform-wallets';
-import userServiceV2 from '@/runtime/user';
 import { CountryCode } from 'libphonenumber-js';
 import { z } from 'zod';
 import {
@@ -64,6 +63,7 @@ import ResolveBankAccountRequest = fiatramps.v1.ResolveBankAccountRequest;
 import UpdateCollectionTransactionStatusRequest = fiatramps.v1.UpdateCollectionTransactionStatusRequest;
 import UpdatePaymentTransactionStatusRequest = fiatramps.v1.UpdatePaymentTransactionStatusRequest;
 import YellowCardRetailCustomer = fiatramps.v1.YellowCardRetailCustomer;
+import { UserIdentityInfo } from '@/app/User/userSchema';
 
 class FiatRampsRpcService {
     public static async getSupportedCountries() {
@@ -334,20 +334,20 @@ class FiatRampsRpcService {
         return new_beneficiary_id;
     }
 
-    public static async createBeneficiaryOfframpRequest(params: SendOfframpRequestPayload) {
+    public static async createBeneficiaryOfframpRequest(
+        sender: UserIdentityInfo,
+        params: SendOfframpRequestPayload
+    ) {
         const validatedParams = sendOfframpRequestPayloadSchema.parse(params);
-        const user = await userServiceV2.getWhatsappUserIdentityInfo(params.userId);
 
-        if (!user) throw new Error('User not found');
-
-        const standardizedUserPhoneNumber = `+${user.phoneNumber}`;
+        const standardizedUserPhoneNumber = `+${sender.phoneNumber}`;
 
         let senderName = '';
-        if (user.firstName) {
-            senderName += user.firstName;
+        if (sender.firstName) {
+            senderName += sender.firstName;
         }
-        if (user.lastName) {
-            senderName += ` ${user.lastName}`;
+        if (sender.lastName) {
+            senderName += ` ${sender.lastName}`;
         }
 
         const request = new CreateBeneficiaryPaymentRequestInput({
@@ -366,13 +366,13 @@ class FiatRampsRpcService {
             sender: new YellowCardRetailCustomer({
                 name: senderName,
                 phone: standardizedUserPhoneNumber.replace(/\s/g, ''),
-                country: user.country,
-                dob: user.kycDateOfBirth,
-                id_number: user.kycDocumentNumber.replace(/\s/g, ''),
-                id_type: user.kycIdType,
-                address: user.address ?? FALLBACK_USE_AZZA_ADDRESS,
-                additional_id_number: user.additionalKycIdNumber?.replace(/\s/g, '') ?? undefined,
-                additional_id_type: user.additionalKycIdType ?? undefined,
+                country: sender.country!,
+                dob: sender.kycDateOfBirth,
+                id_number: sender.kycDocumentNumber.replace(/\s/g, ''),
+                id_type: sender.kycIdType,
+                address: sender.address ?? FALLBACK_USE_AZZA_ADDRESS,
+                additional_id_number: sender.additionalKycIdNumber?.replace(/\s/g, '') ?? undefined,
+                additional_id_type: sender.additionalKycIdType ?? undefined,
             }),
             transaction_fee_usd: validatedParams.transactionFeeUsd,
         });
