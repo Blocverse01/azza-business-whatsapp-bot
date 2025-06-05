@@ -328,21 +328,32 @@ class FiatRampService {
                     beneficiary.bankName.includes('PalmPay'));
 
             if (NGNBankIsEnabled) {
-                if (safeHavenPayoutIsEnabled) {
-                    const safehaven = await this.trySafeHavenPayout(beneficiary, params);
-                    if (!safehaven) {
-                        return await this.tryManualPayout(beneficiary, params);
+                if (safeHavenPayoutIsEnabled || isPalmPayBank) {
+                    const safehavenSequenceId = await this.trySafeHavenPayout(beneficiary, params);
+
+                    // If SafeHaven isn't viable, try Bell or manual payout
+                    if (!safehavenSequenceId) {
+                        if (isPalmPayBank) {
+                            return await this.tryManualPayout(beneficiary, params);
+                        } else {
+                            return (
+                                (await this.tryBellPayout(beneficiary, params)) ??
+                                (await this.tryManualPayout(beneficiary, params))
+                            );
+                        }
                     }
+
+                    // SafeHaven is viable — return its sequence ID
+                    return safehavenSequenceId;
                 }
 
-                if (!isPalmPayBank) {
-                    const bell = await this.tryBellPayout(beneficiary, params);
-                    if (!bell) {
-                        return await this.tryManualPayout(beneficiary, params);
-                    }
+                const bellSequenceId = await this.tryBellPayout(beneficiary, params);
+
+                if (!bellSequenceId) {
+                    return await this.tryManualPayout(beneficiary, params);
                 }
 
-                return await this.trySafeHavenPayout(beneficiary, params);
+                return bellSequenceId;
             }
 
             if (yellowCardPayoutIsEnabled) {
