@@ -4,6 +4,7 @@ import ManualOfframpSettlementService, {
     ManualOfframpSettlement,
 } from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 import {
+    BELL_OFFRAMP_PAYMENT_PROCESSOR_ID,
     HONEYCOIN_OFFRAMP_PAYMENT_PROCESSOR_ID,
     MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID,
     ProcessorId,
@@ -23,9 +24,11 @@ import {
 } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampsRpcService from '@/app/FiatRamp/grpcService/FiatRampsRpcService';
 import {
-    SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE,
+    BELL_WITHDRAWAL_LIMIT,
+    NGN_BANK_BALANCE_FOR_TRANSACTION_FEE,
+    PALM_PAY_BANK_SEERBIT_ID,
     SAFEHAVEN_WITHDRAWAL_LIMIT,
-} from '@/app/SafeHaven/constants';
+} from '@/app/NigeriaBanks/SafeHaven/constants';
 import env from '@/constants/env';
 import { HUNDRED } from '@/constants/numbers';
 import { BAD_REQUEST } from '@/constants/status-codes';
@@ -45,7 +48,9 @@ import {
     YellowCardOnRampEvents,
     YellowCardWebhookPayload,
 } from './types';
-import SafeHavenService from '../SafeHaven/SafeHavenService';
+import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
+import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
+import BellService from '../NigeriaBanks/BellMFB/BellService';
 import { recommendedOffRampChannelForKenya } from '../HoneyCoin/whiteListedMobileMoneyChannel';
 import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
 
@@ -199,6 +204,20 @@ class FiatRampService {
         return network;
     }
 
+    public static async getSeerBitId(data: {
+        networkId: string;
+        countryCode: CountryCode;
+        channelId: string;
+    }) {
+        const { networkId, countryCode, channelId } = data;
+
+        const bank = await this.getBankNetwork({ networkId, countryCode, channelId });
+
+        return {
+            seerbitId: bank.seerbitId,
+        };
+    }
+
     public static async getAccountNameEntryId(data: {
         networkId: string;
         countryCode: CountryCode;
@@ -241,37 +260,89 @@ class FiatRampService {
         return await FiatRampsRpcService.getBeneficiary(beneficiaryId);
     }
 
+    public static async tryManualPayout(
+        beneficiary: Beneficiary,
+        params: SendOfframpRequestPayload
+    ) {
+        return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
+    }
+
+    public static async trySafeHavenPayout(
+        beneficiary: Beneficiary,
+        params: SendOfframpRequestPayload
+    ) {
+        const balance = await SafeHavenService.getSafeHavenAccountBalance();
+        const transferableBalance = balance - NGN_BANK_BALANCE_FOR_TRANSACTION_FEE;
+
+        const withinLimits =
+            transferableBalance >= params.localAmount &&
+            params.localAmount <= SAFEHAVEN_WITHDRAWAL_LIMIT;
+
+        if (withinLimits) {
+            // SafeHaven is available, sufficiently funded, and within withdrawal limits — use it.
+            return await FiatRampService.passOfframpTransactionToSafeHaven(beneficiary, params);
+        }
+
+        return null;
+    }
+
+    public static async tryBellPayout(beneficiary: Beneficiary, params: SendOfframpRequestPayload) {
+        const bellBalance = await BellService.getBellAccountBalance();
+        const transferableBalance = bellBalance - NGN_BANK_BALANCE_FOR_TRANSACTION_FEE;
+
+        const withinLimits =
+            transferableBalance >= params.localAmount &&
+            params.localAmount <= BELL_WITHDRAWAL_LIMIT;
+
+        if (withinLimits) {
+            // Bell is available, sufficiently funded, and within withdrawal limits — use it.
+            return await FiatRampService.passOfframpTransactionToBell(beneficiary, params);
+        }
+
+        return null;
+    }
+
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
         // Fetch beneficiary and feature flag statuses concurrently
         const [
             beneficiary,
             yellowCardPayoutIsEnabled,
+            NGNBankIsEnabled,
             safeHavenPayoutIsEnabled,
             honeycoinPayoutIsEnabled,
         ] = await Promise.all([
             FiatRampService.getBeneficiary(params.beneficiaryId),
             FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS),
-            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAFEHAVEN_NGN_PAYOUTS),
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.NGN_BANKS_PAYOUTS),
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAFEHAVEN_BANK),
             FeatureFlagService.isFeatureEnabled(FeatureFlagKey.HONEYCOIN_OFFRAMP),
         ]);
 
         // Special handling for Nigeria (NG) beneficiaries
         if (beneficiary.country.code === 'NG') {
-            if (safeHavenPayoutIsEnabled) {
-                const balance = await SafeHavenService.getSafeHavenAccountBalance();
-                const transferableBalance = balance - SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE;
+            const isPalmPayBank =
+                ('seerbitId' in beneficiary &&
+                    beneficiary.seerbitId === PALM_PAY_BANK_SEERBIT_ID) ||
+                ('bankName' in beneficiary &&
+                    typeof beneficiary.bankName === 'string' &&
+                    beneficiary.bankName.includes('PalmPay'));
 
-                const withinLimits =
-                    transferableBalance >= params.localAmount &&
-                    params.localAmount <= SAFEHAVEN_WITHDRAWAL_LIMIT;
-
-                if (withinLimits) {
-                    // SafeHaven is available, sufficiently funded, and within withdrawal limits — use it.
-                    return await FiatRampService.passOfframpTransactionToSafeHaven(
-                        beneficiary,
-                        params
-                    );
+            if (NGNBankIsEnabled) {
+                if (safeHavenPayoutIsEnabled) {
+                    const safehaven = await this.trySafeHavenPayout(beneficiary, params);
+                    if (!safehaven) {
+                        return await this.tryManualPayout(beneficiary, params);
+                    }
                 }
+
+                if (!isPalmPayBank) {
+                    const bell = await this.tryBellPayout(beneficiary, params);
+                    if (!bell) {
+                        return await this.tryManualPayout(beneficiary, params);
+                    }
+                }
+
+                return await this.trySafeHavenPayout(beneficiary, params);
             }
 
             if (yellowCardPayoutIsEnabled) {
@@ -280,7 +351,7 @@ class FiatRampService {
             }
 
             // Neither SafeHaven nor YellowCard is viable — fall back to manual processing
-            return await FiatRampService.passOfframpTransactionToManualProcess(beneficiary, params);
+            return await this.tryManualPayout(beneficiary, params);
         }
 
         // Special handling for Kenya (KES) Mobile Money beneficiaries
@@ -476,6 +547,7 @@ class FiatRampService {
             ownerId: validatedParams.userId,
             fromWalletAddress: validatedParams.userWalletAddress,
             hotWalletAddress: validatedParams.hotWalletAddress,
+            processorName: processorIdentifier,
             sequenceId: ManualOfframpSettlementService.generateSequenceId(
                 validatedParams.txHash,
                 processorIdentifier
@@ -503,6 +575,70 @@ class FiatRampService {
         };
     }
 
+    private static async passOfframpTransactionToBell(
+        beneficiary: Beneficiary,
+        params: SendOfframpRequestPayload
+    ) {
+        const settlementData = await this._prepareOfframpSettlementData(
+            beneficiary,
+            params,
+            BELL_OFFRAMP_PAYMENT_PROCESSOR_ID
+        );
+
+        const bellSettlementRecord =
+            await NigeriaBanksService.createNGNOfframpSettlement(settlementData);
+
+        if (!bellSettlementRecord.sequenceId) {
+            throw new Error('Failed to create bell settlement record');
+        }
+
+        const { accountName, seerbitId, accountNumber, networkId, channelId, country } =
+            settlementData.destination;
+
+        const _seerbitId =
+            seerbitId ??
+            (
+                await this.getSeerBitId({
+                    networkId: networkId,
+                    channelId: channelId as string,
+                    countryCode: country as CountryCode,
+                })
+            ).seerbitId;
+
+        await NigeriaBanksService.sendProcessingSettlementMessage({
+            usdAmount: bellSettlementRecord.usdAmount,
+            transactionFeeUsd: bellSettlementRecord.transactionFeeUsd,
+            ownerId: bellSettlementRecord.ownerId,
+            tokenSymbol: bellSettlementRecord.tokenSymbol,
+            blockchainNetwork: bellSettlementRecord.blockchainNetwork,
+            localCurrencySymbol: bellSettlementRecord.localCurrencySymbol!,
+            localAmount: bellSettlementRecord.localAmount,
+        });
+
+        const transaction = await BellService.processOffRampPaymentWithBell({
+            amountToSend: settlementData.localAmount,
+            senderName: accountName,
+            beneficiaryBankCode: _seerbitId!,
+            beneficiaryAccountNumber: accountNumber,
+            sequenceId: bellSettlementRecord.sequenceId,
+        });
+
+        if (!transaction) {
+            throw new Error('Failed to process off-ramp settlement with bell');
+        }
+
+        const isUpdated = await bellSettlementRecord.update({
+            sessionId: transaction.sessionId,
+            processingStatus: transactionStatusSchema.parse('processing'),
+        });
+
+        if (!isUpdated) {
+            throw new Error('Failed to update bell off-ramp settlement status');
+        }
+
+        return transaction.sequenceId;
+    }
+
     private static async passMobileMoneyOfframpTransactionToHoneyCoin(
         beneficiary: Beneficiary,
         params: SendOfframpRequestPayload
@@ -526,7 +662,7 @@ class FiatRampService {
             throw new Error('Failed to create honeycoin settlement record');
         }
 
-        const { country, accountNumber, accountName } = settlementData.destination;
+        const { accountNumber, accountName } = settlementData.destination;
 
         const transaction = await HoneyCoinService.processMobileMoneyOffRampPaymentWithHoneyCoin({
             amountToSend: settlementData.localAmount,
@@ -561,7 +697,7 @@ class FiatRampService {
         }
 
         const safeHavenSettlementRecord =
-            await SafeHavenService.createSafeHavenOfframpSettlement(settlementData);
+            await NigeriaBanksService.createNGNOfframpSettlement(settlementData);
 
         if (!safeHavenSettlementRecord.sequenceId) {
             throw new Error('Failed to create safehaven settlement record');
@@ -584,22 +720,20 @@ class FiatRampService {
             });
         }
 
-        await SafeHavenService.sendSafeHavenProcessingSettlementMessage({
-            usdAmount: safeHavenSettlementRecord!.usdAmount!,
-            transactionFeeUsd: safeHavenSettlementRecord.transactionFeeUsd!,
-            ownerId: safeHavenSettlementRecord.ownerId!,
-            tokenSymbol: safeHavenSettlementRecord.tokenSymbol!,
-            blockchainNetwork: safeHavenSettlementRecord.blockchainNetwork!,
+        await NigeriaBanksService.sendProcessingSettlementMessage({
+            usdAmount: safeHavenSettlementRecord.usdAmount,
+            transactionFeeUsd: safeHavenSettlementRecord.transactionFeeUsd,
+            ownerId: safeHavenSettlementRecord.ownerId,
+            tokenSymbol: safeHavenSettlementRecord.tokenSymbol,
+            blockchainNetwork: safeHavenSettlementRecord.blockchainNetwork,
             localCurrencySymbol: safeHavenSettlementRecord.localCurrencySymbol!,
-            localAmount: safeHavenSettlementRecord.localAmount!,
+            localAmount: safeHavenSettlementRecord.localAmount,
         });
 
         const transaction = await SafeHavenService.processOffRampPaymentWithSaveHaven({
-            nameEnquiryReference: nameEnquiryReference
-                ? nameEnquiryReference
-                : accountNameEnquiry.nameEnquiryReference,
+            nameEnquiryReference: nameEnquiryReference ?? accountNameEnquiry.nameEnquiryReference,
             amountToSend: settlementData.localAmount,
-            beneficiaryBankCode: seerbitId ? seerbitId : accountNameEnquiry.seerbitId,
+            beneficiaryBankCode: seerbitId ?? accountNameEnquiry.seerbitId,
             beneficiaryAccountNumber: accountNumber,
             sequenceId: safeHavenSettlementRecord.sequenceId,
         });

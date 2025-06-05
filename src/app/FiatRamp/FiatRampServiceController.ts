@@ -6,7 +6,6 @@ import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { YellowCardWebhookPayload } from '@/app/FiatRamp/types';
 import { generateOfframpReceipt, generateOnrampReceipt } from '@/app/receipts/generators';
-import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import { OK } from '@/constants/status-codes';
@@ -20,6 +19,7 @@ import { Buffer } from 'node:buffer';
 import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
 import { addCryptoPayoutJobToQueue } from '../crypto-payouts-v2/utils';
 import ManualOfframpSettlementService from './alternatives/ManualOfframpSettlementService';
+import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 
 class FiatRampServiceController {
     public static receiveWebHookData(req: Request) {
@@ -146,7 +146,7 @@ class FiatRampServiceController {
                     (await ManualOfframpSettlementService.getManualOfframpSettlementBySequenceId(
                         correspondingManualPaymentSequenceId
                     )) ??
-                    (await SafeHavenService.getSafeHavenOfframpTransactionBySequenceId(
+                    (await NigeriaBanksService.getNGNBankOfframpTransactionBySequenceId(
                         correspondingSafeHavenPaymentSequenceId
                     ));
 

@@ -1,7 +1,0 @@
-export const SAFEHAVEN_BALANCE_FOR_TRANSACTION_FEE: number = 500;
-
-export const SAFEHAVEN_WITHDRAWAL_LIMIT: number = 2000000;
-
-export const HONEYCOIN_BALANCE_FOR_TRNSACTION_FEE: number = 10;
-
-export const HONEYCOIN_WITHDRAW_LIMIT: number = 1500;

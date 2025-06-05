@@ -308,7 +308,7 @@ const tables = [
     ],
   },
   {
-    name: "safehaven_offramp_settlement_transaction",
+    name: "ngn_banks_offramp_settlement_transaction",
     columns: [
       { name: "country", type: "text", notNull: true, defaultValue: "" },
       {
@@ -391,6 +391,7 @@ const tables = [
         defaultValue: "",
       },
       { name: "sessionId", type: "text" },
+      { name: "processorName", type: "text" },
     ],
   },
   {
@@ -553,10 +554,10 @@ export type FallbackRegionalPhoneNumberRecord = FallbackRegionalPhoneNumber &
 export type DailyFeatureLimit = InferredTypes["daily_feature_limit"];
 export type DailyFeatureLimitRecord = DailyFeatureLimit & XataRecord;
 
-export type SafehavenOfframpSettlementTransaction =
-  InferredTypes["safehaven_offramp_settlement_transaction"];
-export type SafehavenOfframpSettlementTransactionRecord =
-  SafehavenOfframpSettlementTransaction & XataRecord;
+export type NgnBanksOfframpSettlementTransaction =
+  InferredTypes["ngn_banks_offramp_settlement_transaction"];
+export type NgnBanksOfframpSettlementTransactionRecord =
+  NgnBanksOfframpSettlementTransaction & XataRecord;
 
 export type ReferralScheme = InferredTypes["referral_scheme"];
 export type ReferralSchemeRecord = ReferralScheme & XataRecord;
@@ -590,7 +591,7 @@ export type DatabaseSchema = {
   conversation_summary: ConversationSummaryRecord;
   fallback_regional_phone_number: FallbackRegionalPhoneNumberRecord;
   daily_feature_limit: DailyFeatureLimitRecord;
-  safehaven_offramp_settlement_transaction: SafehavenOfframpSettlementTransactionRecord;
+  ngn_banks_offramp_settlement_transaction: NgnBanksOfframpSettlementTransactionRecord;
   referral_scheme: ReferralSchemeRecord;
   referrals: ReferralsRecord;
   swap_transactions: SwapTransactionsRecord;

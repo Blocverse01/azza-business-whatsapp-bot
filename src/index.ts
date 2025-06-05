@@ -15,6 +15,8 @@ import apiRoutes from './routes';
 import './background-processing/workers';
 import './app/globalErrorHandler';
 import './background-processing/single-instance-workers';
+import SafeHavenService from './app/NigeriaBanks/SafeHaven/SafeHavenService';
+import BellService from './app/NigeriaBanks/BellMFB/BellService';
 
 const app = express();
 
@@ -32,7 +34,7 @@ app.use(
 //middleware for cookies
 app.use(CookieParser());
 
-app.get('/', async (_, res) => {
+app.get('/', (_, res) => {
     res.status(OK).send('API welcomes you :)');
 });
 
@@ -56,7 +58,7 @@ createBullBoard({
         new BullMQAdapter(queues.cryptoPayout),
         new BullMQAdapter(queues.cleanupMessages),
         new BullMQAdapter(queues.handleSmileKycWebhook),
-        new BullMQAdapter(queues.handleSafeHavenTransactionStatusUpdate),
+        new BullMQAdapter(queues.handleNGNBankTransactionStatusUpdate),
         new BullMQAdapter(queues.generateAzzaWrapped),
         new BullMQAdapter(queues.onRamp),
         new BullMQAdapter(queues.blockradarAddressSwaps),

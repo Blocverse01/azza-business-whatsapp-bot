@@ -97,8 +97,8 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
 
         const cryptoDebitConfirmation = cryptoDebitConfirmationChildValueKey
             ? (childrenValues[
-                  cryptoDebitConfirmationChildValueKey
-              ] as CryptoDebitConfirmationQueueResult)
+                cryptoDebitConfirmationChildValueKey
+            ] as CryptoDebitConfirmationQueueResult)
             : { status: 'failed', transactionHash: null };
 
         const txHash = cryptoDebitConfirmation.transactionHash;
@@ -187,10 +187,10 @@ const cryptoDebitWorker = new Worker<
                 userId: convertBase64ToAsciiString(transactionData.userId),
                 transactionPin: transactionData.transactionPin
                     ? decryptWithAES(
-                          transactionData.transactionPin,
-                          env.SECURITY_QUESTIONS_MASK_KEY,
-                          env.SECURITY_QUESTIONS_MASK_IV
-                      )
+                        transactionData.transactionPin,
+                        env.SECURITY_QUESTIONS_MASK_KEY,
+                        env.SECURITY_QUESTIONS_MASK_IV
+                    )
                     : '',
             },
             requirePin,

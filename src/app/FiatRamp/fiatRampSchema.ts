@@ -222,6 +222,7 @@ export const OfframpTransactionRecordSchema = z.object({
     platformFeePercentage: z.number(),
     fromWalletAddress: z.string(),
     tokenAddress: z.string(),
+    processorName: z.string()
 });
 
 export const onrampTransactionRecordSchema = z.object({

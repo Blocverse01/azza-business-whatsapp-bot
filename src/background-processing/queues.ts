@@ -24,7 +24,7 @@ import {
     GenerateAzzaWrappedQueueInput,
     OnRampQueueInput,
     QueueNames,
-    SafeHavenTransactionQueueInput,
+    NGNBankTransactionQueueInput,
     SyncUserWalletIdQueueInput,
     UserTxPinSecurityQueueInput,
     UserTxPinSecurityQueueResult,
@@ -119,8 +119,8 @@ export const queues = {
             connection: connectionConfig,
         }
     ),
-    handleSafeHavenTransactionStatusUpdate: new Queue<SafeHavenTransactionQueueInput>(
-        QueueNames.handleSafeHavenTransactionStatusUpdate,
+    handleNGNBankTransactionStatusUpdate: new Queue<NGNBankTransactionQueueInput>(
+        QueueNames.handleNGNBankTransactionStatusUpdate,
         {
             connection: connectionConfig,
         }

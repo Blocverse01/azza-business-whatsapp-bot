@@ -78,7 +78,7 @@ async function getAllUserTransactions(userId: string): Promise<Array<UserTransac
                 ownerId: userId,
             })
             .getAll(),
-        dbClient.safehaven_offramp_settlement_transaction
+        dbClient.ngn_banks_offramp_settlement_transaction
             .filter({
                 processingStatus: {
                     $iContains: 'complete',

@@ -19,7 +19,8 @@ import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
 import ManualOfframpSettlementService from '@/app/FiatRamp/alternatives/ManualOfframpSettlementService';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import logger from '@/resources/logger';
-import SafeHavenService from '@/app/SafeHaven/SafeHavenService';
+import SafeHavenService from '@/app/NigeriaBanks/SafeHaven/SafeHavenService';
+import NigeriaBanksService from '@/app/NigeriaBanks/NigeriaBanksService';
 
 const CASHBACK_PAYOUT_WALLET_USER_ID = 'cashback-payout';
 const BASE_CASHBACK_BANNER_MEDIA_ID = '1613273422694481';
@@ -80,8 +81,8 @@ export const createBaseCashbackWorker = () => {
                         transactionId
                     );
                 }
-                if (transactionType === 'safehaven-offramp') {
-                    return await SafeHavenService.getSafeHavenOfframpTransactionBySequenceId(
+                if (transactionType === 'ngn-bank-offramp') {
+                    return await NigeriaBanksService.getNGNBankOfframpTransactionBySequenceId(
                         transactionId
                     );
                 }

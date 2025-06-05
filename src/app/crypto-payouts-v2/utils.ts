@@ -17,7 +17,7 @@ import { dbClient } from '@/db/dbClient';
 import { CRYPTO_PAYOUT_REFERENCE_PREFIX } from '@/constants/strings';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import logger from '@/resources/logger';
-import SafeHavenService from '../SafeHaven/SafeHavenService';
+import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
 
 const storeCryptoPayout = async (
@@ -143,12 +143,12 @@ export const createCryptoPayoutWorker = () => {
                 if (transactionType === 'offramp-refund') {
                     return await FiatRampService.getOfframpTransaction(transactionId);
                 }
-                if (transactionType === 'offramp-safehaven-refund') {
-                    return await SafeHavenService.getSafeHavenOfframpTransaction(transactionId);
+                if (transactionType === 'offramp-ngn-bank-refund') {
+                    return await NigeriaBanksService.getNGNBankOfframpTransaction(transactionId);
                 }
                 if (transactionType === 'offramp-honeycoin-refund') {
-                    return await HoneyCoinService.getHoneyCoinOfframpTransaction(transactionId); 
-                }  
+                    return await HoneyCoinService.getHoneyCoinOfframpTransaction(transactionId);
+                }
                 if (transactionType === 'onramp-payout') {
                     return await FiatRampService.getOnrampTransaction(transactionId);
                 }
@@ -162,7 +162,8 @@ export const createCryptoPayoutWorker = () => {
             const canPayout = (() => {
                 if (
                     transactionType === 'offramp-refund' ||
-                    transactionType === 'offramp-safehaven-refund'
+                    transactionType === 'offramp-ngn-bank-refund' ||
+                    transactionType === 'offramp-honeycoin-refund'
                 ) {
                     return transaction.status === 'failed';
                 }
@@ -180,7 +181,7 @@ export const createCryptoPayoutWorker = () => {
 
             if (
                 (transactionType === 'offramp-refund' ||
-                    transactionType === 'offramp-safehaven-refund') &&
+                    transactionType === 'offramp-ngn-bank-refund') &&
                 'transactionHash' in transaction
             ) {
                 const offrampRequest = await dbClient.offramp_awaiting_crypto_debit

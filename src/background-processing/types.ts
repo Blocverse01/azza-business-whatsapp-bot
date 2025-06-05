@@ -15,13 +15,13 @@ import { AssetConfig } from '@/resources/web3/core/tokens';
 
 export type FiatPayoutQueueResult =
     | {
-          sequenceId: string;
-          result: 'SENT';
-      }
+        sequenceId: string;
+        result: 'SENT';
+    }
     | {
-          error: string;
-          result: 'FAILED' | 'REFUNDING_CRYPTO';
-      };
+        error: string;
+        result: 'FAILED' | 'REFUNDING_CRYPTO';
+    };
 
 export type CryptoDebitConfirmationQueueResult = {
     status: 'success' | 'failed' | 'dropped';
@@ -29,16 +29,16 @@ export type CryptoDebitConfirmationQueueResult = {
 };
 export type UserTxPinSecurityQueueInput =
     | {
-          newPinHash: string;
-          userId: string;
-          encryptedSecurityQuestions: string;
-          whatsappParams: PhoneNumberParams;
-      }
+        newPinHash: string;
+        userId: string;
+        encryptedSecurityQuestions: string;
+        whatsappParams: PhoneNumberParams;
+    }
     | {
-          newPinHash: string;
-          userId: string;
-          whatsappParams: PhoneNumberParams;
-      };
+        newPinHash: string;
+        userId: string;
+        whatsappParams: PhoneNumberParams;
+    };
 export type UserTxPinSecurityQueueResult = {
     status: 'success' | 'failed';
 };
@@ -59,7 +59,7 @@ export enum QueueNames {
     cryptoPayout = 'crypto-payout',
     cleanupMessages = 'cleanup-messages',
     handleSmileKycWebhook = 'handle-smile-kyc-webhook',
-    handleSafeHavenTransactionStatusUpdate = 'handle-safehaven-transaction-status-update',
+    handleNGNBankTransactionStatusUpdate = 'handle-ngn-bank-transaction-status-update',
     generateAzzaWrapped = 'generate-azza-wrapped',
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
@@ -147,8 +147,9 @@ export type SyncUserWalletIdQueueInput = {
     address: string;
 };
 
-export type SafeHavenTransactionQueueInput = {
+export type NGNBankTransactionQueueInput = {
     transactionId: string;
+    processorName: string;
 };
 
 export type GenerateAzzaWrappedQueueInput = {

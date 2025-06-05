@@ -113,12 +113,19 @@ const envSchema = z.object({
         .transform((data) => data === 'true'),
 
     ///////////////////////
+    /// BELLMFB
+    ///////////////////////
+    BELL_BASED_URL: notEmptyStringSchema('BELL_BASED_URL').and(z.string().url()),
+    BELL_CONSUMER_KEY: notEmptyStringSchema('BELL_CONSUMER_KEY'),
+    BELL_CONSUMER_SECRET: notEmptyStringSchema('BELL_CONSUMER_SECRET'),
+
+    ///////////////////////
     /// HoneyCoin
     ///////////////////////
     HONEYCOIN_API_KEY: notEmptyStringSchema('HONEYCOIN_API_KEY'),
     HONEYCOIN_PUBLIC_KEY: notEmptyStringSchema('HONEYCOIN_PUBLIC_KEY'),
     HONEYCOIN_BASE_URL: notEmptyStringSchema('HONEYCOIN_BASE_URL').and(z.string().url()),
-    HONEYCOIN_WEBHOOK_SECRET: notEmptyStringSchema('HONEYCOIN_WEBHOOK_SECRET')
+    HONEYCOIN_WEBHOOK_SECRET: notEmptyStringSchema('HONEYCOIN_WEBHOOK_SECRET'),
 });
 
 const env = envSchema.parse(process.env);

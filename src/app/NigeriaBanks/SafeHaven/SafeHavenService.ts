@@ -11,18 +11,9 @@ import {
     BankAccountVerificationResponse,
     accountNameEnquirySchema,
     BankAccountBalance,
-    TransactionResponse,
-    SafeHavenOfframpSettlement,
+    TransactionResponse
 } from './SafeHaveSchema';
-import { BAD_REQUEST, NOT_FOUND, OK } from '@/constants/status-codes';
-import { dbClient } from '@/db/dbClient';
-import {
-    OfframpTransactionRecordSchema,
-    transactionStatusSchema,
-} from '../FiatRamp/fiatRampSchema';
-import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
-import { prettifyNumber } from '@/resources/utils/currency';
-import userServiceV2 from '@/runtime/user';
+import { BAD_REQUEST, OK } from '@/constants/status-codes';
 
 class SafeHavenService {
     private static readonly GRANT_TYPE = 'client_credentials';
@@ -33,8 +24,7 @@ class SafeHavenService {
     private static readonly SAVEHAVEN_CLIENT_ASSERTION = env.SAFEHAVEN_CLIENT_ASSERTION;
     private static readonly SAVEHAVEN_ACCOUNT_NUMBER = '0117226117';
     private static readonly SAVEHEVEN_ACCOUNT_ID = '67c8b8242a82110024bcaf97';
-    private static readonly SAFEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY =
-        dbClient.safehaven_offramp_settlement_transaction;
+  
     private static accessToken: string | null = null;
     private static tokenExpiry: number | null = null;
     private static ibsClientId: string | null = null;
@@ -83,45 +73,6 @@ class SafeHavenService {
         }
     }
 
-    public static async createSafeHavenOfframpSettlement(
-        offrampTransaction: SafeHavenOfframpSettlement
-    ) {
-        return await this.SAFEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY.create({
-            localAmount: offrampTransaction.localAmount,
-            usdAmount: offrampTransaction.usdAmount,
-            transactionFeeUsd: offrampTransaction.transactionFeeUsd,
-            conversionRate: offrampTransaction.rate,
-            paymentCurrency: offrampTransaction.localCurrencySymbol,
-            transactionHash: offrampTransaction.transactionHash,
-            processingStatus: transactionStatusSchema.parse('pending'),
-            ownerId: offrampTransaction.ownerId,
-            sequenceId: offrampTransaction.sequenceId,
-            blockchainNetwork: offrampTransaction.blockchainNetwork,
-            fromWalletAddress: offrampTransaction.fromWalletAddress,
-            platformFeePercentage: offrampTransaction.platformFeePercentage,
-            hotWalletAddress: offrampTransaction.hotWalletAddress,
-            destinationAccountName: offrampTransaction.destination.accountName,
-            destinationAccountNumber: offrampTransaction.destination.accountNumber,
-            destinationNetworkName: offrampTransaction.destination.networkName,
-            tokenAddress: offrampTransaction.tokenAddress,
-            tokenSymbol: offrampTransaction.tokenSymbol,
-            localCurrencySymbol: offrampTransaction.localCurrencySymbol,
-            country: offrampTransaction.destination.country,
-        });
-    }
-
-    public static async getSafeHavenOfframpTransactionBySequenceId(sequenceId: string) {
-        const transaction = await this.SAFEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
-            sequenceId,
-        }).getFirst();
-
-        if (!transaction) {
-            throw new HttpException(NOT_FOUND, 'Transaction not found');
-        }
-
-        return transaction;
-    }
-
     public static async getSafeHavenTransactionBySessionId(sessionId: string) {
         try {
             const authTokenData = await this.generateAccessToken();
@@ -151,97 +102,6 @@ class SafeHavenService {
             await logServiceError(error, 'Error fetching transaction status from safehaven');
             throw error;
         }
-    }
-
-    public static async getSafeHavenOfframpProcessingTransaction(transactionId: string) {
-        const transaction = await this.SAFEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
-            processingStatus: transactionStatusSchema.parse('processing'),
-            sequenceId: transactionId,
-            sessionId: { $isNot: null },
-        }).getFirst();
-
-        if (!transaction) {
-            throw new HttpException(NOT_FOUND, 'Transaction not found');
-        }
-
-        return transaction;
-    }
-
-    public static async getSafeHavenOfframpProcessingTransactions() {
-        const transactions = await this.SAFEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
-            processingStatus: transactionStatusSchema.parse('processing'),
-            sessionId: { $isNot: null },
-        }).getAll();
-
-        transactions.map((transaction) => {
-            return OfframpTransactionRecordSchema.parse({
-                destination: {
-                    accountName: transaction.destinationAccountName,
-                    accountNumber: transaction.destinationAccountNumber,
-                    networkName: transaction.destinationNetworkName,
-                    networkId: '',
-                    country: transaction.country,
-                    accountType: 'bank',
-                },
-                blockchainNetwork: transaction.blockchainNetwork,
-                usdAmount: transaction.usdAmount,
-                localAmount: transaction.localAmount,
-                localCurrencySymbol: transaction.localCurrencySymbol,
-                tokenSymbol: transaction.tokenSymbol,
-                ownerId: transaction.ownerId,
-                transactionHash: transaction.transactionHash,
-                transactionFeeUsd: transaction.transactionFeeUsd,
-                createdAt: transaction.xata.createdAt.toISOString(),
-                status: transaction.processingStatus,
-                rate: transaction.conversionRate!,
-                sequenceId: transaction.sequenceId,
-                hotWalletAddress: transaction.hotWalletAddress,
-                platformFeePercentage: transaction.platformFeePercentage,
-                fromWalletAddress: transaction.fromWalletAddress,
-                tokenAddress: transaction.tokenAddress,
-            });
-        });
-
-        return transactions;
-    }
-
-    public static async getSafeHavenOfframpTransaction(sequenceId: string) {
-        const transaction = await this.SAFEHAVEN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
-            sequenceId: sequenceId,
-        }).getFirst();
-
-        if (!transaction) {
-            throw new HttpException(NOT_FOUND, 'Transaction not found');
-        }
-
-        const transactionRecord = OfframpTransactionRecordSchema.parse({
-            destination: {
-                accountName: transaction.destinationAccountName,
-                accountNumber: transaction.destinationAccountNumber,
-                networkName: transaction.destinationNetworkName,
-                networkId: '',
-                country: transaction.country,
-                accountType: 'bank',
-            },
-            blockchainNetwork: transaction.blockchainNetwork,
-            usdAmount: transaction.usdAmount,
-            localAmount: transaction.localAmount,
-            localCurrencySymbol: transaction.localCurrencySymbol,
-            tokenSymbol: transaction.tokenSymbol,
-            ownerId: transaction.ownerId,
-            transactionHash: transaction.transactionHash,
-            transactionFeeUsd: transaction.transactionFeeUsd,
-            createdAt: transaction.xata.createdAt.toISOString(),
-            status: transaction.processingStatus,
-            rate: transaction.conversionRate!,
-            sequenceId: transaction.sequenceId,
-            hotWalletAddress: transaction.hotWalletAddress,
-            platformFeePercentage: transaction.platformFeePercentage,
-            fromWalletAddress: transaction.fromWalletAddress,
-            tokenAddress: transaction.tokenAddress,
-        });
-
-        return transactionRecord;
     }
 
     public static async getSupportedBanks(): Promise<
@@ -280,6 +140,7 @@ class SafeHavenService {
 
     public static async accountNameEnquiry(params: { bankCode: string; accountNumber: string }) {
         try {
+
             const { bankCode, accountNumber } = params;
 
             const authTokenData = await this.generateAccessToken();
@@ -309,6 +170,8 @@ class SafeHavenService {
 
             const { data, statusCode, message } = response.data;
 
+            console.log(response.data)
+
             if (statusCode != OK) throw new HttpException(statusCode, `${message}`);
 
             return {
@@ -317,6 +180,8 @@ class SafeHavenService {
                 accountNumber: data.accountNumber,
                 accountName: data.accountName,
             };
+
+
         } catch (error) {
             await logServiceError(error, 'Error fetching user account name');
             throw error;
@@ -408,58 +273,6 @@ class SafeHavenService {
         }
     }
 
-    public static async sendArbitraryTextMessage(message: string, userPhoneNumber: string) {
-        if (message.trim()) {
-            try {
-                await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
-            } catch (error) {}
-        }
-    }
-
-    public static async sendSafeHavenProcessingSettlementMessage(params: {
-        usdAmount: number;
-        transactionFeeUsd: number;
-        ownerId: string;
-        tokenSymbol: string;
-        blockchainNetwork: string;
-        localCurrencySymbol: string;
-        localAmount: number;
-    }) {
-        const {
-            usdAmount,
-            transactionFeeUsd,
-            localAmount,
-            ownerId,
-            tokenSymbol,
-            blockchainNetwork,
-            localCurrencySymbol,
-        } = params;
-
-        const totalAmount = prettifyNumber(usdAmount + transactionFeeUsd);
-
-        const userPhoneNumber = await userServiceV2.getUserPhoneNumber(ownerId);
-
-        const transactionDetailsString = `💲Sell ${totalAmount} ${tokenSymbol} on ${blockchainNetwork} for ${localCurrencySymbol} ${prettifyNumber(localAmount)}`;
-
-        const message = this.ProcessingTransactionMessage(transactionDetailsString);
-
-        await this.sendArbitraryTextMessage(message, userPhoneNumber);
-    }
-
-    public static ProcessingTransactionMessage(transactionDetailsString: string) {
-        const message = `⏳ Your transaction with the following details is being processed:\n\n${transactionDetailsString}\n\nPlease be patient`;
-        return message;
-    }
-
-    public static TransactionCompleteMessage(transactionDetailsString: string) {
-        const message = `✅ Your transaction with the following details has been completed:\n\n${transactionDetailsString}\n\nExpect your funds within 1 - 5 minutes`;
-        return message;
-    }
-
-    public static TransactionFailedMessage(transactionDetailsString: string) {
-        const message = `❌ Your transaction with the following details has failed:\n\n${transactionDetailsString}\n\nPlease contact support for assistance`;
-        return message;
-    }
 }
 
 export default SafeHavenService;
