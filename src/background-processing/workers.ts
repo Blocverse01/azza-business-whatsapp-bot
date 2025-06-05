@@ -15,7 +15,6 @@ import {
 } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
 import { createAzzaWrappedWorker } from '@/app/campaigns/azza-wrapped/queue-utils';
 import { createBaseCashbackWorker } from '@/app/campaigns/base-cashbacks/utils';
-import { createPizzaDayCashbackWorker } from '@/app/pay/cashbacks/utils';
 import { createCryptoPayoutWorker } from '@/app/crypto-payouts-v2/utils';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
@@ -26,7 +25,7 @@ import {
     //prepareLimitResetSchedulerQueue,
 } from '@/app/limits/utils';
 import { createReferralCodeWorker } from '@/app/referral-scheme/queue-utils';
-import { createSafeHavenTransactionUpdateJobWorker } from '@/app/SafeHaven/queue-utils';
+import { createNgnBankTransactionUpdateJobWorker } from '@/app/NigeriaBanks/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
 import { createBlockradarAddressTokenSwapWorker } from '@/app/swap/queue-utils';
 import { createFeeCollectionWorker } from '@/app/transaction-fees/background-processing';
@@ -97,8 +96,8 @@ const fiatPayoutWorker = new Worker<OfframpQueueFlowParams, FiatPayoutQueueResul
 
         const cryptoDebitConfirmation = cryptoDebitConfirmationChildValueKey
             ? (childrenValues[
-                cryptoDebitConfirmationChildValueKey
-            ] as CryptoDebitConfirmationQueueResult)
+                  cryptoDebitConfirmationChildValueKey
+              ] as CryptoDebitConfirmationQueueResult)
             : { status: 'failed', transactionHash: null };
 
         const txHash = cryptoDebitConfirmation.transactionHash;
@@ -187,10 +186,10 @@ const cryptoDebitWorker = new Worker<
                 userId: convertBase64ToAsciiString(transactionData.userId),
                 transactionPin: transactionData.transactionPin
                     ? decryptWithAES(
-                        transactionData.transactionPin,
-                        env.SECURITY_QUESTIONS_MASK_KEY,
-                        env.SECURITY_QUESTIONS_MASK_IV
-                    )
+                          transactionData.transactionPin,
+                          env.SECURITY_QUESTIONS_MASK_KEY,
+                          env.SECURITY_QUESTIONS_MASK_IV
+                      )
                     : '',
             },
             requirePin,
@@ -479,9 +478,8 @@ createEventDrivenOfframpWorker();
 createFiatPayoutV2Worker();
 createOnRampWorker();
 createSyncUserWalletWorker();
-createSafeHavenTransactionUpdateJobWorker();
+createNgnBankTransactionUpdateJobWorker();
 createBaseCashbackWorker();
-createPizzaDayCashbackWorker();
 createCryptoPayoutWorker();
 createCleanupOldMessagesWorker();
 createKycEventJobWorker().on('error', async (error) => {

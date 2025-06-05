@@ -16,8 +16,12 @@ import NigeriaBanksService from './NigeriaBanksService';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { NOT_FOUND } from '@/constants/status-codes';
 import BellService from './BellMFB/BellService';
+import {
+    BELL_OFFRAMP_PAYMENT_PROCESSOR_ID,
+    SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID,
+} from '../FiatRamp/config';
 
-export const addSafeHavenTransactionUpdateJobToQueue = async (
+export const addNgnBankTransactionUpdateJobToQueue = async (
     input: NGNBankTransactionQueueInput
 ) => {
     const jobId = `${input.processorName}-transaction-${input.transactionId}`;
@@ -27,7 +31,7 @@ export const addSafeHavenTransactionUpdateJobToQueue = async (
     });
 };
 
-export const createSafeHavenTransactionUpdateJobWorker = () => {
+export const createNgnBankTransactionUpdateJobWorker = () => {
     return new Worker<NGNBankTransactionQueueInput>(
         QueueNames.handleNGNBankTransactionStatusUpdate,
         async (job) => {
@@ -36,23 +40,30 @@ export const createSafeHavenTransactionUpdateJobWorker = () => {
             const settlement =
                 await NigeriaBanksService.getNGNBankOfframpProcessingTransaction(transactionId);
 
-            const transaction = settlement.processorName === 'safehaven'
-                ? await SafeHavenService.getSafeHavenTransactionBySessionId(settlement.sessionId as string)
-                : settlement.processorName === 'bell'
-                    ? await BellService.getBellTransactionByReferenceId(settlement.sequenceId as string)
-                    : (() => { throw new HttpException(NOT_FOUND, 'processor name not found'); })();
+            const transaction = await (async () => {
+                if (settlement.processorName === SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID) {
+                    return await SafeHavenService.getSafeHavenTransactionBySessionId(
+                        settlement.sessionId as string
+                    );
+                } else if (settlement.processorName === BELL_OFFRAMP_PAYMENT_PROCESSOR_ID) {
+                    return await BellService.getBellTransactionByReferenceId(settlement.sequenceId);
+                } else {
+                    throw new HttpException(NOT_FOUND, 'processor name not found');
+                }
+            })();
 
             const totalAmount = prettifyNumber(
                 (settlement.usdAmount ?? 0) + (settlement.transactionFeeUsd ?? 0)
             );
 
-            const userPhoneNumber = await userServiceV2.getUserPhoneNumber(
-                settlement.ownerId as string
-            );
+            const userPhoneNumber = await userServiceV2.getUserPhoneNumber(settlement.ownerId);
 
             const transactionDetailsString = `💲Sell ${totalAmount} ${settlement.tokenSymbol} on ${settlement.blockchainNetwork} for ${settlement.localCurrencySymbol} ${prettifyNumber(settlement!.localAmount!)}`;
 
-            if (transaction.status.toLowerCase() === 'completed' || transaction.status.toLowerCase() === 'successful') {
+            if (
+                transaction.status.toLowerCase() === 'completed' ||
+                transaction.status.toLowerCase() === 'successful'
+            ) {
                 await settlement.update({
                     processingStatus: transactionStatusSchema.parse('complete'),
                 });
@@ -60,50 +71,54 @@ export const createSafeHavenTransactionUpdateJobWorker = () => {
                 const completeMessage =
                     NigeriaBanksService.TransactionCompleteMessage(transactionDetailsString);
 
-                await NigeriaBanksService.sendArbitraryTextMessage(completeMessage, userPhoneNumber);
+                await NigeriaBanksService.sendArbitraryTextMessage(
+                    completeMessage,
+                    userPhoneNumber
+                );
 
                 const supportedChain = settlement.blockchainNetwork
                     ? azzaWalletManager
-                        .getSupportedNetworks()
-                        .find(
-                            (chain) =>
-                                chain.toLowerCase() ===
-                                settlement.blockchainNetwork!.toLowerCase()
-                        )
+                          .getSupportedNetworks()
+                          .find(
+                              (chain) =>
+                                  chain.toLowerCase() ===
+                                  settlement.blockchainNetwork?.toLowerCase()
+                          )
                     : undefined;
 
                 if (supportedChain === 'Base') {
                     await addCashbackJobToQueue({
-                        transactionId: settlement.sequenceId!,
+                        transactionId: settlement.sequenceId,
                         transactionType: 'ngn-bank-offramp',
                     });
                 }
 
                 const receiptBuffer = await generateOfframpReceipt({
                     status: 'complete',
-                    blockchainNetwork: settlement.blockchainNetwork!,
-                    usdAmount: settlement.usdAmount!,
-                    localAmount: settlement.localAmount!,
+                    blockchainNetwork: settlement.blockchainNetwork,
+                    usdAmount: settlement.usdAmount,
+                    localAmount: settlement.localAmount,
                     localCurrencySymbol: settlement.localCurrencySymbol!,
-                    tokenSymbol: settlement.tokenSymbol!,
-                    ownerId: settlement.ownerId!,
-                    transactionHash: settlement.transactionHash!,
-                    transactionFeeUsd: settlement.transactionFeeUsd!,
+                    tokenSymbol: settlement.tokenSymbol,
+                    ownerId: settlement.ownerId,
+                    transactionHash: settlement.transactionHash,
+                    transactionFeeUsd: settlement.transactionFeeUsd,
                     destination: {
-                        accountName: settlement.destinationAccountName!,
-                        accountNumber: settlement.destinationAccountNumber!,
-                        networkName: settlement.destinationNetworkName!,
+                        accountName: settlement.destinationAccountName,
+                        accountNumber: settlement.destinationAccountNumber,
+                        networkName: settlement.destinationNetworkName,
                         networkId: '',
-                        country: settlement.country!,
+                        country: settlement.country,
                         accountType: 'bank',
                     },
                     createdAt: settlement.xata.createdAt.toISOString(),
-                    rate: settlement.conversionRate!,
-                    sequenceId: settlement.sequenceId!,
-                    hotWalletAddress: settlement.hotWalletAddress!,
-                    platformFeePercentage: settlement.platformFeePercentage!,
-                    fromWalletAddress: settlement.fromWalletAddress!,
-                    tokenAddress: settlement.tokenAddress!,
+                    rate: settlement.conversionRate,
+                    sequenceId: settlement.sequenceId,
+                    hotWalletAddress: settlement.hotWalletAddress,
+                    platformFeePercentage: settlement.platformFeePercentage,
+                    fromWalletAddress: settlement.fromWalletAddress,
+                    tokenAddress: settlement.tokenAddress,
+                    processorName: settlement.processorName!,
                 });
 
                 const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
@@ -130,9 +145,11 @@ export const createSafeHavenTransactionUpdateJobWorker = () => {
                 return;
             }
 
-            if (transaction.status.toLowerCase() !== 'completed' ||
+            if (
+                transaction.status.toLowerCase() !== 'completed' ||
                 transaction.status.toLowerCase() !== 'successful' ||
-                transaction.isReversed) {
+                transaction.isReversed
+            ) {
                 await settlement.update({
                     processingStatus: transactionStatusSchema.parse('failed'),
                 });
@@ -143,7 +160,7 @@ export const createSafeHavenTransactionUpdateJobWorker = () => {
                 await NigeriaBanksService.sendArbitraryTextMessage(failedMessage, userPhoneNumber);
 
                 await addCryptoPayoutJobToQueue({
-                    transactionId: settlement.sequenceId!,
+                    transactionId: settlement.sequenceId,
                     transactionType: 'offramp-ngn-bank-refund',
                 });
             }

@@ -1,7 +1,7 @@
 import logger from '@/resources/logger';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
-import { addSafeHavenTransactionUpdateJobToQueue } from './queue-utils';
+import { addNgnBankTransactionUpdateJobToQueue } from './queue-utils';
 import NigeriaBanksService from './NigeriaBanksService';
 import { BELL_OFFRAMP_PAYMENT_PROCESSOR_ID, ProcessorId } from '../FiatRamp/config';
 import { validProcessors } from './NigeriaBanksSchema';
@@ -18,22 +18,24 @@ class NGNBankJobService {
             }
 
             settlements.map(async (settlement) => {
-
                 if (!settlement.processorName) {
-                    logger.warn(`Missing processorName for transaction, sequenceId :  ${settlement.sequenceId}`);
+                    logger.warn(
+                        `Missing processorName for transaction, sequenceId :  ${settlement.sequenceId}`
+                    );
                     return;
                 }
 
-                if ((!validProcessors.includes(settlement.processorName as ProcessorId))) {
-                    logger.warn(`Invalid processorName for transaction, sequenceId: ${settlement.sequenceId}`);
+                if (!validProcessors.includes(settlement.processorName as ProcessorId)) {
+                    logger.warn(
+                        `Invalid processorName for transaction, sequenceId: ${settlement.sequenceId}`
+                    );
                     return;
                 }
 
-                await addSafeHavenTransactionUpdateJobToQueue({
+                await addNgnBankTransactionUpdateJobToQueue({
                     transactionId: settlement.sequenceId,
-                    processorName: settlement.processorName
+                    processorName: settlement.processorName,
                 });
-
             });
         } catch (error) {
             throw new HttpException(
