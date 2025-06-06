@@ -478,7 +478,10 @@ class FiatRampsRpcService {
 
         const responseObj = response.toObject();
 
-        return OfframpTransactionRecordSchema.parse(transformKeysToCamelCase(responseObj));
+        return OfframpTransactionRecordSchema.parse({
+            ...transformKeysToCamelCase(responseObj),
+            processorName: 'yellowcard',
+        });
     }
 
     public static async getHotWalletAddress(networkType: PlatformAddressIdNetworkTag) {
