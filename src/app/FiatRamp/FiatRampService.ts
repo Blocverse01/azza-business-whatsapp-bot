@@ -381,21 +381,22 @@ class FiatRampService {
                     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
                     // If SafeHaven is not enabled, try YellowCard or manual payout
-                    if (!safeHavenPayoutIsEnabled) {
-                        if (yellowCardPayoutIsEnabled) {
-                            return await this.passOfframpTransactionToYC(user, params);
-                        }
-                        return await this.tryManualPayout(beneficiary, params);
+                    if (safeHavenPayoutIsEnabled) {
+                        return (
+                            (await this.trySafeHavenPayout(
+                                beneficiary,
+                                params,
+                                `From: ${senderName}`
+                            )) ??
+                            (yellowCardPayoutIsEnabled
+                                ? await this.passOfframpTransactionToYC(user, params)
+                                : await this.tryManualPayout(beneficiary, params))
+                        );
                     }
-
-                    // SafeHaven is enabled - try it first, then manual as fallback
-                    return (
-                        (await this.trySafeHavenPayout(
-                            beneficiary,
-                            params,
-                            `From: ${senderName}`
-                        )) ?? (await this.tryManualPayout(beneficiary, params))
-                    );
+                    if (yellowCardPayoutIsEnabled) {
+                        return await this.passOfframpTransactionToYC(user, params);
+                    }
+                    return await this.tryManualPayout(beneficiary, params);
                 }
 
                 // ....................................................................
@@ -428,7 +429,9 @@ class FiatRampService {
                     // Try Bell as fallback, then manual payout
                     return (
                         (await this.tryBellPayout(beneficiary, params, senderName)) ??
-                        (await this.tryManualPayout(beneficiary, params))
+                        (yellowCardPayoutIsEnabled
+                            ? await this.passOfframpTransactionToYC(user, params)
+                            : await this.tryManualPayout(beneficiary, params))
                     );
                 }
             }
