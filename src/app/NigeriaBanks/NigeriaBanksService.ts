@@ -1,21 +1,20 @@
-import { dbClient } from "@/db/dbClient";
-import { OfframpTransactionRecordSchema, transactionStatusSchema } from "../FiatRamp/fiatRampSchema";
-import { NGNoffRampSettlement } from "./NigeriaBanksSchema";
-import { prettifyNumber } from "@/resources/utils/currency";
-import userServiceV2 from "@/runtime/user";
-import WhatsAppBotService from "../WhatsAppBot/WhatsAppBotService";
-import { HttpException } from "@/resources/exceptions/HttpException";
-import { NOT_FOUND } from "@/constants/status-codes";
-
+import { dbClient } from '@/db/dbClient';
+import {
+    OfframpTransactionRecordSchema,
+    transactionStatusSchema,
+} from '../FiatRamp/fiatRampSchema';
+import { NGNoffRampSettlement } from './NigeriaBanksSchema';
+import { prettifyNumber } from '@/resources/utils/currency';
+import userServiceV2 from '@/runtime/user';
+import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
+import { HttpException } from '@/resources/exceptions/HttpException';
+import { NOT_FOUND } from '@/constants/status-codes';
 
 class NigeriaBanksService {
-
     private static readonly NGN_OFFRAMP_TRANSACTION_REPOSITORY =
         dbClient.ngn_banks_offramp_settlement_transaction;
 
-    public static async createNGNOfframpSettlement(
-        offrampTransaction: NGNoffRampSettlement
-    ) {
+    public static async createNGNOfframpSettlement(offrampTransaction: NGNoffRampSettlement) {
         return await this.NGN_OFFRAMP_TRANSACTION_REPOSITORY.create({
             localAmount: offrampTransaction.localAmount,
             usdAmount: offrampTransaction.usdAmount,
@@ -37,7 +36,7 @@ class NigeriaBanksService {
             tokenSymbol: offrampTransaction.tokenSymbol,
             localCurrencySymbol: offrampTransaction.localCurrencySymbol,
             country: offrampTransaction.destination.country,
-            processorName: offrampTransaction.processorName
+            processorName: offrampTransaction.processorName,
         });
     }
 
@@ -90,7 +89,7 @@ class NigeriaBanksService {
         if (message.trim()) {
             try {
                 await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
-            } catch (error) { }
+            } catch (error) {}
         }
     }
 
@@ -120,7 +119,6 @@ class NigeriaBanksService {
         return transaction;
     }
 
-
     public static async getNGNBankOfframpProcessingTransactions() {
         const transactions = await this.NGN_OFFRAMP_TRANSACTION_REPOSITORY.filter({
             processingStatus: transactionStatusSchema.parse('processing'),
@@ -135,7 +133,7 @@ class NigeriaBanksService {
                     networkName: transaction.destinationNetworkName,
                     networkId: '',
                     country: transaction.country,
-                    accountType: 'bank'
+                    accountType: 'bank',
                 },
                 blockchainNetwork: transaction.blockchainNetwork,
                 usdAmount: transaction.usdAmount,
@@ -153,7 +151,7 @@ class NigeriaBanksService {
                 platformFeePercentage: transaction.platformFeePercentage,
                 fromWalletAddress: transaction.fromWalletAddress,
                 tokenAddress: transaction.tokenAddress,
-                processorName: transaction.processorName
+                processorName: transaction.processorName,
             });
         });
 
@@ -194,12 +192,11 @@ class NigeriaBanksService {
             platformFeePercentage: transaction.platformFeePercentage,
             fromWalletAddress: transaction.fromWalletAddress,
             tokenAddress: transaction.tokenAddress,
+            processorName: transaction.processorName,
         });
 
         return transactionRecord;
     }
-
 }
-
 
 export default NigeriaBanksService;
