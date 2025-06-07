@@ -143,12 +143,20 @@ class FiatRampServiceController {
                     SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
                 );
                 const matchingAlternativePayment =
-                    (await ManualOfframpSettlementService.getManualOfframpSettlementBySequenceId(
+                    await ManualOfframpSettlementService.getManualOfframpSettlementBySequenceId(
                         correspondingManualPaymentSequenceId
-                    )) ??
-                    (await NigeriaBanksService.getNGNBankOfframpTransactionBySequenceId(
-                        correspondingSafeHavenPaymentSequenceId
-                    ));
+                    );
+                // ??
+                // (await (async() => {
+                //     try {
+                //         return await NigeriaBanksService.getNGNBankOfframpTransactionBySequenceId(
+                //             correspondingSafeHavenPaymentSequenceId
+                //         )
+                //     } catch(error) {
+
+                //         return null;
+                //     }
+                // })());
 
                 if (matchingAlternativePayment) {
                     // Already settled alternatively
