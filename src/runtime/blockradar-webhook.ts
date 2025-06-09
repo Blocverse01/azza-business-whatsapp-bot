@@ -305,7 +305,6 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
 
         if (reference.startsWith(SwapService.EXTERNAL_REFERENCE_PREFIX)) {
             await addFeeCollectionJobToQueue(reference);
-            return;
         }
 
         await WhatsAppBotService.sendWhatsappMessage(
