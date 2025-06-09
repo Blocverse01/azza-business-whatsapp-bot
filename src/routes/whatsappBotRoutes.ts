@@ -52,6 +52,11 @@ whatsappBotRoutes
         '/flows/bvn-kyc-verification',
         decryptFlowDataExchange,
         WhatsAppFlowController.bvnKycVerificationFlowDataExchange
+    )
+    .post(
+        '/flows/account-statement',
+        decryptFlowDataExchange,
+        WhatsAppFlowController.accountStatementFlowDataExchange
     );
 
 export default whatsappBotRoutes;

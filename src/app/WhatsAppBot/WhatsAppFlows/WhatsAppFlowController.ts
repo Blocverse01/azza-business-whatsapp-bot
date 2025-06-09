@@ -11,6 +11,7 @@ import { handleRequestError } from '@/resources/requestHelpers/handleRequestErro
 import { requestDecryptedDataFlowExchange } from '@/resources/requestHelpers/requestPropsGuard';
 import type { Request, Response } from 'express';
 import BvnKycVerificationFlow from './BvnKycVerificationFlow';
+import WhatsappBotAccountStatementFlowService from './WhatsappBotAccountStatementFlowService';
 
 export default class WhatsAppFlowController {
     public static async offrampFlowDataExchange(req: Request, res: Response) {
@@ -173,6 +174,25 @@ export default class WhatsAppFlowController {
 
             const response =
                 await BvnKycVerificationFlow.receiveDataExchange(decryptedBody);
+
+            return res.send(
+                WhatsAppBotService.encryptFlowResponse(response, {
+                    initialVectorBuffer,
+                    aesKeyBuffer,
+                })
+            );
+        } catch (error) {
+            handleRequestError(error, res);
+        }
+    }
+
+    public static async accountStatementFlowDataExchange(req: Request, res: Response) {
+        try {
+            const { decryptedBody, initialVectorBuffer, aesKeyBuffer } =
+                requestDecryptedDataFlowExchange(req);
+
+            const response =
+                await WhatsappBotAccountStatementFlowService.receiveDataExchange(decryptedBody);
 
             return res.send(
                 WhatsAppBotService.encryptFlowResponse(response, {

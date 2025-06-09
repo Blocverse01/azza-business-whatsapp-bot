@@ -67,6 +67,7 @@ createBullBoard({
         new BullMQAdapter(queues.resetFeatureUsageLimit),
         //new BullMQAdapter(queues.pizzaDayCashback),
         new BullMQAdapter(queues.dailyRatesUpdate),
+        new BullMQAdapter(queues.generateAccountStatement)
     ],
     serverAdapter: serverAdapter,
 });

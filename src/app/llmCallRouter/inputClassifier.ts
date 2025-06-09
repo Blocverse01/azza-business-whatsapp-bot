@@ -22,6 +22,9 @@ const actions = [
     'REFERRAL_REQUEST',
     'REFERRAL_CODE',
     'REQUEST_SUPPORT',
+    'ACCOUNT_STATEMENT',
+    'TRANSACTION_HISTORY',
+    'DOWNLOAD_ACCOUNT_STATEMENT'
 ] as const;
 const actionClassSchema = z.enum(actions);
 
@@ -49,6 +52,9 @@ const actionDescriptions: Record<ActionClass, string> = {
     REFERRAL_REQUEST: 'Request a referral link or details.',
     REFERRAL_CODE: 'Request a referral link or details. Overlaps with referral request',
     REQUEST_SUPPORT: 'Request support or assistance with an issue.',
+    ACCOUNT_STATEMENT: 'Get a summary of your recent financial activity or transactions.',
+    TRANSACTION_HISTORY: 'View a list of all past fiat transactions.',
+    DOWNLOAD_ACCOUNT_STATEMENT: 'Download a detailed statement of your account activity.'
 };
 
 const actionSchema = z.object({

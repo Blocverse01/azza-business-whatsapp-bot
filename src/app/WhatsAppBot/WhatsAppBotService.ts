@@ -92,6 +92,7 @@ import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
 import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
 import { generateRatesCard } from '../rate-card/generators';
 import cryptoAssetPriceService from '@/runtime/crypto-asset-price';
+import WhatsappBotAccountStatementFlowService from './WhatsAppFlows/WhatsappBotAccountStatementFlowService';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -124,7 +125,7 @@ class WhatsAppBotService {
             });
 
             const responseData = await response.body.json();
-          
+
             if (response.statusCode !== OK) {
                 throw new HttpException(response.statusCode, 'Error sending message', {
                     responseData,
@@ -184,6 +185,50 @@ class WhatsAppBotService {
         }
     }
 
+    public static async uploadPDFToWhatsapp(businessPhoneNumberId: string, pdfFile: File) {
+        const endpoint = `${businessPhoneNumberId}/media`;
+
+        const formData = new FormData();
+
+        formData.append('file', pdfFile);
+        formData.append('messaging_product', 'whatsapp');
+        formData.append('type', 'application/pdf');
+
+        try {
+            const requestOptions = this.getRequestConfig();
+
+            const response = await request(`${env.CLOUD_API_URL}/${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    Authorization: requestOptions.headers.Authorization,
+                },
+                body: formData,
+            });
+
+            const responseData = await response.body.json();
+
+            if (response.statusCode !== OK) {
+                await logServiceError(
+                    new HttpException(response.statusCode, 'Error uploading media', {
+                        responseData,
+                        payload: formData.values(),
+                        businessPhoneNumberId,
+                    }),
+                    'Error uploading media'
+                );
+
+                return null;
+            }
+
+            return responseData as {
+                id: string;
+            };
+        } catch (error) {
+            await logServiceError(error, 'Error uploading media');
+            throw error;
+        }
+    }
+
     public static async sendMediaMessage(
         phoneParams: PhoneNumberParams,
         message: {
@@ -200,6 +245,30 @@ class WhatsAppBotService {
             image: {
                 id: message.mediaId,
                 caption: message.caption,
+            },
+        };
+
+        return await this.sendWhatsappMessage(phoneParams.businessPhoneNumberId, messageObject);
+    }
+
+    public static async sendPDFMessage(
+        phoneParams: PhoneNumberParams,
+        message: {
+            mediaId: string;
+            caption?: string;
+            filename: string;
+            type: 'document';
+        }
+    ) {
+        const messageObject = {
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: phoneParams.userPhoneNumber,
+            type: message.type,
+            document: {
+                id: message.mediaId,
+                filename: message.filename,
+                caption: message.caption
             },
         };
 
@@ -320,9 +389,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                      title: 'More',
-                  } as const)
+                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                    title: 'More',
+                } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -489,6 +558,24 @@ class WhatsAppBotService {
         }
     }
 
+    public static async beginAccountStatementFlowMessage(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams
+    ) {
+
+        const { businessPhoneNumberId, userPhoneNumber } = phoneParams;
+
+        const flowMessage = WhatsappBotAccountStatementFlowService.generateAccountStatementFlowInitMessage(
+            user,
+            {
+                userPhoneNumber
+            }
+        );
+
+        await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
+
+    }
+
     public static async beginAddBeneficiaryFlowMessage(
         params: PhoneNumberParams & {
             assetId: string;
@@ -605,7 +692,7 @@ class WhatsAppBotService {
                     type: 'image',
                 }
             );
-        } catch (error) {}
+        } catch (error) { }
     }
 
     public static async depositAssetCommandHandler(
@@ -853,9 +940,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                      id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
-                      title: 'More',
-                  }
+                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                    title: 'More',
+                }
                 : null;
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);

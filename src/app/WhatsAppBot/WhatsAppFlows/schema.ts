@@ -9,6 +9,11 @@ export const bvnKycVerificationSchema = z.object({
 });
 
 
+export const accountStatementDateRangeSchema = z.object({
+    start_date: z.string().min(1, { message: "Start date is required" }),
+    end_date: z.string().min(1, { message: "End date is required" })
+});
+
 
 export const extractIdFromString = (data: { input: string, key: 'networkId' | 'seerbitId' | 'nameEnquiryReference' }): string => {
 

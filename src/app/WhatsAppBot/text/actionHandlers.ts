@@ -59,9 +59,9 @@ import SumSubService from '@/app/SumSub/SumSubService';
 
 type ActionHandlerParams = {
     extractedArguments:
-        | z.infer<(typeof actionArgumentsSchema)[Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>]>
-        | null
-        | Record<string, unknown>;
+    | z.infer<(typeof actionArgumentsSchema)[Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>]>
+    | null
+    | Record<string, unknown>;
     botParams: PhoneNumberParams & {
         waDisplayName: string;
     };
@@ -494,29 +494,29 @@ export const handleBalanceQueryPrompt = async (
     const targetAsset =
         cryptoCurrencySymbol && blockchainNetwork
             ? azzaWalletManager.searchAssets({
-                  tokenName: cryptoCurrencySymbol,
-                  network: blockchainNetwork,
-              })[ZERO]
+                tokenName: cryptoCurrencySymbol,
+                network: blockchainNetwork,
+            })[ZERO]
             : undefined;
 
     const balanceQueryMode = targetAsset
         ? {
-              type: 'asset on specific network' as const,
-              entity: targetAsset,
-          }
+            type: 'asset on specific network' as const,
+            entity: targetAsset,
+        }
         : blockchainNetwork
-          ? {
+            ? {
                 type: 'network' as const,
                 entity: normalizeBlockchainInput(blockchainNetwork),
             }
-          : cryptoCurrencySymbol
-            ? {
-                  type: 'asset on any network' as const,
-                  entity: cryptoCurrencySymbol,
-              }
-            : {
-                  type: 'all' as const,
-              };
+            : cryptoCurrencySymbol
+                ? {
+                    type: 'asset on any network' as const,
+                    entity: cryptoCurrencySymbol,
+                }
+                : {
+                    type: 'all' as const,
+                };
 
     const supportedAssets = azzaWalletManager.getSupportedAssets();
     switch (balanceQueryMode.type) {
@@ -1290,9 +1290,9 @@ export const handleSwapCryptoPrompt = async (
         fromBlockchainNetwork === toBlockchainNetwork
             ? [`Chain: *${typedFromBlockchainNetwork}*`]
             : [
-                  `From Chain: *${typedFromBlockchainNetwork}*`,
-                  `To Chain: *${typedToBlockchainNetwork}*`,
-              ];
+                `From Chain: *${typedFromBlockchainNetwork}*`,
+                `To Chain: *${typedToBlockchainNetwork}*`,
+            ];
 
     const transactionSummaryMessageBody = [
         `🔄 _Swap_ *_${fromTokenConfig.tokenName}_* to *_${toTokenConfig.tokenName}_*\n`,
@@ -1444,9 +1444,9 @@ export const handlePayRelatedPrompt = async (
         user: params.user,
         args: params.extractedArguments
             ? parseExtractedArguments(
-                  params.extractedArguments,
-                  actionArgumentsSchema.PAY_TO_BANK_ACCOUNT
-              )
+                params.extractedArguments,
+                actionArgumentsSchema.PAY_TO_BANK_ACCOUNT
+            )
             : null,
     });
 
@@ -1482,6 +1482,28 @@ export const handleSupportRelatedPrompt = async (
     };
 };
 
+
+/////////////////////////////////////////////////////////
+//       Account Statement Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleAccountStatementRelatedPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+
+    const { botParams, user, } = params;
+
+    await WhatsAppBotService.beginAccountStatementFlowMessage(
+        user,
+        { userPhoneNumber: botParams.userPhoneNumber, businessPhoneNumberId: botParams.businessPhoneNumberId }
+    );
+
+    return {
+        response: 'Handled account statement prompt',
+        resetSession: true,
+    };
+};
+
+
 /////////////////////////////////////////////////////////
 //                   Helper Functions
 /////////////////////////////////////////////////////////
@@ -1494,13 +1516,12 @@ function parseExtractedArguments<T extends ZodSchema>(
 
 function getAssetChoiceMessage(action: 'deposit' | 'buy') {
     return `
-    Tell me what asset you want to ${action} and the chain it’s on.\n\nExample: “USDC on Base”\n\n*Supported Assets and Chains:*\n${
-        action === 'buy'
+    Tell me what asset you want to ${action} and the chain it’s on.\n\nExample: “USDC on Base”\n\n*Supported Assets and Chains:*\n${action === 'buy'
             ? getSupportedAssetAndNetworksText({
-                  action: ExploreAssetActions.BUY_ASSET,
-              })
+                action: ExploreAssetActions.BUY_ASSET,
+            })
             : getSupportedAssetAndNetworksText()
-    }`;
+        }`;
 }
 
 function getWithdrawalArgumentsGuideMessage(missingParams: {

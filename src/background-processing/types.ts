@@ -10,6 +10,7 @@ import {
     WhatsAppMediaMessage,
     WhatsAppTextMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { UserV2Record } from '@/db/xata';
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { AssetConfig } from '@/resources/web3/core/tokens';
 
@@ -68,6 +69,7 @@ export enum QueueNames {
     resetFeatureUsageLimit = 'reset-feature-usage-limit',
     pizzaDayCashback = 'pizza-day-cashback',
     dailyRatesUpdate = 'daily-rates-update',
+    generateAccountStatement = 'generate-account-statement'
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -178,4 +180,11 @@ export type BlockradarAddressSwapQueueInput = {
 
 export type CollectFeeQueueInput = {
     txReference: string;
+};
+
+export type GenerateAccountStatementQueueInput = {
+    whatsappParams: PhoneNumberParams;
+    startDate: string,
+    endDate: string,
+    user : UserV2Record
 };

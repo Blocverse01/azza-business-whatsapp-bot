@@ -35,6 +35,7 @@ import {
     WhatsappBroadcastQueueInput,
     GenerateReferralCodeQueueInput,
     CollectFeeQueueInput,
+    GenerateAccountStatementQueueInput,
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -155,6 +156,12 @@ export const queues = {
     dailyRatesUpdate: new Queue(QueueNames.dailyRatesUpdate, {
         connection: connectionConfig,
     }),
+    generateAccountStatement: new Queue<GenerateAccountStatementQueueInput>(
+        QueueNames.generateAccountStatement,
+        {
+            connection: connectionConfig,
+        }
+    )
 };
 
 export const defaultQueueRemoveOptions = {
