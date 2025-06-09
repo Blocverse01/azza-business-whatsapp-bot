@@ -20,7 +20,6 @@ import {
     OFFRAMP,
     OFFRAMP_WITHDRAW_REFERENCE_PREFIX,
     PIZZA_CAMPAIGN_PAYMENT_SUFFIX,
-    PIZZA_DAY_CASHBACK_REFERENCE_PREFIX,
     WITHDRAWAL_REFERENCE_PREFIX,
 } from '@/constants/strings';
 import { dbClient } from '@/db/dbClient';
@@ -212,41 +211,6 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
 
         const reason = metadata?.reason;
 
-        if (reason === SwapService.SWAP_WITHDRAWAL_TX_REASON) {
-            const pendingSwapRequest =
-                await SwapService.getSwapTransactionByExternalReference(reference);
-            if (!pendingSwapRequest) {
-                return;
-            }
-
-            const user = await userServiceV2.getUserById(pendingSwapRequest.user?.id!);
-            if (!user) throw new Error('Invalid swap user ID');
-
-            const liveTransactionData = await azzaWalletManager.getTransactionByHash(
-                data.data.hash,
-                network
-            );
-            if (liveTransactionData.status === 'SUCCESS') {
-                const technicalSupportMessage = `Swap debit transaction was successful, but a withdraw.failed webhook was sent.\n\nTransaction details:\nTransaction ID: ${data.data.id}\nBlockchain: ${network}\nHash: ${data.data.hash}\nReference: ${reference}`;
-                await sendTechnicalIssueAlert(technicalSupportMessage, env.WA_PHONE_NUMBER_ID);
-                return;
-            }
-
-            await WhatsAppBotService.sendWhatsappMessage(
-                env.WA_PHONE_NUMBER_ID,
-                MessageGenerators.generateTextMessage(
-                    user.primaryWhatsappPhoneNumber,
-                    '❌ Your swap transaction failed, please try again.\n\nIf you were debited, please contact reach out for assistance using the /support command.'
-                )
-            );
-            await pendingSwapRequest.update({
-                transactionHash: `debit_${data.data.hash}`,
-                status: 'failed',
-            });
-
-            return;
-        }
-
         if (reason === OFFRAMP) {
             const pendingOfframpId = reference.split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1];
             const pendingOfframpRequest =
@@ -338,6 +302,12 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 transactionHash: `swap_${data.data.hash}`,
             });
         } catch (e) {}
+
+        if (reference.startsWith(SwapService.EXTERNAL_REFERENCE_PREFIX)) {
+            await addFeeCollectionJobToQueue(reference);
+            return;
+        }
+
         await WhatsAppBotService.sendWhatsappMessage(
             env.WA_PHONE_NUMBER_ID,
             MessageGenerators.generateTextMessage(

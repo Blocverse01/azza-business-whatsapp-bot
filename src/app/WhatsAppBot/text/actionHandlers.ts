@@ -27,7 +27,7 @@ import {
     type FeatureAccessLevel,
     FLAT_SWAP_FEE,
 } from '@/config/whatsAppBot';
-import { SIX, ZERO } from '@/constants/numbers';
+import { SIX, ZERO, SOL_RENT_ESTIMATE } from '@/constants/numbers';
 import {
     getTransactionMinimumDepositMessage,
     SWAP_UNAVAILABLE_RESPONSE,
@@ -332,10 +332,13 @@ export const handleWithdrawRelatedPrompt = async (
         targetAsset.listItemId
     );
 
-    const availableBalance = balanceInfo.balance - pendingFeeAggregate;
+    const availableBalance =
+        targetAsset.tokenName === 'SOL'
+            ? balanceInfo.balance - pendingFeeAggregate - SOL_RENT_ESTIMATE
+            : balanceInfo.balance - pendingFeeAggregate;
 
     if (availableBalance < withdrawArguments.amount) {
-        const insufficientBalanceResponse = `Insufficient balance. You have ${availableBalance} ${targetAsset.tokenName}`;
+        const insufficientBalanceResponse = `The max you can withdraw is ${availableBalance} ${targetAsset.tokenName}`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
@@ -1207,8 +1210,46 @@ export const handleSwapCryptoPrompt = async (
         assetId: fromTokenConfig.listItemId,
         userId: user.id,
     });
-    if (fromTokenBalance.balance < fromAmount) {
-        const insufficientBalanceResponse = `Insufficient balance. You have ${fromTokenBalance.balance} ${fromTokenConfig.tokenName}`;
+
+    const [pendingFeeAggregate, transactionFee, hasExceededGaslessWithdrawalLimit] =
+        await Promise.all([
+            aggregatePendingTransactionFeeTokenAmount(user.id, fromTokenConfig.listItemId),
+            calculateWithdrawalFees({
+                amount: fromAmount,
+                assetId: fromTokenConfig.listItemId,
+                userId: user.id,
+                recipient: getDefaultParamsForNetworkFeeQuery(fromTokenConfig.network).recipient,
+            }),
+            hasExceededLimit(user.id, 'GASLESS_TRANSACTIONS'),
+        ]);
+
+    const flatSwapFee = fromAmount * FLAT_SWAP_FEE;
+    const totalFee = hasExceededGaslessWithdrawalLimit
+        ? transactionFee.networkFee + flatSwapFee
+        : flatSwapFee;
+
+    if (totalFee > 0 && fromAmount <= totalFee) {
+        const minAmountResponse = `Minimum swap amount is ${totalFee + fromAmount} ${fromTokenConfig.tokenName}`;
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                minAmountResponse
+            )
+        );
+        return {
+            response: minAmountResponse,
+            resetSession: false,
+        };
+    }
+
+    const availableBalance =
+        fromTokenConfig.tokenName === 'SOL'
+            ? fromTokenBalance.balance - pendingFeeAggregate - SOL_RENT_ESTIMATE
+            : fromTokenBalance.balance - pendingFeeAggregate;
+
+    if (availableBalance < fromAmount) {
+        const insufficientBalanceResponse = `⚠️ Insufficient balance. The max you can swap is ${availableBalance} ${fromTokenConfig.tokenName}`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             botParams.businessPhoneNumberId,
@@ -1279,12 +1320,14 @@ export const handleSwapCryptoPrompt = async (
         };
     }
 
-    const swapFee = fromAmount * FLAT_SWAP_FEE;
+    const swapFee = totalFee;
     const toAmount = quote.rate * (fromAmount - swapFee);
     const prettifiedFromAmount = prettifyNumber(fromAmount, 6);
     const prettifiedToAmount = prettifyNumber(toAmount, 6);
     const swapRate = prettifyNumber(quote.rate, 6);
     const prettifiedSwapFee = prettifyNumber(swapFee, 6);
+    const assetUsdConversionRate = transactionFee.networkFeeUsd / transactionFee.networkFee;
+    const totalFeeUsd = assetUsdConversionRate * totalFee;
 
     const chainMessages =
         fromBlockchainNetwork === toBlockchainNetwork
@@ -1325,6 +1368,7 @@ export const handleSwapCryptoPrompt = async (
                 rate: quote.rate,
                 recipientAddress: toUserWallet.address,
                 toAmount: toAmount,
+                transactionFeeUsd: totalFeeUsd,
             },
         });
 

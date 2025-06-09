@@ -25,7 +25,7 @@ import { queues } from '@/background-processing/queues';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIX, SIXTEEN, ZERO } from '@/constants/numbers';
+import { SIX, SIXTEEN, SOL_RENT_ESTIMATE, ZERO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import {
@@ -182,7 +182,10 @@ class WhatsAppBotTransferToWalletFlowService {
             data.user_id,
             data.asset_id
         );
-        const userAvailableBalance = userBalance - pendingFeeAggregate;
+        const userAvailableBalance =
+            asset.tokenName === 'SOL'
+                ? userBalance - pendingFeeAggregate - SOL_RENT_ESTIMATE
+                : userBalance - pendingFeeAggregate;
 
         const amount = parseFloat(data.amount);
 
@@ -212,7 +215,7 @@ class WhatsAppBotTransferToWalletFlowService {
             errorMessages.amount = `Minimum withdrawal amount is ${withdrawalMinimum} ${asset.tokenName}`;
         }
         if (userAvailableBalance < amount) {
-            errorMessages.amount = `Insufficient balance, you have only ${userAvailableBalance} ${asset.tokenName}`;
+            errorMessages.amount = `The max you can withdraw is ${userAvailableBalance} ${asset.tokenName}`;
         }
         if (!recipientType) {
             errorMessages.wallet_address = 'Please provide a wallet address or Azza phone number';
