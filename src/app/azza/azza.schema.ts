@@ -119,6 +119,7 @@ export const swapTokensTransactionDetailsV2Schema = z.object({
     transactionFee: z.coerce.number(),
     rate: z.coerce.number(),
     recipientAddress: z.string(),
+    transactionFeeUsd: z.coerce.number(),
 });
 
 ////////////////////

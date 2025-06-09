@@ -10,6 +10,7 @@ import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
 import { clipDecimal } from '@/resources/utils/transformers';
 import azzaWalletManager from '@/runtime/wallet';
 import { ConnectionOptions, Worker } from 'bullmq';
+import { recordTransactionFeeCharge } from '../transaction-fees/utils';
 
 ////////////////////////
 // Address-level Swaps
@@ -45,6 +46,16 @@ const handleBlockradarAddressTokenSwapJob = async (
 
     const fromTokenConfig = getAssetConfigOrThrow(swapDetails.fromTokenId);
     const toTokenConfig = getAssetConfigOrThrow(swapDetails.toTokenId);
+
+    await recordTransactionFeeCharge({
+        amount: swapDetails.transactionFee,
+        amountUsd: swapDetails.transactionFeeUsd,
+        assetId: swapDetails.fromTokenId,
+        userId: normalizedUserId,
+        transactionType: 'swap',
+        txReference: swapTxReference,
+    });
+
     const swapTransactionExecution = await azzaWalletManager.executeAssetSwap({
         fromAmount: decimalToString(amountToSwap),
         fromAssetId: fromTokenConfig.listItemId,
