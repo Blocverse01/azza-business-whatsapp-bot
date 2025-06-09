@@ -76,6 +76,7 @@ export const classifyAction = async (messages: Array<CoreMessage>): Promise<Acti
 
         Guidelines:
         - If none of the choices are relevant, return 'NO_PREDEFINED_ACTION'.
+        - If the most recent message stands out significantly from the previous messages, classify it based on that message alone.
         
         Now, from the conversation below, choose the most relevant action.
         `,
