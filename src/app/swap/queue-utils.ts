@@ -11,6 +11,7 @@ import { clipDecimal } from '@/resources/utils/transformers';
 import azzaWalletManager from '@/runtime/wallet';
 import { ConnectionOptions, Worker } from 'bullmq';
 import { recordTransactionFeeCharge } from '../transaction-fees/utils';
+import { hasExceededLimit, createOrIncrementUsageCount } from '../limits/utils';
 
 ////////////////////////
 // Address-level Swaps
@@ -79,6 +80,14 @@ const handleBlockradarAddressTokenSwapJob = async (
             )
         );
         return swapDetails;
+    }
+
+    const hasExceededGaslessTxLimit = await hasExceededLimit(
+        normalizedUserId,
+        'GASLESS_TRANSACTIONS'
+    );
+    if (!hasExceededGaslessTxLimit) {
+        await createOrIncrementUsageCount(normalizedUserId, 'GASLESS_TRANSACTIONS');
     }
 
     await WhatsAppBotService.sendWhatsappMessage(
