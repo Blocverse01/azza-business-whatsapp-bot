@@ -6,7 +6,7 @@ import WhatsAppBotService from "../WhatsAppBot/WhatsAppBotService";
 import MessageGenerators from "../WhatsAppBot/MessageGenerators";
 import { generateAccountStatementPdf } from "./account-statement-generator";
 import { XataClient } from '@/db/db-client-2';
-import { dbClient, sqlClient } from '@/db/dbClient';
+import { dbClient } from '@/db/dbClient';
 import env from "@/constants/env";
 import { RawTransaction, TransactionsSummary, TransactionType, TransformedTransaction } from "./types";
 import { formatDate } from "date-fns";
