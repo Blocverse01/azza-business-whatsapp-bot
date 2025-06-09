@@ -75,6 +75,7 @@ import {
     prepareRatesUpdateQueue,
     createRatesUpdateWorker,
 } from '@/app/campaigns/rates-update/utils';
+import { createAccountStatementWorker } from '@/app/account-statement/queue-utils';
 
 ///////////////////////
 // Worker Instances
@@ -488,6 +489,7 @@ createKycEventJobWorker().on('error', async (error) => {
 
 createAzzaWrappedWorker();
 createReferralCodeWorker();
+createAccountStatementWorker();
 createBlockradarAddressTokenSwapWorker(connectionConfig).on('error', async (error) => {
     await logServiceError(error, 'Swap Worker Error');
 });

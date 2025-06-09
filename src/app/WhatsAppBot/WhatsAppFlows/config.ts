@@ -12,7 +12,8 @@ type Flows =
     | 'SET_TRANSACTION_PIN'
     | 'CHANGE_TRANSACTION_PIN'
     | 'RESET_TRANSACTION_PIN'
-    | 'BVN_KYC_VERIFICATION';
+    | 'BVN_KYC_VERIFICATION'
+    | 'ACCOUNT_STATEMENT';
 
 export type FlowConfig = {
     flowId: string;
@@ -113,6 +114,16 @@ const flowConfigs: FlowConfigs = {
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '2005170979976527',
+            flowMode: 'published',
+        },
+    },
+    ACCOUNT_STATEMENT: {
+        [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
+            flowId: '1459758905009704',
+            flowMode: 'published',
+        },
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
+            flowId: '1609969766342301',
             flowMode: 'published',
         },
     },

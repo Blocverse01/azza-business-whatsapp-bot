@@ -86,4 +86,7 @@ export const actionArgumentsSchema = {
     CANCEL_CURRENT_ACTION: z.object({}),
     PAY_TO_BANK_ACCOUNT: PayPromptArgsSchema,
     REQUEST_SUPPORT: z.object({}),
+    ACCOUNT_STATEMENT : z.object({}),
+    DOWNLOAD_ACCOUNT_STATEMENT : z.object({}),
+    TRANSACTION_HISTORY : z.object({})
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

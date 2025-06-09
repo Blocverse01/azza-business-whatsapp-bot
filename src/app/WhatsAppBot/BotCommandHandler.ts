@@ -99,6 +99,8 @@ class BotCommandHandler {
                 break;
             case 'REFERRAL_CODE':
                 await BotCommandHandler.getReferralCode(user, phoneParams, displayName);
+            case 'GENERATE_STATEMENT':
+                await BotCommandHandler.handleAccountStatement(user, phoneParams);
                 break;
             default:
                 return {
@@ -109,6 +111,16 @@ class BotCommandHandler {
         return {
             handled: true,
         };
+    }
+
+    private static async handleAccountStatement(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams,
+    ) {
+        await WhatsAppBotService.beginAccountStatementFlowMessage(
+            user,
+            phoneParams
+        );
     }
 
     private static async handleWrapped(
@@ -149,15 +161,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`;
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -210,15 +222,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`;
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,

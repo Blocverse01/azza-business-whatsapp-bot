@@ -22,6 +22,7 @@ import {
     handleWithdrawRelatedPrompt,
     PromptHandlerResponse,
     handleSupportRelatedPrompt,
+    handleAccountStatementRelatedPrompt,
 } from '@/app/WhatsAppBot/text/actionHandlers';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
@@ -242,6 +243,15 @@ export const textPromptHandler = async (
                 break;
             case 'REQUEST_SUPPORT':
                 responseMessage = await handleSupportRelatedPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'ACCOUNT_STATEMENT':
+            case 'DOWNLOAD_ACCOUNT_STATEMENT':
+            case 'TRANSACTION_HISTORY':
+                responseMessage = await handleAccountStatementRelatedPrompt({
                     extractedArguments,
                     botParams,
                     user,
