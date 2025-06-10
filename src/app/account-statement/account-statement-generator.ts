@@ -55,7 +55,7 @@ export const generateAccountStatementPdf = async (params: {
           </div>
           <div>
             <p class="text-gray-500 text-sm">Number of Trades:</p>
-            <p class="text-base text-gray-800 font-medium">${_user.totalTrades}</p>
+            <p class="text-base text-gray-800 font-medium">${prettifyNumber(_user.totalTrades)}</p>
           </div>
         </div>
 

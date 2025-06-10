@@ -22,9 +22,11 @@ type ScreenDataPayload = {
         end_date: string,
         user_id: string,
         end_date_max?: string,
+        user_address?: string,
         error_messages?: {
             start_date?: string,
-            end_date?: string
+            end_date?: string,
+            user_address?: string
         },
         initial_values?: {
             start_date?: string;
@@ -37,7 +39,8 @@ type DataExchangePayload = {
     TRANSACTION_DATE_RANGE_SCREEN: {
         start_date: string,
         end_date: string,
-        user_id: string
+        user_id: string,
+        user_address: string
     }
 }
 
@@ -107,7 +110,8 @@ class WhatsappBotAccountStatementFlowService {
                                 user_id: convertAsciiStringToBase64(user.id),
                                 start_date: "2024-01-01",
                                 end_date: formatDate(new Date(), 'yyyy-MM-dd'),
-                                end_date_max: formatDate(new Date(), 'yyyy-MM-dd')
+                                end_date_max: formatDate(new Date(), 'yyyy-MM-dd'),
+                                user_address: 'Lagos'
                             } satisfies ScreenDataPayload['TRANSACTION_DATE_RANGE_SCREEN'],
                         },
                     },
@@ -136,23 +140,30 @@ class WhatsappBotAccountStatementFlowService {
 
         const dataValidation = accountStatementDateRangeSchema.safeParse(formData);
 
-        if (!dataValidation.success) {
+        const errorMessages: Record<string, string | undefined> = {
+            start_date: dataValidation.error?.flatten().fieldErrors?.start_date?.[0],
+            end_date: dataValidation.error?.flatten().fieldErrors?.end_date?.[0],
+            user_address: dataValidation.error?.flatten().fieldErrors?.user_address?.[0],
+        };
+
+        // Add custom error if user.address is null
+        if (!user.address && !(formData.user_address?.trim())) {
+            errorMessages.user_address = "We couldn't find your address. Please fill in your address to proceed.";
+        }
+
+        if (!dataValidation.success || (!user.address && !(formData.user_address?.trim()))) {
             return {
                 action: 'data_exchange',
                 screen: AccountStatementFlowScreens.TRANSACTION_DATE_RANGE,
                 data: {
-                    user_id: userId,
-                    error_messages: {
-                        start_date: dataValidation.error.flatten().fieldErrors?.start_date?.[0],
-                        end_date: dataValidation.error.flatten().fieldErrors?.end_date?.[0],
-                    },
+                    user_id: convertAsciiStringToBase64(userId),
+                    error_messages: errorMessages,
                     initial_values: { ...formData },
                     start_date: formData.start_date,
                     end_date: formData.end_date
                 } satisfies ScreenDataPayload['TRANSACTION_DATE_RANGE_SCREEN'],
             };
         }
-
 
         await addJobToAccountStatementQueue({
             whatsappParams: {
@@ -161,7 +172,8 @@ class WhatsappBotAccountStatementFlowService {
             },
             startDate: formData.start_date,
             endDate: formData.end_date,
-            user
+            user,
+            newUserAddress : formData.user_address
         });
 
         return {

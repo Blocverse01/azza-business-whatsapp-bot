@@ -1,6 +1,6 @@
 export type TransactionType = 'onramp' | 'offramp';
 
-export interface RawTransaction {
+export interface Transactions {
     usdAmount?: number | null;
     tokenSymbol?: string | null;
     blockchainNetwork?: string | null;

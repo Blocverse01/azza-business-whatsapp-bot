@@ -145,7 +145,7 @@ const compareUserDataWithBvnData = (
     };
 };
 
-const isValidStringData = (address: string): address is string => {
+export const isValidStringData = (address: string): address is string => {
     if (address.trim() === '') return false;
     return address.toLowerCase() !== NOT_AVAILABLE.toLowerCase();
 };

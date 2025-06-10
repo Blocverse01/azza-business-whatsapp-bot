@@ -8,9 +8,10 @@ import { generateAccountStatementPdf } from "./account-statement-generator";
 import { XataClient } from '@/db/db-client-2';
 import { dbClient } from '@/db/dbClient';
 import env from "@/constants/env";
-import { RawTransaction, TransactionsSummary, TransactionType, TransformedTransaction } from "./types";
+import { Transactions, TransactionsSummary, TransactionType, TransformedTransaction } from "./types";
 import { formatDate } from "date-fns";
 import { UserV2Record } from "@/db/xata";
+import userServiceV2 from "@/runtime/user";
 
 const xataClient2 = new XataClient({
     apiKey: env.XATA_API_KEY,
@@ -49,7 +50,8 @@ const handleAccountStatementJob = async (data: GenerateAccountStatementQueueInpu
         whatsappParams: { businessPhoneNumberId, userPhoneNumber },
         startDate,
         endDate,
-        user
+        user,
+        newUserAddress
     } = data;
 
 
@@ -61,10 +63,17 @@ const handleAccountStatementJob = async (data: GenerateAccountStatementQueueInpu
         )
     );
 
+    // ✅ Resolve the address to use, and update DB if needed
+    const resolvedAddress = await resolveUserAccountStatementAddress(user, newUserAddress);
+
+    // ✅ Pass the address into your PDF generator
     const pdfBuffer = await generateAccountStatementPdf({
         startDate,
         endDate,
-        user
+        user: {
+            ...user,
+            address: resolvedAddress // <-- Inject updated address
+        }
     });
 
     if (!pdfBuffer) return;
@@ -100,7 +109,7 @@ const handleAccountStatementJob = async (data: GenerateAccountStatementQueueInpu
 export async function getAllUserTransactionsByDateRange(params: {
     startDate: string,
     endDate: string,
-    user: UserV2Record
+    user: UserV2Record,
 }): Promise<TransactionsSummary> {
 
     const { startDate, endDate, user } = params;
@@ -142,7 +151,11 @@ export async function getAllUserTransactionsByDateRange(params: {
 
     const filteredTxs = filterTransactionsByDateRange(allTransactions, _startDate, _endDate);
 
-    const totalTrades = filteredTxs.length;
+    const sortedTxs = filteredTxs.sort((a, b) => {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+    
+    const totalTrades = sortedTxs.length;
 
     if (totalTrades === 0) {
         await WhatsAppBotService.sendWhatsappMessage(
@@ -165,15 +178,15 @@ export async function getAllUserTransactionsByDateRange(params: {
         };
     }
 
-    const totalVolumeUsd = filteredTxs.reduce((sum, tx) => {
+    const totalVolumeUsd = sortedTxs.reduce((sum, tx) => {
         const [usd] = tx.amount.split(' ');
         return sum + parseFloat(usd);
     }, 0);
 
     return {
-        transactions: filteredTxs,
+        transactions: sortedTxs,
         user: {
-            address: capitalizeWords(user.address as string),
+            address: `${capitalizeWords(user.address as string)}`,
             phoneNumber: user.primaryWhatsappPhoneNumber,
             fullName: `${capitalizeWords(user.firstName as string)} ${capitalizeWords(user.lastName as string)}`,
             totalTrades,
@@ -182,7 +195,7 @@ export async function getAllUserTransactionsByDateRange(params: {
     };
 }
 
-function transformTransaction(tx: RawTransaction, type: TransactionType): TransformedTransaction {
+function transformTransaction(tx: Transactions, type: TransactionType): TransformedTransaction {
     const isBuy = type === 'onramp';
 
     const recipient = isBuy
@@ -240,6 +253,7 @@ function filterTransactionsByDateRange(
     startDate: Date,
     endDate: Date
 ): TransformedTransaction[] {
+
     const start = startDate.getTime();
     const end = endDate.getTime();
 
@@ -248,4 +262,22 @@ function filterTransactionsByDateRange(
         return txDate >= start && txDate <= end;
     });
 }
+
+async function resolveUserAccountStatementAddress(user: UserV2Record, newUserAddress: string) {
+
+    const existingAddress = user.address;
+    let _newUserAddress = '';
+
+    if (existingAddress && newUserAddress) {
+        _newUserAddress = newUserAddress;
+    } else if (!existingAddress && newUserAddress) {
+        await userServiceV2.updateUserInfo(user, { address: newUserAddress });
+        _newUserAddress = newUserAddress;
+    } else if (existingAddress) {
+        _newUserAddress = existingAddress;
+    }
+
+    return _newUserAddress;
+}
+
 
