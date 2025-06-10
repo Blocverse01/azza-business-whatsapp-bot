@@ -11,7 +11,12 @@ export const bvnKycVerificationSchema = z.object({
 
 export const accountStatementDateRangeSchema = z.object({
     start_date: z.string().min(1, { message: "Start date is required" }),
-    end_date: z.string().min(1, { message: "End date is required" })
+    end_date: z.string().min(1, { message: "End date is required" }),
+    user_address: z
+        .string({ required_error: "Address is required" })
+        .min(10, { message: "Address must be at least 10 characters long" })
+        .max(150, { message: "Address must be no more than 150 characters long" })
+        .optional()
 });
 
 

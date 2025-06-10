@@ -186,5 +186,6 @@ export type GenerateAccountStatementQueueInput = {
     whatsappParams: PhoneNumberParams;
     startDate: string,
     endDate: string,
-    user : UserV2Record
+    user: UserV2Record,
+    newUserAddress : string
 };
