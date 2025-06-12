@@ -22,23 +22,23 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
         }
 
         const trustedIp =
-            origin !== 'unknown'
+            ip !== 'unknown'
                 ? await dbClient.bull_dashboard_access
                       .filter({
-                          ipAddress: origin,
+                          ipAddress: ip,
                       })
                       .getFirst()
                 : null;
 
         if (trustedIp) {
-            await redis.set(ipCacheKey, origin, 'EX', 60 * 60 * 24);
+            await redis.set(ipCacheKey, ip, 'EX', 60 * 60 * 24);
             next();
             return;
         }
 
         await logger.error('Error authenticating admin: Token is missing and IP not trusted', {
             accessToken,
-            origin,
+            IP: ip,
         });
         return res.status(FORBIDDEN).send('Forbidden');
     }
