@@ -8,8 +8,34 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
     const accessToken = req.cookies?.token;
 
     if (!accessToken) {
-        await logger.error('Error authenticating admin: Access token missing', {
+        const origin = req.headers.origin ?? req.headers.referer ?? 'unknown';
+
+        const ipCacheKey = `bull_dashboard_access_ip_${origin}`;
+        const cachedIp = await redis.get(ipCacheKey);
+
+        if (cachedIp) {
+            next();
+            return;
+        }
+
+        const trustedIp =
+            origin !== 'unknown'
+                ? await dbClient.bull_dashboard_access
+                      .filter({
+                          ipAddress: origin,
+                      })
+                      .getFirst()
+                : null;
+
+        if (trustedIp) {
+            await redis.set(ipCacheKey, origin, 'EX', 60 * 60 * 24);
+            next();
+            return;
+        }
+
+        await logger.error('Error authenticating admin: Token is missing and IP not trusted', {
             accessToken,
+            origin,
         });
         return res.status(FORBIDDEN).send('Forbidden');
     }
@@ -43,6 +69,7 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
     } catch (error) {
         await logger.error('Error authenticating admin', {
             accessToken,
+            error: error,
         });
 
         return res.status(UNAUTHORIZED).send('Unauthorized');

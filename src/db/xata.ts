@@ -83,6 +83,7 @@ const tables = [
       { name: "xatacreatedAt", type: "text" },
       { name: "xataupdatedAt", type: "text" },
       { name: "xataversion", type: "int" },
+      { name: "ipAddress", type: "text" },
     ],
   },
   {
