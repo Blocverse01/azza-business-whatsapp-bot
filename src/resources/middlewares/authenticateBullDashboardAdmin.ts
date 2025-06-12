@@ -8,9 +8,12 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
     const accessToken = req.cookies?.token;
 
     if (!accessToken) {
-        const origin = req.headers.origin ?? req.headers.referer ?? 'unknown';
+        const ip =
+            req.headers['x-forwarded-for']?.toString().split(',')[0].trim() ??
+            req.socket.remoteAddress ??
+            'unknown';
 
-        const ipCacheKey = `bull_dashboard_access_ip_${origin}`;
+        const ipCacheKey = `bull_dashboard_access_ip_${ip}`;
         const cachedIp = await redis.get(ipCacheKey);
 
         if (cachedIp) {
