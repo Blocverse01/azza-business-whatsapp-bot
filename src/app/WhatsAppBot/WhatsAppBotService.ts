@@ -268,7 +268,7 @@ class WhatsAppBotService {
             document: {
                 id: message.mediaId,
                 filename: message.filename,
-                caption: message.caption
+                caption: message.caption,
             },
         };
 
@@ -389,9 +389,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                    title: 'More',
-                } as const)
+                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                      title: 'More',
+                  } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -548,6 +548,9 @@ class WhatsAppBotService {
             messaging_product: 'whatsapp',
             status: 'read',
             message_id: messageId,
+            typing_indicator: {
+                type: 'text',
+            },
         };
 
         try {
@@ -562,18 +565,14 @@ class WhatsAppBotService {
         user: UserV2Record,
         phoneParams: PhoneNumberParams
     ) {
-
         const { businessPhoneNumberId, userPhoneNumber } = phoneParams;
 
-        const flowMessage = WhatsappBotAccountStatementFlowService.generateAccountStatementFlowInitMessage(
-            user,
-            {
-                userPhoneNumber
-            }
-        );
+        const flowMessage =
+            WhatsappBotAccountStatementFlowService.generateAccountStatementFlowInitMessage(user, {
+                userPhoneNumber,
+            });
 
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
-
     }
 
     public static async beginAddBeneficiaryFlowMessage(
@@ -692,7 +691,7 @@ class WhatsAppBotService {
                     type: 'image',
                 }
             );
-        } catch (error) { }
+        } catch (error) {}
     }
 
     public static async depositAssetCommandHandler(
@@ -940,9 +939,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
-                    title: 'More',
-                }
+                      id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                      title: 'More',
+                  }
                 : null;
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);
