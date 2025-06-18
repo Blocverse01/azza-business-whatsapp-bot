@@ -142,6 +142,7 @@ export enum AssetInteractiveButtonIds {
 
     BNB_BEP20 = 'bnb-bep20',
     USDT_BEP20 = 'usdt-bep20',
+    CNGN_BEP20 = 'cngn-bep20',
     USDC_BEP20 = 'usdc-bep20',
 
     USDC_ASSET_CHAIN = 'usdc-asset-chain',
