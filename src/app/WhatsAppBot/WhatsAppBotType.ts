@@ -163,6 +163,7 @@ export enum ExploreAssetActions {
     DEPOSIT = 'deposit',
     WITHDRAW_ASSET = 'withdraw',
     SELL_ASSET = 'sell',
+    PAY = 'pay',
 }
 
 export const assetInteractiveButtonsIds = Object.values(AssetInteractiveButtonIds);

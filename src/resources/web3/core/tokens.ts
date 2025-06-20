@@ -240,6 +240,7 @@ export const usdcEthConfig = {
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
         ExploreAssetActions.SELL_ASSET,
+        ExploreAssetActions.PAY,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
@@ -256,6 +257,7 @@ export const usdtEthConfig = {
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
         ExploreAssetActions.SELL_ASSET,
+        ExploreAssetActions.PAY,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
 } satisfies AssetConfig;
@@ -452,6 +454,7 @@ export const usdcAssetChainConfig = {
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
         ExploreAssetActions.SELL_ASSET,
+        ExploreAssetActions.PAY,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
@@ -468,6 +471,7 @@ export const usdtAssetChainConfig = {
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
         ExploreAssetActions.SELL_ASSET,
+        ExploreAssetActions.PAY,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
@@ -485,6 +489,7 @@ export const usdcArbitrumConfig = {
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
         ExploreAssetActions.SELL_ASSET,
+        ExploreAssetActions.PAY,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;
@@ -501,6 +506,7 @@ export const usdtArbitrumConfig = {
         ExploreAssetActions.WITHDRAW_ASSET,
         ExploreAssetActions.DEPOSIT,
         ExploreAssetActions.SELL_ASSET,
+        ExploreAssetActions.PAY,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: false,
 } satisfies AssetConfig;

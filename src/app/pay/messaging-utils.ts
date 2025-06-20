@@ -411,7 +411,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
     const sellableBalances = balances.filter(
         (balance) =>
             !balance.asset.isNative &&
-            balance.asset.supportedAssetActions.includes(ExploreAssetActions.SELL_ASSET)
+            balance.asset.supportedAssetActions.includes(ExploreAssetActions.PAY)
     );
     const possiblePaymentBalances = sellableBalances.filter(
         (balance) => (balance?.convertedBalanceUsd ?? 0) >= amountToDebit
