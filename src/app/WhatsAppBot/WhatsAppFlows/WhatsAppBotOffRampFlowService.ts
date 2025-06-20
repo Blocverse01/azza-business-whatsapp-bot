@@ -496,7 +496,7 @@ class WhatsAppBotOffRampFlowService {
 
                       if (isPeggedCurrency(assetConfig.tokenName, beneficiary.currency_symbol)) {
                           // Assume that the usd->fiat conversion rate is the same as the usd->crypto conversion rate
-                          const feeInCrypto = feeForUsdLimit.feeUsd / usdToFiatConversionRate;
+                          const feeInCrypto = feeForUsdLimit.feeUsd * cryptoToUsdConversionRate;
 
                           return fixNumber(cryptoMin + feeInCrypto, TWO);
                       }
@@ -602,7 +602,7 @@ class WhatsAppBotOffRampFlowService {
             rampType: 'offramp',
         });
 
-        const feeInCrypto = feeConfig.feeUsd / cryptoToUsdConversionRate;
+        const feeInCrypto = feeConfig.feeUsd * cryptoToUsdConversionRate;
         const transactionFeeInUsd = feeConfig.feeUsd;
         const transactionFeeInCrypto = fixNumber(feeInCrypto, THREE);
         const feePercentage = feeConfig.feePercentage;
@@ -702,7 +702,7 @@ class WhatsAppBotOffRampFlowService {
         );
         const cryptoToUsdConversionRate = usdToFiatConversionRate / cryptoToFiatConversionRate;
         const tradingAmountInUsd = tradingAmountInToken / cryptoToUsdConversionRate;
-        const feeInUsd = transactionFeeInCrypto * cryptoToUsdConversionRate;
+        const feeInUsd = transactionFeeInCrypto / cryptoToUsdConversionRate;
 
         if (!user?.transactionPinHash) {
             return {
