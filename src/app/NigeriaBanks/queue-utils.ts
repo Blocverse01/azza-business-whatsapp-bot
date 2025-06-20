@@ -21,6 +21,7 @@ import {
     SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID,
 } from '../FiatRamp/config';
 import { dbClient } from '@/db/dbClient';
+import { isPeggedCurrency } from '../FiatRamp/token-currency-pair-rate/utils';
 
 export const addNgnBankTransactionUpdateJobToQueue = async (
     input: NGNBankTransactionQueueInput
@@ -108,13 +109,18 @@ export const createNgnBankTransactionUpdateJobWorker = () => {
                 const receiptBuffer = await generateOfframpReceipt({
                     status: 'complete',
                     blockchainNetwork: settlement.blockchainNetwork,
-                    usdAmount: settlement.usdAmount,
+                    usdAmount: totalAmount,
                     localAmount: settlement.localAmount,
                     localCurrencySymbol: settlement.localCurrencySymbol!,
                     tokenSymbol: settlement.tokenSymbol,
                     ownerId: settlement.ownerId,
                     transactionHash: settlement.transactionHash,
-                    transactionFeeUsd: settlement.transactionFeeUsd,
+                    transactionFeeUsd: isPeggedCurrency(
+                        settlement.tokenSymbol,
+                        settlement.localCurrencySymbol!
+                    )
+                        ? 0
+                        : settlement.transactionFeeUsd,
                     destination: {
                         accountName: settlement.destinationAccountName,
                         accountNumber: settlement.destinationAccountNumber,
