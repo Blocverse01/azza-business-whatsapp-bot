@@ -20,6 +20,7 @@ import {
     BELL_OFFRAMP_PAYMENT_PROCESSOR_ID,
     SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID,
 } from '../FiatRamp/config';
+import { dbClient } from '@/db/dbClient';
 
 export const addNgnBankTransactionUpdateJobToQueue = async (
     input: NGNBankTransactionQueueInput
@@ -52,9 +53,16 @@ export const createNgnBankTransactionUpdateJobWorker = () => {
                 }
             })();
 
-            const totalAmount = prettifyNumber(
-                (settlement.usdAmount ?? 0) + (settlement.transactionFeeUsd ?? 0)
-            );
+            const offrampRequest = await dbClient.offramp_awaiting_crypto_debit
+                .filter({
+                    cryptoTransactionId: settlement.transactionHash,
+                })
+                .getFirst();
+
+            if (!offrampRequest) {
+                throw new Error('Offramp request not found');
+            }
+            const totalAmount = offrampRequest.tokenAmountToDebit;
 
             const userPhoneNumber = await userServiceV2.getUserPhoneNumber(settlement.ownerId);
 
