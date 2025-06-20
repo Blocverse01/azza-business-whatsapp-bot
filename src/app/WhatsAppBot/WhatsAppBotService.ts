@@ -911,7 +911,17 @@ class WhatsAppBotService {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
-        const supportedCurrencies = await FiatRampService.getSupportedCurrencies();
+        const _supportedCurrencies = await FiatRampService.getSupportedCurrencies();
+
+        const assetConfig = getAssetConfigOrThrow(purchaseAssetId);
+        const supportedCurrencies = _supportedCurrencies.filter((currency) => {
+            if (assetConfig.whitelistedSellCurrencies) {
+                return assetConfig.whitelistedSellCurrencies.includes(
+                    currency.currencySymbol.toUpperCase()
+                );
+            }
+            return true;
+        });
 
         const userCountry = supportedCurrencies.find(
             (country) => country.code.toLowerCase() === userCountryCode.toLowerCase()

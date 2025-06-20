@@ -154,6 +154,7 @@ export type AssetConfig = {
     supportedAssetActions: ExploreAssetActions[];
     showOnAssetsMenu?: boolean;
     isNative?: boolean;
+    whitelistedSellCurrencies?: string[];
 };
 
 const ALL_ASSET_ACTIONS: ExploreAssetActions[] = Object.values(ExploreAssetActions);
@@ -430,6 +431,7 @@ export const cngnBep20Config = {
     network: 'Bep20',
     supportedAssetActions: ALL_ASSET_ACTIONS,
     showOnAssetsMenu: true,
+    whitelistedSellCurrencies: ['NGN'],
 } satisfies AssetConfig;
 
 // Asset Chain Assets
