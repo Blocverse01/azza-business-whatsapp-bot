@@ -78,6 +78,8 @@ export enum TokenAddresses {
     // USDT
     USDT_BEP20_MAINNET = '0x55d398326f99059fF775485246999027B3197955',
     USDT_BEP20_TESTNET = '0x337610d27c682E347C9cD60BD4b3b107C9d34dDd',
+    CNGN_BEP20_MAINNET = '0xa8AEA66B361a8d53e8865c62D142167Af28Af058',
+    CNGN_BEP20_TESTNET = '',
 
     /**
      * Asset Chain Asset Addresses
@@ -101,7 +103,7 @@ export enum TokenAddresses {
     USDT_ARBITRUM_MAINNET = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
     USDT_ARBITRUM_TESTNET = '0x30fa2fbe15c1eadfbef28c188b7b8dbd3c1ff2eb',
 
-     /**
+    /**
      * LISK Asset Addresses
      */
     // USDC
@@ -112,7 +114,7 @@ export enum TokenAddresses {
     USDT_LISK_MAINNET = '0x05D032ac25d322df992303dCa074EE7392C117b9',
     USDT_LISK_SEPOLIA_TESTNET = '',
 
-     /**
+    /**
      * CELO Asset Addresses
      */
     // USDC
@@ -124,8 +126,7 @@ export enum TokenAddresses {
     USDT_CELO_ALFAJORES_TESTNET = '',
 
     //CELO
-    CELO_CELO = '0x471EcE3750Da237f93B8E339c536989b8978a438'
-    
+    CELO_CELO = '0x471EcE3750Da237f93B8E339c536989b8978a438',
 }
 
 export enum TokenNames {
@@ -136,7 +137,8 @@ export enum TokenNames {
     SOL = 'SOL',
     OP = 'OP',
     TRX = 'TRX',
-    CELO = 'CELO'
+    CELO = 'CELO',
+    CNGN = 'cNGN',
 }
 
 export const TokenIconURIs: Record<string, string> = {
@@ -413,6 +415,18 @@ export const usdtBep20Config = {
             : TokenAddresses.USDT_BEP20_MAINNET,
     tokenName: TokenNames.USDT,
     listItemId: AssetInteractiveButtonIds.USDT_BEP20,
+    network: 'Bep20',
+    supportedAssetActions: ALL_ASSET_ACTIONS,
+    showOnAssetsMenu: true,
+} satisfies AssetConfig;
+/// =============== CNGN =================
+export const cngnBep20Config = {
+    tokenAddress:
+        env.WEB3_ENVIRONMENT === 'testnet'
+            ? TokenAddresses.CNGN_BEP20_TESTNET
+            : TokenAddresses.CNGN_BEP20_MAINNET,
+    tokenName: TokenNames.CNGN,
+    listItemId: AssetInteractiveButtonIds.CNGN_BEP20,
     network: 'Bep20',
     supportedAssetActions: ALL_ASSET_ACTIONS,
     showOnAssetsMenu: true,

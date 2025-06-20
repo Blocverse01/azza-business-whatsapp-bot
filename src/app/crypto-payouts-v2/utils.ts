@@ -181,7 +181,8 @@ export const createCryptoPayoutWorker = () => {
 
             if (
                 (transactionType === 'offramp-refund' ||
-                    transactionType === 'offramp-ngn-bank-refund') &&
+                    transactionType === 'offramp-ngn-bank-refund' ||
+                    transactionType === 'offramp-honeycoin-refund') &&
                 'transactionHash' in transaction
             ) {
                 const offrampRequest = await dbClient.offramp_awaiting_crypto_debit

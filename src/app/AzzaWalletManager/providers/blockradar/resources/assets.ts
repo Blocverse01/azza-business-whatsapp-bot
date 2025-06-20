@@ -52,6 +52,7 @@ const mainnet__blockradarAssetIdMap: Record<string, string> = {
     [AssetInteractiveButtonIds.USDT_CELO]: 'd9083087-398e-4ebd-8d9e-d9c80ac86261',
     [AssetInteractiveButtonIds.USDC_CELO]: 'e3ae7627-0ee9-4853-ac4f-b8ad704248fe',
     [AssetInteractiveButtonIds.CELO_CELO]: 'b53fde62-6682-48dc-bf15-7b59a857142f',
+    [AssetInteractiveButtonIds.CNGN_BEP20]: '73e146a3-019c-48f5-a9c3-304c91a25818',
 };
 
 const blockradarAssetIdMap =
