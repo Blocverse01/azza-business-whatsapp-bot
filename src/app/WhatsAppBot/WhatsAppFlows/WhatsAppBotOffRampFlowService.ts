@@ -915,7 +915,7 @@ class WhatsAppBotOffRampFlowService {
             assetUsdPrice: number;
         }
     ) {
-        const { assetBalance, beneficiary, recipient, assetUsdPrice } = params;
+        const { assetBalance, beneficiary, recipient } = params;
 
         const { balance: userBalance, asset } = assetBalance;
         const assetLabel = `${asset.tokenName} (${asset.network})`;
@@ -932,8 +932,14 @@ class WhatsAppBotOffRampFlowService {
         const sellMessage = `To sell ${assetLabel} for ${getCountryFlagEmoji(beneficiary.country.code)} ${beneficiary.country.currencySymbol}, tap "Proceed" to enter the amount you want to sell`;
 
         const userBalanceFormatted = prettifyNumber(userBalance, 6) + ' ' + asset.tokenName;
+
+        const cryptoToFiatConversionRate = getTokenToCurrencyConversionRate(
+            asset.tokenName,
+            beneficiary.country.currencySymbol,
+            params.fiatConversionRate
+        );
         const userBalanceInFiat = formatNumberAsCurrency(
-            fixNumber(userBalance * params.fiatConversionRate * assetUsdPrice, THREE),
+            fixNumber(userBalance * cryptoToFiatConversionRate, THREE),
             beneficiary.country.currencySymbol
         );
 
