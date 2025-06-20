@@ -63,6 +63,10 @@ export const createNgnBankTransactionUpdateJobWorker = () => {
                 throw new Error('Offramp request not found');
             }
             const totalAmount = offrampRequest.tokenAmountToDebit;
+            // const cryptoToFiatConversionRate =
+            //     (settlement.localAmount +
+            //         Math.max(settlement.localAmount * settlement.platformFeePercentage)) /
+            //     totalAmount;
 
             const userPhoneNumber = await userServiceV2.getUserPhoneNumber(settlement.ownerId);
 

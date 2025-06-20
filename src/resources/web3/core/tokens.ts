@@ -429,7 +429,11 @@ export const cngnBep20Config = {
     tokenName: TokenNames.CNGN,
     listItemId: AssetInteractiveButtonIds.CNGN_BEP20,
     network: 'Bep20',
-    supportedAssetActions: ALL_ASSET_ACTIONS,
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+        ExploreAssetActions.SELL_ASSET,
+    ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
     whitelistedSellCurrencies: ['NGN'],
 } satisfies AssetConfig;
