@@ -12,11 +12,9 @@ const makeXataClient = Effect.gen(function* () {
     const apiKey = yield* xataApiKey;
     const branch = yield* xataBranch;
 
-    console.log({ apiKey, branch });
-
     return new XataClient({
         apiKey,
-        branch: 'main',
+        branch,
     });
 });
 
@@ -77,7 +75,10 @@ export const getPatchedOnrampTxBySequenceId = (
         // Get the record by sequenceId
         const record = yield* Effect.tryPromise({
             try: () =>
-                xataClient2.db.yellowcard_onramp_transaction.filter({ sequenceId }).getFirst(),
+                xataClient2.db.yellowcard_onramp_transaction
+                    .filter({ sequenceId })
+                    .select(['*', 'collectionCountry.*'])
+                    .getFirst(),
             catch: (error) => new Error(`Failed to fetch onramp transaction: ${error}`),
         });
 
@@ -90,7 +91,14 @@ export const getPatchedOnrampTxBySequenceId = (
 
         // Validate the record against the schema
         const validationResult = yield* Effect.try({
-            try: () => onrampTransactionRecordSchema.parse(record),
+            try: () =>
+                onrampTransactionRecordSchema.parse({
+                    ...record,
+                    createdAt: record.xata_createdat.toISOString(),
+                    status: record.yellowCardStatus,
+                    localCurrencySymbol: record.collectionCountry.currencySymbol,
+                    collectionCountry: record.collectionCountry.code,
+                }),
             catch: (error) =>
                 new Error(
                     `Schema validation failed: ${error instanceof z.ZodError ? error.message : error}`
