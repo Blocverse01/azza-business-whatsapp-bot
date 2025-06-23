@@ -99,7 +99,7 @@ const commonTransactionFieldsSchema = z.object({
     chainId: z.number().optional().nullable(),
     confirmations: z.number().optional().nullable(),
     confirmed: z.boolean(),
-    currency: z.string(),
+    currency: z.string().optional().nullable(),
     fee: z.string().optional().nullable(),
     gasFee: z.string().optional().nullable(),
     gasPrice: z.string().optional().nullable(),
