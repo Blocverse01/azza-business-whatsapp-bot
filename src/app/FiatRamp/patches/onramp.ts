@@ -3,6 +3,7 @@ import { XataClient } from '@/db/db-client-2';
 import { OnrampTransactionRecord, onrampTransactionRecordSchema } from '../fiatRampSchema';
 import { z } from 'zod';
 import { ConfigError } from 'effect/ConfigError';
+import FiatRampService from '../FiatRampService';
 
 const xataApiKey = Schema.Config('XATA_API_KEY', Schema.String.pipe(Schema.minLength(4)));
 const xataBranch = Schema.Config('XATA_BRANCH', Schema.String.pipe(Schema.minLength(1)));
@@ -81,31 +82,22 @@ export const getPatchedOnrampTxBySequenceId = (
                     .getFirst(),
             catch: (error) => new Error(`Failed to fetch onramp transaction: ${error}`),
         });
+        const recordFromProvider = yield* Effect.tryPromise({
+            try: () => FiatRampService.getOnrampTransaction(sequenceId),
+            catch: (error) => new Error(`Failed to fetch onramp transaction: ${error}`),
+        });
 
         // Check if record exists
-        if (!record) {
+        if (!record || !recordFromProvider) {
             return yield* Effect.fail(
                 new Error(`Onramp transaction not found for sequenceId: ${sequenceId}`)
             );
         }
 
-        console.log(record);
-        // Validate the record against the schema
-        const validationResult = yield* Effect.try({
-            try: () =>
-                onrampTransactionRecordSchema.parse({
-                    ...record,
-                    createdAt: record.xata?.createdAt?.toISOString() ?? new Date().toISOString(),
-                    status: record.yellowCardStatus,
-                    localCurrencySymbol: record.collectionCountry.currencySymbol,
-                    collectionCountry: record.collectionCountry.code,
-                }),
-            catch: (error) =>
-                new Error(
-                    `Schema validation failed: ${error instanceof z.ZodError ? error.message : error}`
-                ),
-        });
-
-        return validationResult;
+        return {
+            ...recordFromProvider,
+            tokenAmount: record.tokenAmount,
+            transactionFeeInToken: record.transactionFeeInToken,
+        };
     });
 };
