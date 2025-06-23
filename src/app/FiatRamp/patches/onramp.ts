@@ -1,12 +1,21 @@
-import { Effect } from 'effect';
-import env from '@/constants/env';
+import { Effect, Schema } from 'effect';
 import { XataClient } from '@/db/db-client-2';
 import { OnrampTransactionRecord, onrampTransactionRecordSchema } from '../fiatRampSchema';
 import { z } from 'zod';
+import { ConfigError } from 'effect/ConfigError';
 
-const xataClient2 = new XataClient({
-    apiKey: env.XATA_API_KEY,
-    branch: env.XATA_BRANCH,
+const xataApiKey = Schema.Config('XATA_API_KEY', Schema.String.pipe(Schema.minLength(4)));
+const xataBranch = Schema.Config('XATA_API_KEY', Schema.String.pipe(Schema.minLength(1)));
+
+// Create a service for the Xata client
+const makeXataClient = Effect.gen(function* () {
+    const apiKey = yield* xataApiKey;
+    const branch = yield* xataBranch;
+
+    return new XataClient({
+        apiKey,
+        branch,
+    });
 });
 
 type OnrampDataPatches = {
@@ -22,8 +31,10 @@ type OnrampPatchUpdateResponse = {
 export const updateOnrampTxWithPatches = (
     sequenceId: string,
     patches: OnrampDataPatches
-): Effect.Effect<OnrampPatchUpdateResponse, Error> => {
+): Effect.Effect<OnrampPatchUpdateResponse, Error | ConfigError> => {
     return Effect.gen(function* () {
+        const xataClient2 = yield* makeXataClient;
+
         // Get existing record
         const existingRecord = yield* Effect.tryPromise({
             try: () =>
@@ -57,8 +68,10 @@ export const updateOnrampTxWithPatches = (
 
 export const getPatchedOnrampTxBySequenceId = (
     sequenceId: string
-): Effect.Effect<OnrampTransactionRecord, Error> => {
+): Effect.Effect<OnrampTransactionRecord, Error | ConfigError> => {
     return Effect.gen(function* () {
+        const xataClient2 = yield* makeXataClient;
+
         // Get the record by sequenceId
         const record = yield* Effect.tryPromise({
             try: () =>
