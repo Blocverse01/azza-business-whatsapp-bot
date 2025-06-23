@@ -94,7 +94,7 @@ export const getPatchedOnrampTxBySequenceId = (
             try: () =>
                 onrampTransactionRecordSchema.parse({
                     ...record,
-                    createdAt: record.xata_createdat.toISOString(),
+                    createdAt: record.xata.createdAt.toISOString(),
                     status: record.yellowCardStatus,
                     localCurrencySymbol: record.collectionCountry.currencySymbol,
                     collectionCountry: record.collectionCountry.code,
