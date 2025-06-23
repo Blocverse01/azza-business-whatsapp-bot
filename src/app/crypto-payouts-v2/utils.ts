@@ -19,6 +19,8 @@ import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError
 import logger from '@/resources/logger';
 import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
+import { getPatchedOnrampTxBySequenceId } from '../FiatRamp/patches/onramp';
+import { Effect } from 'effect';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -150,7 +152,7 @@ export const createCryptoPayoutWorker = () => {
                     return await HoneyCoinService.getHoneyCoinOfframpTransaction(transactionId);
                 }
                 if (transactionType === 'onramp-payout') {
-                    return await FiatRampService.getOnrampTransaction(transactionId);
+                    return await Effect.runPromise(getPatchedOnrampTxBySequenceId(transactionId));
                 }
                 throw new Error(`Invalid transaction type: ${transactionType}`);
             })();
@@ -177,7 +179,9 @@ export const createCryptoPayoutWorker = () => {
                 throw new Error(`Payout not available for transaction`);
             }
 
-            let transactionAmount = transaction.usdAmount;
+            let transactionAmount =
+                ('tokenAmount' in transaction ? transaction.tokenAmount : null) ??
+                transaction.usdAmount;
 
             if (
                 (transactionType === 'offramp-refund' ||
