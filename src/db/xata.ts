@@ -261,7 +261,7 @@ const tables = [
         notNull: true,
         defaultValue: "",
       },
-      { name: "usdAmount", type: "float", notNull: true, defaultValue: "0" },
+      { name: "tokenAmount", type: "float", notNull: true, defaultValue: "0" },
       {
         name: "destinationWalletAddress",
         type: "text",

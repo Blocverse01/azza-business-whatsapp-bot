@@ -31,7 +31,7 @@ const storeCryptoPayout = async (
     const assetConfig = getAssetConfigOrThrow(params.assetId);
 
     return await dbClient.crypto_payout_v2.create(params.reference, {
-        usdAmount: params.amount,
+        tokenAmount: params.amount,
         destinationWalletAddress: params.userWalletAddress,
         payoutType: params.transactionType,
         triggerTransactionId: params.targetTransactionHash,
