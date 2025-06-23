@@ -12,9 +12,11 @@ const makeXataClient = Effect.gen(function* () {
     const apiKey = yield* xataApiKey;
     const branch = yield* xataBranch;
 
+    console.log({ apiKey, branch });
+
     return new XataClient({
         apiKey,
-        branch,
+        branch: 'main',
     });
 });
 
