@@ -89,12 +89,13 @@ export const getPatchedOnrampTxBySequenceId = (
             );
         }
 
+        console.log(record);
         // Validate the record against the schema
         const validationResult = yield* Effect.try({
             try: () =>
                 onrampTransactionRecordSchema.parse({
                     ...record,
-                    createdAt: record.xata.createdAt.toISOString(),
+                    createdAt: record.xata?.createdAt?.toISOString() ?? new Date().toISOString(),
                     status: record.yellowCardStatus,
                     localCurrencySymbol: record.collectionCountry.currencySymbol,
                     collectionCountry: record.collectionCountry.code,
