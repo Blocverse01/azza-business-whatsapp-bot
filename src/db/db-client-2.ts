@@ -939,7 +939,7 @@ const DatabaseClient = buildClient();
 
 const defaultOptions = {
   databaseURL:
-    "https://Blocverse-Development-es1pni.us-east-1.xata.sh/db/fiat_ramps_service:main",
+    "https://Blocverse-Development-es1pni.us-east-1.xata.sh/db/fiat_ramps_service",
 };
 
 export class XataClient extends DatabaseClient<DatabaseSchema> {
