@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { ConfigError } from 'effect/ConfigError';
 
 const xataApiKey = Schema.Config('XATA_API_KEY', Schema.String.pipe(Schema.minLength(4)));
-const xataBranch = Schema.Config('XATA_API_KEY', Schema.String.pipe(Schema.minLength(1)));
+const xataBranch = Schema.Config('XATA_BRANCH', Schema.String.pipe(Schema.minLength(1)));
 
 // Create a service for the Xata client
 const makeXataClient = Effect.gen(function* () {
