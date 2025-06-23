@@ -20,6 +20,8 @@ import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
 import { addCryptoPayoutJobToQueue } from '../crypto-payouts-v2/utils';
 import ManualOfframpSettlementService from './alternatives/ManualOfframpSettlementService';
 import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
+import { getPatchedOnrampTxBySequenceId } from './patches/onramp';
+import { Effect } from 'effect';
 
 class FiatRampServiceController {
     public static receiveWebHookData(req: Request) {
@@ -200,11 +202,11 @@ class FiatRampServiceController {
             );
 
             const [transaction] = await Promise.all([
-                FiatRampService.getOnrampTransaction(sequenceId),
+                await Effect.runPromise(getPatchedOnrampTxBySequenceId(sequenceId)),
                 FiatRampService.updateOnrampTransactionStatus(sequenceId, newTransactionStatus),
             ]);
 
-            const transactionDetailsString = `💲Buy ${transaction.usdAmount} ${transaction.tokenSymbol} on ${transaction.blockchainNetwork} with ${transaction.localCurrencySymbol} ${prettifyNumber(transaction.localAmount)}`;
+            const transactionDetailsString = `💲Buy ${transaction.tokenAmount ?? transaction.usdAmount} ${transaction.tokenSymbol} on ${transaction.blockchainNetwork} with ${transaction.localCurrencySymbol} ${prettifyNumber(transaction.localAmount)}`;
 
             let message = '';
 

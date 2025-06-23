@@ -2,6 +2,7 @@ import { getMinimumOnrampUsdAmount } from '@/app/FiatRamp/config';
 import { OnrampTransactionPayload, TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { addOnRampRequestToQueue } from '@/app/FiatRamp/queue-helpers';
+import { getTokenToCurrencyConversionRate } from '@/app/FiatRamp/token-currency-pair-rate/utils';
 import { getFallBackRegionalPhoneNumber } from '@/app/FiatRamp/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
@@ -76,6 +77,8 @@ type ScreenPayload = {
             channel_id: string;
             token_amount: string;
             transaction_fee: string;
+            transaction_fee_usd: string;
+            usd_amount: string;
             fiat_to_pay: string;
             external_wallet_address: string;
             platform_fee_percentage: string;
@@ -337,57 +340,77 @@ class WhatsAppBotOnRampFlowService {
         }
 
         const [
-            { rate: conversionRate, fee, rawFeePercentage },
+            { rate: usdToFiatConversionRate, fee, rawFeePercentage },
             { countryFiatLimits: countryLimits },
         ] = await Promise.all([
             FiatRampService.getQuotes(local_currency, country_code as CountryCode, 'onramp'),
             FiatRampService.getPaymentMethods(country_code as CountryCode, 'onramp'),
         ]);
 
+        const cryptoToFiatConversionRate = await getTokenToCurrencyConversionRate(
+            assetConfig.tokenName,
+            local_currency,
+            usdToFiatConversionRate
+        );
+        const cryptoToUsdConversionRate = usdToFiatConversionRate / cryptoToFiatConversionRate;
+
         if (parseFloat(amount) <= 0) {
             errorMessages.amount = 'Amount must be greater than 0';
         }
 
-        const amountIsUsd = amount_denomination !== local_currency;
+        const amountIsInToken = amount_denomination !== local_currency;
 
-        const { tokenAmountToReceive, transactionFeeUsd, fiatAmountToPay } =
-            this.calculateTransactionAmounts({
-                amount: parseFloat(amount),
-                feePercent: fee,
-                conversionRate,
-                amountIsUsd: amountIsUsd,
-            });
+        const {
+            tokenAmountToReceive,
+            transactionFeeUsd,
+            transactionFeeInToken,
+            transactionAmountUsd,
+            fiatAmountToPay,
+        } = this.calculateTransactionAmounts({
+            amount: parseFloat(amount),
+            feePercent: fee,
+            rates: {
+                cryptoToFiat: cryptoToFiatConversionRate,
+                usdToFiat: usdToFiatConversionRate,
+                cryptoToUsd: cryptoToUsdConversionRate,
+            },
+            amountIsInToken: amountIsInToken,
+        });
 
-        const totalAmountUsd = fixNumber(math.add(transactionFeeUsd, tokenAmountToReceive), 3);
+        const totalAmountInToken = fixNumber(
+            math.add(tokenAmountToReceive, transactionFeeInToken),
+            3
+        );
 
-        const [minUsdLimit, maxUsdLimit] = [
-            countryLimits.min / conversionRate,
-            countryLimits.max / conversionRate,
+        const [minLimitInToken, maxLimitInToken] = [
+            countryLimits.min / cryptoToFiatConversionRate,
+            countryLimits.max / cryptoToFiatConversionRate,
         ];
 
         const [minLocalLimit, maxLocalLimit] = [countryLimits.min, countryLimits.max];
 
         const hardUsdLimit = getMinimumOnrampUsdAmount(assetConfig.network);
-        const minUsdLimitUsed = hardUsdLimit ?? minUsdLimit;
+        const hardLimitInToken = hardUsdLimit ? hardUsdLimit * cryptoToUsdConversionRate : null;
+        const minLimitInTokenUsed = hardLimitInToken ?? minLimitInToken;
 
         let minLocalLimitUsed: number;
 
         if (typeof hardUsdLimit === 'number') {
-            minLocalLimitUsed = math.multiply(hardUsdLimit, conversionRate);
+            minLocalLimitUsed = math.multiply(hardUsdLimit, usdToFiatConversionRate);
         } else {
             minLocalLimitUsed = minLocalLimit;
         }
 
-        if (totalAmountUsd < minUsdLimitUsed) {
+        if (totalAmountInToken < minLimitInTokenUsed) {
             errorMessages.amount =
                 amount_denomination !== local_currency
-                    ? `Amount must be greater than ${prettifyNumber(minUsdLimitUsed, TWO)} ${assetConfig.tokenName}`
+                    ? `Amount must be greater than ${prettifyNumber(minLimitInTokenUsed, TWO)} ${assetConfig.tokenName}`
                     : `Amount must be greater than ${prettifyNumber(minLocalLimitUsed, TWO)} ${local_currency}`;
         }
-        if (maxUsdLimit > 0 && totalAmountUsd > maxUsdLimit) {
+        if (maxLimitInToken > 0 && totalAmountInToken > maxLimitInToken) {
             errorMessages.amount =
                 amount_denomination !== local_currency
-                    ? `Amount must be less than ${prettifyNumber(maxUsdLimit, TWO)} ${assetConfig.tokenName}`
+                    ? `Amount must be less than ${prettifyNumber(maxLimitInToken, TWO)} ${assetConfig.tokenName}`
                     : `Amount must be less than ${prettifyNumber(maxLocalLimit, TWO)} ${local_currency}`;
         }
 
@@ -433,10 +456,10 @@ class WhatsAppBotOnRampFlowService {
         const token_amount: TokenAmountPattern = this.generateTokenAmountPattern(
             tokenAmountToReceive,
             assetConfig,
-            transactionFeeUsd
+            transactionFeeInToken
         );
         const fiat_to_pay: FiatToPayPattern = this.generateFiatToPayPattern(
-            conversionRate,
+            cryptoToFiatConversionRate,
             local_currency,
             assetConfig,
             fiatAmountToPay
@@ -458,10 +481,12 @@ class WhatsAppBotOnRampFlowService {
                 transaction_details: {
                     channel_id: selectedPaymentMethod.channelId,
                     token_amount: tokenAmountToReceive.toString(),
-                    transaction_fee: transactionFeeUsd.toString(),
+                    usd_amount: transactionAmountUsd.toString(),
+                    transaction_fee: transactionFeeInToken.toString(),
+                    transaction_fee_usd: transactionFeeUsd.toString(),
                     fiat_to_pay: fiatAmountToPay.toString(),
                     external_wallet_address: wallet_address ?? '',
-                    conversion_rate: conversionRate.toString(),
+                    conversion_rate: usdToFiatConversionRate.toString(),
                     platform_fee_percentage: rawFeePercentage.toString(),
                 },
                 buying_to_external_wallet: !!wallet_address,
@@ -476,37 +501,54 @@ class WhatsAppBotOnRampFlowService {
     }
 
     private static calculateTransactionAmounts(params: {
-        conversionRate: number;
+        rates: {
+            usdToFiat: number;
+            cryptoToFiat: number;
+            cryptoToUsd: number;
+        };
         amount: number;
-        amountIsUsd: boolean;
+        amountIsInToken: boolean;
         feePercent: number;
     }): {
         tokenAmountToReceive: number;
+        transactionAmountUsd: number;
+        transactionFeeInToken: number;
         transactionFeeUsd: number;
         fiatAmountToPay: number;
     } {
-        const { conversionRate, amount, amountIsUsd, feePercent } = params;
+        const { rates, amount, amountIsInToken, feePercent } = params;
 
-        if (amountIsUsd) {
-            const transactionFee = fixNumber(math.multiply(amount, feePercent), 3);
-            const totalAmount = fixNumber(math.add(amount, transactionFee), 3);
-            const fiatEquivalent = fixNumber(math.multiply(totalAmount, conversionRate), 2);
+        if (amountIsInToken) {
+            const transactionFeeInCrypto = fixNumber(math.multiply(amount, feePercent), 3);
+            const totalAmount = fixNumber(math.add(amount, transactionFeeInCrypto), 3);
+            const fiatEquivalent = fixNumber(math.multiply(totalAmount, rates.cryptoToFiat), 2);
+            const transactionFeeInUsd = transactionFeeInCrypto / rates.cryptoToUsd;
 
             return {
                 tokenAmountToReceive: amount,
-                transactionFeeUsd: transactionFee,
+                transactionFeeUsd: transactionFeeInUsd,
+                transactionFeeInToken: transactionFeeInCrypto,
+                transactionAmountUsd: amount / rates.cryptoToUsd,
                 fiatAmountToPay: fiatEquivalent,
             };
         }
 
         // Amount is in Fiat currency
-        const convertedAmountUsd = fixNumber(math.divide(amount, conversionRate), 6);
-        const transactionFeeUsd = fixNumber(math.multiply(convertedAmountUsd, feePercent), 3);
+        const transactionAmountInToken = fixNumber(math.divide(amount, rates.cryptoToFiat), 6);
+        const transactionFeeInToken = fixNumber(
+            math.multiply(transactionAmountInToken, feePercent),
+            3
+        );
+        const transactionFeeUsd = transactionFeeInToken / rates.cryptoToUsd;
+        const tokenAmountToReceive = math.subtract(transactionAmountInToken, transactionFeeInToken);
+        const transactionAmountUsd = math.divide(tokenAmountToReceive, rates.cryptoToUsd);
 
         return {
             fiatAmountToPay: amount,
-            tokenAmountToReceive: math.subtract(convertedAmountUsd, transactionFeeUsd),
+            tokenAmountToReceive,
             transactionFeeUsd,
+            transactionFeeInToken,
+            transactionAmountUsd,
         };
     }
 
@@ -631,8 +673,10 @@ class WhatsAppBotOnRampFlowService {
                             transaction_details.platform_fee_percentage
                         ),
                         conversionRate: parseFloat(transaction_details.conversion_rate),
-                        usdAmount: parseFloat(transaction_details.token_amount),
-                        transactionFeeUsd: parseFloat(transaction_details.transaction_fee),
+                        tokenAmount: parseFloat(transaction_details.token_amount),
+                        usdAmount: parseFloat(transaction_details.usd_amount),
+                        transactionFeeInToken: parseFloat(transaction_details.transaction_fee),
+                        transactionFeeUsd: parseFloat(transaction_details.transaction_fee_usd),
                         localCurrency: local_currency,
                     },
                     whatsappParams: {
@@ -844,8 +888,10 @@ class WhatsAppBotOnRampFlowService {
                 customerId: user_id,
                 platformFeePercentage: parseFloat(transaction_details.platform_fee_percentage),
                 conversionRate: parseFloat(transaction_details.conversion_rate),
-                usdAmount: parseFloat(transaction_details.token_amount),
-                transactionFeeUsd: parseFloat(transaction_details.transaction_fee),
+                tokenAmount: parseFloat(transaction_details.token_amount),
+                usdAmount: parseFloat(transaction_details.usd_amount),
+                transactionFeeUsd: parseFloat(transaction_details.transaction_fee_usd),
+                transactionFeeInToken: parseFloat(transaction_details.transaction_fee),
             });
 
             const accountName =

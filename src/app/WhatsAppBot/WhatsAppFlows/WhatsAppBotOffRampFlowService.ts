@@ -462,7 +462,7 @@ class WhatsAppBotOffRampFlowService {
             parseFloat(conversion_rate),
             parseFloat(amount.trim()),
         ];
-        const cryptoToFiatConversionRate = getTokenToCurrencyConversionRate(
+        const cryptoToFiatConversionRate = await getTokenToCurrencyConversionRate(
             assetConfig.tokenName,
             beneficiary.currency_symbol,
             usdToFiatConversionRate
@@ -695,7 +695,7 @@ class WhatsAppBotOffRampFlowService {
             parseFloat(token_amount_to_debit),
             parseFloat(transaction_fee),
         ];
-        const cryptoToFiatConversionRate = getTokenToCurrencyConversionRate(
+        const cryptoToFiatConversionRate = await getTokenToCurrencyConversionRate(
             assetConfig.tokenName,
             beneficiary.currency_symbol,
             usdToFiatConversionRate
@@ -912,7 +912,7 @@ class WhatsAppBotOffRampFlowService {
             recipient: string;
             fiatConversionRate: number;
             transactionFee: number; // Todo: Evaluate the necessity of this parameter
-            assetUsdPrice: number;
+            cryptoToFiatConversionRate: number;
         }
     ) {
         const { assetBalance, beneficiary, recipient } = params;
@@ -933,13 +933,8 @@ class WhatsAppBotOffRampFlowService {
 
         const userBalanceFormatted = prettifyNumber(userBalance, 6) + ' ' + asset.tokenName;
 
-        const cryptoToFiatConversionRate = getTokenToCurrencyConversionRate(
-            asset.tokenName,
-            beneficiary.country.currencySymbol,
-            params.fiatConversionRate
-        );
         const userBalanceInFiat = formatNumberAsCurrency(
-            fixNumber(userBalance * cryptoToFiatConversionRate, THREE),
+            fixNumber(userBalance * params.cryptoToFiatConversionRate, THREE),
             beneficiary.country.currencySymbol
         );
 

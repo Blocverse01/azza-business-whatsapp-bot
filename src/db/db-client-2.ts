@@ -710,9 +710,25 @@ const tables = [
         comment: "",
       },
       {
+        name: "tokenAmount",
+        type: "float",
+        notNull: false,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
         name: "tokenSymbol",
         type: "text",
         notNull: true,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "transactionFeeInToken",
+        type: "float",
+        notNull: false,
         unique: false,
         defaultValue: null,
         comment: "",
@@ -923,7 +939,7 @@ const DatabaseClient = buildClient();
 
 const defaultOptions = {
   databaseURL:
-    "https://Blocverse-Development-es1pni.us-east-1.xata.sh/db/fiat_ramps_service",
+    "https://Blocverse-Development-es1pni.us-east-1.xata.sh/db/fiat_ramps_service:main",
 };
 
 export class XataClient extends DatabaseClient<DatabaseSchema> {

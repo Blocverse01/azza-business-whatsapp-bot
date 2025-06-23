@@ -68,6 +68,8 @@ export const onrampTransactionPayloadSchema = z.object({
     conversionRate: z.number(),
     usdAmount: z.number(),
     transactionFeeUsd: z.number(),
+    tokenAmount: z.number(),
+    transactionFeeInToken: z.number(),
 });
 
 export type OnrampTransactionPayload = z.infer<typeof onrampTransactionPayloadSchema>;
@@ -189,7 +191,7 @@ export const transactionStatusSchema = z.enum([
     'process',
     'recorded',
     'sent',
-    'retried'
+    'retried',
 ]);
 
 export type TransactionStatus = z.infer<typeof transactionStatusSchema>;
@@ -222,7 +224,7 @@ export const OfframpTransactionRecordSchema = z.object({
     platformFeePercentage: z.number(),
     fromWalletAddress: z.string(),
     tokenAddress: z.string(),
-    processorName: z.string()
+    processorName: z.string(),
 });
 
 export const onrampTransactionRecordSchema = z.object({
@@ -238,6 +240,8 @@ export const onrampTransactionRecordSchema = z.object({
     transactionFeeUsd: z.number(),
     collectionCountry: z.string(),
     createdAt: z.string().datetime(),
+    tokenAmount: z.number().optional().nullable(),
+    transactionFeeInToken: z.number().optional().nullable(),
 });
 
 export type OfframpTransactionRecord = z.infer<typeof OfframpTransactionRecordSchema>;

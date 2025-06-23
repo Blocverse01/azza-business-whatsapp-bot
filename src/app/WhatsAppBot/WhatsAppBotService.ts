@@ -93,6 +93,7 @@ import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
 import { generateRatesCard } from '../rate-card/generators';
 import cryptoAssetPriceService from '@/runtime/crypto-asset-price';
 import WhatsappBotAccountStatementFlowService from './WhatsAppFlows/WhatsappBotAccountStatementFlowService';
+import { getTokenToCurrencyConversionRate } from '../FiatRamp/token-currency-pair-rate/utils';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -636,9 +637,10 @@ class WhatsAppBotService {
             recipient: userPhoneNumber,
             fiatConversionRate: rate,
             transactionFee: fee,
-            assetUsdPrice: await cryptoAssetPriceService.getAssetPrice(
+            cryptoToFiatConversionRate: await getTokenToCurrencyConversionRate(
                 assetBalance.asset.tokenName,
-                'USD'
+                beneficiary.country.currencySymbol,
+                rate
             ),
         });
 
