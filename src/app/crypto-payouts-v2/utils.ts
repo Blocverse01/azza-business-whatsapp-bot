@@ -21,6 +21,7 @@ import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
 import { getPatchedOnrampTxBySequenceId } from '../FiatRamp/patches/onramp';
 import { Effect } from 'effect';
+import { AssetTransaction } from '../AzzaWalletManager/providers/BaseWalletProvider';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -72,14 +73,16 @@ const OFFRAMP_WALLET_USER_ID = 'offramp-hot-wallet';
 
 export const processCryptoPayout = async (
     params: CryptoPayoutParams,
-    transactionType: CryptoPayoutQueueInput['transactionType']
-) => {
+    transactionType: CryptoPayoutQueueInput['transactionType'],
+    _platformWalletUserId?: string
+): Promise<AssetTransaction> => {
     const reference = generateTransactionReferenceId(
         params.targetTransactionHash,
         CRYPTO_PAYOUT_REFERENCE_PREFIX
     );
     const platformWalletUserId =
-        transactionType === 'onramp-payout' ? ONRAMP_WALLET_USER_ID : OFFRAMP_WALLET_USER_ID;
+        _platformWalletUserId ??
+        (transactionType === 'onramp-payout' ? ONRAMP_WALLET_USER_ID : OFFRAMP_WALLET_USER_ID);
 
     const currentAssetBalance = await platformWalletManager.getAssetBalance({
         userId: platformWalletUserId,
@@ -88,6 +91,10 @@ export const processCryptoPayout = async (
     const amountToTransfer = clipDecimal(params.amount, 6);
 
     if (currentAssetBalance.balance < amountToTransfer) {
+        if (platformWalletUserId === ONRAMP_WALLET_USER_ID) {
+            // If the user is trying to process an onramp payout, we can use the offramp hot wallet as a fallback
+            return await processCryptoPayout(params, transactionType, OFFRAMP_WALLET_USER_ID);
+        }
         const alertMessage = `*Crypto Payout Alert*\n\n_Insufficient ${params.assetId} balance for ${transactionType}._\n\nAvailable Balance: ${currentAssetBalance.balance}\nRequired Balance: ${amountToTransfer}`;
 
         await sendTechnicalIssueAlert(alertMessage, env.WA_PHONE_NUMBER_ID);
