@@ -36,6 +36,8 @@ import * as math from 'mathjs';
 import stringSimilarity from 'string-similarity-js';
 import { z } from 'zod';
 import { PAY_FEATURE_UNAVAILABLE_RESPONSE } from '@/constants/strings';
+import { clipDecimal } from '@/resources/utils/transformers';
+import { getTokenToCurrencyConversionRate } from '../FiatRamp/token-currency-pair-rate/utils';
 
 type PayPromptParams = {
     whatsappParams: PhoneNumberParams;
@@ -393,7 +395,9 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
     ]);
 
     const balances = networkAssetsInfo.flat();
-    const convertedAmountInUsd = args.fiatAmount / quotes.rate;
+    const usdToFiatConversionRate = quotes.rate;
+
+    const convertedAmountInUsd = args.fiatAmount / usdToFiatConversionRate;
 
     const feeConfig = FiatRampService.calculateTransactionFeeUsd({
         usdAmount: convertedAmountInUsd,
@@ -403,10 +407,10 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
         rampType: 'offramp',
     });
 
-    const transactionFee = fixNumber(feeConfig.feeUsd, THREE);
+    const transactionFeeUsd = fixNumber(feeConfig.feeUsd, THREE);
     const feePercentage = feeConfig.feePercentage;
 
-    const amountToDebit = fixNumber(math.add(convertedAmountInUsd, transactionFee), FOUR);
+    const amountToDebitUsd = fixNumber(math.add(convertedAmountInUsd, transactionFeeUsd), FOUR);
 
     const sellableBalances = balances.filter(
         (balance) =>
@@ -414,7 +418,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
             balance.asset.supportedAssetActions.includes(ExploreAssetActions.PAY)
     );
     const possiblePaymentBalances = sellableBalances.filter(
-        (balance) => (balance?.convertedBalanceUsd ?? 0) >= amountToDebit
+        (balance) => (balance?.convertedBalanceUsd ?? 0) >= amountToDebitUsd
     );
 
     if (possiblePaymentBalances.length === 0) {
@@ -428,7 +432,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
         const noPaymentBalanceMessage = [
             `💳 Insufficient balance for this payment.`,
             ``,
-            `Required: *$${amountToDebit}* (including $${feeConfig.feeUsd} fee)`,
+            `Required: *$${amountToDebitUsd}* (including $${clipDecimal(feeConfig.feeUsd, 4)} fee)`,
             ``,
             `Your sellable assets:`,
             ...balanceLines,
@@ -469,7 +473,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
     const paymentAsset = assetSelection.asset;
 
     // Verify the selected asset exists and has sufficient balance
-    if (!paymentAsset || (paymentAsset.convertedBalanceUsd ?? 0) < amountToDebit) {
+    if (!paymentAsset || (paymentAsset.convertedBalanceUsd ?? 0) < amountToDebitUsd) {
         const invalidAssetMessage = args.selectedAsset?.tokenName
             ? [
                   `❌ ${args.selectedAsset?.tokenName} doesn't have sufficient balance or isn't available.`,
@@ -491,7 +495,15 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
         };
     }
 
-    const transactionSummary = `Pay ${args.fiatCurrency} ${prettifyNumber(args.fiatAmount, 2)} to ${args.destinationAccountNumber} ${args.destinationBankName}.\n\n*Account Name: ${nameValidation.accountName}*\n\nDebit Amount: ${amountToDebit} ${paymentAsset.asset.tokenName}`;
+    const cryptoToFiatConversionRate = await getTokenToCurrencyConversionRate(
+        paymentAsset.asset.tokenName,
+        args.fiatCurrency,
+        usdToFiatConversionRate
+    );
+    const cryptoToUsdConversionRate = usdToFiatConversionRate / cryptoToFiatConversionRate;
+    const amountToDebitInToken = amountToDebitUsd * cryptoToUsdConversionRate;
+
+    const transactionSummary = `Pay ${args.fiatCurrency} ${prettifyNumber(args.fiatAmount, 2)} to ${args.destinationAccountNumber} ${args.destinationBankName}.\n\n*Account Name: ${nameValidation.accountName}*\n\nDebit Amount: ${amountToDebitInToken} ${paymentAsset.asset.tokenName}`;
 
     // Enhanced confirmation message with structured editing options
     const transactionSummaryMessage =
@@ -502,7 +514,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
                       destinationBankName: targetBank.name,
                   },
                   possiblePaymentBalances,
-                  amountToDebit,
+                  amountToDebitUsd,
                   nameValidation,
                   paymentAsset
               )
@@ -515,7 +527,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
                   ``,
                   `💳 *Payment Method:*`,
                   `✅ ${paymentAsset.asset.tokenName} (${paymentAsset.asset.network})`,
-                  `Debit: ${fixNumber(amountToDebit, 4)} ${paymentAsset.asset.tokenName}`,
+                  `Debit: ${fixNumber(amountToDebitInToken, 4)} ${paymentAsset.asset.tokenName}`,
                   ``,
                   `✅ Reply "Yes" to confirm`,
                   `✏️ Reply "Change amount to X" to edit details`,
@@ -560,10 +572,10 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
             transactionType: 'PAYMENT',
             fiatAmount: args.fiatAmount,
             usdAmount: convertedAmountInUsd,
-            transactionFeeUsd: transactionFee,
+            transactionFeeUsd: transactionFeeUsd,
             beneficiaryId,
             userId: convertAsciiStringToBase64(user.id),
-            tokenAmountToDebit: amountToDebit,
+            tokenAmountToDebit: amountToDebitInToken,
             conversionRate: quotes.rate,
             platformFeePercentage: feePercentage,
             assetId: paymentAsset.asset.listItemId,

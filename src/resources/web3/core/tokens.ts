@@ -436,6 +436,7 @@ export const cngnBep20Config = {
         ExploreAssetActions.DEPOSIT,
         ExploreAssetActions.SELL_ASSET,
         ExploreAssetActions.BUY_ASSET,
+        ExploreAssetActions.PAY,
     ] as ExploreAssetActions[],
     showOnAssetsMenu: true,
     whitelistedSellCurrencies: ['NGN'],
