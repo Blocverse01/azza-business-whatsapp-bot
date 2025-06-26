@@ -55,6 +55,7 @@ import { recommendedOffRampChannelForKenya } from '../HoneyCoin/whiteListedMobil
 import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
 import { UserIdentityInfo } from '../User/userSchema';
 import userServiceV2 from '@/runtime/user';
+import { dbClient } from '@/db/dbClient';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
@@ -680,13 +681,22 @@ class FiatRampService {
         params: SendOfframpRequestPayload,
         senderName: string
     ) {
-        const [settlementData] = await Promise.all([
+        const [settlementData, offrampRequest] = await Promise.all([
             this._prepareOfframpSettlementData(
                 beneficiary,
                 params,
                 BELL_OFFRAMP_PAYMENT_PROCESSOR_ID
             ),
+            dbClient.offramp_awaiting_crypto_debit
+                .filter({
+                    cryptoTransactionId: params.txHash,
+                })
+                .getFirst(),
         ]);
+
+        if (!offrampRequest) {
+            throw new Error('Offramp request not found');
+        }
 
         const bellSettlementRecord =
             await NigeriaBanksService.createNGNOfframpSettlement(settlementData);
@@ -709,8 +719,7 @@ class FiatRampService {
             ).seerbitId;
 
         await NigeriaBanksService.sendProcessingSettlementMessage({
-            usdAmount: bellSettlementRecord.usdAmount,
-            transactionFeeUsd: bellSettlementRecord.transactionFeeUsd,
+            tokenAmountDebited: offrampRequest.tokenAmountToDebit,
             ownerId: bellSettlementRecord.ownerId,
             tokenSymbol: bellSettlementRecord.tokenSymbol,
             blockchainNetwork: bellSettlementRecord.blockchainNetwork,
@@ -788,11 +797,22 @@ class FiatRampService {
         params: SendOfframpRequestPayload,
         narration?: string
     ) {
-        const settlementData = await this._prepareOfframpSettlementData(
-            beneficiary,
-            params,
-            SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
-        );
+        const [settlementData, offrampRequest] = await Promise.all([
+            this._prepareOfframpSettlementData(
+                beneficiary,
+                params,
+                SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
+            ),
+            dbClient.offramp_awaiting_crypto_debit
+                .filter({
+                    cryptoTransactionId: params.txHash,
+                })
+                .getFirst(),
+        ]);
+
+        if (!offrampRequest) {
+            throw new Error('Offramp request not found');
+        }
 
         if (settlementData.localCurrencySymbol !== 'NGN') {
             throw new Error(
@@ -825,8 +845,7 @@ class FiatRampService {
         }
 
         await NigeriaBanksService.sendProcessingSettlementMessage({
-            usdAmount: safeHavenSettlementRecord.usdAmount,
-            transactionFeeUsd: safeHavenSettlementRecord.transactionFeeUsd,
+            tokenAmountDebited: offrampRequest.tokenAmountToDebit,
             ownerId: safeHavenSettlementRecord.ownerId,
             tokenSymbol: safeHavenSettlementRecord.tokenSymbol,
             blockchainNetwork: safeHavenSettlementRecord.blockchainNetwork,

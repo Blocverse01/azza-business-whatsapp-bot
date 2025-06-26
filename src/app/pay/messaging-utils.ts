@@ -38,6 +38,7 @@ import { z } from 'zod';
 import { PAY_FEATURE_UNAVAILABLE_RESPONSE } from '@/constants/strings';
 import { clipDecimal } from '@/resources/utils/transformers';
 import { getTokenToCurrencyConversionRate } from '../FiatRamp/token-currency-pair-rate/utils';
+import { tryOrNull } from '@/resources/utils/failsafe';
 
 type PayPromptParams = {
     whatsappParams: PhoneNumberParams;
@@ -872,12 +873,4 @@ const generateAssetConfirmation = (
     ]
         .filter((line) => line !== 'skip')
         .join('\n');
-};
-
-const tryOrNull = async <T>(promise: Promise<T>): Promise<T | null> => {
-    try {
-        return await promise;
-    } catch (e) {
-        return null;
-    }
 };
