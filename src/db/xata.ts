@@ -502,6 +502,39 @@ const tables = [
       { name: "referenceId", type: "text" },
     ],
   },
+  {
+    name: "metrics_dashboard_access",
+    columns: [
+      { name: "accessId", type: "text", notNull: true, defaultValue: "" },
+      { name: "description", type: "text" },
+      { name: "isActive", type: "bool", notNull: true, defaultValue: "true" },
+    ],
+  },
+  {
+    name: "admin_config",
+    columns: [
+      { name: "configName", type: "text", notNull: true, defaultValue: "" },
+      { name: "configValue", type: "text", notNull: true, defaultValue: "" },
+      { name: "description", type: "text" },
+      { name: "updatedBy", type: "text" },
+    ],
+  },
+  {
+    name: "rate_overrides",
+    columns: [
+      { name: "currencyCode", type: "text", notNull: true, defaultValue: "" },
+      { name: "buyRate", type: "float", notNull: true, defaultValue: "0.0" },
+      { name: "sellRate", type: "float", notNull: true, defaultValue: "0.0" },
+      { name: "isActive", type: "bool", notNull: true, defaultValue: "true" },
+      { name: "lastUpdatedBy", type: "text" },
+      {
+        name: "updatedAt",
+        type: "datetime",
+        notNull: true,
+        defaultValue: "now",
+      },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -577,6 +610,15 @@ export type HoneycoinOfframpSettlementTransaction =
 export type HoneycoinOfframpSettlementTransactionRecord =
   HoneycoinOfframpSettlementTransaction & XataRecord;
 
+export type MetricsDashboardAccess = InferredTypes["metrics_dashboard_access"];
+export type MetricsDashboardAccessRecord = MetricsDashboardAccess & XataRecord;
+
+export type AdminConfig = InferredTypes["admin_config"];
+export type AdminConfigRecord = AdminConfig & XataRecord;
+
+export type RateOverrides = InferredTypes["rate_overrides"];
+export type RateOverridesRecord = RateOverrides & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -598,6 +640,9 @@ export type DatabaseSchema = {
   swap_transactions: SwapTransactionsRecord;
   transaction_fee_logs: TransactionFeeLogsRecord;
   honeycoin_offramp_settlement_transaction: HoneycoinOfframpSettlementTransactionRecord;
+  metrics_dashboard_access: MetricsDashboardAccessRecord;
+  admin_config: AdminConfigRecord;
+  rate_overrides: RateOverridesRecord;
 };
 
 const DatabaseClient = buildClient();

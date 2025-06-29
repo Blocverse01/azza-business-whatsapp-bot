@@ -390,9 +390,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                      title: 'More',
-                  } as const)
+                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                    title: 'More',
+                } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -664,7 +664,11 @@ class WhatsAppBotService {
             rates.unshift(userCountry);
         }
 
-        const ratesText = `_*Conversion Rates*_\n\n${rates.map((rate) => `${getCountryFlagEmoji(rate.locale)} ${rate.code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`).join('\n')}`;
+        const ratesText = `_*Conversion Rates*_\n\n${rates.map((rate) => {
+            const code = 'displayCurrencyCodeAs' in rate ? rate.displayCurrencyCodeAs ?? rate.code : rate.code;
+
+            return `${getCountryFlagEmoji(rate.locale)} ${code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`
+        }).join('\n')}`;
 
         await this.sendWhatsappMessage(
             businessPhoneNumberId,
@@ -693,7 +697,7 @@ class WhatsAppBotService {
                     type: 'image',
                 }
             );
-        } catch (error) {}
+        } catch (error) { }
     }
 
     public static async depositAssetCommandHandler(
@@ -951,9 +955,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                      id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
-                      title: 'More',
-                  }
+                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                    title: 'More',
+                }
                 : null;
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);

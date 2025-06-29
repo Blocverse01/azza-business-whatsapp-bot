@@ -56,9 +56,11 @@ import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
 import { UserIdentityInfo } from '../User/userSchema';
 import userServiceV2 from '@/runtime/user';
 import { dbClient } from '@/db/dbClient';
+import { CompositeRateService } from '../rates/RateService';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
+    private static rateService = new CompositeRateService();
 
     public static async getSupportedCurrencies() {
         return await FiatRampsRpcService.getSupportedCountries();
@@ -69,15 +71,15 @@ class FiatRampService {
     }
 
     public static async getAllRates() {
-        return await FiatRampsRpcService.getRates();
+        return await this.rateService.getRates();
     }
 
     public static async getMultipleRates(targetCurrencies: Array<string> = []) {
-        return await FiatRampsRpcService.getRates(targetCurrencies);
+        return await this.rateService.getRates(targetCurrencies);
     }
 
     public static async getCurrencyRates(currencySymbol: string) {
-        return await FiatRampsRpcService.getCurrencyRates(currencySymbol);
+        return await this.rateService.getCurrencyRates(currencySymbol);    
     }
 
     public static async getBuyRate(currencySymbol: string) {
