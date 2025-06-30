@@ -175,7 +175,7 @@ const phoneNumberSchema = z.string()
 export const BaseVASPayloadSchema = z.object({
     amount: z.number().positive(),
     serviceCategoryId: z.string().min(1),
-    distributionName : z.string().optional()
+    distributionName: z.string().optional()
 });
 
 export const UtilityPayloadSchema = BaseVASPayloadSchema.extend({
@@ -272,7 +272,7 @@ export const ngnVasTransactionRecordSchema = z.object({
     transactionHash: z.string().optional(),
     transactionFeeUsd: z.number().default(0),
     transactionType: z.nativeEnum(VASServiceType),
-    recipient: z.object({ 
+    recipient: z.object({
         country: z.string(),
         recipientMeterNumber: z.string().optional(),
         recipientPhoneNumber: z.string().optional(),
@@ -294,4 +294,3 @@ export type ngnVasTransactionRecord = z.infer<typeof ngnVasTransactionRecordSche
 export type NGNVasPaymentSettlement = Omit<ngnVasTransactionRecord, 'createdAt' | 'status'>;
 
 
-  

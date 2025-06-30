@@ -19,15 +19,15 @@ export const accountStatementDateRangeSchema = z.object({
         .optional()
 });
 
-
+const phoneNumber = z.string().regex(/^\d{11}$/, { message: 'Phone number must be exactly 11 digits' });
 
 export const phoneNumberSchema = z.object({
-    recipient_phone_number: z.string().regex(/^\d{11}$/, { message: 'Phone number must be exactly 11 digits' }),
+    recipient_phone_number: phoneNumber
 });
 
 export const airtimeSchema = z.object({
     local_amount: z.number().min(500, { message: "Minimum amount is 500 NGN" }),
-    recipient_phone_number: phoneNumberSchema
+    recipient_phone_number: phoneNumber
 });
 
 

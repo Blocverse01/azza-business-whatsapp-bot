@@ -18,6 +18,9 @@ import { prettifyNumber } from "@/resources/utils/currency";
 import { transactionStatusSchema } from "../FiatRamp/fiatRampSchema";
 import { connectionConfig } from "@/background-processing/redis-connection-config";
 import NigeriaBanksService from "../NigeriaBanks/NigeriaBanksService";
+import WhatsAppBotService from "../WhatsAppBot/WhatsAppBotService";
+import { generateBillPaymentReceipt } from "../receipts/generators";
+import { NgnVasSettlementTransactionRecord } from "@/db/xata";
 
 export type TransactionType = 'data' | 'airtime';
 
@@ -202,7 +205,7 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
 
             const settlement =
                 await SafeHavenService.getNGNVasProcessingTransaction(transactionId);
-
+            
             const transaction = await (async () => {
                 if (settlement.processorName === SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID) {
                     return await SafeHavenService.getSafeHavenVasPaymentByTransactionId(
@@ -223,7 +226,7 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
 
             if (settlement.transactionType === 'data') {
                 transactionMessage = `${settlement.distributionName?.toUpperCase()} ${settlement.bundleCode!} for ${settlement.localCurrencySymbol}${prettifyNumber(settlement.localAmount!)} to ${settlement.recipientPhoneNumber}`;
-            }              
+            }
 
             const transactionType = settlement.transactionType as TransactionType;
 
@@ -242,6 +245,29 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
                     userPhoneNumber
                 );
 
+                const receiptBuffer = await generateBillPaymentReceipt(settlement as NgnVasSettlementTransactionRecord);
+              
+                const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
+                    env.WA_PHONE_NUMBER_ID,
+                    new File([Buffer.from(receiptBuffer)], `receipt-${transactionId}.png`, {
+                        type: 'image/png',
+                    })
+                );
+                
+                if (uploadedMedia) {
+                    await WhatsAppBotService.sendMediaMessage(
+                        {
+                            userPhoneNumber: userPhoneNumber!,
+                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        },
+                        {
+                            mediaId: uploadedMedia.id,
+                            caption: `🧾Transaction Receipt`,
+                            type: 'image',
+                        }
+                    );
+                }
+
             } else {
                 await settlement.update({
                     processingStatus: transactionStatusSchema.parse('failed'),
@@ -250,7 +276,6 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
                 const failedMessage = transactionFailedMessage(transactionType, transactionMessage);
 
                 await NigeriaBanksService.sendArbitraryTextMessage(failedMessage, userPhoneNumber);
-
             }
         },
         {
@@ -268,7 +293,7 @@ const transactionCompleteMessage = (
     const message = `✅ Your ${txT === 'data' ? 'data bundle' : 'airtime'} transaction has been completed successfully:\n\n${transactionDetailsString}\n\n`;
     return message;
 };
-  
+
 
 const transactionFailedMessage = (
     txT: TransactionType,
@@ -276,4 +301,3 @@ const transactionFailedMessage = (
 ) => {
     return `❌ Your ${txT === 'data' ? 'data subscription' : 'airtime top-up'} failed:\n\n${transactionDetailsString}\n\nPlease contact support.`;
 };
-  

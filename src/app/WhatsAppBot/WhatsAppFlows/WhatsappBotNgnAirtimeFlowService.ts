@@ -394,7 +394,7 @@ class WhatsappBotNgnAirtimeFlowService {
 
         try {
             const transactionFee = (NGN_VAS_PLATFORM_PERCENTAGE / HUNDRED) * usdAmount;
-            
+
             const response = await addNgnVasPaymentJobForProcessing(
                 `ngn_vas_payment-${flowToken}`,
                 {
