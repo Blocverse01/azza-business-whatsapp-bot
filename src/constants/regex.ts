@@ -32,7 +32,9 @@ export const BOT_COMMANDS_REGEX = {
     WRAPPED: /^\/wrapped$/,
     REFERRAL_CODE: /^\/referral_code$/,
     PAY: /^\/pay$/,
-    GENERATE_STATEMENT: /^\/generate_statement$/
+    GENERATE_STATEMENT: /^\/generate_statement$/,
+    BUY_NGN_AIRTIME: /^\/airtime$/,
+    BUY_NGN_DATA_BUNDLE: /^\/data_bundle$/
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {

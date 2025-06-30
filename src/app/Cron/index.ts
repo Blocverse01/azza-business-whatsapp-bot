@@ -2,9 +2,10 @@ import CryptoPayoutCronJobService from '@/app/CryptoPayout/CryptoPayoutCronJobSe
 import logger from '@/resources/logger';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
 import cron, { ScheduledTask } from 'node-cron';
-import SafeHavenJobService from '../NigeriaBanks/NGNBanksJobService';
+import NGNBanksJobService from '../NigeriaBanks/NGNBanksJobService';
+import NGNVasJobService from '../ngn-vas-payment/ngn-vas-payment-job';
 
-type JobKeys = 'crypto-payout' | 'ngn-bank-transaction-update';
+type JobKeys = 'crypto-payout' | 'ngn-bank-transaction-update' | 'ngn-vas-transaction-update';
 
 class CronHandler {
     private static jobs: Map<JobKeys, ScheduledTask> = new Map<JobKeys, ScheduledTask>();
@@ -79,11 +80,38 @@ class CronHandler {
                 this.pauseCronTask(key);
 
                 try {
-                    await SafeHavenJobService.execute();
+                    await NGNBanksJobService.execute();
                 } catch (error) {
                     const parsedError = parseUnknownError(error);
 
-                    void logger.error('Error processing crypto payouts', {
+                    void logger.error('Error updating ngn-bank transaction', {
+                        error: parsedError,
+                    });
+                } finally {
+                    this.resumeCronTask(key);
+                }
+            },
+            cronExpression
+        );
+
+        job.start();
+    }
+
+    public static scheduleSafeHavenVasPaymentUpdate(cronExpression: string) {
+
+        const key: JobKeys = 'ngn-vas-transaction-update';
+
+        const job = this.scheduleFunctionWithCron(
+            key,
+            async () => {
+                this.pauseCronTask(key);
+
+                try {
+                    await NGNVasJobService.execute();
+                } catch (error) {
+                    const parsedError = parseUnknownError(error);
+
+                    void logger.error('Error updating ngn-vas transaction', {
                         error: parsedError,
                     });
                 } finally {

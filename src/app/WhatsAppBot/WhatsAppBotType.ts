@@ -4,7 +4,7 @@ export enum WhatsAppMessageType {
     TEXT = 'text',
     STICKER = 'sticker',
     INTERACTIVE = 'interactive',
-    BUTTON = 'button',
+    BUTTON = 'button'
     // Add more message types here as needed (e.g., IMAGE, VIDEO, AUDIO, etc.)
 }
 

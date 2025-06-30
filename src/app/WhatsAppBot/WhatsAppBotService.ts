@@ -49,6 +49,7 @@ import { UserV2Record } from '@/db/xata';
 import { HttpException } from '@/resources/exceptions/HttpException';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import {
+    generateAssetBalance,
     generateAssetBalanceMessageV2,
     getNetworkEmoji,
 } from '@/resources/utils/bot-message-utils';
@@ -58,6 +59,7 @@ import {
     prettifyNumber,
 } from '@/resources/utils/currency';
 import {
+    convertAsciiStringToBase64,
     convertBase64ToAsciiString,
     decryptRequest,
     encryptResponse,
@@ -93,6 +95,11 @@ import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
 import { generateRatesCard } from '../rate-card/generators';
 import cryptoAssetPriceService from '@/runtime/crypto-asset-price';
 import WhatsappBotAccountStatementFlowService from './WhatsAppFlows/WhatsappBotAccountStatementFlowService';
+import WhatsappBotNgnAirtimeFlowService from './WhatsAppFlows/WhatsappBotNgnAirtimeFlowService';
+import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
+import { extractNetworkTitle, NetworkLogos, NetworkTitle, safeHavenVasServices } from '../NigeriaBanks/SafeHaven/WhitelistedVasServices';
+import { divide } from 'mathjs';
+import WhatsappBotNgnDataBundleFlowService from './WhatsAppFlows/WhatsappBotNgnDataBundleFlowService';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -389,9 +396,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                      title: 'More',
-                  } as const)
+                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                    title: 'More',
+                } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -575,6 +582,77 @@ class WhatsAppBotService {
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
     }
 
+
+    public static async beginNgnAirtimeFlowMessage(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams
+    ) {
+        const { businessPhoneNumberId, userPhoneNumber } = phoneParams;
+
+        //airtime categories
+        const airtimeNetworks = await SafeHavenService.getSafeHavenVasServiceCategories(safeHavenVasServices.AIRTIME.id);
+
+        const mobileNetworks = airtimeNetworks.map((network) => ({
+            id: network.id,
+            title: network.name,
+            description: network.description,
+            image: NetworkLogos[network.identifier as NetworkTitle]
+        }));
+
+
+        if (mobileNetworks.length === 0) {
+            await this.sendArbitraryTextMessage(
+                userPhoneNumber,
+                `Sorry, No mobile networks found.`
+            );
+            return;
+        }
+
+        const flowMessage =
+            WhatsappBotNgnAirtimeFlowService.generateAirtimeFlowInitMessage(user,
+                {
+                    userPhoneNumber,
+                    mobileNetworks
+                });
+
+        await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
+    }
+
+    public static async beginNgnDataBundleFlowMessage(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams
+    ) {
+
+        const { businessPhoneNumberId, userPhoneNumber } = phoneParams;
+
+        //data network categories
+        const airtimeNetworks = await SafeHavenService.getSafeHavenVasServiceCategories(safeHavenVasServices.DATA.id);
+
+        const mobileNetworks = airtimeNetworks.map((network) => ({
+            id: network.id,
+            title: extractNetworkTitle(network.name),
+            description: network.description,
+            image: NetworkLogos[extractNetworkTitle(network.identifier) as NetworkTitle]
+        }));
+
+        if (mobileNetworks.length === 0) {
+            await this.sendArbitraryTextMessage(
+                userPhoneNumber,
+                `Sorry, No mobile networks found.`
+            );
+            return;
+        }
+
+        const flowMessage =
+            WhatsappBotNgnDataBundleFlowService.generateDataBundleFlowInitMessage(user,
+                {
+                    userPhoneNumber,
+                    mobileNetworks
+                });
+
+        await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
+    }
+
     public static async beginAddBeneficiaryFlowMessage(
         params: PhoneNumberParams & {
             assetId: string;
@@ -691,7 +769,7 @@ class WhatsAppBotService {
                     type: 'image',
                 }
             );
-        } catch (error) {}
+        } catch (error) { }
     }
 
     public static async depositAssetCommandHandler(
@@ -939,9 +1017,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                      id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
-                      title: 'More',
-                  }
+                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                    title: 'More',
+                }
                 : null;
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);
@@ -1335,6 +1413,73 @@ class WhatsAppBotService {
         };
 
         await this.sendUserBalancesMessage(phoneParams, userAssetsInfo, fiatConfig);
+    }
+
+    public static async getTopFiveEligibleAssetsByAmount(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams,
+        entityConfig: {
+            asset?: string;
+            network?: string;
+        } = {},
+        local_amount: number,
+    ) {
+
+        const { asset: tokenName, network } = entityConfig;
+
+        const supportedAssets = azzaWalletManager.getSupportedAssets()
+            .filter((asset) => {
+                if (tokenName && network) {
+                    return (
+                        asset.tokenName.toLowerCase() === tokenName.toLowerCase() &&
+                        asset.network.toLowerCase() === network.toLowerCase()
+                    );
+                }
+                if (tokenName) {
+                    return asset.tokenName.toLowerCase() === tokenName.toLowerCase();
+                }
+                if (network) {
+                    return asset.network.toLowerCase() === network.toLowerCase();
+                }
+
+                return true;
+            });
+
+        const uniqueNetworks = [...new Set(supportedAssets.map((asset) => asset.network))];
+
+        const allPromises = uniqueNetworks.map((network) =>
+            env.WEB3_ENVIRONMENT === 'testnet'
+                ? azzaWalletManager.getNetworkBalances(user.id, 'Base')
+                : azzaWalletManager.getNetworkBalances(user.id, network)
+        );
+
+        const [userCountry, ...userAssetsInfoEntries] = await Promise.all([
+            this.getUserCountryFromPhoneNumber(phoneParams.userPhoneNumber),
+            ...allPromises,
+        ]);
+
+
+        const userAssetsInfo = userAssetsInfoEntries.flat().filter((assetInfo) => !assetInfo.asset.isNative);
+
+        if (!userCountry) {
+            throw new Error('Could not determine user country');
+        }
+
+        const sellRate = await FiatRampService.getSellRate(userCountry.currencySymbol);
+
+        const fiatConfig = {
+            conversionRate: sellRate,
+            localCurrencySymbol: userCountry.currencySymbol,
+            countryCode: userCountry.code,
+        };
+
+        const userAssetBalances = userAssetsInfo
+            .map((assetInfo) => generateAssetBalance(assetInfo, fiatConfig))
+            .filter((asset) => (asset.convertedBalanceUsd ?? 0) >= divide(local_amount, sellRate))
+            .sort((a, b) => (b.convertedBalanceUsd ?? 0) - (a.convertedBalanceUsd ?? 0))
+            .slice(0, env.WEB3_ENVIRONMENT === 'testnet' ? 1 : 5);
+
+        return userAssetBalances;
     }
 
     public static async sendUserBalancesMessage(

@@ -88,5 +88,12 @@ export const actionArgumentsSchema = {
     REQUEST_SUPPORT: z.object({}),
     ACCOUNT_STATEMENT : z.object({}),
     DOWNLOAD_ACCOUNT_STATEMENT : z.object({}),
-    TRANSACTION_HISTORY : z.object({})
+    TRANSACTION_HISTORY: z.object({}),
+    BUY_DATA: z.object({}),
+    PURCHASE_DATA: z.object({}),
+    DATA_BUNDLE: z.object({}),
+    DATA_TOPUP: z.object({}),
+    BUY_AIRTIME: z.object({}),
+    PURCHASE_AIRTIME: z.object({}),
+    AIRTIME_TOPUP: z.object({}),
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

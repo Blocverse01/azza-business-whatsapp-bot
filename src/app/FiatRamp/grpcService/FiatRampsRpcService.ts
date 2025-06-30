@@ -293,21 +293,21 @@ class FiatRampsRpcService {
         const beneficiaryDetails =
             'firstName' in params.beneficiary
                 ? (() => ({
-                      accountName: `${params.beneficiary.firstName.trim()} ${params.beneficiary.lastName.trim()}`,
-                      accountType: accountType,
-                      accountNumber: params.beneficiary.mobileNumber,
-                      networkName: params.beneficiary.mobileProvider,
-                      nameEnquiryReference: '',
-                      seerbitId: '',
-                  }))()
+                    accountName: `${params.beneficiary.firstName.trim()} ${params.beneficiary.lastName.trim()}`,
+                    accountType: accountType,
+                    accountNumber: params.beneficiary.mobileNumber,
+                    networkName: params.beneficiary.mobileProvider,
+                    nameEnquiryReference: '',
+                    seerbitId: '',
+                }))()
                 : (() => ({
-                      accountName: params.beneficiary.accountName,
-                      accountType: accountType,
-                      accountNumber: params.beneficiary.accountNumber,
-                      networkName: params.beneficiary.bankName,
-                      nameEnquiryReference: params.beneficiary.nameEnquiryReference,
-                      seerbitId: params.beneficiary.seerbitId,
-                  }))();
+                    accountName: params.beneficiary.accountName,
+                    accountType: accountType,
+                    accountNumber: params.beneficiary.accountNumber,
+                    networkName: params.beneficiary.bankName,
+                    nameEnquiryReference: params.beneficiary.nameEnquiryReference,
+                    seerbitId: params.beneficiary.seerbitId,
+                }))();
 
         const request = new AddBeneficiaryRequest({
             account_name: beneficiaryDetails.accountName

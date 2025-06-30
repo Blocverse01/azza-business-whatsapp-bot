@@ -12,6 +12,8 @@ import { requestDecryptedDataFlowExchange } from '@/resources/requestHelpers/req
 import type { Request, Response } from 'express';
 import BvnKycVerificationFlow from './BvnKycVerificationFlow';
 import WhatsappBotAccountStatementFlowService from './WhatsappBotAccountStatementFlowService';
+import WhatsappBotNgnAirtimeFlowService from './WhatsappBotNgnAirtimeFlowService';
+import WhatsappBotNgnDataBundleFlowService from './WhatsappBotNgnDataBundleFlowService';
 
 export default class WhatsAppFlowController {
     public static async offrampFlowDataExchange(req: Request, res: Response) {
@@ -193,6 +195,44 @@ export default class WhatsAppFlowController {
 
             const response =
                 await WhatsappBotAccountStatementFlowService.receiveDataExchange(decryptedBody);
+
+            return res.send(
+                WhatsAppBotService.encryptFlowResponse(response, {
+                    initialVectorBuffer,
+                    aesKeyBuffer,
+                })
+            );
+        } catch (error) {
+            handleRequestError(error, res);
+        }
+    }
+
+    public static async ngnAirtimeFlowDataExchange(req: Request, res: Response) {
+        try {
+            const { decryptedBody, initialVectorBuffer, aesKeyBuffer } =
+                requestDecryptedDataFlowExchange(req);
+
+            const response =
+                await WhatsappBotNgnAirtimeFlowService.receiveDataExchange(decryptedBody);
+
+            return res.send(
+                WhatsAppBotService.encryptFlowResponse(response, {
+                    initialVectorBuffer,
+                    aesKeyBuffer,
+                })
+            );
+        } catch (error) {
+            handleRequestError(error, res);
+        }
+    }
+
+    public static async ngnDataBundleFlowDataExchange(req: Request, res: Response) {
+        try {
+            const { decryptedBody, initialVectorBuffer, aesKeyBuffer } =
+                requestDecryptedDataFlowExchange(req);
+
+            const response =
+                await WhatsappBotNgnDataBundleFlowService.receiveDataExchange(decryptedBody);
 
             return res.send(
                 WhatsAppBotService.encryptFlowResponse(response, {

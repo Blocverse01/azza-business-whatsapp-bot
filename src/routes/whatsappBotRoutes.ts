@@ -57,6 +57,16 @@ whatsappBotRoutes
         '/flows/account-statement',
         decryptFlowDataExchange,
         WhatsAppFlowController.accountStatementFlowDataExchange
+    )
+    .post(
+        '/flows/buy-airtime',
+        decryptFlowDataExchange,
+        WhatsAppFlowController.ngnAirtimeFlowDataExchange
+    )
+    .post(
+        '/flows/buy-data-bundle',
+        decryptFlowDataExchange,
+        WhatsAppFlowController.ngnDataBundleFlowDataExchange
     );
 
 export default whatsappBotRoutes;

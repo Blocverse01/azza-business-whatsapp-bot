@@ -111,6 +111,10 @@ const envSchema = z.object({
         .enum(['true', 'false'])
         .default('false')
         .transform((data) => data === 'true'),
+    EXECUTE_NGN_VAS_TX_STATUS_UPDATE: z
+        .enum(['true', 'false'])
+        .default('false')
+        .transform((data) => data === 'true'),
 
     ///////////////////////
     /// BELLMFB

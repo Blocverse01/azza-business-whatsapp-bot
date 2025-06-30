@@ -117,9 +117,9 @@ export function generateAssetBalanceMessage(
 
     const localCurrencyBalance = fiatConfig
         ? formatNumberAsCurrency(
-              tokenBalance * fiatConfig.conversionRate,
-              fiatConfig.localCurrencySymbol
-          )
+            tokenBalance * fiatConfig.conversionRate,
+            fiatConfig.localCurrencySymbol
+        )
         : '';
 
     const localCurrencyEquivalent = fiatConfig
@@ -145,9 +145,9 @@ export function generateAssetBalanceMessageV2(
     const localCurrencyBalance =
         convertedBalanceUsd !== undefined && fiatConfig
             ? formatNumberAsCurrency(
-                  convertedBalanceUsd * fiatConfig.conversionRate,
-                  fiatConfig.localCurrencySymbol
-              )
+                convertedBalanceUsd * fiatConfig.conversionRate,
+                fiatConfig.localCurrencySymbol
+            )
             : '';
 
     const localCurrencyEquivalent = fiatConfig
@@ -160,4 +160,39 @@ export function generateAssetBalanceMessageV2(
         convertedBalanceUsd !== undefined ? prettifyNumber(convertedBalanceUsd, SIX) : null;
 
     return `_*${EMOJIS_FOR_NETWORKS[blockchainNetwork]} ${assetLabel}*_\n- *Balance:* ${tokenBalanceDisplay}${usdBalanceDisplay ? ` (${USD_SYMBOL}${usdBalanceDisplay})` : ''}${localCurrencyEquivalent ? `\n- ${localCurrencyEquivalent}` : ''}`;
+}
+
+
+export function generateAssetBalance(
+    assetBalance: AssetBalance,
+    fiatConfig?: {
+        localCurrencySymbol: string;
+        countryCode: string;
+        conversionRate: number;
+    }
+) {
+    const { asset, balance, convertedBalanceUsd } = assetBalance;
+
+    const localCurrencyBalance =
+        convertedBalanceUsd !== undefined && fiatConfig
+            ? formatNumberAsCurrency(
+                convertedBalanceUsd * fiatConfig.conversionRate,
+                fiatConfig.localCurrencySymbol
+            )
+            : '';
+
+    const localCurrencyEquivalent = fiatConfig
+        ? ` ≈ ${getCountryFlagEmoji(fiatConfig.countryCode)} ${localCurrencyBalance}`
+        : '';
+
+    const usdBalanceDisplay =
+        convertedBalanceUsd !== undefined ? prettifyNumber(convertedBalanceUsd, SIX) : null;
+
+    return {
+        assetId: asset.listItemId,
+        tokenName: asset.tokenName,
+        network: asset.network,
+        convertedBalanceUsd: convertedBalanceUsd,
+        balance: `Balance: ${usdBalanceDisplay ? `${USD_SYMBOL}${usdBalanceDisplay}` : ''}${localCurrencyEquivalent ? ` ${localCurrencyEquivalent} ` : ''}`
+    }
 }

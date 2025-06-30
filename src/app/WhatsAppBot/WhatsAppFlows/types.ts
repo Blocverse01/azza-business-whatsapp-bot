@@ -8,6 +8,7 @@ export type DropdownOption = {
     title: string;
     id: string;
     description?: string;
+    image?: string;
 };
 
 export type FeedbackScreenPayload = {

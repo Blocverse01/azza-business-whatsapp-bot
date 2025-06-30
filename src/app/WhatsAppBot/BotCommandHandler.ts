@@ -103,6 +103,12 @@ class BotCommandHandler {
             case 'GENERATE_STATEMENT':
                 await BotCommandHandler.handleAccountStatement(user, phoneParams);
                 break;
+            case 'BUY_NGN_AIRTIME':
+                await BotCommandHandler.handleBuyNgnAirtime(user, phoneParams);
+                break;
+            case 'BUY_NGN_DATA_BUNDLE': 
+                await BotCommandHandler.handleBuyNgnDataBundle(user, phoneParams);
+                break;
             default:
                 return {
                     handled: false,
@@ -119,6 +125,20 @@ class BotCommandHandler {
         phoneParams: PhoneNumberParams
     ) {
         await WhatsAppBotService.beginAccountStatementFlowMessage(user, phoneParams);
+    }
+
+    private static async handleBuyNgnAirtime(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams
+    ) {
+        await WhatsAppBotService.beginNgnAirtimeFlowMessage(user, phoneParams);
+    }
+
+    private static async handleBuyNgnDataBundle(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams
+    ) {
+        await WhatsAppBotService.beginNgnDataBundleFlowMessage(user, phoneParams);
     }
 
     private static async handleWrapped(

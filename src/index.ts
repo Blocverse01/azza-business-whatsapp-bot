@@ -1,6 +1,6 @@
 import CronHandler from '@/app/Cron';
 import { queues } from '@/background-processing/queues';
-import { SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION } from '@/config/backgroundJobs';
+import { TX_UPDATE_CRON_EXPRESSION } from '@/config/backgroundJobs';
 import env from '@/constants/env';
 import { NOT_FOUND, OK } from '@/constants/status-codes';
 import logger from '@/resources/logger';
@@ -17,6 +17,8 @@ import './app/globalErrorHandler';
 import './background-processing/single-instance-workers';
 import SafeHavenService from './app/NigeriaBanks/SafeHaven/SafeHavenService';
 import BellService from './app/NigeriaBanks/BellMFB/BellService';
+import WhatsAppBotService from './app/WhatsAppBot/WhatsAppBotService';
+import HoneyCoinService from './app/HoneyCoin/HoneyCoinService';
 
 const app = express();
 
@@ -59,6 +61,7 @@ createBullBoard({
         new BullMQAdapter(queues.cleanupMessages),
         new BullMQAdapter(queues.handleSmileKycWebhook),
         new BullMQAdapter(queues.handleNGNBankTransactionStatusUpdate),
+        new BullMQAdapter(queues.handleNGNVasTransactionStatusUpdate),
         new BullMQAdapter(queues.generateAzzaWrapped),
         new BullMQAdapter(queues.onRamp),
         new BullMQAdapter(queues.blockradarAddressSwaps),
@@ -81,10 +84,14 @@ app.use('/api', apiRoutes, async () => {
 
 app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found' }));
 
-app.listen(env.PORT, () => {
+app.listen(env.PORT, async () => {
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 
 if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
-    CronHandler.scheduleSafeHavenTransactionUpdate(SAFEHAVEN_TX_UPDATE_CRON_EXPRESSION);
+    CronHandler.scheduleSafeHavenTransactionUpdate(TX_UPDATE_CRON_EXPRESSION);
+}
+
+if (env.EXECUTE_NGN_VAS_TX_STATUS_UPDATE) {
+    CronHandler.scheduleSafeHavenVasPaymentUpdate(TX_UPDATE_CRON_EXPRESSION);
 }

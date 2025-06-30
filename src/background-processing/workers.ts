@@ -76,6 +76,7 @@ import {
     createRatesUpdateWorker,
 } from '@/app/campaigns/rates-update/utils';
 import { createAccountStatementWorker } from '@/app/account-statement/queue-utils';
+import { createNgnVasTransactionUpdateJobWorker } from '@/app/ngn-vas-payment/queue-utils';
 
 ///////////////////////
 // Worker Instances
@@ -480,6 +481,7 @@ createFiatPayoutV2Worker();
 createOnRampWorker();
 createSyncUserWalletWorker();
 createNgnBankTransactionUpdateJobWorker();
+createNgnVasTransactionUpdateJobWorker();
 createBaseCashbackWorker();
 createCryptoPayoutWorker();
 createCleanupOldMessagesWorker();
