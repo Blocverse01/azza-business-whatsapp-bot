@@ -3,7 +3,7 @@ import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
 
 const currentMediaLink =
-    'https://res.cloudinary.com/dltnruk3l/image/upload/v1747496634/announcement_banner_omjxup.png';
+    'https://res.cloudinary.com/dltnruk3l/image/upload/v1750532378/IMG-20250621-WA0007_wchpt7.jpg';
 
 async function sendBroadcastMessage(message: string, onlyTo: string[] = []) {
     const allUsers =
@@ -52,9 +52,10 @@ async function runScript() {
     const onlyTo = onlyToString ? onlyToString.split(',') : [];
 
     const message = [
-        '🚀 Base Transactions Are Back Online!\n',
-        'Great news — transactions on Base are now back up and running smoothly! If you had any pending or failed transactions earlier, feel free to retry them now. Everything should process without issues.\n',
-        'Thanks for your patience and happy transacting! 💙',
+        'Azza’s first-ever Community Call is here.',
+        'Join us this Saturday as we walk you through what we’ve built, what’s coming next, and answer all your questions.',
+        '🗓️ Saturday, June 21 — 8:00PM WAT',
+        '📍 X Space: https://x.com/i/spaces/1MYGNwPvoBnJw',
     ].join('\n');
 
     await sendBroadcastMessage(message, onlyTo);

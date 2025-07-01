@@ -259,7 +259,7 @@ const tables = [
         notNull: true,
         defaultValue: "",
       },
-      { name: "usdAmount", type: "float", notNull: true, defaultValue: "0" },
+      { name: "tokenAmount", type: "float", notNull: true, defaultValue: "0" },
       {
         name: "destinationWalletAddress",
         type: "text",
@@ -474,6 +474,31 @@ const tables = [
       { name: "transactionType", type: "text" },
     ],
   },
+  {
+    name: "admin_config",
+    columns: [
+      { name: "configName", type: "text", notNull: true, defaultValue: "" },
+      { name: "configValue", type: "text", notNull: true, defaultValue: "" },
+      { name: "description", type: "text" },
+      { name: "updatedBy", type: "text" },
+    ],
+  },
+  {
+    name: "rate_overrides",
+    columns: [
+      { name: "currencyCode", type: "text", notNull: true, defaultValue: "" },
+      { name: "buyRate", type: "float", notNull: true, defaultValue: "0.0" },
+      { name: "sellRate", type: "float", notNull: true, defaultValue: "0.0" },
+      { name: "isActive", type: "bool", notNull: true, defaultValue: "true" },
+      { name: "lastUpdatedBy", type: "text" },
+      {
+        name: "updatedAt",
+        type: "datetime",
+        notNull: true,
+        defaultValue: "now",
+      },
+    ],
+  },
 ] as const;
 
 export type SchemaTables = typeof tables;
@@ -550,6 +575,15 @@ export type NgnVasSettlementTransaction =
 export type NgnVasSettlementTransactionRecord = NgnVasSettlementTransaction &
   XataRecord;
 
+export type MetricsDashboardAccess = InferredTypes["metrics_dashboard_access"];
+export type MetricsDashboardAccessRecord = MetricsDashboardAccess & XataRecord;
+
+export type AdminConfig = InferredTypes["admin_config"];
+export type AdminConfigRecord = AdminConfig & XataRecord;
+
+export type RateOverrides = InferredTypes["rate_overrides"];
+export type RateOverridesRecord = RateOverrides & XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -570,6 +604,9 @@ export type DatabaseSchema = {
   referrals: ReferralsRecord;
   honeycoin_offramp_settlement_transaction: HoneycoinOfframpSettlementTransactionRecord;
   ngn_vas_settlement_transaction: NgnVasSettlementTransactionRecord;
+  metrics_dashboard_access: MetricsDashboardAccessRecord;
+  admin_config: AdminConfigRecord;
+  rate_overrides: RateOverridesRecord;
 };
 
 const DatabaseClient = buildClient();

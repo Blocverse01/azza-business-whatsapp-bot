@@ -19,6 +19,9 @@ import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError
 import logger from '@/resources/logger';
 import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
+import { getPatchedOnrampTxBySequenceId } from '../FiatRamp/patches/onramp';
+import { Effect } from 'effect';
+import { AssetTransaction } from '../AzzaWalletManager/providers/BaseWalletProvider';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -29,7 +32,7 @@ const storeCryptoPayout = async (
     const assetConfig = getAssetConfigOrThrow(params.assetId);
 
     return await dbClient.crypto_payout_v2.create(params.reference, {
-        usdAmount: params.amount,
+        tokenAmount: params.amount,
         destinationWalletAddress: params.userWalletAddress,
         payoutType: params.transactionType,
         triggerTransactionId: params.targetTransactionHash,
@@ -70,14 +73,16 @@ const OFFRAMP_WALLET_USER_ID = 'offramp-hot-wallet';
 
 export const processCryptoPayout = async (
     params: CryptoPayoutParams,
-    transactionType: CryptoPayoutQueueInput['transactionType']
-) => {
+    transactionType: CryptoPayoutQueueInput['transactionType'],
+    _platformWalletUserId?: string
+): Promise<AssetTransaction> => {
     const reference = generateTransactionReferenceId(
         params.targetTransactionHash,
         CRYPTO_PAYOUT_REFERENCE_PREFIX
     );
     const platformWalletUserId =
-        transactionType === 'onramp-payout' ? ONRAMP_WALLET_USER_ID : OFFRAMP_WALLET_USER_ID;
+        _platformWalletUserId ??
+        (transactionType === 'onramp-payout' ? ONRAMP_WALLET_USER_ID : OFFRAMP_WALLET_USER_ID);
 
     const currentAssetBalance = await platformWalletManager.getAssetBalance({
         userId: platformWalletUserId,
@@ -86,6 +91,10 @@ export const processCryptoPayout = async (
     const amountToTransfer = clipDecimal(params.amount, 6);
 
     if (currentAssetBalance.balance < amountToTransfer) {
+        if (platformWalletUserId === ONRAMP_WALLET_USER_ID) {
+            // If the user is trying to process an onramp payout, we can use the offramp hot wallet as a fallback
+            return await processCryptoPayout(params, transactionType, OFFRAMP_WALLET_USER_ID);
+        }
         const alertMessage = `*Crypto Payout Alert*\n\n_Insufficient ${params.assetId} balance for ${transactionType}._\n\nAvailable Balance: ${currentAssetBalance.balance}\nRequired Balance: ${amountToTransfer}`;
 
         await sendTechnicalIssueAlert(alertMessage, env.WA_PHONE_NUMBER_ID);
@@ -150,7 +159,7 @@ export const createCryptoPayoutWorker = () => {
                     return await HoneyCoinService.getHoneyCoinOfframpTransaction(transactionId);
                 }
                 if (transactionType === 'onramp-payout') {
-                    return await FiatRampService.getOnrampTransaction(transactionId);
+                    return await Effect.runPromise(getPatchedOnrampTxBySequenceId(transactionId));
                 }
                 throw new Error(`Invalid transaction type: ${transactionType}`);
             })();
@@ -177,11 +186,14 @@ export const createCryptoPayoutWorker = () => {
                 throw new Error(`Payout not available for transaction`);
             }
 
-            let transactionAmount = transaction.usdAmount;
+            let transactionAmount =
+                ('tokenAmount' in transaction ? transaction.tokenAmount : null) ??
+                transaction.usdAmount;
 
             if (
                 (transactionType === 'offramp-refund' ||
-                    transactionType === 'offramp-ngn-bank-refund') &&
+                    transactionType === 'offramp-ngn-bank-refund' ||
+                    transactionType === 'offramp-honeycoin-refund') &&
                 'transactionHash' in transaction
             ) {
                 const offrampRequest = await dbClient.offramp_awaiting_crypto_debit

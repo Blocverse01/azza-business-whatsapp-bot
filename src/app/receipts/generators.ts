@@ -223,13 +223,20 @@ export const generateOnrampReceipt = async (onrampTransaction: OnrampTransaction
         .replace('url(./fonts/Subjectivity.Extrabold.woff2)', `url(${fontBase64})`)
         .replace('url(./images/pattern-bg.png)', `url(${patternBgBase64})`)
         .replaceAll('{{tokenSymbol}}', onrampTransaction.tokenSymbol.toUpperCase())
-        .replaceAll('{{tokenAmount}}', prettifyNumber(onrampTransaction.usdAmount, 4))
+        .replaceAll(
+            '{{tokenAmount}}',
+            prettifyNumber(onrampTransaction.tokenAmount ?? onrampTransaction.usdAmount, 4)
+        )
         .replaceAll('{{fiatAmount}}', prettifyNumber(onrampTransaction.localAmount, 2))
         .replaceAll('{{fiatCurrencySymbol}}', onrampTransaction.localCurrencySymbol)
         .replaceAll('{{fiatCurrencyIcon}}', country?.flag ?? '')
         .replaceAll('{{walletAddress}}', truncate(onrampTransaction.destinationWalletAddress, 16))
         .replaceAll('{{blockchainNetwork}}', onrampTransaction.blockchainNetwork)
-        .replaceAll('{{transactionFee}}', onrampTransaction.transactionFeeUsd.toString())
+        .replaceAll(
+            '{{transactionFee}}',
+            onrampTransaction.transactionFeeInToken?.toString() ??
+                onrampTransaction.transactionFeeUsd.toString()
+        )
         .replaceAll('{{transactionDate}}', transactionDate)
         .replaceAll('{{transactionTime}}', transactionTime)
         .replaceAll('{{tokenIcon}}', tokenIconBase64);
