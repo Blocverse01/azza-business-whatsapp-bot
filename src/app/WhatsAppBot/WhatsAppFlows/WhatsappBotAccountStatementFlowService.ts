@@ -4,10 +4,10 @@ import { convertAsciiStringToBase64, convertBase64ToAsciiString, generateRandomH
 import { accountStatementDateRangeSchema } from "./schema";
 import { UserV2Record } from "@/db/xata";
 import { SIXTEEN } from "@/constants/numbers";
-import { FlowConfig, getFlowConfig } from "./config";
+import {  getFlowConfig } from "./config";
 import env from "@/constants/env";
 import { FlowMode } from "./types";
-import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from "@/constants/feeback-icons";
+import { SUCCESS_FEEDBACK_ICON } from "@/constants/feeback-icons";
 import { addJobToAccountStatementQueue } from "@/app/account-statement/queue-utils";
 import { formatDate } from "date-fns";
 

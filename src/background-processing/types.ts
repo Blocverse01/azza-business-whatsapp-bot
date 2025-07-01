@@ -4,6 +4,8 @@ import {
 } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
 import { OnrampTransactionPayload } from '@/app/FiatRamp/fiatRampSchema';
+import { AirtimePayload, DataPayload, TransactionType, UtilityPayload } from '@/app/ngn-vas-payment/types';
+import { VASServiceType } from '@/app/NigeriaBanks/SafeHaven/SafeHaveSchema';
 import {
     IncomingWhatsappMessage,
     PhoneNumberParams,
@@ -61,6 +63,7 @@ export enum QueueNames {
     cleanupMessages = 'cleanup-messages',
     handleSmileKycWebhook = 'handle-smile-kyc-webhook',
     handleNGNBankTransactionStatusUpdate = 'handle-ngn-bank-transaction-status-update',
+    handleNGNVasTransactionStatusUpdate = 'handle-ngn-vas-transaction-status-update',
     generateAzzaWrapped = 'generate-azza-wrapped',
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
@@ -132,6 +135,12 @@ export type EventDrivenOfframpQueueInput = {
         transactionFeeUsd: number;
         assetId: string;
         tokenAmountToDebit: number;
+        transactionType?: TransactionType;
+        ngnVasSettlementId?: string;
+    };
+    ngnVasParams?: {
+        type: VASServiceType;
+        payload: AirtimePayload | DataPayload | UtilityPayload;
     };
     whatsappParams: PhoneNumberParams;
     transactionPin: string;
@@ -153,6 +162,11 @@ export type NGNBankTransactionQueueInput = {
     transactionId: string;
     processorName: string;
 };
+
+export type NGNVasTransactionQueueInput = {
+    transactionId: string;
+    processorName: string;
+}
 
 export type GenerateAzzaWrappedQueueInput = {
     userId: string;
@@ -187,5 +201,5 @@ export type GenerateAccountStatementQueueInput = {
     startDate: string,
     endDate: string,
     user: UserV2Record,
-    newUserAddress : string
+    newUserAddress: string
 };

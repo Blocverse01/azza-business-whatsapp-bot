@@ -55,12 +55,23 @@ export const handleOfframpRequestInQueue = async (
     );
 
     try {
-        const sequenceId = await FiatRampService.postOfframpTransaction({
-            ...params,
-            chainName: params.chainName.toUpperCase(),
-            tokenName: params.tokenName.toUpperCase(),
-        });
 
+        let sequenceId: string;
+
+        if (params.ngnVasSettlementId) {
+           
+            sequenceId = await FiatRampService.postNgnVasTransaction({
+                ...params,
+                chainName: params.chainName.toUpperCase(),
+                tokenName: params.tokenName.toUpperCase(),
+            });
+        } else {
+            sequenceId = await FiatRampService.postOfframpTransaction({
+                ...params,
+                chainName: params.chainName.toUpperCase(),
+                tokenName: params.tokenName.toUpperCase(),
+            });
+        }
         return { sequenceId, result: 'SENT' };
     } catch (error) {
         const parsedError = parseUnknownError(error);

@@ -240,6 +240,8 @@ const tables = [
         notNull: true,
         defaultValue: "0",
       },
+      { name: "transactionType", type: "text" },
+      { name: "ngnVasSettlementId", type: "text" },
     ],
   },
   {
@@ -533,6 +535,37 @@ const tables = [
         notNull: true,
         defaultValue: "now",
       },
+      { name: "displayCurrencyCodeAs", type: "text" },
+    ],
+  },
+  {
+    name: "ngn_vas_settlement_transaction",
+    columns: [
+      { name: "ownerId", type: "text" },
+      { name: "localAmount", type: "float" },
+      { name: "usdAmount", type: "float" },
+      { name: "serviceCategoryId", type: "text" },
+      { name: "bundleCode", type: "text" },
+      { name: "recipientPhoneNumber", type: "text" },
+      { name: "recipientMeterNumber", type: "text" },
+      { name: "recipientUtilityToken", type: "text" },
+      { name: "distributionName", type: "text" },
+      { name: "processorName", type: "text" },
+      { name: "processingStatus", type: "text" },
+      { name: "paymentCurrency", type: "text" },
+      { name: "blockchainNetwork", type: "text" },
+      { name: "fromWalletAddress", type: "text" },
+      { name: "hotWalletAddress", type: "text" },
+      { name: "conversionRate", type: "float" },
+      { name: "platformFeePercentage", type: "float" },
+      { name: "transactionHash", type: "text" },
+      { name: "transactionFeeUsd", type: "float" },
+      { name: "sequenceId", type: "text" },
+      { name: "country", type: "text" },
+      { name: "tokenAddress", type: "text" },
+      { name: "tokenSymbol", type: "text" },
+      { name: "localCurrencySymbol", type: "text" },
+      { name: "transactionType", type: "text" },
     ],
   },
 ] as const;
@@ -619,6 +652,11 @@ export type AdminConfigRecord = AdminConfig & XataRecord;
 export type RateOverrides = InferredTypes["rate_overrides"];
 export type RateOverridesRecord = RateOverrides & XataRecord;
 
+export type NgnVasSettlementTransaction =
+  InferredTypes["ngn_vas_settlement_transaction"];
+export type NgnVasSettlementTransactionRecord = NgnVasSettlementTransaction &
+  XataRecord;
+
 export type DatabaseSchema = {
   User: UserRecord;
   CryptoPayoutOrder: CryptoPayoutOrderRecord;
@@ -643,6 +681,7 @@ export type DatabaseSchema = {
   metrics_dashboard_access: MetricsDashboardAccessRecord;
   admin_config: AdminConfigRecord;
   rate_overrides: RateOverridesRecord;
+  ngn_vas_settlement_transaction: NgnVasSettlementTransactionRecord;
 };
 
 const DatabaseClient = buildClient();

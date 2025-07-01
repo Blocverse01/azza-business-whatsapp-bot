@@ -6,6 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer';
 import FiatRampService from '../FiatRamp/FiatRampService';
+import { NgnVasSettlementTransactionRecord } from '@/db/xata';
+import { NetworkLogos, NetworkTitle } from '../NigeriaBanks/SafeHaven/WhitelistedVasServices';
 
 export const generateOfframpToBankRecipientReceipt = async (
     offrampTransaction: OfframpTransactionRecord
@@ -238,6 +240,82 @@ export const generateOnrampReceipt = async (onrampTransaction: OnrampTransaction
         .replaceAll('{{transactionDate}}', transactionDate)
         .replaceAll('{{transactionTime}}', transactionTime)
         .replaceAll('{{tokenIcon}}', tokenIconBase64);
+
+    await page.setContent(template, { waitUntil: 'networkidle0' });
+
+    // Capture the receipt as an image
+    const imageBinary = await page.screenshot({
+        encoding: 'binary',
+        omitBackground: false,
+        type: 'png',
+        fullPage: true,
+    });
+    await browser.close();
+
+    return imageBinary;
+};
+
+
+export const generateBillPaymentReceipt = async (ngnVasTransaction: NgnVasSettlementTransactionRecord) => {
+    const browser = await puppeteer.launch();
+    const [page, countries] = await Promise.all([
+        browser.newPage(),
+        FiatRampService.getSupportedCurrencies(),
+    ]);
+
+    // Increase resolution
+    await page.setViewport({
+        width: 390,
+        height: 660,
+        deviceScaleFactor: 3, // Higher resolution
+    });
+
+    const country = countries.find(
+        (c) => c.code.toLowerCase() === ngnVasTransaction?.country!.toLowerCase()
+    );
+
+    // Load the receipt template
+    let template = fs.readFileSync(path.join(__dirname, 'templates/bill-payment.html'), 'utf8');
+
+    const transactionDate = formatDate(ngnVasTransaction?.xata.createdAt!, 'dd/MM/yyyy');
+    const transactionTime = formatDate(ngnVasTransaction?.xata.createdAt!, 'HH:mm a');
+    const tokenIconBase64 = encodeToBase64(
+        path.join(
+            __dirname,
+            `templates/images/crypto-logos/${ngnVasTransaction?.tokenSymbol!.toLowerCase()}.svg`
+        ),
+        'image/svg+xml'
+    );
+    const fontBase64 = encodeToBase64(
+        path.join(__dirname, 'templates/fonts/Subjectivity.Extrabold.woff2'),
+        'font/woff2'
+    );
+    const patternBgBase64 = encodeToBase64(
+        path.join(__dirname, 'templates/images/pattern-bg.png'),
+        'image/png'
+    );
+
+    const fiatAmount = prettifyNumber(ngnVasTransaction?.localAmount!, 2);
+    const bundleCode = `${ngnVasTransaction?.bundleCode} - ${ngnVasTransaction?.localCurrencySymbol!} ${prettifyNumber(ngnVasTransaction?.localAmount!, 2)}`;
+    const distributionIcon = NetworkLogos[ngnVasTransaction.distributionName as NetworkTitle];
+
+    template = template
+        .replace('url(./fonts/Subjectivity.Extrabold.woff2)', `url(${fontBase64})`)
+        .replace('url(./images/pattern-bg.png)', `url(${patternBgBase64})`)
+        .replaceAll('{{tokenSymbol}}', ngnVasTransaction?.tokenSymbol!.toUpperCase())
+        .replaceAll('{{tokenAmount}}', prettifyNumber(ngnVasTransaction?.usdAmount!, 4))
+        .replaceAll('{{fiatAmount}}', fiatAmount)
+        .replaceAll('{{fiatCurrencySymbol}}', ngnVasTransaction?.localCurrencySymbol!)
+        .replaceAll('{{fiatCurrencyIcon}}', country?.flag ?? '')
+        .replaceAll('{{transactionDate}}', transactionDate)
+        .replaceAll('{{transactionTime}}', transactionTime)
+        .replaceAll('{{recipientAccountNumber}}', ngnVasTransaction.recipientPhoneNumber!)
+        .replaceAll('{{distributionName}}', ngnVasTransaction.distributionName!)
+        .replaceAll('{{tokenIcon}}', tokenIconBase64)
+        .replaceAll('{{transactionType}}', ngnVasTransaction.transactionType === 'airtime' ? 'Airtime' : 'Data Bundle')
+        .replaceAll('{{bundleCodeOrAmount}}', ngnVasTransaction.transactionType === 'airtime' ? `${ngnVasTransaction?.localCurrencySymbol!} ${fiatAmount}` : bundleCode)
+        .replaceAll('{{distributionIcon}}', `data:image/png;base64,${distributionIcon}`)
+
 
     await page.setContent(template, { waitUntil: 'networkidle0' });
 

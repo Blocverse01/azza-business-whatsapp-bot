@@ -24,7 +24,14 @@ const actions = [
     'REQUEST_SUPPORT',
     'ACCOUNT_STATEMENT',
     'TRANSACTION_HISTORY',
-    'DOWNLOAD_ACCOUNT_STATEMENT'
+    'DOWNLOAD_ACCOUNT_STATEMENT',
+    'BUY_DATA',
+    'PURCHASE_DATA',
+    'DATA_BUNDLE',
+    'DATA_TOPUP',
+    'BUY_AIRTIME',
+    'PURCHASE_AIRTIME',
+    'AIRTIME_TOPUP',
 ] as const;
 const actionClassSchema = z.enum(actions);
 
@@ -54,7 +61,14 @@ const actionDescriptions: Record<ActionClass, string> = {
     REQUEST_SUPPORT: 'Request support or assistance with an issue.',
     ACCOUNT_STATEMENT: 'Get a summary of your recent financial activity or transactions.',
     TRANSACTION_HISTORY: 'View a list of all past fiat transactions.',
-    DOWNLOAD_ACCOUNT_STATEMENT: 'Download a detailed statement of your account activity.'
+    DOWNLOAD_ACCOUNT_STATEMENT: 'Download a detailed statement of your account activity.',
+    BUY_DATA: 'Purchase a data bundle for internet access on a mobile network.',
+    PURCHASE_DATA: 'Buy a data bundle for internet access on a mobile network. Overlaps with BUY_DATA.',
+    DATA_BUNDLE: 'Initiate a request to view or purchase available data bundles.',
+    DATA_TOPUP: 'Add more data to an existing mobile data plan or purchase a new data bundle.',
+    BUY_AIRTIME: 'Purchase mobile airtime credit for calls and SMS.',
+    PURCHASE_AIRTIME: 'Buy mobile airtime credit for calls and SMS. Overlaps with BUY_AIRTIME.',
+    AIRTIME_TOPUP: 'Add more airtime credit to your mobile phone for calls and SMS'
 };
 
 const actionSchema = z.object({

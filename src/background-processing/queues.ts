@@ -36,6 +36,7 @@ import {
     GenerateReferralCodeQueueInput,
     CollectFeeQueueInput,
     GenerateAccountStatementQueueInput,
+    NGNVasTransactionQueueInput,
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -122,6 +123,12 @@ export const queues = {
     ),
     handleNGNBankTransactionStatusUpdate: new Queue<NGNBankTransactionQueueInput>(
         QueueNames.handleNGNBankTransactionStatusUpdate,
+        {
+            connection: connectionConfig,
+        }
+    ),
+    handleNGNVasTransactionStatusUpdate: new Queue<NGNVasTransactionQueueInput>(
+        QueueNames.handleNGNVasTransactionStatusUpdate,
         {
             connection: connectionConfig,
         }

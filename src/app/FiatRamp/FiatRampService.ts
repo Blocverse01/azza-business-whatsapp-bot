@@ -55,6 +55,7 @@ import { recommendedOffRampChannelForKenya } from '../HoneyCoin/whiteListedMobil
 import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
 import { UserIdentityInfo } from '../User/userSchema';
 import userServiceV2 from '@/runtime/user';
+import { VASServiceType } from '../NigeriaBanks/SafeHaven/SafeHaveSchema';
 import { dbClient } from '@/db/dbClient';
 import { CompositeRateService } from '../rates/RateService';
 
@@ -170,7 +171,7 @@ class FiatRampService {
                             safeHavenBank.bankCode === bank.seerbitId ||
                             (env.WEB3_ENVIRONMENT === 'testnet' &&
                                 safeHavenBank.slug ===
-                                    slugify(bank.name, { lower: true, replacement: '-' }))
+                                slugify(bank.name, { lower: true, replacement: '-' }))
                         );
                     });
 
@@ -320,6 +321,55 @@ class FiatRampService {
         return null;
     }
 
+    public static async postNgnVasTransaction(params: SendOfframpRequestPayload) {
+        const [
+            ngnVasSettlement,
+            user,
+        ] = await Promise.all([
+            SafeHavenService.getVasPaymentSettlementById(params.ngnVasSettlementId!),
+            userServiceV2.getWhatsappUserIdentityInfo(params.userId)
+        ]);
+
+        if (!user) throw new Error('User not found');
+
+        let sequenceId: string = '';
+
+        if (ngnVasSettlement.transactionType === VASServiceType.AIRTIME) {
+
+            const transaction = await SafeHavenService.payAirtime(
+                ngnVasSettlement.id,
+                user.phoneNumber,
+                params.txHash,
+                {
+                    phoneNumber: ngnVasSettlement.recipient.recipientPhoneNumber!,
+                    amount: ngnVasSettlement.localAmount!,
+                    serviceCategoryId: ngnVasSettlement.recipient.serviceCategoryId!
+                });
+
+            sequenceId = transaction.sequenceId;
+
+        } else if (ngnVasSettlement.transactionType === VASServiceType.DATA) {
+
+            const transaction = await SafeHavenService.payDataBundle(
+                ngnVasSettlement.id,
+                user.phoneNumber,
+                params.txHash,
+                {
+                    phoneNumber: ngnVasSettlement.recipient.recipientPhoneNumber!,
+                    amount: ngnVasSettlement.localAmount!,
+                    serviceCategoryId: ngnVasSettlement.recipient.serviceCategoryId!,
+                    bundleCode : ngnVasSettlement.recipient.bundleCode!
+                });
+
+            sequenceId = transaction.sequenceId;
+
+        } else if (ngnVasSettlement.transactionType === VASServiceType.UTILITY) {
+            sequenceId = ''
+        }
+
+        return sequenceId;
+    }
+
     public static async postOfframpTransaction(params: SendOfframpRequestPayload) {
         // ============================================================================
         // INITIALIZATION: Fetch beneficiary and feature flag statuses concurrently
@@ -333,7 +383,7 @@ class FiatRampService {
             honeycoinPayoutIsEnabled,
             user,
         ] = await Promise.all([
-            FiatRampService.getBeneficiary(params.beneficiaryId),
+            FiatRampService.getBeneficiary(params.beneficiaryId!),
             FeatureFlagService.isFeatureEnabled(FeatureFlagKey.YELLOWCARD_NGN_PAYOUTS),
             FeatureFlagService.isFeatureEnabled(FeatureFlagKey.NGN_BANKS_PAYOUTS),
             FeatureFlagService.isFeatureEnabled(FeatureFlagKey.SAFEHAVEN_BANK),

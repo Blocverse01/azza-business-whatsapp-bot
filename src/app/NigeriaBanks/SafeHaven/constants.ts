@@ -5,3 +5,7 @@ export const SAFEHAVEN_WITHDRAWAL_LIMIT: number = 2_000_000;
 export const BELL_WITHDRAWAL_LIMIT: number = 10_000_000;
 
 export const PALM_PAY_BANK_SEERBIT_ID: string = '100033';
+
+export const NGN_VAS_PLATFORM_PERCENTAGE: number = 3;
+
+// 

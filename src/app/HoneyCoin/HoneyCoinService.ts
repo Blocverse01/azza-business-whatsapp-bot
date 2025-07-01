@@ -162,6 +162,8 @@ class HoneyCoinService {
 
             const { success, KESWallet } = response.data;
 
+            console.log(response.data);
+
             return {
                 balance: KESWallet.balance,
             };

@@ -23,6 +23,8 @@ import {
     PromptHandlerResponse,
     handleSupportRelatedPrompt,
     handleAccountStatementRelatedPrompt,
+    handleAirtimePurchasePrompt,
+    handleDataBundlePurchasePrompt,
 } from '@/app/WhatsAppBot/text/actionHandlers';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
@@ -252,6 +254,25 @@ export const textPromptHandler = async (
             case 'DOWNLOAD_ACCOUNT_STATEMENT':
             case 'TRANSACTION_HISTORY':
                 responseMessage = await handleAccountStatementRelatedPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'BUY_AIRTIME':
+            case 'PURCHASE_AIRTIME':
+            case 'AIRTIME_TOPUP':
+                responseMessage = await handleAirtimePurchasePrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'BUY_DATA':
+            case 'PURCHASE_DATA':
+            case 'DATA_BUNDLE':
+            case 'DATA_TOPUP':
+                responseMessage = await handleDataBundlePurchasePrompt({
                     extractedArguments,
                     botParams,
                     user,

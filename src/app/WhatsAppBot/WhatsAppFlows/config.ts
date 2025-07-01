@@ -13,7 +13,9 @@ type Flows =
     | 'CHANGE_TRANSACTION_PIN'
     | 'RESET_TRANSACTION_PIN'
     | 'BVN_KYC_VERIFICATION'
-    | 'ACCOUNT_STATEMENT';
+    | 'ACCOUNT_STATEMENT'
+    | 'NGN_AIRTIME'
+    | 'NGN_DATA_BUNDLE';
 
 export type FlowConfig = {
     flowId: string;
@@ -124,6 +126,26 @@ const flowConfigs: FlowConfigs = {
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '1609969766342301',
+            flowMode: 'published',
+        },
+    },
+    NGN_AIRTIME: {
+        [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
+            flowId: '1376345966955794',
+            flowMode: 'published',
+        },
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
+            flowId: '713131224798857',
+            flowMode: 'published',
+        },
+    },
+    NGN_DATA_BUNDLE: {
+        [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
+            flowId: '1280088506877164',
+            flowMode: 'published',
+        },
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
+            flowId: '1439076367236060',
             flowMode: 'published',
         },
     },

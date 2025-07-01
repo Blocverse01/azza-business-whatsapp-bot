@@ -1549,6 +1549,46 @@ export const handleAccountStatementRelatedPrompt = async (
 
 
 /////////////////////////////////////////////////////////
+//       Airtime Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleAirtimePurchasePrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+
+    const { botParams, user, } = params;
+
+    await WhatsAppBotService.beginNgnAirtimeFlowMessage(
+        user,
+        { userPhoneNumber: botParams.userPhoneNumber, businessPhoneNumberId: botParams.businessPhoneNumberId }
+    );
+
+    return {
+        response: 'Handled account statement prompt',
+        resetSession: true,
+    };
+};
+
+/////////////////////////////////////////////////////////
+//       Airtime Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleDataBundlePurchasePrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+
+    const { botParams, user, } = params;
+
+    await WhatsAppBotService.beginNgnDataBundleFlowMessage(
+        user,
+        { userPhoneNumber: botParams.userPhoneNumber, businessPhoneNumberId: botParams.businessPhoneNumberId }
+    );
+
+    return {
+        response: 'Handled account statement prompt',
+        resetSession: true,
+    };
+};
+
+/////////////////////////////////////////////////////////
 //                   Helper Functions
 /////////////////////////////////////////////////////////
 function parseExtractedArguments<T extends ZodSchema>(

@@ -3,7 +3,7 @@ import { HttpException } from '@/resources/exceptions/HttpException';
 import { INTERNAL_SERVER_ERROR } from '@/constants/status-codes';
 import { addNgnBankTransactionUpdateJobToQueue } from './queue-utils';
 import NigeriaBanksService from './NigeriaBanksService';
-import { BELL_OFFRAMP_PAYMENT_PROCESSOR_ID, ProcessorId } from '../FiatRamp/config';
+import { ProcessorId } from '../FiatRamp/config';
 import { validProcessors } from './NigeriaBanksSchema';
 
 class NGNBankJobService {

@@ -259,21 +259,21 @@ class WhatsAppBotOffRampFlowService {
             amount_denomination === beneficiary.currency_symbol
                 ? countryLimits.min
                 : (() => {
-                      const usdLimit = countryLimits.min / conversionRate;
+                    const usdLimit = countryLimits.min / conversionRate;
 
-                      const feeForUsdLimit = FiatRampService.calculateTransactionFeeUsd({
-                          usdAmount: usdLimit,
-                          conditionalFeePercentageConfigs: quotes.conditionalFeePercentConfigs,
-                          minFeeUsd: quotes.minFeeUsd,
-                          defaultFeePercentage: quotes.rawFeePercentage,
-                          rampType: 'offramp',
-                      });
+                    const feeForUsdLimit = FiatRampService.calculateTransactionFeeUsd({
+                        usdAmount: usdLimit,
+                        conditionalFeePercentageConfigs: quotes.conditionalFeePercentConfigs,
+                        minFeeUsd: quotes.minFeeUsd,
+                        defaultFeePercentage: quotes.rawFeePercentage,
+                        rampType: 'offramp',
+                    });
 
-                      return fixNumber(
-                          (usdLimit + feeForUsdLimit.feeUsd + 0.1) / tokenUsdPrice,
-                          TWO
-                      );
-                  })(),
+                    return fixNumber(
+                        (usdLimit + feeForUsdLimit.feeUsd + 0.1) / tokenUsdPrice,
+                        TWO
+                    );
+                })(),
             amount_denomination === beneficiary.currency_symbol
                 ? countryLimits.max
                 : fixNumber(countryLimits.max / (conversionRate * tokenUsdPrice), TWO),
@@ -292,11 +292,11 @@ class WhatsAppBotOffRampFlowService {
         const hardCappedMinUsdLimit = getMinimumOfframpUsdAmount(assetNetwork);
         const minLimitToUse = hardCappedMinUsdLimit
             ? (() => {
-                  if (amount_denomination === beneficiary.currency_symbol) {
-                      return math.multiply(hardCappedMinUsdLimit, conversionRate * tokenUsdPrice);
-                  }
-                  return hardCappedMinUsdLimit / tokenUsdPrice;
-              })()
+                if (amount_denomination === beneficiary.currency_symbol) {
+                    return math.multiply(hardCappedMinUsdLimit, conversionRate * tokenUsdPrice);
+                }
+                return hardCappedMinUsdLimit / tokenUsdPrice;
+            })()
             : minLimit;
 
         const amountLessThanLimit =
@@ -810,7 +810,7 @@ class WhatsAppBotOffRampFlowService {
         };
     }
 
-    private static async processOffRampTransactionV2(
+    public static async processOffRampTransactionV2(
         params: ProcessOfframpTransactionParams
     ): Promise<ProcessOffRampTransactionResponse> {
         const {
@@ -872,7 +872,7 @@ class WhatsAppBotOffRampFlowService {
                         conversionRate,
                         transactionFeeUsd,
                         assetId,
-                        tokenAmountToDebit: tokenAmountToDebit,
+                        tokenAmountToDebit: tokenAmountToDebit
                     },
                     transactionPin: encryptWithAES(
                         transactionPin,

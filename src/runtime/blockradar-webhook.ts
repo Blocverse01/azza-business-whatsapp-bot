@@ -154,6 +154,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                     hotWalletAddress: pendingOfframpRequest.hotWalletAddress!,
                     transactionFeeUsd: pendingOfframpRequest.transactionFeeUsd!,
                     beneficiaryId: pendingOfframpRequest.beneficiaryId!,
+                    ngnVasSettlementId: pendingOfframpRequest.ngnVasSettlementId,
                     usdAmount: pendingOfframpRequest.usdAmount!,
                     platformFeePercentage: pendingOfframpRequest.platformFeePercentage,
                     userWalletAddress: pendingOfframpRequest.fromWalletAddress!,
@@ -301,7 +302,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 status: 'complete',
                 transactionHash: `swap_${data.data.hash}`,
             });
-        } catch (e) {}
+        } catch (e) { }
 
         if (reference.startsWith(SwapService.EXTERNAL_REFERENCE_PREFIX)) {
             await addFeeCollectionJobToQueue(reference);
@@ -332,7 +333,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 status: 'failed',
                 transactionHash: `swap_${data.data.hash}`,
             });
-        } catch (e) {}
+        } catch (e) { }
         await WhatsAppBotService.sendWhatsappMessage(
             env.WA_PHONE_NUMBER_ID,
             MessageGenerators.generateTextMessage(

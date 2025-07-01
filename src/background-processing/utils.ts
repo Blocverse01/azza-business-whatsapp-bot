@@ -46,9 +46,11 @@ export const createEventDrivenOfframpWorker = () => {
                 hotWalletAddress: offrampParams.hotWalletAddress,
                 fromWalletAddress: offrampParams.userWalletAddress,
                 beneficiaryId: offrampParams.beneficiaryId,
+                ngnVasSettlementId: offrampParams.ngnVasSettlementId ?? null,
                 conversionRate: offrampParams.conversionRate,
                 platformFeePercentage: offrampParams.platformFeePercentage,
-                tokenAmountToDebit: job.data.offrampParams.tokenAmountToDebit,
+                tokenAmountToDebit: offrampParams.tokenAmountToDebit,
+                transactionType: offrampParams.transactionType ?? null
             });
 
             const tokenAmountToDebit = job.data.offrampParams.tokenAmountToDebit;
