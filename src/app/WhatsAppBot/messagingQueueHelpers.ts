@@ -410,6 +410,8 @@ const handleIncomingWhatsappMessageV2 = async (
                         MORE_CURRENCIES_COMMAND_REGEX_PATTERN
                     ) as MoreCurrenciesCommandMatch;
 
+                    console.log(purchaseAssetId);
+
                     await WhatsAppBotService.sendSelectSupportedCurrenciesMessage(
                         phoneParams,
                         assetActionId,

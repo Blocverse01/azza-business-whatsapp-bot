@@ -106,8 +106,11 @@ class BotCommandHandler {
             case 'BUY_NGN_AIRTIME':
                 await BotCommandHandler.handleBuyNgnAirtime(user, phoneParams);
                 break;
-            case 'BUY_NGN_DATA_BUNDLE': 
+            case 'BUY_NGN_DATA_BUNDLE':
                 await BotCommandHandler.handleBuyNgnDataBundle(user, phoneParams);
+                break;
+            case 'AGENT_SELL_ASSET':
+                await BotCommandHandler.sellAsset(user, phoneParams, botCommand.params);
                 break;
             default:
                 return {
@@ -179,15 +182,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`;
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -240,15 +243,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`;
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -650,6 +653,7 @@ class BotCommandHandler {
 
         switch (commandName) {
             case 'SELL_ASSET':
+            case 'AGENT_SELL_ASSET':
             case 'BUY_ASSET':
             case 'TRANSFER':
             case 'DEPOSIT':

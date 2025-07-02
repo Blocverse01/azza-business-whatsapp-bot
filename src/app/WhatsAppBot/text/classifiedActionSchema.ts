@@ -21,6 +21,12 @@ export const assetAndNetworkSchema = z.object({
         .describe(
             `The cryptocurrency symbol to use for the action. ${CRYPTO_CURRENCY_SYMBOL_ARG_DESCRIPTION}`
         ),
+    // isAgent: z
+    //     .boolean()
+    //     .nullable()
+    //     .describe(
+    //         `Indicates if the transaction or action is being initiated by or involves an agent (e.g., an agent-assisted crypto sale).`
+    //     )
 });
 
 export const actionArgumentsSchema = {
@@ -86,8 +92,8 @@ export const actionArgumentsSchema = {
     CANCEL_CURRENT_ACTION: z.object({}),
     PAY_TO_BANK_ACCOUNT: PayPromptArgsSchema,
     REQUEST_SUPPORT: z.object({}),
-    ACCOUNT_STATEMENT : z.object({}),
-    DOWNLOAD_ACCOUNT_STATEMENT : z.object({}),
+    ACCOUNT_STATEMENT: z.object({}),
+    DOWNLOAD_ACCOUNT_STATEMENT: z.object({}),
     TRANSACTION_HISTORY: z.object({}),
     BUY_DATA: z.object({}),
     PURCHASE_DATA: z.object({}),
@@ -96,4 +102,8 @@ export const actionArgumentsSchema = {
     BUY_AIRTIME: z.object({}),
     PURCHASE_AIRTIME: z.object({}),
     AIRTIME_TOPUP: z.object({}),
+    AGENT_SELL_CRYPTO_FOR_FIAT: assetAndNetworkSchema,
+    AGENT_GET_FIAT_WITH_CRYPTO: assetAndNetworkSchema,
+    AGENT_BUY_CRYPTO_WITH_FIAT: assetAndNetworkSchema,
+    AGENT_GET_CRYPTO_WITH_FIAT: assetAndNetworkSchema,
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

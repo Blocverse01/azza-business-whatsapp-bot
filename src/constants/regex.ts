@@ -34,7 +34,8 @@ export const BOT_COMMANDS_REGEX = {
     PAY: /^\/pay$/,
     GENERATE_STATEMENT: /^\/generate_statement$/,
     BUY_NGN_AIRTIME: /^\/airtime$/,
-    BUY_NGN_DATA_BUNDLE: /^\/data_bundle$/
+    BUY_NGN_DATA_BUNDLE: /^\/data$/,
+    AGENT_SELL_ASSET: /^\/agent_sell\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /sell usdt polygon
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {

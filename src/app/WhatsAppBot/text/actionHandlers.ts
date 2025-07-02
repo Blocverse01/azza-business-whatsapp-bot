@@ -1021,6 +1021,118 @@ export const handleSellCryptoForFiatPrompt = async (
     };
 };
 
+
+/////////////////////////////////////////////////////////
+//      Agent Sell Crypto For Fiat Related Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleAgentSellCryptoForFiatPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const { botParams, extractedArguments, user } = params;
+
+    const isAgent: boolean = true;
+
+    if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
+        const missingArgsPromptResponse = getSellCryptoArgumentsGuideMessage({
+            blockchainNetwork: true,
+            cryptoCurrencySymbol: true,
+        });
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                missingArgsPromptResponse
+            )
+        );
+        return {
+            response: missingArgsPromptResponse,
+            resetSession: false,
+        };
+    }
+
+    const sellArguments = parseExtractedArguments(
+        extractedArguments,
+        actionArgumentsSchema.AGENT_SELL_CRYPTO_FOR_FIAT
+    );
+
+    if (!sellArguments.blockchainNetwork || !sellArguments.cryptoCurrencySymbol) {
+        const missingArgsPromptResponse = getSellCryptoArgumentsGuideMessage({
+            blockchainNetwork: !sellArguments.blockchainNetwork,
+            cryptoCurrencySymbol: !sellArguments.cryptoCurrencySymbol,
+        });
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                missingArgsPromptResponse
+            )
+        );
+        return {
+            response: missingArgsPromptResponse,
+            resetSession: false,
+        };
+    }
+
+    const targetAsset = azzaWalletManager.searchAssets({
+        tokenName: sellArguments.cryptoCurrencySymbol,
+        network: sellArguments.blockchainNetwork,
+    })[0];
+
+    if (!targetAsset) {
+        const assetNotFoundResponse = `${sellArguments.cryptoCurrencySymbol} on the network ${sellArguments.blockchainNetwork} is not supported at the moment.\n\nHere's a list of supported assets and networks:\n${getSupportedAssetAndNetworksText(
+            {
+                action: ExploreAssetActions.SELL_ASSET,
+            }
+        )}`;
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                assetNotFoundResponse
+            )
+        );
+        return {
+            response: assetNotFoundResponse,
+            resetSession: false,
+        };
+    }
+
+    if (!targetAsset.supportedAssetActions.includes(ExploreAssetActions.SELL_ASSET)) {
+        const assetNotSupportedResponse = `Selling ${targetAsset.tokenName} on ${targetAsset.network} is not supported at the moment. Please try again with a supported asset.`;
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                assetNotSupportedResponse
+            )
+        );
+        return {
+            response: assetNotSupportedResponse,
+            resetSession: false,
+        };
+    }
+
+    await WhatsAppBotService.handleSellAssetAction(
+        user,
+        {
+            userPhoneNumber: botParams.userPhoneNumber,
+            businessPhoneNumberId: botParams.businessPhoneNumberId,
+        },
+        targetAsset.listItemId,
+        isAgent
+    );
+
+    return {
+        response: 'Handled sell asset action',
+        resetSession: true,
+    };
+};
+
+
 /////////////////////////////////////////////////////////
 //       Swap Crypto Related Prompt Handler
 /////////////////////////////////////////////////////////

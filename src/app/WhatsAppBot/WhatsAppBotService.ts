@@ -989,9 +989,11 @@ class WhatsAppBotService {
         phoneParams: PhoneNumberParams,
         assetActionId: Extract<ExploreAssetActions, 'buy' | 'sell'>,
         purchaseAssetId: AssetInteractiveButtonIds,
+        isAgent?: boolean,
         _sliceFrom = 0,
         _sliceTo = 9
     ) {
+
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
@@ -1067,7 +1069,7 @@ class WhatsAppBotService {
                             rows: [
                                 ...countriesToDisplay.map((country) => {
                                     return {
-                                        id: `${assetActionId}:${purchaseAssetId}|currency:${country.currencySymbol}|countryCode:${country.code}`,
+                                        id: `${assetActionId}:${purchaseAssetId}|currency:${country.currencySymbol}|countryCode:${country.code}|isAgent:${(isAgent) ? true : false}`,
                                         title: `${getCountryFlagEmoji(country.code)} ${country.name}`,
                                         description: `Currency: ${country.currencySymbol}`,
                                     };
@@ -1149,7 +1151,8 @@ class WhatsAppBotService {
     public static async handleSellAssetAction(
         user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        assetId: AssetInteractiveButtonIds
+        assetId: AssetInteractiveButtonIds,
+        isAgent?: boolean
     ) {
         const userFeatureAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
 
@@ -1184,7 +1187,8 @@ class WhatsAppBotService {
         await this.sendSelectSupportedCurrenciesMessage(
             phoneParams,
             ExploreAssetActions.SELL_ASSET,
-            assetId
+            assetId,
+            isAgent!
         );
     }
 
