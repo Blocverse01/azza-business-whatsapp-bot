@@ -63,7 +63,7 @@ export enum QueueNames {
     cleanupMessages = 'cleanup-messages',
     handleSmileKycWebhook = 'handle-smile-kyc-webhook',
     handleNGNBankTransactionStatusUpdate = 'handle-ngn-bank-transaction-status-update',
-    handleNGNVasTransactionStatusUpdate = 'handle-ngn-vas-transaction-status-update',
+    handleNGNVasTransactionStatusUpdate = 'handle-data-airtime-transaction-status-update',
     generateAzzaWrapped = 'generate-azza-wrapped',
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
