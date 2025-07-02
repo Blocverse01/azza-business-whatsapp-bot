@@ -2,6 +2,10 @@ import { AssetBalance } from '@/app/AzzaWalletManager/providers/BaseWalletProvid
 import { getMinimumOfframpUsdAmount } from '@/app/FiatRamp/config';
 import { BankBeneficiary, MobileMoneyBeneficiary } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import {
+    getTokenToCurrencyConversionRate,
+    isPeggedCurrency,
+} from '@/app/FiatRamp/token-currency-pair-rate/utils';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     DataExchangeResponse,
@@ -71,6 +75,8 @@ type DataExchangedFromTransactionSummaryScreen = {
     user_id: string;
     fiat_to_receive: string;
     transaction_fee: string;
+    usd_amount: string;
+    transaction_fee_usd: string;
     conversion_rate: string;
     platform_fee_percentage: string;
     fiat_currency: string;
@@ -451,35 +457,55 @@ class WhatsAppBotOffRampFlowService {
             ),
         ]);
 
-        const [conversionRate, amountAsNumber] = [
+        const assetConfig = assetBalance.asset;
+        const [usdToFiatConversionRate, amountAsNumber] = [
             parseFloat(conversion_rate),
             parseFloat(amount.trim()),
         ];
+        const cryptoToFiatConversionRate = await getTokenToCurrencyConversionRate(
+            assetConfig.tokenName,
+            beneficiary.currency_symbol,
+            usdToFiatConversionRate
+        );
+        const cryptoToUsdConversionRate = usdToFiatConversionRate / cryptoToFiatConversionRate;
 
-        const usdAmount =
+        const tradingAmountInToken =
             amount_denomination === beneficiary.currency_symbol
-                ? amountAsNumber / conversionRate
-                : amountAsNumber;
+                ? amountAsNumber / cryptoToFiatConversionRate
+                : amountAsNumber; // 10 USDT, 10000 CNGN
+        const tradingAmountInFiat =
+            amount_denomination === beneficiary.currency_symbol
+                ? amountAsNumber
+                : amountAsNumber * cryptoToFiatConversionRate;
+        const tradingAmountInUsd = tradingAmountInToken / cryptoToUsdConversionRate;
 
         const [minLimit, maxLimit] = [
             amount_denomination === beneficiary.currency_symbol
                 ? countryLimits.min
                 : (() => {
-                    const usdLimit = countryLimits.min / conversionRate;
+                      const cryptoMin = countryLimits.min / cryptoToFiatConversionRate;
+                      const usdLimit = countryLimits.min / usdToFiatConversionRate;
 
-                    const feeForUsdLimit = FiatRampService.calculateTransactionFeeUsd({
-                        usdAmount: usdLimit,
-                        conditionalFeePercentageConfigs: quotes.conditionalFeePercentConfigs,
-                        minFeeUsd: quotes.minFeeUsd,
-                        defaultFeePercentage: quotes.rawFeePercentage,
-                        rampType: 'offramp',
-                    });
+                      const feeForUsdLimit = FiatRampService.calculateTransactionFeeUsd({
+                          usdAmount: usdLimit,
+                          conditionalFeePercentageConfigs: quotes.conditionalFeePercentConfigs,
+                          minFeeUsd: quotes.minFeeUsd,
+                          defaultFeePercentage: quotes.rawFeePercentage,
+                          rampType: 'offramp',
+                      });
 
-                    return fixNumber(usdLimit + feeForUsdLimit.feeUsd + 0.1, TWO);
-                })(),
+                      if (isPeggedCurrency(assetConfig.tokenName, beneficiary.currency_symbol)) {
+                          // Assume that the usd->fiat conversion rate is the same as the usd->crypto conversion rate
+                          const feeInCrypto = feeForUsdLimit.feeUsd * cryptoToUsdConversionRate;
+
+                          return fixNumber(cryptoMin + feeInCrypto, TWO);
+                      }
+
+                      return fixNumber(usdLimit + feeForUsdLimit.feeUsd + 0.1, TWO);
+                  })(),
             amount_denomination === beneficiary.currency_symbol
                 ? countryLimits.max
-                : countryLimits.max / conversionRate,
+                : countryLimits.max / cryptoToFiatConversionRate,
         ];
 
         // Asset Config
@@ -488,28 +514,30 @@ class WhatsAppBotOffRampFlowService {
 
         const errorMessages: AmountInputScreenData['error_messages'] = {};
 
-        if (usdAmount <= 0) {
+        if (tradingAmountInToken <= 0) {
             errorMessages.amount = 'Amount must be greater than 0';
         }
 
         const hardCappedMinUsdLimit = getMinimumOfframpUsdAmount(assetNetwork);
         const minLimitToUse = hardCappedMinUsdLimit
             ? (() => {
-                if (amount_denomination === beneficiary.currency_symbol) {
-                    return math.multiply(hardCappedMinUsdLimit, conversionRate);
-                }
-                return hardCappedMinUsdLimit;
-            })()
+                  if (amount_denomination === beneficiary.currency_symbol) {
+                      return math.multiply(hardCappedMinUsdLimit, usdToFiatConversionRate);
+                  }
+                  return (
+                      hardCappedMinUsdLimit / (usdToFiatConversionRate / cryptoToFiatConversionRate)
+                  );
+              })()
             : minLimit;
 
         const amountLessThanLimit =
             amount_denomination === beneficiary.currency_symbol
-                ? amountAsNumber < minLimitToUse
-                : usdAmount < minLimitToUse;
+                ? tradingAmountInFiat < minLimitToUse
+                : tradingAmountInToken < minLimitToUse;
         const amountGreaterThanLimit =
             amount_denomination === beneficiary.currency_symbol
-                ? maxLimit > ZERO && amountAsNumber > maxLimit
-                : maxLimit > ZERO && usdAmount > maxLimit;
+                ? maxLimit > ZERO && tradingAmountInFiat > maxLimit
+                : maxLimit > ZERO && tradingAmountInToken > maxLimit;
 
         if (amountLessThanLimit) {
             errorMessages.amount =
@@ -527,7 +555,7 @@ class WhatsAppBotOffRampFlowService {
         if (Object.keys(errorMessages).length > 0) {
             const userBalanceFormatted = prettifyNumber(userBalance, FOUR) + ' ' + assetName;
             const userBalanceInFiat = formatNumberAsCurrency(
-                fixNumber(userBalance * conversionRate, THREE),
+                fixNumber(userBalance * cryptoToFiatConversionRate, THREE),
                 beneficiary.currency_symbol
             );
 
@@ -567,43 +595,45 @@ class WhatsAppBotOffRampFlowService {
         }
 
         const feeConfig = FiatRampService.calculateTransactionFeeUsd({
-            usdAmount,
+            usdAmount: tradingAmountInUsd,
             conditionalFeePercentageConfigs: quotes.conditionalFeePercentConfigs,
             minFeeUsd: quotes.minFeeUsd,
             defaultFeePercentage: quotes.rawFeePercentage,
             rampType: 'offramp',
         });
 
-        const transactionFee = fixNumber(feeConfig.feeUsd, THREE);
+        const feeInCrypto = feeConfig.feeUsd * cryptoToUsdConversionRate;
+        const transactionFeeInUsd = feeConfig.feeUsd;
+        const transactionFeeInCrypto = fixNumber(feeInCrypto, THREE);
         const feePercentage = feeConfig.feePercentage;
 
         const token_amount: TokenAmountPattern = this.generateTokenAmountPattern(
-            prettifyNumber(usdAmount, THREE),
+            prettifyNumber(tradingAmountInToken, THREE),
             {
                 assetName,
                 assetNetwork,
             },
-            transactionFee
+            transactionFeeInCrypto
         );
 
         const amountToDebit =
             amount_denomination === beneficiary.currency_symbol
-                ? fixNumber(math.add(usdAmount, transactionFee), FOUR)
-                : fixNumber(usdAmount, FOUR);
+                ? fixNumber(math.add(tradingAmountInToken, transactionFeeInCrypto), FOUR)
+                : fixNumber(tradingAmountInToken, FOUR);
         const token_amount_to_debit: TokenAmountToDebitPattern = `${amountToDebit} ${assetName}`;
 
         const destination_account = this.generateDestinationString(beneficiary);
 
-        const usdAmountToConvert =
+        const tradingAmountInTokenToConvert =
             amount_denomination === beneficiary.currency_symbol
-                ? usdAmount
-                : math.subtract(usdAmount, transactionFee);
+                ? tradingAmountInToken
+                : math.subtract(tradingAmountInToken, transactionFeeInCrypto);
         const fiatEquivalent = defaultAmountFixer(
-            math.multiply(usdAmountToConvert, conversionRate)
+            math.multiply(tradingAmountInTokenToConvert, cryptoToFiatConversionRate)
         );
 
         const fiat_to_receive: FiatToReceivePattern = this.generateFiatToReceivePattern(
-            conversionRate,
+            cryptoToFiatConversionRate,
             beneficiary.currency_symbol,
             assetName,
             fiatEquivalent
@@ -621,13 +651,14 @@ class WhatsAppBotOffRampFlowService {
                     fiat_to_receive,
                 },
                 transaction_details: {
-                    token_amount: decimalToString(fixNumber(usdAmountToConvert, FOUR)),
-                    transaction_fee: transactionFee.toString(),
+                    token_amount: decimalToString(fixNumber(tradingAmountInTokenToConvert, FOUR)),
+                    transaction_fee: transactionFeeInCrypto.toString(),
+                    transaction_fee_usd: transactionFeeInUsd,
                     fiat_to_receive: fiatEquivalent.toString(),
                     beneficiary: beneficiary,
                     token_amount_to_debit: amountToDebit.toString(),
                     conversion_rate,
-                    usd_amount: usdAmountToConvert,
+                    usd_amount: tradingAmountInUsd,
                     platform_fee_percentage: feePercentage.toString(),
                 },
                 fiat_currency: beneficiary.currency_symbol,
@@ -653,6 +684,26 @@ class WhatsAppBotOffRampFlowService {
         const user = await userServiceV2.getUserById(user_id);
         const assetConfig = getAssetConfigOrThrow(asset_id);
 
+        const [
+            usdToFiatConversionRate,
+            tradingAmountInToken,
+            tradingAmountToDebitInToken,
+            transactionFeeInCrypto,
+        ] = [
+            parseFloat(conversion_rate),
+            parseFloat(token_amount.trim()),
+            parseFloat(token_amount_to_debit),
+            parseFloat(transaction_fee),
+        ];
+        const cryptoToFiatConversionRate = await getTokenToCurrencyConversionRate(
+            assetConfig.tokenName,
+            beneficiary.currency_symbol,
+            usdToFiatConversionRate
+        );
+        const cryptoToUsdConversionRate = usdToFiatConversionRate / cryptoToFiatConversionRate;
+        const tradingAmountInUsd = tradingAmountInToken / cryptoToUsdConversionRate;
+        const feeInUsd = transactionFeeInCrypto / cryptoToUsdConversionRate;
+
         if (!user?.transactionPinHash) {
             return {
                 screen: OffRampFlowScreens.ERROR_FEEDBACK,
@@ -667,12 +718,9 @@ class WhatsAppBotOffRampFlowService {
         const pinIsValid = await compareHashedString(transaction_pin, user.transactionPinHash);
 
         if (!pinIsValid) {
-            const usdAmount = parseFloat(token_amount);
-            const usdAmountToDebit = parseFloat(token_amount_to_debit);
-            const transactionFee = parseFloat(input.transaction_fee);
             const fiatEquivalent = parseFloat(fiat_to_receive);
 
-            const token_amount_to_debit_display: TokenAmountToDebitPattern = `${usdAmountToDebit} ${assetConfig.tokenName as TokenNames}`;
+            const token_amount_to_debit_display: TokenAmountToDebitPattern = `${tradingAmountInToken} ${assetConfig.tokenName as TokenNames}`;
             const fiat_to_receive_display: FiatToReceivePattern = this.generateFiatToReceivePattern(
                 parseFloat(conversion_rate),
                 beneficiary.currency_symbol,
@@ -680,12 +728,12 @@ class WhatsAppBotOffRampFlowService {
                 fiatEquivalent
             );
             const token_amount_display: TokenAmountPattern = this.generateTokenAmountPattern(
-                prettifyNumber(usdAmount, THREE),
+                prettifyNumber(tradingAmountInToken, THREE),
                 {
                     assetName: assetConfig.tokenName as TokenNames,
                     assetNetwork: assetConfig.network,
                 },
-                transactionFee
+                transactionFeeInCrypto
             );
 
             return {
@@ -700,13 +748,13 @@ class WhatsAppBotOffRampFlowService {
                         fiat_to_receive: fiat_to_receive_display,
                     },
                     transaction_details: {
-                        token_amount: decimalToString(fixNumber(usdAmount, FOUR)),
-                        transaction_fee: transactionFee.toString(),
+                        token_amount: decimalToString(fixNumber(tradingAmountInToken, FOUR)),
+                        transaction_fee: transactionFeeInCrypto.toString(),
                         fiat_to_receive: fiatEquivalent.toString(),
                         beneficiary: beneficiary,
-                        token_amount_to_debit: usdAmountToDebit.toString(),
+                        token_amount_to_debit: tradingAmountToDebitInToken.toString(),
                         conversion_rate,
-                        usd_amount: token_amount_to_debit,
+                        usd_amount: tradingAmountInUsd,
                         platform_fee_percentage: platform_fee_percentage,
                     },
                     fiat_currency: beneficiary.currency_symbol,
@@ -723,19 +771,19 @@ class WhatsAppBotOffRampFlowService {
         const response = await this.processOffRampTransactionV2({
             assetId: asset_id,
             fiatAmount: parseFloat(fiat_to_receive),
-            usdAmount: parseFloat(token_amount),
-            tokenAmountToDebit: parseFloat(token_amount_to_debit),
+            usdAmount: tradingAmountInUsd,
+            tokenAmountToDebit: tradingAmountToDebitInToken,
             beneficiaryId: beneficiary.id,
             userId: user_id,
             platformFeePercentage: parseFloat(platform_fee_percentage),
             conversionRate: parseFloat(conversion_rate),
             transactionPin: transaction_pin,
-            transactionFeeUsd: parseFloat(transaction_fee),
+            transactionFeeUsd: feeInUsd,
         });
 
         if (response.status === 'processing') {
             const message = generateOfframpProcessingMessage({
-                tokenAmount: prettifyNumber(Number(token_amount_to_debit), 3),
+                tokenAmount: prettifyNumber(Number(tradingAmountToDebitInToken), 3),
                 assetName: assetConfig.tokenName,
                 assetNetwork: assetConfig.network,
                 localCurrency: fiat_currency,
@@ -864,10 +912,10 @@ class WhatsAppBotOffRampFlowService {
             recipient: string;
             fiatConversionRate: number;
             transactionFee: number; // Todo: Evaluate the necessity of this parameter
-            assetUsdPrice: number;
+            cryptoToFiatConversionRate: number;
         }
     ) {
-        const { assetBalance, beneficiary, recipient, assetUsdPrice } = params;
+        const { assetBalance, beneficiary, recipient } = params;
 
         const { balance: userBalance, asset } = assetBalance;
         const assetLabel = `${asset.tokenName} (${asset.network})`;
@@ -884,8 +932,9 @@ class WhatsAppBotOffRampFlowService {
         const sellMessage = `To sell ${assetLabel} for ${getCountryFlagEmoji(beneficiary.country.code)} ${beneficiary.country.currencySymbol}, tap "Proceed" to enter the amount you want to sell`;
 
         const userBalanceFormatted = prettifyNumber(userBalance, 6) + ' ' + asset.tokenName;
+
         const userBalanceInFiat = formatNumberAsCurrency(
-            fixNumber(userBalance * params.fiatConversionRate * assetUsdPrice, THREE),
+            fixNumber(userBalance * params.cryptoToFiatConversionRate, THREE),
             beneficiary.country.currencySymbol
         );
 

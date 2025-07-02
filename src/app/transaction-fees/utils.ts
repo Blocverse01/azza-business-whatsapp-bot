@@ -3,6 +3,7 @@ import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { dbClient } from '@/db/dbClient';
 import { TransactionFeeLogsRecord } from '@/db/xata';
 import { decimalToString } from '@/resources/utils/currency';
+import { tryOrNull } from '@/resources/utils/failsafe';
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import cryptoAssetPriceService from '@/runtime/crypto-asset-price';
 import azzaWalletManager from '@/runtime/wallet';
@@ -34,8 +35,17 @@ export const calculateWithdrawalFees = async (params: WithdrawalNetworkFeeCalcul
     const PLATFORM_FEE_PERCENTAGE = 0.002;
 
     const assetConfig = getAssetConfigOrThrow(params.assetId);
+    const nativeAssetConfig = azzaWalletManager.searchAssets({
+        tokenName: NATIVE_ASSET_TOKEN_SYMBOLS[assetConfig.network],
+        network: assetConfig.network,
+    })[0];
 
-    const [networkFeeInfo, nativeAssetUsdPrice, assetToWithdrawUsdPrice] = await Promise.all([
+    const [
+        networkFeeInfo,
+        nativeAssetUsdPrice,
+        assetToWithdrawUsdPrice,
+        nativeAssetToWithdrawAssetRateQuote,
+    ] = await Promise.all([
         azzaWalletManager.getWithdrawNetworkFee({
             amount: params.amount.toString(),
             assetId: params.assetId,
@@ -47,6 +57,16 @@ export const calculateWithdrawalFees = async (params: WithdrawalNetworkFeeCalcul
             'USD'
         ),
         cryptoAssetPriceService.getAssetPrice(assetConfig.tokenName, 'USD'),
+        nativeAssetConfig && !assetConfig.isNative
+            ? tryOrNull(
+                  azzaWalletManager.getSwapQuote({
+                      fromAssetId: nativeAssetConfig.listItemId,
+                      toAssetId: params.assetId,
+                      amount: params.amount.toString(),
+                      userId: params.userId,
+                  })
+              )
+            : Promise.resolve(null),
     ]);
 
     const rawFeeUsdValue = networkFeeInfo.networkFeeInUsd;
@@ -70,7 +90,17 @@ export const calculateWithdrawalFees = async (params: WithdrawalNetworkFeeCalcul
     }
 
     // For non-native asset
-    const feeInAssetToWithdraw = feeUsdValue / assetToWithdrawUsdPrice;
+    const feeInAssetToWithdraw = (() => {
+        if (assetToWithdrawUsdPrice > 0) {
+            return feeUsdValue / assetToWithdrawUsdPrice;
+        }
+        if (nativeAssetToWithdrawAssetRateQuote) {
+            return networkFeeInfo.networkFee / nativeAssetToWithdrawAssetRateQuote.rate;
+        }
+        // If we can't determine the fee in the asset to withdraw, we return 0
+        return 0;
+    })();
+
     const totalFee = feeInAssetToWithdraw + platformFee;
     const totalFeeUsd = feeUsdValue + platformFee * assetToWithdrawUsdPrice;
 

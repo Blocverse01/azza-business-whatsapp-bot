@@ -41,8 +41,7 @@ class NigeriaBanksService {
     }
 
     public static async sendProcessingSettlementMessage(params: {
-        usdAmount: number;
-        transactionFeeUsd: number;
+        tokenAmountDebited: number;
         ownerId: string;
         tokenSymbol: string;
         blockchainNetwork: string;
@@ -50,20 +49,17 @@ class NigeriaBanksService {
         localAmount: number;
     }) {
         const {
-            usdAmount,
-            transactionFeeUsd,
             localAmount,
             ownerId,
             tokenSymbol,
             blockchainNetwork,
             localCurrencySymbol,
+            tokenAmountDebited,
         } = params;
-
-        const totalAmount = prettifyNumber(usdAmount + transactionFeeUsd);
 
         const userPhoneNumber = await userServiceV2.getUserPhoneNumber(ownerId);
 
-        const transactionDetailsString = `💲Sell ${totalAmount} ${tokenSymbol} on ${blockchainNetwork} for ${localCurrencySymbol} ${prettifyNumber(localAmount)}`;
+        const transactionDetailsString = `💲Sell ${tokenAmountDebited} ${tokenSymbol} on ${blockchainNetwork} for ${localCurrencySymbol} ${prettifyNumber(localAmount)}`;
 
         const message = this.ProcessingTransactionMessage(transactionDetailsString);
 

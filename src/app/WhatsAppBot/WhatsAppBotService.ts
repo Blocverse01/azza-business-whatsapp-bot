@@ -100,6 +100,7 @@ import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
 import { extractNetworkTitle, NetworkLogos, NetworkTitle, safeHavenVasServices } from '../NigeriaBanks/SafeHaven/WhitelistedVasServices';
 import { divide } from 'mathjs';
 import WhatsappBotNgnDataBundleFlowService from './WhatsAppFlows/WhatsappBotNgnDataBundleFlowService';
+import { getTokenToCurrencyConversionRate } from '../FiatRamp/token-currency-pair-rate/utils';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -714,9 +715,10 @@ class WhatsAppBotService {
             recipient: userPhoneNumber,
             fiatConversionRate: rate,
             transactionFee: fee,
-            assetUsdPrice: await cryptoAssetPriceService.getAssetPrice(
+            cryptoToFiatConversionRate: await getTokenToCurrencyConversionRate(
                 assetBalance.asset.tokenName,
-                'USD'
+                beneficiary.country.currencySymbol,
+                rate
             ),
         });
 
@@ -740,7 +742,11 @@ class WhatsAppBotService {
             rates.unshift(userCountry);
         }
 
-        const ratesText = `_*Conversion Rates*_\n\n${rates.map((rate) => `${getCountryFlagEmoji(rate.locale)} ${rate.code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`).join('\n')}`;
+        const ratesText = `_*Conversion Rates*_\n\n${rates.map((rate) => {
+            const code = 'displayCurrencyCodeAs' in rate ? rate.displayCurrencyCodeAs ?? rate.code : rate.code;
+
+            return `${getCountryFlagEmoji(rate.locale)} ${code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`
+        }).join('\n')}`;
 
         await this.sendWhatsappMessage(
             businessPhoneNumberId,
@@ -989,7 +995,17 @@ class WhatsAppBotService {
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
-        const supportedCurrencies = await FiatRampService.getSupportedCurrencies();
+        const _supportedCurrencies = await FiatRampService.getSupportedCurrencies();
+
+        const assetConfig = getAssetConfigOrThrow(purchaseAssetId);
+        const supportedCurrencies = _supportedCurrencies.filter((currency) => {
+            if (assetConfig.whitelistedSellCurrencies) {
+                return assetConfig.whitelistedSellCurrencies.includes(
+                    currency.currencySymbol.toUpperCase()
+                );
+            }
+            return true;
+        });
 
         const userCountry = supportedCurrencies.find(
             (country) => country.code.toLowerCase() === userCountryCode.toLowerCase()

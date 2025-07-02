@@ -62,7 +62,7 @@ type ScreenDataPayload = {
         asset_id: string;
     };
     MOBILE_MONEY_FORM_SCREEN: {
-        supported_mobile_providers: Array<Required<DropdownOption>>;
+        supported_mobile_providers: Array<DropdownOption>;
         country_code: string;
         channel_id: string;
         asset_id: string;
@@ -346,7 +346,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
             selectedAccountType.channelId
         );
 
-        console.log('supportedProviders---', supportedProviders)
+        console.log('supportedProviders---', supportedProviders);
 
         return {
             screen: AddBeneficiaryFlowScreens.MOBILE_MONEY_FORM,
@@ -434,7 +434,9 @@ class WhatsAppBotAddBeneficiaryFlowService {
                 account_number,
                 bank_name: selectedBank.bankName,
                 channel_id,
-                network_id: resolvedBankAccount?.sessionId ? `${selectedBank.networkId}:nameEnquiryReference:${resolvedBankAccount.sessionId}` : selectedBank.networkId,
+                network_id: resolvedBankAccount?.sessionId
+                    ? `${selectedBank.networkId}:nameEnquiryReference:${resolvedBankAccount.sessionId}`
+                    : selectedBank.networkId,
                 country_code,
                 user_id,
                 asset_id,
@@ -486,9 +488,9 @@ class WhatsAppBotAddBeneficiaryFlowService {
                         nameEnquiryReference:
                             country_code === 'NG'
                                 ? extractIdFromString({
-                                    input: network_id,
-                                    key: 'nameEnquiryReference',
-                                })
+                                      input: network_id,
+                                      key: 'nameEnquiryReference',
+                                  })
                                 : '',
                         channelId: channel_id,
                         countryId: country.id,

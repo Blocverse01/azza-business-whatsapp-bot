@@ -17,6 +17,8 @@ import * as assert from 'node:assert';
 import crypto from 'node:crypto';
 import { generateOnrampTransactionInitiatedMessage } from '@/resources/utils/bot-message-utils';
 import { prettifyNumber } from '@/resources/utils/currency';
+import { updateOnrampTxWithPatches } from './patches/onramp';
+import { Effect } from 'effect';
 
 export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2) => {
     const txHashSha256 = crypto.createHash('sha256').update(params.txHash).digest('hex');
@@ -53,13 +55,12 @@ export const handleOfframpRequestInQueue = async (
     );
 
     try {
-
         let sequenceId: string;
 
         if (params.ngnVasSettlementId) {
-           
             sequenceId = await FiatRampService.postNgnVasTransaction({
                 ...params,
+                ngnVasSettlementId: params.ngnVasSettlementId,
                 chainName: params.chainName.toUpperCase(),
                 tokenName: params.tokenName.toUpperCase(),
             });
@@ -148,7 +149,7 @@ export const handleOnrampRequestInQueue = async (input: OnRampQueueInput) => {
     }
 
     const message = generateOnrampTransactionInitiatedMessage({
-        tokenAmount: transactionPayload.usdAmount.toString(),
+        tokenAmount: transactionPayload.tokenAmount.toString(),
         assetNetwork: transactionPayload.chainName,
         assetName: transactionPayload.tokenName,
         bankInfo: onrampResponse.bankInfo!,
@@ -166,7 +167,17 @@ export const handleOnrampRequestInQueue = async (input: OnRampQueueInput) => {
         fiatToPay: prettifyNumber(parseFloat(transactionPayload.localAmount.toString())),
     });
 
-    return onrampResponse;
+    const result = await Effect.runPromise(
+        updateOnrampTxWithPatches(onrampResponse.sequenceId, {
+            tokenAmount: transactionPayload.tokenAmount,
+            transactionFeeInToken: transactionPayload.transactionFeeInToken,
+        })
+    );
+
+    return {
+        onrampResponse,
+        onrampPatchResult: result,
+    };
 };
 
 export const createOnRampWorker = () => {

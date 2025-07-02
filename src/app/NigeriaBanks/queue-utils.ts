@@ -20,6 +20,8 @@ import {
     BELL_OFFRAMP_PAYMENT_PROCESSOR_ID,
     SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID,
 } from '../FiatRamp/config';
+import { dbClient } from '@/db/dbClient';
+import { isPeggedCurrency } from '../FiatRamp/token-currency-pair-rate/utils';
 
 export const addNgnBankTransactionUpdateJobToQueue = async (
     input: NGNBankTransactionQueueInput
@@ -52,9 +54,20 @@ export const createNgnBankTransactionUpdateJobWorker = () => {
                 }
             })();
 
-            const totalAmount = prettifyNumber(
-                (settlement.usdAmount ?? 0) + (settlement.transactionFeeUsd ?? 0)
-            );
+            const offrampRequest = await dbClient.offramp_awaiting_crypto_debit
+                .filter({
+                    cryptoTransactionId: settlement.transactionHash,
+                })
+                .getFirst();
+
+            if (!offrampRequest) {
+                throw new Error('Offramp request not found');
+            }
+            const totalAmount = offrampRequest.tokenAmountToDebit;
+            // const cryptoToFiatConversionRate =
+            //     (settlement.localAmount +
+            //         Math.max(settlement.localAmount * settlement.platformFeePercentage)) /
+            //     totalAmount;
 
             const userPhoneNumber = await userServiceV2.getUserPhoneNumber(settlement.ownerId);
 
@@ -96,13 +109,18 @@ export const createNgnBankTransactionUpdateJobWorker = () => {
                 const receiptBuffer = await generateOfframpReceipt({
                     status: 'complete',
                     blockchainNetwork: settlement.blockchainNetwork,
-                    usdAmount: settlement.usdAmount,
+                    usdAmount: totalAmount,
                     localAmount: settlement.localAmount,
                     localCurrencySymbol: settlement.localCurrencySymbol!,
                     tokenSymbol: settlement.tokenSymbol,
                     ownerId: settlement.ownerId,
                     transactionHash: settlement.transactionHash,
-                    transactionFeeUsd: settlement.transactionFeeUsd,
+                    transactionFeeUsd: isPeggedCurrency(
+                        settlement.tokenSymbol,
+                        settlement.localCurrencySymbol!
+                    )
+                        ? 0
+                        : settlement.transactionFeeUsd,
                     destination: {
                         accountName: settlement.destinationAccountName,
                         accountNumber: settlement.destinationAccountNumber,

@@ -76,7 +76,10 @@ import {
     createRatesUpdateWorker,
 } from '@/app/campaigns/rates-update/utils';
 import { createAccountStatementWorker } from '@/app/account-statement/queue-utils';
+
 import { createNgnVasTransactionUpdateJobWorker } from '@/app/ngn-vas-payment/queue-utils';
+import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
+
 
 ///////////////////////
 // Worker Instances
@@ -476,7 +479,12 @@ const userTxPinSecurityWorker = new Worker<
 //prepareLimitResetSchedulerQueue();
 
 createWhatsappBroadcastWorker();
-createEventDrivenOfframpWorker();
+createEventDrivenOfframpWorker().on('error', async (error) => {
+    const parsedError = parseUnknownError(error);
+    const alertMessage = `Offramp Worker Error: ${parsedError.message}\n\nData: ${parsedError.data}\n\nStack Trace: ${parsedError.stack}`;
+    await sendTechnicalIssueAlert(alertMessage, env.WA_PHONE_NUMBER_ID);
+    await logServiceError(parsedError, 'Offramp Worker Error');
+});
 createFiatPayoutV2Worker();
 createOnRampWorker();
 createSyncUserWalletWorker();
@@ -497,7 +505,8 @@ createBlockradarAddressTokenSwapWorker(connectionConfig).on('error', async (erro
 });
 createFeeCollectionWorker(connectionConfig);
 createResetFeatureUsageLimitWorker(connectionConfig);
-prepareRatesUpdateQueue();
+
+//prepareRatesUpdateQueue();
 createRatesUpdateWorker(connectionConfig);
 
 // Start 10 whatsapp messaging workers

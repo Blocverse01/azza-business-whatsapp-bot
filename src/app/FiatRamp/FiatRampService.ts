@@ -56,9 +56,12 @@ import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
 import { UserIdentityInfo } from '../User/userSchema';
 import userServiceV2 from '@/runtime/user';
 import { VASServiceType } from '../NigeriaBanks/SafeHaven/SafeHaveSchema';
+import { dbClient } from '@/db/dbClient';
+import { CompositeRateService } from '../rates/RateService';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
+    private static rateService = new CompositeRateService();
 
     public static async getSupportedCurrencies() {
         return await FiatRampsRpcService.getSupportedCountries();
@@ -69,15 +72,15 @@ class FiatRampService {
     }
 
     public static async getAllRates() {
-        return await FiatRampsRpcService.getRates();
+        return await this.rateService.getRates();
     }
 
     public static async getMultipleRates(targetCurrencies: Array<string> = []) {
-        return await FiatRampsRpcService.getRates(targetCurrencies);
+        return await this.rateService.getRates(targetCurrencies);
     }
 
     public static async getCurrencyRates(currencySymbol: string) {
-        return await FiatRampsRpcService.getCurrencyRates(currencySymbol);
+        return await this.rateService.getCurrencyRates(currencySymbol);    
     }
 
     public static async getBuyRate(currencySymbol: string) {
@@ -730,13 +733,22 @@ class FiatRampService {
         params: SendOfframpRequestPayload,
         senderName: string
     ) {
-        const [settlementData] = await Promise.all([
+        const [settlementData, offrampRequest] = await Promise.all([
             this._prepareOfframpSettlementData(
                 beneficiary,
                 params,
                 BELL_OFFRAMP_PAYMENT_PROCESSOR_ID
             ),
+            dbClient.offramp_awaiting_crypto_debit
+                .filter({
+                    cryptoTransactionId: params.txHash,
+                })
+                .getFirst(),
         ]);
+
+        if (!offrampRequest) {
+            throw new Error('Offramp request not found');
+        }
 
         const bellSettlementRecord =
             await NigeriaBanksService.createNGNOfframpSettlement(settlementData);
@@ -759,8 +771,7 @@ class FiatRampService {
             ).seerbitId;
 
         await NigeriaBanksService.sendProcessingSettlementMessage({
-            usdAmount: bellSettlementRecord.usdAmount,
-            transactionFeeUsd: bellSettlementRecord.transactionFeeUsd,
+            tokenAmountDebited: offrampRequest.tokenAmountToDebit,
             ownerId: bellSettlementRecord.ownerId,
             tokenSymbol: bellSettlementRecord.tokenSymbol,
             blockchainNetwork: bellSettlementRecord.blockchainNetwork,
@@ -838,11 +849,22 @@ class FiatRampService {
         params: SendOfframpRequestPayload,
         narration?: string
     ) {
-        const settlementData = await this._prepareOfframpSettlementData(
-            beneficiary,
-            params,
-            SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
-        );
+        const [settlementData, offrampRequest] = await Promise.all([
+            this._prepareOfframpSettlementData(
+                beneficiary,
+                params,
+                SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
+            ),
+            dbClient.offramp_awaiting_crypto_debit
+                .filter({
+                    cryptoTransactionId: params.txHash,
+                })
+                .getFirst(),
+        ]);
+
+        if (!offrampRequest) {
+            throw new Error('Offramp request not found');
+        }
 
         if (settlementData.localCurrencySymbol !== 'NGN') {
             throw new Error(
@@ -875,8 +897,7 @@ class FiatRampService {
         }
 
         await NigeriaBanksService.sendProcessingSettlementMessage({
-            usdAmount: safeHavenSettlementRecord.usdAmount,
-            transactionFeeUsd: safeHavenSettlementRecord.transactionFeeUsd,
+            tokenAmountDebited: offrampRequest.tokenAmountToDebit,
             ownerId: safeHavenSettlementRecord.ownerId,
             tokenSymbol: safeHavenSettlementRecord.tokenSymbol,
             blockchainNetwork: safeHavenSettlementRecord.blockchainNetwork,
