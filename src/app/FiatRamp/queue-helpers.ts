@@ -55,13 +55,12 @@ export const handleOfframpRequestInQueue = async (
     );
 
     try {
-
         let sequenceId: string;
 
         if (params.ngnVasSettlementId) {
-           
             sequenceId = await FiatRampService.postNgnVasTransaction({
                 ...params,
+                ngnVasSettlementId: params.ngnVasSettlementId,
                 chainName: params.chainName.toUpperCase(),
                 tokenName: params.tokenName.toUpperCase(),
             });

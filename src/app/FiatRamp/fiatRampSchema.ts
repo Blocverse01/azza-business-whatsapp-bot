@@ -166,7 +166,7 @@ export const createBeneficiaryResponseSchema = z.object({
 
 export const sendOfframpRequestPayloadSchema = z.object({
     beneficiaryId: z.string().optional(),
-    ngnVasSettlementId: z.string().optional(),
+    ngnVasSettlementId: z.string().optional().nullable(),
     localAmount: z.number(),
     chainName: z.string(),
     tokenName: z.string(),
@@ -218,7 +218,7 @@ export const OfframpTransactionRecordSchema = z.object({
         nameEnquiryReference: z.string().optional(),
         channelId: z.string().optional(),
         recipientMeterNumber: z.string().optional(),
-        recipientPhoneNumber: z.string().optional()
+        recipientPhoneNumber: z.string().optional(),
     }),
     createdAt: z.string().datetime(),
     rate: z.number(),
@@ -230,7 +230,7 @@ export const OfframpTransactionRecordSchema = z.object({
     processorName: z.string(),
     serviceCategoryId: z.string().optional(),
     bundleCode: z.string().optional(),
-    distributionName: z.string().optional()
+    distributionName: z.string().optional(),
 });
 
 export const onrampTransactionRecordSchema = z.object({
