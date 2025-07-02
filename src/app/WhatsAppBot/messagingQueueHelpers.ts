@@ -127,7 +127,7 @@ const handleIncomingWhatsappMessageV2 = async (
             if (possibleReferralCode) {
                 const validReferralScheme =
                     await ReferralSchemeService.getReferralSchemeByCode(possibleReferralCode);
-                referralCode = validReferralScheme?.isActive ? validReferralScheme.code : null;
+                referralCode = validReferralScheme?.isActive ? validReferralScheme.code! : null;
             }
         }
 

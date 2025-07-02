@@ -21,6 +21,7 @@ import NigeriaBanksService from "../NigeriaBanks/NigeriaBanksService";
 import WhatsAppBotService from "../WhatsAppBot/WhatsAppBotService";
 import { generateBillPaymentReceipt } from "../receipts/generators";
 import { NgnVasSettlementTransactionRecord } from "@/db/xata";
+import { addCryptoPayoutJobToQueue } from "../crypto-payouts-v2/utils";
 
 export type TransactionType = 'data' | 'airtime';
 
@@ -205,7 +206,7 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
 
             const settlement =
                 await SafeHavenService.getNGNVasProcessingTransaction(transactionId);
-            
+
             const transaction = await (async () => {
                 if (settlement.processorName === SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID) {
                     return await SafeHavenService.getSafeHavenVasPaymentByTransactionId(
@@ -246,14 +247,14 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
                 );
 
                 const receiptBuffer = await generateBillPaymentReceipt(settlement as NgnVasSettlementTransactionRecord);
-              
+
                 const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
                     env.WA_PHONE_NUMBER_ID,
                     new File([Buffer.from(receiptBuffer)], `receipt-${transactionId}.png`, {
                         type: 'image/png',
                     })
                 );
-                
+
                 if (uploadedMedia) {
                     await WhatsAppBotService.sendMediaMessage(
                         {
@@ -271,6 +272,11 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
             } else {
                 await settlement.update({
                     processingStatus: transactionStatusSchema.parse('failed'),
+                });
+
+                await addCryptoPayoutJobToQueue({
+                    transactionId: settlement.sequenceId!,
+                    transactionType: 'ngn-airtime-data-refund',
                 });
 
                 const failedMessage = transactionFailedMessage(transactionType, transactionMessage);

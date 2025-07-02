@@ -19,6 +19,7 @@ import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError
 import logger from '@/resources/logger';
 import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 import HoneyCoinService from '../HoneyCoin/HoneyCoinService';
+import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -152,6 +153,9 @@ export const createCryptoPayoutWorker = () => {
                 if (transactionType === 'onramp-payout') {
                     return await FiatRampService.getOnrampTransaction(transactionId);
                 }
+                if (transactionType === 'ngn-airtime-data-refund') {
+                    return await SafeHavenService.getVasPaymentSettlementById(transactionId);
+                }
                 throw new Error(`Invalid transaction type: ${transactionType}`);
             })();
 
@@ -163,7 +167,8 @@ export const createCryptoPayoutWorker = () => {
                 if (
                     transactionType === 'offramp-refund' ||
                     transactionType === 'offramp-ngn-bank-refund' ||
-                    transactionType === 'offramp-honeycoin-refund'
+                    transactionType === 'offramp-honeycoin-refund' ||
+                    transactionType === 'ngn-airtime-data-refund'
                 ) {
                     return transaction.status === 'failed';
                 }
@@ -180,8 +185,12 @@ export const createCryptoPayoutWorker = () => {
             let transactionAmount = transaction.usdAmount;
 
             if (
-                (transactionType === 'offramp-refund' ||
-                    transactionType === 'offramp-ngn-bank-refund') &&
+                (
+                    transactionType === 'offramp-refund' ||
+                    transactionType === 'offramp-ngn-bank-refund' ||
+                    transactionType === 'offramp-honeycoin-refund' ||
+                    transactionType === 'ngn-airtime-data-refund'
+                ) &&
                 'transactionHash' in transaction
             ) {
                 const offrampRequest = await dbClient.offramp_awaiting_crypto_debit
@@ -197,8 +206,8 @@ export const createCryptoPayoutWorker = () => {
             }
 
             const assetConfig = azzaWalletManager.searchAssets({
-                tokenName: transaction.tokenSymbol,
-                network: transaction.blockchainNetwork,
+                tokenName: transaction.tokenSymbol!,
+                network: transaction.blockchainNetwork!,
             })[0];
 
             const destinationWalletAddress =
@@ -215,7 +224,7 @@ export const createCryptoPayoutWorker = () => {
             }
 
             const cryptoPayoutParams: CryptoPayoutParams = {
-                amount: transactionAmount,
+                amount: transactionAmount!,
                 userWalletAddress: destinationWalletAddress,
                 targetTransactionHash: transaction.sequenceId,
                 assetId: assetConfig.listItemId,

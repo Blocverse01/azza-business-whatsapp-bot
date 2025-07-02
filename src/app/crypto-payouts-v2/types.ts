@@ -11,5 +11,6 @@ export type CryptoPayoutQueueInput = {
         | 'offramp-refund'
         | 'onramp-payout'
         | 'offramp-ngn-bank-refund'
-        | 'offramp-honeycoin-refund';
+        | 'offramp-honeycoin-refund'
+        | 'ngn-airtime-data-refund';
 };
