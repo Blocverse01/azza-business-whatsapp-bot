@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 export const OfframpQueueFlowSchema = z.object({
     beneficiaryId: z.string(),
-    ngnVasSettlementId: z.string().optional(),
-    transactionType : z.string().optional(),
+    ngnVasSettlementId: z.string().optional().nullable(),
+    transactionType: z.string().optional().nullable(),
     localAmount: z.number(),
     chainName: z.string(),
     tokenName: z.string(),
