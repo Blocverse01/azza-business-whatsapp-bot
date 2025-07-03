@@ -26,7 +26,7 @@ const mainnet__blockradarAssetIdMap: Record<string, string> = {
     [AssetInteractiveButtonIds.ETH_ETHEREUM]: '04038a2f-e627-49f3-9fa0-5ac99593d81b',
     [AssetInteractiveButtonIds.USDC_BEP20]: 'f2e5ad81-a3a0-4a70-a047-5a6c5abe3566',
     [AssetInteractiveButtonIds.USDT_BEP20]: '7c56a91a-d98c-4a22-afe8-282bbe30539e',
-    [AssetInteractiveButtonIds.BNB_BEP20]: '12e29e8b-81d1-4961-b48e-b7e4c98351ca',
+    [AssetInteractiveButtonIds.BNB_BEP20]: 'e51c336a-50d0-4730-b4b9-48509a6ea2b8',
     [AssetInteractiveButtonIds.USDC_POLYGON]: '16396a2d-affd-4d38-bb35-6e29f8a1042b',
     [AssetInteractiveButtonIds.USDT_POLYGON]: '22796ff3-eee1-4afe-8d21-1403dae52366',
     [AssetInteractiveButtonIds.POL_POLYGON]: '96bda4d6-0292-43e3-ad01-21091ea84ecd',
