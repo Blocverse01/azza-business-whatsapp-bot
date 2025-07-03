@@ -30,6 +30,7 @@ import {
     usdtLiskConfig,
     usdtCeloConfig,
     cngnBep20Config,
+    bnbConfig,
 } from '@/resources/web3/core/tokens';
 
 export const ENABLED_ASSETS = [
@@ -63,6 +64,7 @@ export const ENABLED_ASSETS = [
     usdcCeloConfig,
     celoConfig,
     cngnBep20Config,
+    bnbConfig,
 ];
 
 // Get asset config by list item id
