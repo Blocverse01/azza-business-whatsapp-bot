@@ -338,6 +338,7 @@ class HoneyCoinService {
             platformFeePercentage: transaction.platformFeePercentage,
             fromWalletAddress: transaction.fromWalletAddress,
             tokenAddress: transaction.tokenAddress,
+            processorName: 'Honey Coin'
         });
 
         return transactionRecord;
