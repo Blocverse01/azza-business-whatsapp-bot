@@ -71,7 +71,7 @@ export enum TokenAddresses {
     /**
      * BEP20 Asset Addresses
      */
-    // USDT
+    // USDC
     USDC_BEP20_MAINNET = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
     USDC_BEP20_TESTNET = '0x64544969ed7EBf5f083679233325356EbE738930',
 
@@ -139,6 +139,7 @@ export enum TokenNames {
     TRX = 'TRX',
     CELO = 'CELO',
     CNGN = 'cNGN',
+    BNB = 'BNB',
 }
 
 export const TokenIconURIs: Record<string, string> = {
@@ -421,6 +422,19 @@ export const usdtBep20Config = {
     network: 'Bep20',
     supportedAssetActions: ALL_ASSET_ACTIONS,
     showOnAssetsMenu: true,
+} satisfies AssetConfig;
+
+export const bnbConfig = {
+    tokenName: TokenNames.BNB,
+    listItemId: AssetInteractiveButtonIds.BNB_BEP20,
+    tokenAddress: 'BNB',
+    network: 'Bep20' as const,
+    supportedAssetActions: [
+        ExploreAssetActions.WITHDRAW_ASSET,
+        ExploreAssetActions.DEPOSIT,
+    ] as ExploreAssetActions[],
+    showOnAssetsMenu: false,
+    isNative: true,
 } satisfies AssetConfig;
 /// =============== CNGN =================
 export const cngnBep20Config = {
