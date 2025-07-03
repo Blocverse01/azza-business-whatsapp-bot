@@ -1,27 +1,34 @@
-import { getAssetConfigOrThrow } from "@/config/whatsAppBot";
+import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { Worker } from 'bullmq';
-import azzaWalletManager from "@/runtime/wallet";
-import FiatRampService from "../FiatRamp/FiatRampService";
-import { defaultQueueRemoveOptions, queues } from "@/background-processing/queues";
-import { convertBase64ToAsciiString, encryptWithAES } from "@/resources/utils/encryption";
-import env from "@/constants/env";
-import { AirtimePayload, DataPayload, PaymentTransactionDetails, RecipientInfo, transactionType, UtilityPayload } from "./types";
-import { logServiceError } from "@/resources/requestHelpers/handleRequestError";
-import userServiceV2 from "@/runtime/user";
-import SafeHavenService from "../NigeriaBanks/SafeHaven/SafeHavenService";
-import { VASServiceType } from "../NigeriaBanks/SafeHaven/SafeHaveSchema";
-import { NGNVasTransactionQueueInput, QueueNames } from "@/background-processing/types";
-import { SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID } from "../FiatRamp/config";
-import { HttpException } from "@/resources/exceptions/HttpException";
-import { NOT_FOUND } from "@/constants/status-codes";
-import { prettifyNumber } from "@/resources/utils/currency";
-import { transactionStatusSchema } from "../FiatRamp/fiatRampSchema";
-import { connectionConfig } from "@/background-processing/redis-connection-config";
-import NigeriaBanksService from "../NigeriaBanks/NigeriaBanksService";
-import WhatsAppBotService from "../WhatsAppBot/WhatsAppBotService";
-import { generateBillPaymentReceipt } from "../receipts/generators";
-import { NgnVasSettlementTransactionRecord } from "@/db/xata";
-import { addCryptoPayoutJobToQueue } from "../crypto-payouts-v2/utils";
+import azzaWalletManager from '@/runtime/wallet';
+import FiatRampService from '../FiatRamp/FiatRampService';
+import { defaultQueueRemoveOptions, queues } from '@/background-processing/queues';
+import { convertBase64ToAsciiString, encryptWithAES } from '@/resources/utils/encryption';
+import env from '@/constants/env';
+import {
+    AirtimePayload,
+    DataPayload,
+    PaymentTransactionDetails,
+    RecipientInfo,
+    transactionType,
+    UtilityPayload,
+} from './types';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
+import userServiceV2 from '@/runtime/user';
+import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
+import { VASServiceType } from '../NigeriaBanks/SafeHaven/SafeHaveSchema';
+import { NGNVasTransactionQueueInput, QueueNames } from '@/background-processing/types';
+import { SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID } from '../FiatRamp/config';
+import { HttpException } from '@/resources/exceptions/HttpException';
+import { NOT_FOUND } from '@/constants/status-codes';
+import { prettifyNumber } from '@/resources/utils/currency';
+import { transactionStatusSchema } from '../FiatRamp/fiatRampSchema';
+import { connectionConfig } from '@/background-processing/redis-connection-config';
+import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
+import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
+import { generateBillPaymentReceipt } from '../receipts/generators';
+import { NgnVasSettlementTransactionRecord } from '@/db/xata';
+import { addCryptoPayoutJobToQueue } from '../crypto-payouts-v2/utils';
 
 export type TransactionType = 'data' | 'airtime';
 
@@ -29,7 +36,6 @@ export const addNgnVasPaymentJobForProcessing = async (
     jobId: string,
     params: PaymentTransactionDetails
 ) => {
-
     const { transactionDetailsParams, ngnVasDetailsParams } = params;
 
     const assetConfig = getAssetConfigOrThrow(transactionDetailsParams.assetId);
@@ -68,7 +74,6 @@ export const addNgnVasPaymentJobForProcessing = async (
     }
 
     try {
-
         //create a ngn vas settlement
         const vas_settlement = await SafeHavenService.createVasPaymentSettlement({
             blockchainNetwork: assetConfig.network,
@@ -85,7 +90,7 @@ export const addNgnVasPaymentJobForProcessing = async (
             processorName: 'safehaven',
             fromWalletAddress: assetConfig.tokenAddress,
             transactionFeeUsd: 0,
-            transactionType: ngnVasDetailsParams?.type!
+            transactionType: ngnVasDetailsParams?.type!,
         });
 
         // Process in background and return early processing response
@@ -105,7 +110,7 @@ export const addNgnVasPaymentJobForProcessing = async (
                     assetId: transactionDetailsParams.assetId,
                     tokenAmountToDebit: transactionDetailsParams.tokenAmountToDebit,
                     transactionType: transactionType,
-                    ngnVasSettlementId: vas_settlement.id
+                    ngnVasSettlementId: vas_settlement.id,
                 },
                 transactionPin: encryptWithAES(
                     transactionDetailsParams.transactionPin,
@@ -114,7 +119,7 @@ export const addNgnVasPaymentJobForProcessing = async (
                 ),
                 ngnVasParams: {
                     type: ngnVasDetailsParams?.type!,
-                    payload: ngnVasDetailsParams?.payload!
+                    payload: ngnVasDetailsParams?.payload!,
                 },
                 whatsappParams: {
                     userPhoneNumber: transactionDetailsParams.userPhoneNumber,
@@ -132,7 +137,6 @@ export const addNgnVasPaymentJobForProcessing = async (
             message:
                 "Your transaction is currently being processed, we'd send updates on the status of your transaction in your DM",
         };
-
     } catch (error) {
         await logServiceError(error, 'Processing utility transaction failed');
 
@@ -141,9 +145,7 @@ export const addNgnVasPaymentJobForProcessing = async (
             message: 'Transaction failed',
         };
     }
-
 };
-
 
 const buildRecipient = (
     vasType: VASServiceType,
@@ -167,7 +169,7 @@ const buildRecipient = (
                 ...base,
                 recipientPhoneNumber: phoneNumber,
                 serviceCategoryId,
-                bundleCode
+                bundleCode,
             };
         }
 
@@ -185,11 +187,7 @@ const buildRecipient = (
     }
 };
 
-
-export const addNgnVasTransactionUpdateJobToQueue = async (
-    input: NGNVasTransactionQueueInput
-) => {
-
+export const addNgnVasTransactionUpdateJobToQueue = async (input: NGNVasTransactionQueueInput) => {
     const jobId = `${input.processorName}-transaction-${input.transactionId}`;
     return queues.handleNGNVasTransactionStatusUpdate.add(jobId, input, {
         jobId,
@@ -201,11 +199,9 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
     return new Worker<NGNVasTransactionQueueInput>(
         QueueNames.handleNGNVasTransactionStatusUpdate,
         async (job) => {
-
             const { transactionId } = job.data;
 
-            const settlement =
-                await SafeHavenService.getNGNVasProcessingTransaction(transactionId);
+            const settlement = await SafeHavenService.getNGNVasProcessingTransaction(transactionId);
 
             const transaction = await (async () => {
                 if (settlement.processorName === SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID) {
@@ -219,7 +215,7 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
 
             const userPhoneNumber = await userServiceV2.getUserPhoneNumber(settlement?.ownerId!);
 
-            let transactionMessage = ''
+            let transactionMessage = '';
 
             if (settlement.transactionType === 'airtime') {
                 transactionMessage = `${settlement.localCurrencySymbol}${prettifyNumber(settlement.localAmount!)} top-up to ${settlement.recipientPhoneNumber}`;
@@ -239,14 +235,19 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
                     processingStatus: transactionStatusSchema.parse('complete'),
                 });
 
-                const completeMessage = transactionCompleteMessage(transactionType, transactionMessage);
+                const completeMessage = transactionCompleteMessage(
+                    transactionType,
+                    transactionMessage
+                );
 
                 await NigeriaBanksService.sendArbitraryTextMessage(
                     completeMessage,
                     userPhoneNumber
                 );
 
-                const receiptBuffer = await generateBillPaymentReceipt(settlement as NgnVasSettlementTransactionRecord);
+                const receiptBuffer = await generateBillPaymentReceipt(
+                    settlement as NgnVasSettlementTransactionRecord
+                );
 
                 const uploadedMedia = await WhatsAppBotService.uploadImageToWhatsapp(
                     env.WA_PHONE_NUMBER_ID,
@@ -268,7 +269,6 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
                         }
                     );
                 }
-
             } else {
                 await settlement.update({
                     processingStatus: transactionStatusSchema.parse('failed'),
@@ -291,19 +291,11 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
     );
 };
 
-
-const transactionCompleteMessage = (
-    txT: TransactionType,
-    transactionDetailsString: string
-) => {
+const transactionCompleteMessage = (txT: TransactionType, transactionDetailsString: string) => {
     const message = `✅ Your ${txT === 'data' ? 'data bundle' : 'airtime'} transaction has been completed successfully:\n\n${transactionDetailsString}\n\n`;
     return message;
 };
 
-
-const transactionFailedMessage = (
-    txT: TransactionType,
-    transactionDetailsString: string
-) => {
+const transactionFailedMessage = (txT: TransactionType, transactionDetailsString: string) => {
     return `❌ Your ${txT === 'data' ? 'data subscription' : 'airtime top-up'} failed:\n\n${transactionDetailsString}\n\nPlease contact support.`;
 };
