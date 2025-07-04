@@ -6,13 +6,16 @@ export const SELL_BENEFICIARY_AMOUNT_PATTERN =
 export const SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN =
     /sell:(?<sell>[^|]+)\|beneficiaryId:(?<beneficiaryId>[^|]+)/;
 
+export const AGENT_SELL_ASSET_REGEX_PATTERN = 
+    /sell:(?<assetId>[^|]+)\|countryCode:(?<countryCode>[^|]+)(\|isAgent:(?<isAgent>true|false))?/;
+
 // create a regex pattern from `sell:${assetId}|beneficiaryAction:chooseExisting`
 export const SELL_ASSET_DESTINATION_CHOICE_REGEX =
     /sell:(?<assetId>[^|]+)\|beneficiaryAction:(?<beneficiaryAction>[^|]+)\|countryCode:(?<countryCode>[^|]+)/;
 
 // create a regex pattern for `${assetActionId}:${purchaseAssetId}|currency:${country.currency}|countryCode:${country.code}`
 export const TRADE_ASSET_REGEX =
-    /(?<assetActionId>[^:]+):(?<purchaseAssetId>[^|]+)\|currency:(?<currency>[^|]+)\|countryCode:(?<countryCode>[^|]+)/;
+    /(?<assetActionId>[^:]+):(?<purchaseAssetId>[^|]+)\|currency:(?<currency>[^|]+)\|countryCode:(?<countryCode>[^|]+)(\|isAgent:(?<isAgent>true|false))?/;
 
 export const BOT_COMMANDS_REGEX = {
     RATES: /^\/rates$/,
@@ -43,6 +46,12 @@ export type SellAssetToBeneficiaryMatchGroups = {
     beneficiaryId: string;
 };
 
+export type AgentSellAssetToBeneficiaryMatchGroups = {
+    sell: string;
+    isAgent: string;
+    countryCode: string;
+};
+
 export type SellAssetDestinationChoiceMatchGroups = {
     assetId: string;
     beneficiaryAction: 'chooseExisting' | 'addNew';
@@ -54,6 +63,7 @@ export type TradeAssetMatchGroups = {
     purchaseAssetId: AssetInteractiveButtonIds;
     currency: string;
     countryCode: string;
+    isAgent: string;
 };
 
 export type TradeAssetBotCommandMatchGroups = {
@@ -85,6 +95,15 @@ export const extractSellAssetToBeneficiaryGroups = (
     return extractGroups<SellAssetToBeneficiaryMatchGroups>(
         text,
         SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN
+    );
+};
+
+export const extractAgentSellAssetToBeneficiary = (
+    text: string
+): AgentSellAssetToBeneficiaryMatchGroups => {
+    return extractGroups<AgentSellAssetToBeneficiaryMatchGroups>(
+        text,
+        AGENT_SELL_ASSET_REGEX_PATTERN
     );
 };
 

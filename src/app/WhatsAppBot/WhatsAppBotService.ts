@@ -36,6 +36,7 @@ import {
 import env from '@/constants/env';
 import { SIX, TWO } from '@/constants/numbers';
 import {
+    AGENT_SELL_ASSET_REGEX_PATTERN,
     SELL_ASSET_DESTINATION_CHOICE_REGEX,
     SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN,
     TRADE_ASSET_REGEX,
@@ -355,6 +356,27 @@ class WhatsAppBotService {
                     id: `sell:${assetId}|beneficiaryAction:addNew|countryCode:${countryIdentifier}`,
                     title: 'Add New',
                 },
+            ],
+        });
+
+        await this.sendWhatsappMessage(businessPhoneNumberId, interactiveButtonMessage);
+    }
+
+    public static async agentofframpPaymentMessage(
+        phoneParams: PhoneNumberParams,
+        assetId: string,
+        countryIdentifier: string
+    ) {
+        const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
+
+        const interactiveButtonMessage = MessageGenerators.generateInteractiveButtonMessage({
+            recipient: userPhoneNumber,
+            bodyText: `You're about to make a payment to the user`,
+            replyButtons: [
+                {
+                    id: `sell:${assetId}|countryCode:${countryIdentifier}`,
+                    title: 'Proceed to Payment',
+                }
             ],
         });
 
@@ -904,6 +926,10 @@ class WhatsAppBotService {
             return 'trigger-offramp-flow';
         }
 
+        if (interactiveListReplyId.match(AGENT_SELL_ASSET_REGEX_PATTERN)) {
+            return 'trigger-agent-offramp-flow';
+        }
+
         throw new HttpException(
             INTERNAL_SERVER_ERROR,
             'No configured response action for interactive list reply',
@@ -1035,7 +1061,7 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}|isAgent:${(isAgent) ? true : false}`,
                     title: 'More',
                 }
                 : null;

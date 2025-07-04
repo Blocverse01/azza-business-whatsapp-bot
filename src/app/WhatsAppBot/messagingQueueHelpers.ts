@@ -31,6 +31,7 @@ import {
     WhatsappBroadcastQueueInput,
 } from '@/background-processing/types';
 import {
+    extractAgentSellAssetToBeneficiary,
     extractGroups,
     extractSellAssetDestinationChoiceGroups,
     extractSellAssetToBeneficiaryGroups,
@@ -386,7 +387,7 @@ const handleIncomingWhatsappMessageV2 = async (
 
             const interactiveActionResponse =
                 WhatsAppBotService.determineInteractiveListReplyAction(interactiveListId);
-
+            
             switch (interactiveActionResponse) {
                 case 'trigger-offramp-flow':
                     const { sell, beneficiaryId } =
@@ -398,6 +399,17 @@ const handleIncomingWhatsappMessageV2 = async (
                     });
 
                     return ActionExecuted.SEND_OFFRAMP_FLOW_MESSAGE;
+                
+                case 'trigger-agent-offramp-flow':
+                    const { sell : _sell, isAgent : _isAgentBoolen } =
+                        extractAgentSellAssetToBeneficiary(interactiveListId);
+
+                    await WhatsAppBotService.beginOffRampFlowMessage(userV2, phoneParams, {
+                        assetId: _sell,
+                        beneficiaryId : 'rec_utuutu_58588',
+                    });
+
+                    return ActionExecuted.SEND_OFFRAMP_FLOW_MESSAGE;
 
                 case 'return-more-currencies':
                     const [
@@ -406,16 +418,18 @@ const handleIncomingWhatsappMessageV2 = async (
                         purchaseAssetId,
                         nextSliceFrom,
                         nextSliceTo,
+                        isAgent
                     ] = interactiveListId.match(
                         MORE_CURRENCIES_COMMAND_REGEX_PATTERN
                     ) as MoreCurrenciesCommandMatch;
 
-                    console.log(purchaseAssetId);
+                    const isAgentBoolean = isAgent === 'true';
 
                     await WhatsAppBotService.sendSelectSupportedCurrenciesMessage(
                         phoneParams,
                         assetActionId,
                         purchaseAssetId,
+                        isAgentBoolean,
                         parseInt(nextSliceFrom),
                         parseInt(nextSliceTo)
                     );
@@ -459,7 +473,17 @@ const handleIncomingWhatsappMessageV2 = async (
                         purchaseAssetId: assetInteractiveId,
                         currency,
                         countryCode,
+                        isAgent : _isAgent
                     } = extractTradeAssetGroups(interactiveListId);
+
+                    if (tradeAction === ExploreAssetActions.SELL_ASSET && _isAgent === 'true') {
+                        await WhatsAppBotService.agentofframpPaymentMessage(
+                            phoneParams,
+                            assetInteractiveId,
+                            countryCode
+                        )
+                        return ActionExecuted.SEND_TRADE_ASSET_WITH_CURRENCY_MESSAGE;
+                    }
 
                     if (tradeAction === ExploreAssetActions.SELL_ASSET) {
                         await WhatsAppBotService.offrampDestinationChoiceMessage(

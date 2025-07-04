@@ -176,6 +176,8 @@ export const assetIds = assetInteractiveButtonsIds.join('|');
 // Create the regex pattern
 export const ASSET_ACTION_REGEX_PATTERN = `^(${actions}):(${assetIds})$`;
 
+export const AGENT_ASSET_ACTION_REGEX_PATTERN = `^(${actions}):(${assetIds})(\\|isAgent:(true|false))?$`;
+
 // Create the regex object
 export const ASSET_ACTION_REGEX = new RegExp(ASSET_ACTION_REGEX_PATTERN);
 
@@ -224,12 +226,15 @@ export type InteractiveListReplyTypes =
     | 'explore-asset'
     | 'trigger-offramp-flow'
     | 'return-more-currencies'
-    | 'return-more-beneficiaries';
+    | 'return-more-beneficiaries'
+    | 'trigger-agent-offramp-flow';
 export type InteractiveNfmReplyActions = 'trigger-offramp-flow';
 
 export type AssetActionRegexMatch = [string, ExploreAssetActions, AssetInteractiveButtonIds];
 
-export const MORE_CURRENCIES_COMMAND_REGEX_PATTERN = `^moreCurrencies\\|(${actions}):(${assetIds})\\|nextSliceFrom:(\\d+)\\|nextSliceTo:(\\d+)$`;
+export type isAgent = boolean
+
+export const MORE_CURRENCIES_COMMAND_REGEX_PATTERN = `^moreCurrencies\\|(${actions}):(${assetIds})\\|nextSliceFrom:(\\d+)\\|nextSliceTo:(\\d+)$|isAgent:(true|false)?$`;
 export const MORE_CURRENCIES_COMMAND_REGEX = new RegExp(MORE_CURRENCIES_COMMAND_REGEX_PATTERN);
 
 export type MoreCurrenciesCommandMatch = [
@@ -238,6 +243,7 @@ export type MoreCurrenciesCommandMatch = [
     AssetInteractiveButtonIds,
     string,
     string,
+    'true' | 'false' | undefined
 ];
 
 export const MORE_BENEFICIARIES_COMMAND_REGEX_PATTERN =
