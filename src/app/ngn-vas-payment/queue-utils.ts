@@ -275,7 +275,7 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
                 });
 
                 await addCryptoPayoutJobToQueue({
-                    transactionId: settlement.sequenceId!,
+                    transactionId: settlement.id,
                     transactionType: 'ngn-airtime-data-refund',
                 });
 

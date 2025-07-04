@@ -515,9 +515,7 @@ class SafeHavenService {
     }
 
     public static async getVasPaymentSettlementById(settlementId: string) {
-        const transaction = await this.NGN_VAS_TRANSACTION_REPOSITORY.filter({
-            sequenceId: settlementId,
-        }).getFirst();
+        const transaction = await this.NGN_VAS_TRANSACTION_REPOSITORY.read(settlementId);
 
         if (!transaction) {
             throw new HttpException(NOT_FOUND, 'Transaction not found');
