@@ -58,6 +58,7 @@ import userServiceV2 from '@/runtime/user';
 import { VASServiceType } from '../NigeriaBanks/SafeHaven/SafeHaveSchema';
 import { dbClient } from '@/db/dbClient';
 import { CompositeRateService } from '../rates/RateService';
+import { normalizeTxHash } from './utils';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
@@ -171,7 +172,7 @@ class FiatRampService {
                             safeHavenBank.bankCode === bank.seerbitId ||
                             (env.WEB3_ENVIRONMENT === 'testnet' &&
                                 safeHavenBank.slug ===
-                                    slugify(bank.name, { lower: true, replacement: '-' }))
+                                slugify(bank.name, { lower: true, replacement: '-' }))
                         );
                     });
 
@@ -736,7 +737,7 @@ class FiatRampService {
             ),
             dbClient.offramp_awaiting_crypto_debit
                 .filter({
-                    cryptoTransactionId: params.txHash,
+                    cryptoTransactionId: normalizeTxHash(params.txHash),
                 })
                 .getFirst(),
         ]);
@@ -852,7 +853,7 @@ class FiatRampService {
             ),
             dbClient.offramp_awaiting_crypto_debit
                 .filter({
-                    cryptoTransactionId: params.txHash,
+                    cryptoTransactionId: normalizeTxHash(params.txHash),
                 })
                 .getFirst(),
         ]);

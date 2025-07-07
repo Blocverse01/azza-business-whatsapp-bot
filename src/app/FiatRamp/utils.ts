@@ -12,3 +12,7 @@ export const getFallBackRegionalPhoneNumber = async(userId:string, countryCode: 
 
     return record.phoneNumber;
 }
+
+export const normalizeTxHash = (txHash: string) => {
+    return txHash.split('_retry')[0];
+}

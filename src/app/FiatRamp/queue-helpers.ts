@@ -19,6 +19,7 @@ import { generateOnrampTransactionInitiatedMessage } from '@/resources/utils/bot
 import { prettifyNumber } from '@/resources/utils/currency';
 import { updateOnrampTxWithPatches } from './patches/onramp';
 import { Effect } from 'effect';
+import { normalizeTxHash } from './utils';
 
 export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2) => {
     const txHashSha256 = crypto.createHash('sha256').update(params.txHash).digest('hex');
@@ -33,7 +34,7 @@ export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2)
 export const handleOfframpRequestInQueue = async (
     params: OfframpQueueFlowParamsV2
 ): Promise<FiatPayoutQueueResult> => {
-    const transactionHash = params.txHash.split('_retry')[0];
+    const transactionHash = normalizeTxHash(params.txHash);
 
     const [transaction] = await Promise.all([
         azzaWalletManager.getTransactionByHash(
