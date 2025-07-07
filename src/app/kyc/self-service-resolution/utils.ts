@@ -1,9 +1,11 @@
+import { removeExcessSpaces, arrangeNameAlphabetically } from '@/resources/utils/transformers';
+
 type UserBioData = {
     name: string;
     dateOfBirth: string;
 };
 
-type KycInfoToReview = {
+export type KycInfoToReview = {
     bvn: UserBioData;
     nin: UserBioData;
 };
@@ -17,7 +19,7 @@ type ReviewableResult = {
     riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
 };
 
-type KycReviewResult =
+export type KycReviewResult =
     | {
           recordsMatch: true;
           decision: 'AUTO_APPROVE';
@@ -192,22 +194,6 @@ const levenshteinDistance = (str1: string, str2: string): number => {
     }
 
     return matrix[str2.length][str1.length];
-};
-
-// Utility functions
-const arrangeNameAlphabetically = (name: string): string => {
-    return name
-        .split(' ')
-        .sort((a, b) => a.localeCompare(b))
-        .join(' ');
-};
-
-const removeExcessSpaces = (name: string): string => {
-    return name
-        .split(' ')
-        .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .join(' ');
 };
 
 const compareStringsCaseInsentitive = (string1: string, string2: string): boolean => {

@@ -32,3 +32,18 @@ export const clipDecimal = (num: number, decimals: number): number => {
     const factor = 10 ** decimals;
     return Math.trunc(num * factor) / factor;
 };
+
+export const arrangeNameAlphabetically = (name: string): string => {
+    return name
+        .split(' ')
+        .sort((a, b) => a.localeCompare(b))
+        .join(' ');
+};
+
+export const removeExcessSpaces = (name: string): string => {
+    return name
+        .split(' ')
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0)
+        .join(' ');
+};
