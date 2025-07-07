@@ -15,6 +15,10 @@ import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
 import BvnKycVerificationFlow from '../WhatsAppBot/WhatsAppFlows/BvnKycVerificationFlow';
 import { connectionConfig } from '@/background-processing/redis-connection-config';
+import { compareUserKycInfoWithDecision } from '../kyc/self-service-resolution/utils';
+import { generateKycRejectMessages } from '@/app/kyc/self-service-resolution/utils';
+import { sendTechnicalIssueAlert } from '../support/whatsapp';
+import KycResolutionFlow from '@/app/WhatsAppBot/WhatsAppFlows/KycResolutionFlow';
 
 const NOT_AVAILABLE = 'Not Available';
 const NG = 'NG';
@@ -83,6 +87,24 @@ const isBvnPayload = (
     payload: SmileIdWebhookData | BvnKycVerificationWebhookBody
 ): payload is BvnKycVerificationWebhookBody => {
     return payload.PartnerParams.job_id.startsWith(BVN_VERIFICATION_JOB_ID_PREFIX);
+};
+
+const extractFullName = (bvnData: BvnKycVerificationWebhookBody): string => {
+    const bvnFirstName = bvnData.FullData?.FirstName;
+    const bvnLastName = bvnData.FullData?.LastName;
+    const bvnMiddleName = bvnData.FullData?.MiddleName;
+    let bvnFullName = bvnData.FullName ?? '';
+
+    if (!isValidStringData(bvnFullName ?? '')) {
+        if (isValidStringData(bvnFirstName ?? '')) {
+            bvnFullName += bvnFirstName + (bvnMiddleName ? ` ${bvnMiddleName}` : '');
+        }
+        if (isValidStringData(bvnLastName ?? '')) {
+            bvnFullName += ` ${bvnLastName}`;
+        }
+    }
+
+    return bvnFullName.trim();
 };
 
 const compareUserDataWithBvnData = (
@@ -173,48 +195,90 @@ export const createKycEventJobWorker = () => {
                             throw new Error('Expected user info to contain basic KYC info');
                         }
 
-                        const { isTheSameUser, errors } = compareUserDataWithBvnData(
-                            {
-                                firstName: user.firstName,
-                                lastName: user.lastName,
-                                kycDateOfBirth: user.kycDateOfBirth,
-                                country: user.country,
+                        const userBioData = {
+                            bvn: {
+                                name: extractFullName(webhookData),
+                                dateOfBirth: webhookData.DOB! ?? webhookData.FullData?.DateOfBirth!,
                             },
-                            webhookData
-                        );
+                            nin: {
+                                name: `${user.firstName} ${user.lastName}`,
+                                dateOfBirth: user.kycDateOfBirth,
+                            },
+                        };
 
-                        if (!isTheSameUser) {
-                            const errorMessages = errors
-                                .map((error) => `- ${error.message}`)
-                                .join('\n');
+                        const kycReviewResult = compareUserKycInfoWithDecision(userBioData);
 
-                            const messageBody = `BVN verification failed.\n\nReasons:\n${errorMessages}\n\nPlease type and send /support to get help.`;
+                        if (kycReviewResult.decision === 'AUTO_APPROVE') {
+                            const address = webhookData.Address;
+                            await userServiceV2.updateUserInfo(user, {
+                                kycStatus: 'VERIFIED',
+                                additionalKycIdNumber: webhookData.IDNumber,
+                                additionalKycIdType: webhookData.IDType,
+                                address: isValidStringData(address ?? '')
+                                    ? address?.trim()
+                                    : undefined,
+                            });
+                            await WhatsAppBotService.sendKycVerifiedMessage(
+                                user.primaryWhatsappPhoneNumber
+                            );
 
-                            const message = MessageGenerators.generateTextMessage(
+                            return {
+                                userBioData,
+                                kycReviewResult,
+                            };
+                        }
+                        if (kycReviewResult.decision === 'AUTO_REJECT') {
+                            const messages = generateKycRejectMessages(
+                                kycReviewResult,
+                                userBioData,
+                                user.primaryWhatsappPhoneNumber
+                            );
+                            const userMessageObj = MessageGenerators.generateTextMessage(
                                 user.primaryWhatsappPhoneNumber,
-                                messageBody
+                                messages.userMessage.message
                             );
 
                             await WhatsAppBotService.sendWhatsappMessage(
                                 env.WA_PHONE_NUMBER_ID,
-                                message
+                                userMessageObj
+                            );
+                            await sendTechnicalIssueAlert(
+                                messages.adminMessage.message,
+                                env.WA_PHONE_NUMBER_ID
                             );
 
-                            throw new Error(errorMessages);
+                            return {
+                                userBioData,
+                                kycReviewResult,
+                            };
                         }
+                        if (kycReviewResult.decision === 'MANUAL_REVIEW') {
+                            const resolutionMessage =
+                                KycResolutionFlow.generateKycResolutionFlowInitMessage(
+                                    kycReviewResult,
+                                    {
+                                        ...userBioData,
+                                        bvn_address: isValidStringData(webhookData.Address ?? '')
+                                            ? webhookData.Address?.trim()!
+                                            : '',
+                                        bvn_number: webhookData.IDNumber,
+                                    },
+                                    {
+                                        id: user.id,
+                                        phoneNumber: user.primaryWhatsappPhoneNumber,
+                                    }
+                                );
 
-                        const address = webhookData.Address;
+                            await WhatsAppBotService.sendWhatsappMessage(
+                                env.WA_PHONE_NUMBER_ID,
+                                resolutionMessage
+                            );
 
-                        await userServiceV2.updateUserInfo(user, {
-                            kycStatus: 'VERIFIED',
-                            additionalKycIdNumber: webhookData.IDNumber,
-                            additionalKycIdType: webhookData.IDType,
-                            address: isValidStringData(address ?? '') ? address?.trim() : undefined,
-                        });
-
-                        await WhatsAppBotService.sendKycVerifiedMessage(
-                            user.primaryWhatsappPhoneNumber
-                        );
+                            return {
+                                userBioData,
+                                kycReviewResult,
+                            };
+                        }
                     }
 
                     return;

@@ -4,7 +4,7 @@ export enum WhatsAppMessageType {
     TEXT = 'text',
     STICKER = 'sticker',
     INTERACTIVE = 'interactive',
-    BUTTON = 'button'
+    BUTTON = 'button',
     // Add more message types here as needed (e.g., IMAGE, VIDEO, AUDIO, etc.)
 }
 
@@ -217,7 +217,8 @@ export type InteractiveButtonReplyTypes =
     | 'acknowledge-manual-offramp-settlement'
     | 'mark-manual-offramp-settlement-as-paid'
     | 'explore-asset-action'
-    | 'referral-stats';
+    | 'referral-stats'
+    | 'admin-resolve-kyc-review';
 export type InteractiveListReplyTypes =
     | 'explore-asset-action'
     | 'trade-asset-with-currency'
@@ -225,7 +226,7 @@ export type InteractiveListReplyTypes =
     | 'trigger-offramp-flow'
     | 'return-more-currencies'
     | 'return-more-beneficiaries';
-export type InteractiveNfmReplyActions = 'trigger-offramp-flow';
+export type InteractiveNfmReplyActions = 'trigger-offramp-flow' | 'process-kyc-resolution';
 
 export type AssetActionRegexMatch = [string, ExploreAssetActions, AssetInteractiveButtonIds];
 
@@ -304,6 +305,8 @@ export enum ActionExecuted {
     SEND_MAINTAINANCE_MESSAGE = 'SEND_MAINTAINANCE_MESSAGE',
     SEND_KYC_QUERY_RESPONSE = 'SEND_KYC_QUERY_RESPONSE',
     REFERRAL_STATS = 'REFERRAL_STATS',
+    PROCESS_KYC_RESOLUTION = 'PROCESS_KYC_RESOLUTION',
+    ADMIN_RESOLVE_KYC = 'ADMIN_RESOLVE_KYC',
 }
 
 export type IncomingWhatsappMessage = {

@@ -15,7 +15,8 @@ type Flows =
     | 'BVN_KYC_VERIFICATION'
     | 'ACCOUNT_STATEMENT'
     | 'NGN_AIRTIME'
-    | 'NGN_DATA_BUNDLE';
+    | 'NGN_DATA_BUNDLE'
+    | 'KYC_RESOLUTION';
 
 export type FlowConfig = {
     flowId: string;
@@ -146,6 +147,16 @@ const flowConfigs: FlowConfigs = {
         },
         [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
             flowId: '1439076367236060',
+            flowMode: 'published',
+        },
+    },
+    KYC_RESOLUTION: {
+        [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
+            flowId: 'N/A',
+            flowMode: 'published',
+        },
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
+            flowId: '2028651784620054',
             flowMode: 'published',
         },
     },

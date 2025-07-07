@@ -49,6 +49,7 @@ import { VERIFY_ME_QUICK_REPLY_PAYLOAD } from './templates/base-cashback-reminde
 import { handleUserKycRequest } from '../kyc/utils';
 import { extractReferralCodeFromMessage } from '../referral-scheme/utils';
 import ReferralSchemeService from '../referral-scheme/service';
+import KycResolutionFlow from '@/app/WhatsAppBot/WhatsAppFlows/KycResolutionFlow';
 
 export const receiveIncomingWhatsappMessageV2 = async (
     message: IncomingWhatsappMessage,
@@ -375,6 +376,14 @@ const handleIncomingWhatsappMessageV2 = async (
 
                     return ActionExecuted.REFERRAL_STATS;
                 }
+
+                case 'admin-resolve-kyc-review': {
+                    await KycResolutionFlow.admin_resolveKycReview(
+                        interactiveButtonId,
+                        phoneParams.userPhoneNumber
+                    );
+                    return ActionExecuted.ADMIN_RESOLVE_KYC;
+                }
             }
         }
 
@@ -606,6 +615,12 @@ const handleIncomingWhatsappMessageV2 = async (
                 });
 
                 return ActionExecuted.SEND_OFFRAMP_FLOW_MESSAGE;
+            }
+
+            if (responseAction?.action === 'process-kyc-resolution') {
+                await KycResolutionFlow.processKycFlowCompletion(responseAction.data);
+
+                return ActionExecuted.PROCESS_KYC_RESOLUTION;
             }
         }
     }
