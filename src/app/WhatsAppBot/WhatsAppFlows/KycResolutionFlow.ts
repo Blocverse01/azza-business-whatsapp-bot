@@ -86,7 +86,7 @@ export default class KycResolutionFlow {
                     text: 'Quick review needed! 🔍',
                 },
                 body: {
-                    text: `We found ${issueDescription} between your BVN and NIN. Help us verify which is correct - takes just a minute!`,
+                    text: `We found ${issueDescription} between your BVN and NIN.\nHelp us verify which is correct - takes just a minute!`,
                 },
                 footer: {
                     text: 'Tap below to start',
