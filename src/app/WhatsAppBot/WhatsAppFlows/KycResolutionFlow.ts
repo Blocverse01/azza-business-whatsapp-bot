@@ -1,7 +1,7 @@
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import env from '@/constants/env';
 import { WhatsAppInteractiveMessage } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { generateRandomHexString } from '@/resources/utils/encryption';
+import { convertAsciiStringToBase64, generateRandomHexString } from '@/resources/utils/encryption';
 import { SIXTEEN } from '@/constants/numbers';
 import {
     type KycReviewResult,
@@ -389,7 +389,7 @@ export default class KycResolutionFlow {
     private static get defaultStore(): TempKycResolutionStore {
         return {
             async storeResolutionData(data) {
-                const key = `kyc_resolution_${data.user_id}`;
+                const key = convertAsciiStringToBase64(`kyc-issue-${data.user_id}`);
                 await redis.set(key, JSON.stringify(data));
 
                 return key;
