@@ -71,9 +71,7 @@ const determineKycDecision = (
     }
 
     // Determine decision based on adjusted ratio
-    if (adjustedDiffRatio <= KYC_CONFIG.thresholds.AUTO_APPROVE) {
-        return { decision: 'AUTO_APPROVE', riskLevel: 'LOW' };
-    } else if (adjustedDiffRatio <= KYC_CONFIG.thresholds.MANUAL_REVIEW) {
+    if (adjustedDiffRatio <= KYC_CONFIG.thresholds.MANUAL_REVIEW) {
         return { decision: 'MANUAL_REVIEW', riskLevel: 'LOW' };
     } else if (adjustedDiffRatio <= KYC_CONFIG.thresholds.AUTO_REJECT) {
         return { decision: 'MANUAL_REVIEW', riskLevel: dobNeedsResolution ? 'HIGH' : 'MEDIUM' };
