@@ -60,27 +60,24 @@ export default class KycResolutionFlow {
             );
         }
 
+        // Get mismatched fields and create issue description
         const mismatchedFields = Object.entries(result.needResolution)
             .filter(([_, needsResolution]) => needsResolution)
             .map(([field, _]) => field);
 
-        const isNameMismatch = mismatchedFields.includes('name');
-        const isDobMismatch = mismatchedFields.includes('dateOfBirth');
+        const issueDescription = (() => {
+            const isNameMismatch = mismatchedFields.includes('name');
+            const isDobMismatch = mismatchedFields.includes('dateOfBirth');
 
-        let issueDescription = '';
-        if (isNameMismatch && isDobMismatch) {
-            issueDescription = 'differences in your name and date of birth';
-        } else if (isNameMismatch) {
-            issueDescription = 'differences in your name';
-        } else if (isDobMismatch) {
-            issueDescription = 'differences in your date of birth';
-        } else {
-            issueDescription = 'some differences in your information';
-        }
+            if (isNameMismatch && isDobMismatch) return 'name and date of birth differences';
+            if (isNameMismatch) return 'name differences';
+            if (isDobMismatch) return 'date of birth differences';
+            return 'information differences';
+        })();
 
         const flowToken = generateRandomHexString(SIXTEEN);
 
-        const flowMessage: WhatsAppInteractiveMessage = {
+        return {
             type: 'interactive',
             interactive: {
                 type: 'flow',
@@ -89,10 +86,10 @@ export default class KycResolutionFlow {
                     text: 'Quick review needed! 🔍',
                 },
                 body: {
-                    text: `We found ${issueDescription} between your BVN and NIN records. Help us verify which details are correct - it only takes a minute!`,
+                    text: `We found ${issueDescription} between your BVN and NIN. Help us verify which is correct - takes just a minute!`,
                 },
                 footer: {
-                    text: 'Tap below to start the review',
+                    text: 'Tap below to start',
                 },
                 action: {
                     name: 'flow',
@@ -127,8 +124,6 @@ export default class KycResolutionFlow {
             recipient_type: 'individual',
             to: userPhoneNumber,
         };
-
-        return flowMessage;
     }
 
     public static async processKycFlowCompletion(flowData: KycFlowCompletionData) {
@@ -324,9 +319,9 @@ export default class KycResolutionFlow {
         const confirmationMessage = [
             '✅ *Review submitted successfully!*',
             '',
-            'Thanks for helping us verify your information. Our team will review your submission and get back to you within 24 hours.',
+            'Thanks! Our team will review and get back to you within 5 - 30 minutes.',
             '',
-            "You'll receive an update right here on WhatsApp once we're done.",
+            "You'll get an update right here on WhatsApp.",
             '',
             'Need help in the meantime? Just type */support*',
         ].join('\n');
