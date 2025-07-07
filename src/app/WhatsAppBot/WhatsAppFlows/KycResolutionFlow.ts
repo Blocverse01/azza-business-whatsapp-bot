@@ -172,8 +172,8 @@ export default class KycResolutionFlow {
                 additionalKycIdNumber: flowData.bvn_details.id_number,
                 additionalKycIdType: 'BVN',
                 address: address,
-                firstName: firstName,
-                lastName: lastName,
+                firstName: firstName.toUpperCase(),
+                lastName: lastName.toUpperCase(),
                 kycDateOfBirth: finalDob,
             });
 
@@ -350,28 +350,25 @@ export default class KycResolutionFlow {
             flowData.selected_name_source === 'different_name' ||
             flowData.selected_dob_source === 'different_dob';
 
-        const priority = this.determinePriority(flowData);
-
         const adminMessage = [
             '🔍 *NEW KYC MANUAL REVIEW*',
             '',
-            `**User:** ${flowData.user_id}`,
-            `**Phone:** ${userPhoneNumber}`,
-            `**Priority:** ${priority}`,
-            `**Submitted:** ${new Date(flowData.flow_completed_at).toLocaleString()}`,
+            `*User:* ${flowData.user_id}`,
+            `*Phone:* ${userPhoneNumber}`,
+            `*Submitted:* ${new Date().toLocaleString()}`,
             '',
-            '**SELECTIONS:**',
+            '*SELECTIONS:*',
             `Name: ${finalData.name} _(${flowData.selected_name_source})_`,
             `DOB: ${finalData.dob} _(${flowData.selected_dob_source})_`,
             '',
-            '**ORIGINAL DATA:**',
+            '*ORIGINAL DATA:*',
             `BVN: "${flowData.original_bvn_name}" | ${flowData.original_bvn_dob}`,
             `NIN: "${flowData.original_nin_name}" | ${flowData.original_nin_dob}`,
             '',
-            `**REASONS:** ${flowData.reason_for_differences.join(', ') || 'None provided'}`,
-            `**NOTES:** ${flowData.additional_info || 'None provided'}`,
+            `*REASONS:* ${flowData.reason_for_differences.join(', ') || 'None provided'}`,
+            `*NOTES:* ${flowData.additional_info || 'None provided'}`,
             '',
-            `**ACTION REQUIRED:** ${hasCorrections ? 'Verify user-provided corrections' : 'Process using selected official record'}`,
+            `*ACTION REQUIRED:* ${hasCorrections ? 'Verify user-provided corrections' : 'Process using selected official record'}`,
         ].join('\n');
 
         await sendInteractiveTechnicalIssueAlert(env.WA_PHONE_NUMBER_ID, {
