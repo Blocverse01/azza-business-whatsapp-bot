@@ -233,8 +233,8 @@ export default class KycResolutionFlow {
                 additionalKycIdNumber: data.bvn_details.id_number,
                 additionalKycIdType: 'BVN',
                 address: address,
-                firstName: firstName,
-                lastName: lastName,
+                firstName: firstName.toUpperCase(),
+                lastName: lastName.toUpperCase(),
                 kycDateOfBirth: finalDob,
             });
             await WhatsAppBotService.sendKycVerifiedMessage(user.primaryWhatsappPhoneNumber);
