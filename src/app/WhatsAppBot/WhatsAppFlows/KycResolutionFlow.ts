@@ -227,6 +227,14 @@ export default class KycResolutionFlow {
         }
 
         if (action === 'approve') {
+            if(user.kycStatus?.toUpperCase() === 'VERIFIED') {
+                await WhatsAppBotService.sendWhatsappMessage(
+                    env.WA_PHONE_NUMBER_ID,
+                    MessageGenerators.generateTextMessage(adminPhoneNumber, '✅ *KYC already Approved Successfully*')
+                );
+                return;
+            }
+
             const address = data.bvn_details.address ?? undefined;
             await userServiceV2.updateUserInfo(user, {
                 kycStatus: 'VERIFIED',
@@ -256,6 +264,17 @@ export default class KycResolutionFlow {
         }
 
         if (action === 'reject') {
+            if (user.kycStatus?.toUpperCase() === 'REJECTED') {
+                await WhatsAppBotService.sendWhatsappMessage(
+                    env.WA_PHONE_NUMBER_ID,
+                    MessageGenerators.generateTextMessage(
+                        adminPhoneNumber,
+                        '*KYC already Rejected!*'
+                    )
+                );
+                return;
+            }
+            
             await userServiceV2.updateUserInfo(user, {
                 kycStatus: 'REJECTED',
             });
