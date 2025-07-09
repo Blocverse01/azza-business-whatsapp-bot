@@ -212,7 +212,7 @@ message CreatePaymentRequestResponse {
   double rate = 10;
   YellowCardRetailCustomer sender = 11;
   PaymentRequestDestination destination = 12;
-   bool is_agent_transaction = 13; 
+  bool is_agent_transaction = 13; 
 }
 
 message GetPaymentRequestTransactionRequest {
