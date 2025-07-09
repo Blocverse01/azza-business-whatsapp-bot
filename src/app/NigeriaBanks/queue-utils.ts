@@ -22,6 +22,7 @@ import {
 } from '../FiatRamp/config';
 import { dbClient } from '@/db/dbClient';
 import { isPeggedCurrency } from '../FiatRamp/token-currency-pair-rate/utils';
+import { normalizeTxHash } from '../FiatRamp/utils';
 
 export const addNgnBankTransactionUpdateJobToQueue = async (
     input: NGNBankTransactionQueueInput
@@ -56,7 +57,7 @@ export const createNgnBankTransactionUpdateJobWorker = () => {
 
             const offrampRequest = await dbClient.offramp_awaiting_crypto_debit
                 .filter({
-                    cryptoTransactionId: settlement.transactionHash,
+                    cryptoTransactionId: normalizeTxHash(settlement.transactionHash),
                 })
                 .getFirst();
 
