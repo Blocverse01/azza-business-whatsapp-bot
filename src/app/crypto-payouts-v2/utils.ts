@@ -23,6 +23,7 @@ import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
 import { Effect } from 'effect/index';
 import { getPatchedOnrampTxBySequenceId } from '../FiatRamp/patches/onramp';
 import { AssetTransaction } from '../AzzaWalletManager/providers/BaseWalletProvider';
+import { normalizeTxHash } from '../FiatRamp/utils';
 
 const storeCryptoPayout = async (
     params: CryptoPayoutParams & {
@@ -196,17 +197,15 @@ export const createCryptoPayoutWorker = () => {
                 transaction.usdAmount;
 
             if (
-                (
-                    transactionType === 'offramp-refund' ||
+                (transactionType === 'offramp-refund' ||
                     transactionType === 'offramp-ngn-bank-refund' ||
                     transactionType === 'offramp-honeycoin-refund' ||
-                    transactionType === 'ngn-airtime-data-refund'
-                ) &&
+                    transactionType === 'ngn-airtime-data-refund') &&
                 'transactionHash' in transaction
             ) {
                 const offrampRequest = await dbClient.offramp_awaiting_crypto_debit
                     .filter({
-                        cryptoTransactionId: transaction.transactionHash,
+                        cryptoTransactionId: normalizeTxHash(transaction.transactionHash ?? ''),
                     })
                     .getFirst();
 

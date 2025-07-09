@@ -42,11 +42,11 @@ export const addNgnVasPaymentJobForProcessing = async (
 
     const [assetBalanceInfo, userWallet, user, hotWalletAddress] = await Promise.all([
         azzaWalletManager.getAssetBalance({
-            userId: convertBase64ToAsciiString(transactionDetailsParams.userId),
+            userId: transactionDetailsParams.userId,
             assetId: transactionDetailsParams.assetId,
         }),
         azzaWalletManager.getUserWallet(transactionDetailsParams.userId, assetConfig.network),
-        userServiceV2.getUserById(convertBase64ToAsciiString(transactionDetailsParams.userId)),
+        userServiceV2.getUserById(transactionDetailsParams.userId),
         FiatRampService.getHotWalletForNetwork(assetConfig.network),
     ]);
 
@@ -88,7 +88,7 @@ export const addNgnVasPaymentJobForProcessing = async (
             platformFeePercentage: 0,
             tokenAddress: assetConfig.tokenAddress,
             processorName: 'safehaven',
-            fromWalletAddress: assetConfig.tokenAddress,
+            fromWalletAddress: userWallet.address,
             transactionFeeUsd: 0,
             transactionType: ngnVasDetailsParams?.type!,
         });
