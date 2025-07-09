@@ -197,6 +197,7 @@ message CreateBeneficiaryPaymentRequestInput {
   double conversion_rate = 12;
   double usd_amount = 13; // amount to sell in USD.
   double transaction_fee_usd = 14;
+  bool is_agent_transaction = 15; 
 }
 message CreatePaymentRequestResponse {
   string id = 1;
@@ -211,6 +212,7 @@ message CreatePaymentRequestResponse {
   double rate = 10;
   YellowCardRetailCustomer sender = 11;
   PaymentRequestDestination destination = 12;
+   bool is_agent_transaction = 13; 
 }
 
 message GetPaymentRequestTransactionRequest {

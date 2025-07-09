@@ -79,6 +79,7 @@ import { createAccountStatementWorker } from '@/app/account-statement/queue-util
 
 import { createNgnVasTransactionUpdateJobWorker } from '@/app/ngn-vas-payment/queue-utils';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
+import { createP2pAgentTransactionTrackerJobWorker } from '@/app/User/P2pAgent/queue-utils';
 
 
 ///////////////////////
@@ -489,6 +490,7 @@ createFiatPayoutV2Worker();
 createOnRampWorker();
 createSyncUserWalletWorker();
 createNgnBankTransactionUpdateJobWorker();
+createP2pAgentTransactionTrackerJobWorker();
 createNgnVasTransactionUpdateJobWorker();
 createBaseCashbackWorker();
 createCryptoPayoutWorker();

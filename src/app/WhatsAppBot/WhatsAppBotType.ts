@@ -178,6 +178,8 @@ export const ASSET_ACTION_REGEX_PATTERN = `^(${actions}):(${assetIds})$`;
 
 export const AGENT_ASSET_ACTION_REGEX_PATTERN = `^(${actions}):(${assetIds})(\\|isAgent:(true|false))?$`;
 
+export const FLOW_TOKEN_REGEX_PATTERN = '^([a-z0-9]+):isAgent:(true|false)$';
+
 // Create the regex object
 export const ASSET_ACTION_REGEX = new RegExp(ASSET_ACTION_REGEX_PATTERN);
 
@@ -219,7 +221,8 @@ export type InteractiveButtonReplyTypes =
     | 'acknowledge-manual-offramp-settlement'
     | 'mark-manual-offramp-settlement-as-paid'
     | 'explore-asset-action'
-    | 'referral-stats';
+    | 'referral-stats'
+    | 'trigger-agent-offramp-flow';
 export type InteractiveListReplyTypes =
     | 'explore-asset-action'
     | 'trade-asset-with-currency'
@@ -310,6 +313,7 @@ export enum ActionExecuted {
     SEND_MAINTAINANCE_MESSAGE = 'SEND_MAINTAINANCE_MESSAGE',
     SEND_KYC_QUERY_RESPONSE = 'SEND_KYC_QUERY_RESPONSE',
     REFERRAL_STATS = 'REFERRAL_STATS',
+    SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE = 'SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE',
 }
 
 export type IncomingWhatsappMessage = {

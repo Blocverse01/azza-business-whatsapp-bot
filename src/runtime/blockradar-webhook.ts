@@ -123,6 +123,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const reason = metadata?.reason;
 
         if (reason === OFFRAMP) {
+            console.log('got here....')
             const pendingOfframpId = reference
                 .split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1]
                 .replace(PIZZA_CAMPAIGN_PAYMENT_SUFFIX, '');
@@ -154,7 +155,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                     hotWalletAddress: pendingOfframpRequest.hotWalletAddress!,
                     transactionFeeUsd: pendingOfframpRequest.transactionFeeUsd!,
                     beneficiaryId: pendingOfframpRequest.beneficiaryId!,
-                    ngnVasSettlementId: pendingOfframpRequest.ngnVasSettlementId,
+                    ngnVasSettlementId: pendingOfframpRequest.ngnVasSettlementId ?? undefined,
                     usdAmount: pendingOfframpRequest.usdAmount!,
                     platformFeePercentage: pendingOfframpRequest.platformFeePercentage,
                     userWalletAddress: pendingOfframpRequest.fromWalletAddress!,
@@ -163,6 +164,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                     chainName: assetConfig.network.toUpperCase(),
                     txHash: data.data.hash,
                     tokenAmountDebited: pendingOfframpRequest.tokenAmountToDebit,
+                    isAgentTransaction: pendingOfframpRequest.isAgentTransaction,
                     whatsappParams: {
                         businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         userPhoneNumber: user.primaryWhatsappPhoneNumber,
@@ -200,10 +202,15 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
 
             if (!cryptoPayoutRecord) return;
 
-            await updateCryptoPayoutRecord(reference, {
+            const isUpdated = await updateCryptoPayoutRecord(reference, {
                 payoutTransactionHash: data.data.hash,
                 status: 'complete',
             });
+
+            if (isUpdated) {
+                //
+                console.log('got here');
+            }
         }
     },
     handleWithdrawalFailed: async (data, network) => {

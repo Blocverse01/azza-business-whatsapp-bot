@@ -61,6 +61,7 @@ createBullBoard({
         new BullMQAdapter(queues.cleanupMessages),
         new BullMQAdapter(queues.handleSmileKycWebhook),
         new BullMQAdapter(queues.handleNGNBankTransactionStatusUpdate),
+        new BullMQAdapter(queues.p2pAgentTransaction),
         new BullMQAdapter(queues.handleNGNVasTransactionStatusUpdate),
         new BullMQAdapter(queues.generateAzzaWrapped),
         new BullMQAdapter(queues.onRamp),

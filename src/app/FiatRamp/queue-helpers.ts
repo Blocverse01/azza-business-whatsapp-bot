@@ -19,6 +19,8 @@ import { generateOnrampTransactionInitiatedMessage } from '@/resources/utils/bot
 import { prettifyNumber } from '@/resources/utils/currency';
 import { updateOnrampTxWithPatches } from './patches/onramp';
 import { Effect } from 'effect';
+import { addP2pAgentTransactionTrackerJobToQueue } from '../User/P2pAgent/queue-utils';
+import { transactionStatusSchema } from './fiatRampSchema';
 
 export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2) => {
     const txHashSha256 = crypto.createHash('sha256').update(params.txHash).digest('hex');
@@ -59,19 +61,40 @@ export const handleOfframpRequestInQueue = async (
         let sequenceId: string;
 
         if (params.ngnVasSettlementId) {
-           
+
             sequenceId = await FiatRampService.postNgnVasTransaction({
                 ...params,
                 chainName: params.chainName.toUpperCase(),
                 tokenName: params.tokenName.toUpperCase(),
             });
         } else {
+
             sequenceId = await FiatRampService.postOfframpTransaction({
                 ...params,
                 chainName: params.chainName.toUpperCase(),
                 tokenName: params.tokenName.toUpperCase(),
             });
+
+            // Add agent transaction tracker job for reporting
+            if (params.isAgentTransaction && sequenceId) {
+
+                await addP2pAgentTransactionTrackerJobToQueue(
+                    {
+                        localAmount: params.localAmount,
+                        usdAmount: params.usdAmount,
+                        processingStatus: transactionStatusSchema.parse('complete'),
+                        ownerId: params.userId,
+                        blockchainNetwork: params.chainName.toUpperCase(),
+                        tokenSymbol: params.tokenName.toUpperCase(),
+                        transactionType: 'off-ramp',
+                        sequenceId: sequenceId,
+                        beneficiaryId: params.beneficiaryId
+                    })
+            }
+
         }
+
+
         return { sequenceId, result: 'SENT' };
     } catch (error) {
         const parsedError = parseUnknownError(error);

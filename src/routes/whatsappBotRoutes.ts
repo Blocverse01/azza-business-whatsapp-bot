@@ -67,6 +67,10 @@ whatsappBotRoutes
         '/flows/buy-data-bundle',
         decryptFlowDataExchange,
         WhatsAppFlowController.ngnDataBundleFlowDataExchange
+    )
+    .post('/flows/agent-off-ramp',
+        decryptFlowDataExchange,
+        WhatsAppFlowController.agentoffRampFlowDataExchange
     );
 
 export default whatsappBotRoutes;

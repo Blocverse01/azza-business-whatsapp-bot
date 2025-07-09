@@ -20,13 +20,7 @@ export const assetAndNetworkSchema = z.object({
         .nullable()
         .describe(
             `The cryptocurrency symbol to use for the action. ${CRYPTO_CURRENCY_SYMBOL_ARG_DESCRIPTION}`
-        ),
-    // isAgent: z
-    //     .boolean()
-    //     .nullable()
-    //     .describe(
-    //         `Indicates if the transaction or action is being initiated by or involves an agent (e.g., an agent-assisted crypto sale).`
-    //     )
+        )
 });
 
 export const actionArgumentsSchema = {

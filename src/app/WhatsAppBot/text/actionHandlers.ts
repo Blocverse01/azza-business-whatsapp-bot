@@ -16,7 +16,7 @@ import { getWithdrawalMinimum } from '@/app/wallet-withdrawals/limits';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
-import { ExploreAssetActions, PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
+import { ActionExecuted, ExploreAssetActions, PhoneNumberParams } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { PhoneNumberId } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import WhatsAppBotChangeTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotChangeTransactionPinFlowService';
 import WhatsAppBotResetTransactionPinFlowService from '@/app/WhatsAppBot/WhatsAppFlows/WhatsAppBotResetTransactionPinFlowService';
@@ -56,6 +56,7 @@ import azzaWalletManager from '@/runtime/wallet';
 import { z, ZodSchema } from 'zod';
 import { getSupportContactsMessageText, getSupportedAssetAndNetworksText } from '../utils';
 import SumSubService from '@/app/SumSub/SumSubService';
+import P2pAgentService from '@/app/User/P2pAgent/P2pAgentService';
 
 type ActionHandlerParams = {
     extractedArguments:
@@ -1051,6 +1052,19 @@ export const handleAgentSellCryptoForFiatPrompt = async (
         };
     }
 
+    if (!user.isP2pAgent) {
+        await P2pAgentService.sendNotAuthorizedAsAgentMessage({
+            businessPhoneNumberId: botParams.businessPhoneNumberId,
+            userPhoneNumber: botParams.userPhoneNumber
+        })
+
+        return {
+            response: ActionExecuted.SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE,
+            resetSession: true,
+        };
+    }
+
+
     const sellArguments = parseExtractedArguments(
         extractedArguments,
         actionArgumentsSchema.AGENT_SELL_CRYPTO_FOR_FIAT
@@ -1132,6 +1146,117 @@ export const handleAgentSellCryptoForFiatPrompt = async (
     };
 };
 
+/////////////////////////////////////////////////////////
+//      Agent Buy Crypto For Fiat Related Prompt Handler
+//////////////////////////////////////////////////////
+export const handleAgentBuyCryptoWithFiatPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+    const { botParams, extractedArguments, user } = params;
+
+    const isAgent: boolean = true;
+
+    const missingArgsPromptResponse = getAssetChoiceMessage('buy');
+    const missingArgsWhatsAppMessage = MessageGenerators.generateTextMessage(
+        params.botParams.userPhoneNumber,
+        missingArgsPromptResponse
+    );
+
+    if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            missingArgsWhatsAppMessage
+        );
+        return {
+            response: missingArgsPromptResponse,
+            resetSession: false,
+        };
+    }
+
+    if (!user.isP2pAgent) {
+        await P2pAgentService.sendNotAuthorizedAsAgentMessage({
+            businessPhoneNumberId: botParams.businessPhoneNumberId,
+            userPhoneNumber: botParams.userPhoneNumber
+        })
+
+        return {
+            response: ActionExecuted.SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE,
+            resetSession: true,
+        };
+    }
+
+    const buyArguments = parseExtractedArguments(
+        extractedArguments,
+        actionArgumentsSchema.AGENT_BUY_CRYPTO_WITH_FIAT
+    );
+
+    if (!buyArguments.blockchainNetwork || !buyArguments.cryptoCurrencySymbol) {
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            missingArgsWhatsAppMessage
+        );
+        return {
+            response: missingArgsPromptResponse,
+            resetSession: false,
+        };
+    }
+
+    const targetAsset = azzaWalletManager.searchAssets({
+        tokenName: buyArguments.cryptoCurrencySymbol,
+        network: buyArguments.blockchainNetwork,
+    })[0];
+
+    if (!targetAsset) {
+        const assetNotFoundResponse = `${buyArguments.cryptoCurrencySymbol} on the network ${buyArguments.blockchainNetwork} is not supported at the moment.\n\nHere's a list of supported assets and networks:\n${getSupportedAssetAndNetworksText(
+            {
+                action: ExploreAssetActions.BUY_ASSET,
+            }
+        )}`;
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                assetNotFoundResponse
+            )
+        );
+        return {
+            response: assetNotFoundResponse,
+            resetSession: false,
+        };
+    }
+
+    if (!targetAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
+        const assetNotSupportedResponse = `Buying ${targetAsset.tokenName} on ${targetAsset.network} is not supported at the moment. Please try again with a supported asset.`;
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            botParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                params.botParams.userPhoneNumber,
+                assetNotSupportedResponse
+            )
+        );
+        return {
+            response: assetNotSupportedResponse,
+            resetSession: false,
+        };
+    }
+
+    await WhatsAppBotService.handleBuyAssetAction(
+        user,
+        {
+            userPhoneNumber: botParams.userPhoneNumber,
+            businessPhoneNumberId: botParams.businessPhoneNumberId,
+        },
+        targetAsset.listItemId,
+        isAgent
+    );
+
+    return {
+        response: 'Handled buy asset action',
+        resetSession: true,
+    };
+};
 
 /////////////////////////////////////////////////////////
 //       Swap Crypto Related Prompt Handler

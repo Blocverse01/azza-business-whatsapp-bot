@@ -58,6 +58,7 @@ import userServiceV2 from '@/runtime/user';
 import { VASServiceType } from '../NigeriaBanks/SafeHaven/SafeHaveSchema';
 import { dbClient } from '@/db/dbClient';
 import { CompositeRateService } from '../rates/RateService';
+import { isNonEmptyString } from '@/resources/utils/transformers';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
@@ -882,20 +883,24 @@ class FiatRampService {
         const { networkId, country, channelId, seerbitId, nameEnquiryReference, accountNumber } =
             settlementData.destination;
 
-        let accountNameEnquiry: { seerbitId: string; nameEnquiryReference: string } = {
-            seerbitId: '',
-            nameEnquiryReference: '',
-        };
-
-        if (!nameEnquiryReference) {
-            accountNameEnquiry = await this.getAccountNameEntryId({
-                networkId: networkId,
+        const accountNameEnquiry = isNonEmptyString(nameEnquiryReference)
+            ? { seerbitId: '', nameEnquiryReference: '' }
+            : await this.getAccountNameEntryId({
+                networkId,
                 countryCode: country as CountryCode,
                 channelId: channelId!,
-                accountNumber: accountNumber,
+                accountNumber,
             });
-        }
 
+        const finalNameEnquiryReference = isNonEmptyString(nameEnquiryReference)
+            ? nameEnquiryReference
+            : accountNameEnquiry.nameEnquiryReference;
+
+        const finalSeerbitId = isNonEmptyString(seerbitId)
+            ? seerbitId
+            : accountNameEnquiry.seerbitId;
+        
+        
         await NigeriaBanksService.sendProcessingSettlementMessage({
             tokenAmountDebited: offrampRequest.tokenAmountToDebit,
             ownerId: safeHavenSettlementRecord.ownerId,
@@ -905,10 +910,11 @@ class FiatRampService {
             localAmount: safeHavenSettlementRecord.localAmount,
         });
 
+
         const transaction = await SafeHavenService.processOffRampPaymentWithSaveHaven({
-            nameEnquiryReference: nameEnquiryReference ?? accountNameEnquiry.nameEnquiryReference,
+            nameEnquiryReference: finalNameEnquiryReference,
             amountToSend: settlementData.localAmount,
-            beneficiaryBankCode: seerbitId ?? accountNameEnquiry.seerbitId,
+            beneficiaryBankCode: finalSeerbitId,
             beneficiaryAccountNumber: accountNumber,
             sequenceId: safeHavenSettlementRecord.sequenceId,
             narration,

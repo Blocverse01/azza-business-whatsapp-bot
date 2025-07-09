@@ -8,6 +8,7 @@ import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import {
     DataExchangeResponse,
     DecryptedFlowDataExchange,
+    FLOW_TOKEN_REGEX_PATTERN,
     WhatsAppInteractiveMessage,
 } from '@/app/WhatsAppBot/WhatsAppBotType';
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
@@ -201,6 +202,7 @@ class WhatsAppBotOnRampFlowService {
         }
 
         if (action === 'data_exchange') {
+
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
             switch (screen) {
@@ -222,7 +224,8 @@ class WhatsAppBotOnRampFlowService {
                     break;
                 case OnRampFlowScreens.MOMO_PAYMENT:
                     nextScreenData = await this.getMomoPaymentFeedbackScreenData(
-                        data as DataExchangePayload['MOMO_PAYMENT']
+                        data as DataExchangePayload['MOMO_PAYMENT'],
+                        flow_token
                     );
                     break;
             }
@@ -566,6 +569,10 @@ class WhatsAppBotOnRampFlowService {
             country_code,
         } = input;
 
+        const match = flow_token.match(FLOW_TOKEN_REGEX_PATTERN) as [string, string, 'true' | 'false'];
+
+        const [_flowToken, flowTokenString, isAgent] = match;
+
         try {
             if (account_type === 'phone') {
                 const mobileProviders = await FiatRampService.getSupportedMobileProviders(
@@ -678,6 +685,7 @@ class WhatsAppBotOnRampFlowService {
                         transactionFeeInToken: parseFloat(transaction_details.transaction_fee),
                         transactionFeeUsd: parseFloat(transaction_details.transaction_fee_usd),
                         localCurrency: local_currency,
+                        isAgentTransaction: isAgent === 'true'
                     },
                     whatsappParams: {
                         userPhoneNumber: messagingPhoneNumber,
@@ -769,7 +777,8 @@ class WhatsAppBotOnRampFlowService {
     }
 
     private static async getMomoPaymentFeedbackScreenData(
-        input: DataExchangePayload['MOMO_PAYMENT']
+        input: DataExchangePayload['MOMO_PAYMENT'],
+        flow_token: string
     ) {
         const {
             asset_id,
@@ -783,6 +792,10 @@ class WhatsAppBotOnRampFlowService {
             local_currency,
             mobile_providers,
         } = input;
+
+        const match = flow_token.match(FLOW_TOKEN_REGEX_PATTERN) as [string, string, 'true' | 'false'];
+
+        const [_flowToken, flowTokenString, isAgent] = match;
 
         if (buying_to_external_wallet) {
             if (!transaction_details.external_wallet_address) {
@@ -892,6 +905,7 @@ class WhatsAppBotOnRampFlowService {
                 usdAmount: parseFloat(transaction_details.usd_amount),
                 transactionFeeUsd: parseFloat(transaction_details.transaction_fee_usd),
                 transactionFeeInToken: parseFloat(transaction_details.transaction_fee),
+                isAgentTransaction: isAgent === 'true'
             });
 
             const accountName =
@@ -948,6 +962,7 @@ class WhatsAppBotOnRampFlowService {
 
     public static generateOnRampFlowInitMessage(
         user: UserV2Record,
+        isAgent: boolean,
         params: {
             asset: AssetConfig;
             localCurrency: string;
@@ -972,7 +987,7 @@ class WhatsAppBotOnRampFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: `${generateRandomHexString(SIXTEEN)}:isAgent:${isAgent}`,
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
                         flow_cta: 'Proceed',

@@ -6,6 +6,7 @@ import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transac
 import { OnrampTransactionPayload } from '@/app/FiatRamp/fiatRampSchema';
 import { AirtimePayload, DataPayload, TransactionType, UtilityPayload } from '@/app/ngn-vas-payment/types';
 import { VASServiceType } from '@/app/NigeriaBanks/SafeHaven/SafeHaveSchema';
+import { P2pAgentTransaction } from '@/app/User/P2pAgent/P2pAgentSchema';
 import {
     IncomingWhatsappMessage,
     PhoneNumberParams,
@@ -64,6 +65,7 @@ export enum QueueNames {
     handleSmileKycWebhook = 'handle-smile-kyc-webhook',
     handleNGNBankTransactionStatusUpdate = 'handle-ngn-bank-transaction-status-update',
     handleNGNVasTransactionStatusUpdate = 'handle-ngn-vas-transaction-status-update',
+    p2pAgentTransaction = 'p2p-agent-transaction',
     generateAzzaWrapped = 'generate-azza-wrapped',
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
@@ -137,6 +139,7 @@ export type EventDrivenOfframpQueueInput = {
         tokenAmountToDebit: number;
         transactionType?: TransactionType;
         ngnVasSettlementId?: string;
+        isAgentTransaction?: boolean;
     };
     ngnVasParams?: {
         type: VASServiceType;
@@ -157,6 +160,8 @@ export type SyncUserWalletIdQueueInput = {
     addressId: string;
     address: string;
 };
+
+export type p2pAgentQueueInput  = P2pAgentTransaction
 
 export type NGNBankTransactionQueueInput = {
     transactionId: string;

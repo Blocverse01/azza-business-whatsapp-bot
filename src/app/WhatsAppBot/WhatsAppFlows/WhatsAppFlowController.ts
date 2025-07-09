@@ -14,6 +14,7 @@ import BvnKycVerificationFlow from './BvnKycVerificationFlow';
 import WhatsappBotAccountStatementFlowService from './WhatsappBotAccountStatementFlowService';
 import WhatsappBotNgnAirtimeFlowService from './WhatsappBotNgnAirtimeFlowService';
 import WhatsappBotNgnDataBundleFlowService from './WhatsappBotNgnDataBundleFlowService';
+import WhatsAppBotAgentOffRampFlowService from './WhatsAppBotAgentOfframpFlowService';
 
 export default class WhatsAppFlowController {
     public static async offrampFlowDataExchange(req: Request, res: Response) {
@@ -233,6 +234,25 @@ export default class WhatsAppFlowController {
 
             const response =
                 await WhatsappBotNgnDataBundleFlowService.receiveDataExchange(decryptedBody);
+
+            return res.send(
+                WhatsAppBotService.encryptFlowResponse(response, {
+                    initialVectorBuffer,
+                    aesKeyBuffer,
+                })
+            );
+        } catch (error) {
+            handleRequestError(error, res);
+        }
+    }
+
+    public static async agentoffRampFlowDataExchange(req: Request, res: Response) {
+        try {
+            const { decryptedBody, initialVectorBuffer, aesKeyBuffer } =
+                requestDecryptedDataFlowExchange(req);
+
+            const response =
+                await WhatsAppBotAgentOffRampFlowService.receiveDataExchange(decryptedBody);
 
             return res.send(
                 WhatsAppBotService.encryptFlowResponse(response, {

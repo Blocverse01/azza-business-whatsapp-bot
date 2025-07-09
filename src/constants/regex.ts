@@ -38,7 +38,9 @@ export const BOT_COMMANDS_REGEX = {
     GENERATE_STATEMENT: /^\/generate_statement$/,
     BUY_NGN_AIRTIME: /^\/airtime$/,
     BUY_NGN_DATA_BUNDLE: /^\/data$/,
-    AGENT_SELL_ASSET: /^\/agent_sell\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /sell usdt polygon
+    AGENT_SELL_ASSET: /^\/agent_sell\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /agent_sell usdt polygon,
+    AGENT_BUY_ASSET: /^\/agent_buy\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /agent_buy usdt polygon
+    AGENT_BALANCE: /^\/agent_balance$/
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {
@@ -47,7 +49,7 @@ export type SellAssetToBeneficiaryMatchGroups = {
 };
 
 export type AgentSellAssetToBeneficiaryMatchGroups = {
-    sell: string;
+    assetId: string;
     isAgent: string;
     countryCode: string;
 };

@@ -16,6 +16,7 @@ export const OfframpQueueFlowSchema = z.object({
     conversionRate: z.number(),
     transactionFeeUsd: z.number(),
     tokenAmountDebited: z.number(),
+    isAgentTransaction : z.boolean(),
     whatsappParams: z.object({
         userPhoneNumber: z.string(),
         businessPhoneNumberId: z.string(),

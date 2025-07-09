@@ -189,7 +189,14 @@ class SafeHavenService {
             const { data, statusCode, message } = response.data;
 
 
-            if (statusCode != OK) throw new HttpException(statusCode, `${message}`);
+            if (statusCode != OK) return {
+                sessionId: '',
+                bankCode: '',
+                accountNumber: '',
+                accountName: '',
+            };
+
+            //throw new HttpException(statusCode, `${message}`);
 
             return {
                 sessionId: data.sessionId,
