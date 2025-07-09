@@ -3,7 +3,7 @@ import { Worker } from 'bullmq';
 import azzaWalletManager from '@/runtime/wallet';
 import FiatRampService from '../FiatRamp/FiatRampService';
 import { defaultQueueRemoveOptions, queues } from '@/background-processing/queues';
-import { convertBase64ToAsciiString, encryptWithAES } from '@/resources/utils/encryption';
+import { convertAsciiStringToBase64, encryptWithAES } from '@/resources/utils/encryption';
 import env from '@/constants/env';
 import {
     AirtimePayload,
@@ -103,7 +103,7 @@ export const addNgnVasPaymentJobForProcessing = async (
                     localAmount: transactionDetailsParams.fiatAmount,
                     userWalletAddress: userWallet.address,
                     hotWalletAddress,
-                    userId: transactionDetailsParams.userId,
+                    userId: convertAsciiStringToBase64(transactionDetailsParams.userId),
                     platformFeePercentage: transactionDetailsParams.platformFeePercentage,
                     conversionRate: transactionDetailsParams.conversionRate,
                     transactionFeeUsd: transactionDetailsParams.transactionFeeUsd,
