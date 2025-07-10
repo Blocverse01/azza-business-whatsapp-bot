@@ -197,7 +197,6 @@ message CreateBeneficiaryPaymentRequestInput {
   double conversion_rate = 12;
   double usd_amount = 13; // amount to sell in USD.
   double transaction_fee_usd = 14;
-  bool is_agent_transaction = 15; 
 }
 message CreatePaymentRequestResponse {
   string id = 1;
@@ -212,7 +211,6 @@ message CreatePaymentRequestResponse {
   double rate = 10;
   YellowCardRetailCustomer sender = 11;
   PaymentRequestDestination destination = 12;
-  bool is_agent_transaction = 13; 
 }
 
 message GetPaymentRequestTransactionRequest {
@@ -264,6 +262,7 @@ message CreatePlatformCollectionRequestInput {
   string channel_id = 11;
   double transaction_fee_usd = 12;
   string collection_country_code = 13;
+  bool is_agent_transaction = 14; 
 }
 message BankInfo {
   string name = 1;
@@ -283,6 +282,7 @@ message CreateCollectionResponse {
   string currency = 10;
   string country = 11;
   BankInfo bank_info = 12;
+  bool is_agent_transaction = 13; 
 }
 
 message GetCollectionRequestTransactionRequest {
@@ -310,6 +310,7 @@ message GetCollectionRequestResponse {
   string local_currency_symbol = 18;
   double transaction_fee_usd = 19;
   string created_at = 20;
+  bool is_agent_transaction = 21; 
 }
 
 message UpdateCollectionTransactionStatusRequest {

@@ -19,6 +19,7 @@ import SafeHavenService from './app/NigeriaBanks/SafeHaven/SafeHavenService';
 import BellService from './app/NigeriaBanks/BellMFB/BellService';
 import WhatsAppBotService from './app/WhatsAppBot/WhatsAppBotService';
 import HoneyCoinService from './app/HoneyCoin/HoneyCoinService';
+import FiatRampService from './app/FiatRamp/FiatRampService';
 
 const app = express();
 

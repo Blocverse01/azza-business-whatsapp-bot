@@ -600,6 +600,7 @@ const tables = [
         notNull: true,
         defaultValue: "0.00",
       },
+      { name: "providerName", type: "text" },
     ],
   },
   {

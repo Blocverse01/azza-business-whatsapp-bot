@@ -906,7 +906,7 @@ export const handleBuyCryptoWithFiatPrompt = async (
             userPhoneNumber: botParams.userPhoneNumber,
             businessPhoneNumberId: botParams.businessPhoneNumberId,
         },
-        targetAsset.listItemId
+        targetAsset.listItemId,
     );
 
     return {
@@ -1713,6 +1713,29 @@ export const handleReferralPrompt = async (
         resetSession: true,
     };
 };
+
+
+/////////////////////////////////////////////////////////
+//       Agent Earning Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleAgentEarningPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+
+    await P2pAgentService.getP2pAgentAccountSummary(
+        params.user.id,
+        {
+            userPhoneNumber: params.botParams.userPhoneNumber,
+            businessPhoneNumberId: params.botParams.businessPhoneNumberId
+        }
+    );
+
+    return {
+        response: 'Handled P2p agent earning prompt',
+        resetSession: true,
+    };
+};
+
 
 /////////////////////////////////////////////////////////
 //       Pay Prompt Handler

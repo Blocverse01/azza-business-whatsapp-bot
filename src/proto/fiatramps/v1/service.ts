@@ -3128,7 +3128,6 @@ export namespace fiatramps.v1 {
             conversion_rate?: number;
             usd_amount?: number;
             transaction_fee_usd?: number;
-            is_agent_transaction?: boolean;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -3174,9 +3173,6 @@ export namespace fiatramps.v1 {
                 }
                 if ("transaction_fee_usd" in data && data.transaction_fee_usd != undefined) {
                     this.transaction_fee_usd = data.transaction_fee_usd;
-                }
-                if ("is_agent_transaction" in data && data.is_agent_transaction != undefined) {
-                    this.is_agent_transaction = data.is_agent_transaction;
                 }
             }
         }
@@ -3267,12 +3263,6 @@ export namespace fiatramps.v1 {
         set transaction_fee_usd(value: number) {
             pb_1.Message.setField(this, 14, value);
         }
-        get is_agent_transaction() {
-            return pb_1.Message.getFieldWithDefault(this, 15, false) as boolean;
-        }
-        set is_agent_transaction(value: boolean) {
-            pb_1.Message.setField(this, 15, value);
-        }
         static fromObject(data: {
             beneficiary_id?: string;
             local_amount?: number;
@@ -3288,7 +3278,6 @@ export namespace fiatramps.v1 {
             conversion_rate?: number;
             usd_amount?: number;
             transaction_fee_usd?: number;
-            is_agent_transaction?: boolean;
         }): CreateBeneficiaryPaymentRequestInput {
             const message = new CreateBeneficiaryPaymentRequestInput({});
             if (data.beneficiary_id != null) {
@@ -3333,9 +3322,6 @@ export namespace fiatramps.v1 {
             if (data.transaction_fee_usd != null) {
                 message.transaction_fee_usd = data.transaction_fee_usd;
             }
-            if (data.is_agent_transaction != null) {
-                message.is_agent_transaction = data.is_agent_transaction;
-            }
             return message;
         }
         toObject() {
@@ -3354,7 +3340,6 @@ export namespace fiatramps.v1 {
                 conversion_rate?: number;
                 usd_amount?: number;
                 transaction_fee_usd?: number;
-                is_agent_transaction?: boolean;
             } = {};
             if (this.beneficiary_id != null) {
                 data.beneficiary_id = this.beneficiary_id;
@@ -3398,9 +3383,6 @@ export namespace fiatramps.v1 {
             if (this.transaction_fee_usd != null) {
                 data.transaction_fee_usd = this.transaction_fee_usd;
             }
-            if (this.is_agent_transaction != null) {
-                data.is_agent_transaction = this.is_agent_transaction;
-            }
             return data;
         }
         serialize(): Uint8Array;
@@ -3435,8 +3417,6 @@ export namespace fiatramps.v1 {
                 writer.writeDouble(13, this.usd_amount);
             if (this.transaction_fee_usd != 0)
                 writer.writeDouble(14, this.transaction_fee_usd);
-            if (this.is_agent_transaction != false)
-                writer.writeBool(15, this.is_agent_transaction);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -3488,9 +3468,6 @@ export namespace fiatramps.v1 {
                     case 14:
                         message.transaction_fee_usd = reader.readDouble();
                         break;
-                    case 15:
-                        message.is_agent_transaction = reader.readBool();
-                        break;
                     default: reader.skipField();
                 }
             }
@@ -3518,7 +3495,6 @@ export namespace fiatramps.v1 {
             rate?: number;
             sender?: YellowCardRetailCustomer;
             destination?: PaymentRequestDestination;
-            is_agent_transaction?: boolean;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -3558,9 +3534,6 @@ export namespace fiatramps.v1 {
                 }
                 if ("destination" in data && data.destination != undefined) {
                     this.destination = data.destination;
-                }
-                if ("is_agent_transaction" in data && data.is_agent_transaction != undefined) {
-                    this.is_agent_transaction = data.is_agent_transaction;
                 }
             }
         }
@@ -3642,12 +3615,6 @@ export namespace fiatramps.v1 {
         get has_destination() {
             return pb_1.Message.getField(this, 12) != null;
         }
-        get is_agent_transaction() {
-            return pb_1.Message.getFieldWithDefault(this, 13, false) as boolean;
-        }
-        set is_agent_transaction(value: boolean) {
-            pb_1.Message.setField(this, 13, value);
-        }
         static fromObject(data: {
             id?: string;
             channel_id?: string;
@@ -3661,7 +3628,6 @@ export namespace fiatramps.v1 {
             rate?: number;
             sender?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
             destination?: ReturnType<typeof PaymentRequestDestination.prototype.toObject>;
-            is_agent_transaction?: boolean;
         }): CreatePaymentRequestResponse {
             const message = new CreatePaymentRequestResponse({});
             if (data.id != null) {
@@ -3700,9 +3666,6 @@ export namespace fiatramps.v1 {
             if (data.destination != null) {
                 message.destination = PaymentRequestDestination.fromObject(data.destination);
             }
-            if (data.is_agent_transaction != null) {
-                message.is_agent_transaction = data.is_agent_transaction;
-            }
             return message;
         }
         toObject() {
@@ -3719,7 +3682,6 @@ export namespace fiatramps.v1 {
                 rate?: number;
                 sender?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
                 destination?: ReturnType<typeof PaymentRequestDestination.prototype.toObject>;
-                is_agent_transaction?: boolean;
             } = {};
             if (this.id != null) {
                 data.id = this.id;
@@ -3757,9 +3719,6 @@ export namespace fiatramps.v1 {
             if (this.destination != null) {
                 data.destination = this.destination.toObject();
             }
-            if (this.is_agent_transaction != null) {
-                data.is_agent_transaction = this.is_agent_transaction;
-            }
             return data;
         }
         serialize(): Uint8Array;
@@ -3790,8 +3749,6 @@ export namespace fiatramps.v1 {
                 writer.writeMessage(11, this.sender, () => this.sender.serialize(writer));
             if (this.has_destination)
                 writer.writeMessage(12, this.destination, () => this.destination.serialize(writer));
-            if (this.is_agent_transaction != false)
-                writer.writeBool(13, this.is_agent_transaction);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -3836,9 +3793,6 @@ export namespace fiatramps.v1 {
                         break;
                     case 12:
                         reader.readMessage(message.destination, () => message.destination = PaymentRequestDestination.deserialize(reader));
-                        break;
-                    case 13:
-                        message.is_agent_transaction = reader.readBool();
                         break;
                     default: reader.skipField();
                 }
@@ -4620,6 +4574,7 @@ export namespace fiatramps.v1 {
             channel_id?: string;
             transaction_fee_usd?: number;
             collection_country_code?: string;
+            is_agent_transaction?: boolean;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -4662,6 +4617,9 @@ export namespace fiatramps.v1 {
                 }
                 if ("collection_country_code" in data && data.collection_country_code != undefined) {
                     this.collection_country_code = data.collection_country_code;
+                }
+                if ("is_agent_transaction" in data && data.is_agent_transaction != undefined) {
+                    this.is_agent_transaction = data.is_agent_transaction;
                 }
             }
         }
@@ -4749,6 +4707,12 @@ export namespace fiatramps.v1 {
         set collection_country_code(value: string) {
             pb_1.Message.setField(this, 13, value);
         }
+        get is_agent_transaction() {
+            return pb_1.Message.getFieldWithDefault(this, 14, false) as boolean;
+        }
+        set is_agent_transaction(value: boolean) {
+            pb_1.Message.setField(this, 14, value);
+        }
         static fromObject(data: {
             owner_id?: string;
             source?: ReturnType<typeof CollectionSource.prototype.toObject>;
@@ -4763,6 +4727,7 @@ export namespace fiatramps.v1 {
             channel_id?: string;
             transaction_fee_usd?: number;
             collection_country_code?: string;
+            is_agent_transaction?: boolean;
         }): CreatePlatformCollectionRequestInput {
             const message = new CreatePlatformCollectionRequestInput({});
             if (data.owner_id != null) {
@@ -4804,6 +4769,9 @@ export namespace fiatramps.v1 {
             if (data.collection_country_code != null) {
                 message.collection_country_code = data.collection_country_code;
             }
+            if (data.is_agent_transaction != null) {
+                message.is_agent_transaction = data.is_agent_transaction;
+            }
             return message;
         }
         toObject() {
@@ -4821,6 +4789,7 @@ export namespace fiatramps.v1 {
                 channel_id?: string;
                 transaction_fee_usd?: number;
                 collection_country_code?: string;
+                is_agent_transaction?: boolean;
             } = {};
             if (this.owner_id != null) {
                 data.owner_id = this.owner_id;
@@ -4861,6 +4830,9 @@ export namespace fiatramps.v1 {
             if (this.collection_country_code != null) {
                 data.collection_country_code = this.collection_country_code;
             }
+            if (this.is_agent_transaction != null) {
+                data.is_agent_transaction = this.is_agent_transaction;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -4893,6 +4865,8 @@ export namespace fiatramps.v1 {
                 writer.writeDouble(12, this.transaction_fee_usd);
             if (this.collection_country_code.length)
                 writer.writeString(13, this.collection_country_code);
+            if (this.is_agent_transaction != false)
+                writer.writeBool(14, this.is_agent_transaction);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -4940,6 +4914,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 13:
                         message.collection_country_code = reader.readString();
+                        break;
+                    case 14:
+                        message.is_agent_transaction = reader.readBool();
                         break;
                     default: reader.skipField();
                 }
@@ -5081,6 +5058,7 @@ export namespace fiatramps.v1 {
             currency?: string;
             country?: string;
             bank_info?: BankInfo;
+            is_agent_transaction?: boolean;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -5120,6 +5098,9 @@ export namespace fiatramps.v1 {
                 }
                 if ("bank_info" in data && data.bank_info != undefined) {
                     this.bank_info = data.bank_info;
+                }
+                if ("is_agent_transaction" in data && data.is_agent_transaction != undefined) {
+                    this.is_agent_transaction = data.is_agent_transaction;
                 }
             }
         }
@@ -5204,6 +5185,12 @@ export namespace fiatramps.v1 {
         get has_bank_info() {
             return pb_1.Message.getField(this, 12) != null;
         }
+        get is_agent_transaction() {
+            return pb_1.Message.getFieldWithDefault(this, 13, false) as boolean;
+        }
+        set is_agent_transaction(value: boolean) {
+            pb_1.Message.setField(this, 13, value);
+        }
         static fromObject(data: {
             source?: ReturnType<typeof CollectionSource.prototype.toObject>;
             recipient?: ReturnType<typeof YellowCardRetailCustomer.prototype.toObject>;
@@ -5217,6 +5204,7 @@ export namespace fiatramps.v1 {
             currency?: string;
             country?: string;
             bank_info?: ReturnType<typeof BankInfo.prototype.toObject>;
+            is_agent_transaction?: boolean;
         }): CreateCollectionResponse {
             const message = new CreateCollectionResponse({});
             if (data.source != null) {
@@ -5255,6 +5243,9 @@ export namespace fiatramps.v1 {
             if (data.bank_info != null) {
                 message.bank_info = BankInfo.fromObject(data.bank_info);
             }
+            if (data.is_agent_transaction != null) {
+                message.is_agent_transaction = data.is_agent_transaction;
+            }
             return message;
         }
         toObject() {
@@ -5271,6 +5262,7 @@ export namespace fiatramps.v1 {
                 currency?: string;
                 country?: string;
                 bank_info?: ReturnType<typeof BankInfo.prototype.toObject>;
+                is_agent_transaction?: boolean;
             } = {};
             if (this.source != null) {
                 data.source = this.source.toObject();
@@ -5308,6 +5300,9 @@ export namespace fiatramps.v1 {
             if (this.bank_info != null) {
                 data.bank_info = this.bank_info.toObject();
             }
+            if (this.is_agent_transaction != null) {
+                data.is_agent_transaction = this.is_agent_transaction;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -5338,6 +5333,8 @@ export namespace fiatramps.v1 {
                 writer.writeString(11, this.country);
             if (this.has_bank_info)
                 writer.writeMessage(12, this.bank_info, () => this.bank_info.serialize(writer));
+            if (this.is_agent_transaction != false)
+                writer.writeBool(13, this.is_agent_transaction);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -5382,6 +5379,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 12:
                         reader.readMessage(message.bank_info, () => message.bank_info = BankInfo.deserialize(reader));
+                        break;
+                    case 13:
+                        message.is_agent_transaction = reader.readBool();
                         break;
                     default: reader.skipField();
                 }
@@ -5485,6 +5485,7 @@ export namespace fiatramps.v1 {
             local_currency_symbol?: string;
             transaction_fee_usd?: number;
             created_at?: string;
+            is_agent_transaction?: boolean;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -5548,6 +5549,9 @@ export namespace fiatramps.v1 {
                 }
                 if ("created_at" in data && data.created_at != undefined) {
                     this.created_at = data.created_at;
+                }
+                if ("is_agent_transaction" in data && data.is_agent_transaction != undefined) {
+                    this.is_agent_transaction = data.is_agent_transaction;
                 }
             }
         }
@@ -5671,6 +5675,12 @@ export namespace fiatramps.v1 {
         set created_at(value: string) {
             pb_1.Message.setField(this, 20, value);
         }
+        get is_agent_transaction() {
+            return pb_1.Message.getFieldWithDefault(this, 21, false) as boolean;
+        }
+        set is_agent_transaction(value: boolean) {
+            pb_1.Message.setField(this, 21, value);
+        }
         static fromObject(data: {
             owner_id?: string;
             collection_country?: string;
@@ -5692,6 +5702,7 @@ export namespace fiatramps.v1 {
             local_currency_symbol?: string;
             transaction_fee_usd?: number;
             created_at?: string;
+            is_agent_transaction?: boolean;
         }): GetCollectionRequestResponse {
             const message = new GetCollectionRequestResponse({});
             if (data.owner_id != null) {
@@ -5754,6 +5765,9 @@ export namespace fiatramps.v1 {
             if (data.created_at != null) {
                 message.created_at = data.created_at;
             }
+            if (data.is_agent_transaction != null) {
+                message.is_agent_transaction = data.is_agent_transaction;
+            }
             return message;
         }
         toObject() {
@@ -5778,6 +5792,7 @@ export namespace fiatramps.v1 {
                 local_currency_symbol?: string;
                 transaction_fee_usd?: number;
                 created_at?: string;
+                is_agent_transaction?: boolean;
             } = {};
             if (this.owner_id != null) {
                 data.owner_id = this.owner_id;
@@ -5839,6 +5854,9 @@ export namespace fiatramps.v1 {
             if (this.created_at != null) {
                 data.created_at = this.created_at;
             }
+            if (this.is_agent_transaction != null) {
+                data.is_agent_transaction = this.is_agent_transaction;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -5885,6 +5903,8 @@ export namespace fiatramps.v1 {
                 writer.writeDouble(19, this.transaction_fee_usd);
             if (this.created_at.length)
                 writer.writeString(20, this.created_at);
+            if (this.is_agent_transaction != false)
+                writer.writeBool(21, this.is_agent_transaction);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -5953,6 +5973,9 @@ export namespace fiatramps.v1 {
                         break;
                     case 20:
                         message.created_at = reader.readString();
+                        break;
+                    case 21:
+                        message.is_agent_transaction = reader.readBool();
                         break;
                     default: reader.skipField();
                 }

@@ -685,7 +685,7 @@ class WhatsAppBotOnRampFlowService {
                         transactionFeeInToken: parseFloat(transaction_details.transaction_fee),
                         transactionFeeUsd: parseFloat(transaction_details.transaction_fee_usd),
                         localCurrency: local_currency,
-                        isAgentTransaction: isAgent === 'true'
+                        isAgentTransaction: !!isAgent
                     },
                     whatsappParams: {
                         userPhoneNumber: messagingPhoneNumber,

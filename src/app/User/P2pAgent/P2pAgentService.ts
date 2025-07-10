@@ -3,7 +3,7 @@ import { P2pAgentAccountBalance, P2pAgentAccountBalanceSchema, P2pAgentTransacti
 import { transactionStatusSchema } from "@/app/FiatRamp/fiatRampSchema";
 import { decryptWithAES, encryptWithAES } from "@/resources/utils/encryption";
 import env from "@/constants/env";
-import { SIX} from "@/constants/numbers";
+import { SIX } from "@/constants/numbers";
 import { INTERNAL_SERVER_ERROR } from "@/constants/status-codes";
 import { HttpException } from "@/resources/exceptions/HttpException";
 import WhatsAppBotService from "@/app/WhatsAppBot/WhatsAppBotService";
@@ -28,7 +28,8 @@ class P2pAgentService {
             transactionType: transaction.transactionType,
             sequenceId: transaction.sequenceId,
             rewardAmount: transaction.rewardAmount,
-            rewardPercentage: transaction.rewardPercentage
+            rewardPercentage: transaction.rewardPercentage,
+            providerName: transaction.providerName
         });
     }
 
@@ -51,7 +52,7 @@ class P2pAgentService {
 
         if (p2pAgent && p2pAgent.accountBalance) {
 
-            currentAccountBalance =  (await this.validateP2pAgentAccountBalancePayload(p2pAgent?.accountBalance)).currentBalance;
+            currentAccountBalance = (await this.validateP2pAgentAccountBalancePayload(p2pAgent?.accountBalance)).currentBalance;
 
             const newAccountBalance = (Number(currentAccountBalance) + amount).toFixed(SIX);
 
@@ -65,26 +66,35 @@ class P2pAgentService {
                 throw new HttpException(INTERNAL_SERVER_ERROR, `Failed to update p2p agent account balance`);
             }
 
-            return true;
+            return isUpdated;
 
         } else {
-
-            const newAccountBalance = Number(amount).toFixed(SIX);
-
-            const maskedAccountBalance = await this.generateEncryptedP2pAgentAccountBalance({ previousBalance: currentAccountBalance, currentBalance: newAccountBalance });
-
-            const isCreated = await this.P2P_AGENT_ACCOUNT_BALANCE.create({
-                accountBalance: maskedAccountBalance,
-                p2pAgentId: agentId
-            });
-
-            if (!isCreated) {
-                throw new HttpException(INTERNAL_SERVER_ERROR, `Failed to create p2p agent account`);
-            }
-
-            return true;
+            return this.createP2pAgentWallet(amount, currentAccountBalance, agentId)
         }
 
+    }
+
+
+    private static async createP2pAgentWallet(amount: number, currentAccountBalance: string, agentId: string) {
+
+        const newAccountBalance = Number(amount).toFixed(SIX);
+
+        const maskedAccountBalance = await this.generateEncryptedP2pAgentAccountBalance(
+            {
+                previousBalance: currentAccountBalance,
+                currentBalance: newAccountBalance
+            });
+
+        const isCreated = await this.P2P_AGENT_ACCOUNT_BALANCE.create({
+            accountBalance: maskedAccountBalance,
+            p2pAgentId: agentId
+        });
+
+        if (!isCreated) {
+            throw new HttpException(INTERNAL_SERVER_ERROR, `Failed to create p2p agent account`);
+        }
+
+        return isCreated
     }
 
 
@@ -147,14 +157,23 @@ class P2pAgentService {
         ]);
 
 
-        const totalVolume = transactions.reduce((sum, txn) => sum + txn?.usdAmount!, 0);
-        const totalEarnings = transactions.reduce((sum, txn) => sum + (txn.rewardAmount || 0), 0);
+        const safeTransactions = transactions ?? [];
 
-        const currentAccountBalance =  (await this.validateP2pAgentAccountBalancePayload(
-            p2pAgentAccount?.accountBalance ?? '0'
-        )).currentBalance;
+        const totalVolume = safeTransactions.reduce(
+            (sum, txn) => sum + (txn?.usdAmount || 0),
+            0
+        );
 
-        const message = `*We're pleased to share your current performance*: \n\nTotal Transaction Volume:  $${totalVolume} \n\nTotal Earnings:  $${totalEarnings} \n\nAccount Balance:  $${Number(currentAccountBalance)}\n\n`;
+        const totalEarnings = safeTransactions.reduce(
+            (sum, txn) => sum + (txn?.rewardAmount || 0),
+            0
+        );
+
+        const currentAccountBalance = p2pAgentAccount ? (await this.validateP2pAgentAccountBalancePayload(
+            p2pAgentAccount?.accountBalance!
+        )).currentBalance : '0.00';
+
+        const message = `*We're pleased to share your current performance*: \n\nTotal Transaction Volume:  $${totalVolume} \n\nTotal Earnings:  $${totalEarnings} \n\nRedeemable balance:  $${Number(currentAccountBalance)}\n\n`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             phoneParams.businessPhoneNumberId,

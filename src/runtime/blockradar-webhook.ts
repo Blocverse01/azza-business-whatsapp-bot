@@ -2,11 +2,15 @@ import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockra
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
 import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashbacks/utils';
 import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-payouts-v2/utils';
+import { ProcessorId } from '@/app/FiatRamp/config';
+import { OnrampTransactionRecord, transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
 import SwapService from '@/app/swap/service';
 import { addFeeCollectionJobToQueue } from '@/app/transaction-fees/background-processing';
 import { getTransactionFeeLogById } from '@/app/transaction-fees/utils';
+import { addP2pAgentTransactionTrackerJobToQueue } from '@/app/User/P2pAgent/queue-utils';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { manageAssetActions } from '@/app/WhatsAppBot/WhatsAppBotType';
@@ -25,6 +29,7 @@ import {
 import { dbClient } from '@/db/dbClient';
 import logger from '@/resources/logger';
 import { generateReceivedTokenMessage } from '@/resources/utils/bot-message-utils';
+import { identifyPaymentProvider } from '@/resources/utils/payment-provider-identifier.';
 import { getTransactionExplorerUrl } from '@/resources/web3/core/explorerUrls';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
@@ -123,7 +128,6 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const reason = metadata?.reason;
 
         if (reason === OFFRAMP) {
-            console.log('got here....')
             const pendingOfframpId = reference
                 .split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1]
                 .replace(PIZZA_CAMPAIGN_PAYMENT_SUFFIX, '');
@@ -208,8 +212,37 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             });
 
             if (isUpdated) {
-                //
-                console.log('got here');
+                const providerName = identifyPaymentProvider(cryptoPayoutRecord.triggerTransactionId) as ProcessorId;
+
+                let isAgentTransaction = false;
+                let onRampTxn: OnrampTransactionRecord | null = null;
+
+                if (providerName === 'yellowcard') {
+                    const txn = await FiatRampService.getOnrampTransaction(
+                        cryptoPayoutRecord.triggerTransactionId
+                    );
+                    isAgentTransaction = !!txn.isAgentTransaction;
+                    onRampTxn = txn
+                }
+
+                // Add agent transaction tracker job for reporting
+                if (isAgentTransaction && onRampTxn) {
+                    await addP2pAgentTransactionTrackerJobToQueue(
+                        {
+                            localAmount: onRampTxn.localAmount,
+                            usdAmount: onRampTxn.usdAmount,
+                            processingStatus: transactionStatusSchema.parse('complete'),
+                            ownerId: onRampTxn.ownerId,
+                            blockchainNetwork: onRampTxn.blockchainNetwork.toUpperCase(),
+                            tokenSymbol: onRampTxn.tokenSymbol.toUpperCase(),
+                            transactionType: 'onramp',
+                            sequenceId: onRampTxn.sequenceId,
+                            providerName: providerName,
+                            localCurrencySymbol: onRampTxn.localCurrencySymbol,
+                            country: onRampTxn.collectionCountry,
+                            transactionFeeUsd : onRampTxn.transactionFeeUsd
+                        })
+                }
             }
         }
     },

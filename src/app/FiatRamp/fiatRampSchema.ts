@@ -258,6 +258,7 @@ export const onrampTransactionRecordSchema = z.object({
     createdAt: z.string().datetime(),
     tokenAmount: z.number().optional().nullable(),
     transactionFeeInToken: z.number().optional().nullable(),
+    isAgentTransaction : z.boolean().optional()
 });
 
 export type OfframpTransactionRecord = z.infer<typeof OfframpTransactionRecordSchema>;

@@ -1085,7 +1085,7 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}|isAgent:${(isAgent) ? true : false}`,
+                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}|isAgent:${!!isAgent}`,
                     title: 'More',
                 }
                 : null;
@@ -1119,7 +1119,7 @@ class WhatsAppBotService {
                             rows: [
                                 ...countriesToDisplay.map((country) => {
                                     return {
-                                        id: `${assetActionId}:${purchaseAssetId}|currency:${country.currencySymbol}|countryCode:${country.code}|isAgent:${(isAgent) ? true : false}`,
+                                        id: `${assetActionId}:${purchaseAssetId}|currency:${country.currencySymbol}|countryCode:${country.code}|isAgent:${!!isAgent}`,
                                         title: `${getCountryFlagEmoji(country.code)} ${country.name}`,
                                         description: `Currency: ${country.currencySymbol}`,
                                     };
@@ -1196,7 +1196,7 @@ class WhatsAppBotService {
             phoneParams,
             ExploreAssetActions.BUY_ASSET,
             assetId,
-            isAgent
+            !!isAgent
         );
     }
 
@@ -1240,7 +1240,7 @@ class WhatsAppBotService {
             phoneParams,
             ExploreAssetActions.SELL_ASSET,
             assetId,
-            isAgent!
+            !!isAgent
         );
     }
 

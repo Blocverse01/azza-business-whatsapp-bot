@@ -479,6 +479,7 @@ class FiatRampsRpcService {
             channel_id: params.channelId,
             transaction_fee_usd: params.transactionFeeUsd,
             collection_country_code: params.country,
+            is_agent_transaction : params.isAgentTransaction
         });
 
         const response = await createPlatformCollection(request);

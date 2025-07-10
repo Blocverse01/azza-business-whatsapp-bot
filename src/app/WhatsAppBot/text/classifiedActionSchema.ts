@@ -100,4 +100,6 @@ export const actionArgumentsSchema = {
     AGENT_GET_FIAT_WITH_CRYPTO: assetAndNetworkSchema,
     AGENT_BUY_CRYPTO_WITH_FIAT: assetAndNetworkSchema,
     AGENT_GET_CRYPTO_WITH_FIAT: assetAndNetworkSchema,
+    AGENT_BALANCE: z.object({}),
+    AGENT_EARNINGS: z.object({}),
 } as const satisfies Record<Exclude<Action['class'], 'NO_PREDEFINED_ACTION'>, ZodSchema>;

@@ -26,7 +26,8 @@ import {
     handleAirtimePurchasePrompt,
     handleDataBundlePurchasePrompt,
     handleAgentSellCryptoForFiatPrompt,
-    handleAgentBuyCryptoWithFiatPrompt
+    handleAgentBuyCryptoWithFiatPrompt,
+    handleAgentEarningPrompt
 } from '@/app/WhatsAppBot/text/actionHandlers';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
@@ -225,8 +226,15 @@ export const textPromptHandler = async (
                     botParams,
                     user,
                 });
-
                 break;
+            case 'AGENT_EARNINGS':
+            case 'AGENT_BALANCE' :
+                responseMessage = await handleAgentEarningPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                    break;
             case 'SWAP_CRYPTO':
                 responseMessage = await handleSwapCryptoPrompt(
                     {

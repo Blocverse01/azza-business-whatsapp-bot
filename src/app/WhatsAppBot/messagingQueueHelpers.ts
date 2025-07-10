@@ -465,11 +465,12 @@ const handleIncomingWhatsappMessageV2 = async (
                         purchaseAssetId: assetInteractiveId,
                         currency,
                         countryCode,
-                        isAgent: _isAgent
+                        isAgent: _isAgentString
                     } = extractTradeAssetGroups(interactiveListId);
 
+                    const _isAgentBoolean = _isAgentString === 'true';
 
-                    if (tradeAction === ExploreAssetActions.SELL_ASSET && _isAgent === 'true') {
+                    if (tradeAction === ExploreAssetActions.SELL_ASSET && _isAgentBoolean) {
 
                         await WhatsAppBotService.beginAgentOfframpFlowMessage({
                             businessPhoneNumberId,
@@ -483,7 +484,7 @@ const handleIncomingWhatsappMessageV2 = async (
                         return ActionExecuted.SEND_TRADE_ASSET_WITH_CURRENCY_MESSAGE;
                     }
 
-                    if (tradeAction === ExploreAssetActions.SELL_ASSET && _isAgent !== 'true') {
+                    if (tradeAction === ExploreAssetActions.SELL_ASSET && !_isAgentBoolean) {
 
                         await WhatsAppBotService.offrampDestinationChoiceMessage(
                             phoneParams,
@@ -497,12 +498,10 @@ const handleIncomingWhatsappMessageV2 = async (
 
                     if (tradeAction === ExploreAssetActions.BUY_ASSET) {
 
-                        const _isAgent = isAgent === 'true';
-
                         await WhatsAppBotService.beginOnrampFlowMessage(
                             userV2,
                             phoneParams,
-                            _isAgent,
+                            _isAgentBoolean,
                             {
                                 assetId: assetInteractiveId,
                                 currencySymbol: currency,
@@ -540,7 +539,8 @@ const handleIncomingWhatsappMessageV2 = async (
                         await WhatsAppBotService.handleSellAssetAction(
                             userV2,
                             phoneParams,
-                            assetId
+                            assetId,
+                            false
                         );
 
                         return ActionExecuted.SEND_SELL_ASSET_MESSAGE;
@@ -564,7 +564,11 @@ const handleIncomingWhatsappMessageV2 = async (
                             return ActionExecuted.SEND_MAINTAINANCE_MESSAGE;
                         }
 
-                        await WhatsAppBotService.handleBuyAssetAction(userV2, phoneParams, assetId);
+                        await WhatsAppBotService.handleBuyAssetAction(
+                            userV2,
+                            phoneParams,
+                            assetId
+                        );
 
                         return ActionExecuted.SEND_BUY_ASSET_MESSAGE;
                     }

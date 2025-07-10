@@ -8,9 +8,13 @@ export const P2pAgentTransactionSchema = z.object({
     usdAmount: z.number(),
     processingStatus: transactionStatusSchema,
     tokenSymbol: z.string(),
-    transactionType: z.string(),
-    beneficiaryId: z.string(),
+    transactionType: z.enum(['onramp','offramp']),
+    beneficiaryId: z.string().optional(),
     sequenceId: z.string(),
+    country: z.string(),
+    localCurrencySymbol: z.string(),
+    providerName: z.string(),
+    transactionFeeUsd : z.number()
 });
 
 export type P2pAgentTransaction = z.infer<typeof P2pAgentTransactionSchema>;
@@ -18,11 +22,10 @@ export type P2pAgentTransaction = z.infer<typeof P2pAgentTransactionSchema>;
 
 export const P2pAgentTransactionParam = P2pAgentTransactionSchema.omit({
     beneficiaryId: true,
+    transactionFeeUsd : true
 }).extend({
     rewardAmount: z.number(),
-    rewardPercentage: z.number(),
-    country: z.string(),
-    localCurrencySymbol: z.string()
+    rewardPercentage: z.number()
 });
 
 
@@ -34,3 +37,6 @@ export const P2pAgentAccountBalanceSchema = z.object({
 });
 
 export type P2pAgentAccountBalance = z.infer<typeof P2pAgentAccountBalanceSchema>;
+
+
+export  type transactionType =  'onramp' | 'offramp'

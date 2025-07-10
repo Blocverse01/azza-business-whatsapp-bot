@@ -693,8 +693,6 @@ class WhatsAppBotAgentOffRampFlowService {
             fee: feeString,
         } = input;
 
-        console.log(input, 'handleDataExchangeFromAmountInputScreen')
-
         const [{ countryFiatLimits: countryLimits }, assetBalance, quotes] = await Promise.all([
             FiatRampService.getPaymentMethods(beneficiary.country_code as CountryCode, 'offramp'),
             azzaWalletManager.getAssetBalance({

@@ -116,7 +116,7 @@ class BotCommandHandler {
             case 'AGENT_BUY_ASSET':
                 await BotCommandHandler.buyAsset(user, phoneParams, botCommand.params);
                 break;
-            case 'AGENT_BALANCE':
+            case 'AGENT_EARNING':
                 await BotCommandHandler.getP2pAgentAccountSummary(user, phoneParams)
                 break;
             default:

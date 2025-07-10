@@ -1,0 +1,19 @@
+
+export const YELLOWCARD_OFFRAMP_PERCENTAGE = 0.25;
+
+export const YELLOWCARD_ONRAMP_PERCENTAGE = 0.5;
+
+export const SMALL_TXN_THRESHOLD = 10;
+
+export const PROVIDER_OFFRAMP_FIXED_FEE = {
+    NGN_FIXED_FEE: 55,
+    KES_FIXED_FEE: 5
+}; 
+
+export const PROVIDER_ONRAMP_FIXED_FEE = {
+    NGN_FIXED_FEE: 100,
+    KES_FIXED_FEE: 5
+};
+
+
+

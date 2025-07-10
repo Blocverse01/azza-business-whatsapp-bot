@@ -19,9 +19,11 @@ export const BELL_OFFRAMP_PAYMENT_PROCESSOR_ID = 'bell' as const;
 export const SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID = 'safehaven' as const;
 export const MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID = 'mp' as const;
 export const HONEYCOIN_OFFRAMP_PAYMENT_PROCESSOR_ID = 'honeycoin' as const;
+export const YELLOWARD_PAYMENT_PROCESSOR_ID = 'yellowcard' as const;
 
 export type ProcessorId =
     | typeof SAFEHAVEN_OFFRAMP_PAYMENT_PROCESSOR_ID
     | typeof MANUAL_OFFRAMP_PAYMENT_PROCESSOR_ID
     | typeof BELL_OFFRAMP_PAYMENT_PROCESSOR_ID
-    | typeof HONEYCOIN_OFFRAMP_PAYMENT_PROCESSOR_ID;
+    | typeof HONEYCOIN_OFFRAMP_PAYMENT_PROCESSOR_ID
+    | typeof YELLOWARD_PAYMENT_PROCESSOR_ID;
