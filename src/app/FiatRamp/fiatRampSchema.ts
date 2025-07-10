@@ -189,6 +189,7 @@ export const sendOfframpRequestPayloadSchema = z.object({
     platformFeePercentage: z.number(),
     conversionRate: z.number(),
     transactionFeeUsd: z.number(),
+    isAgentTransaction : z.boolean()
 });
 
 export type SendOfframpRequestPayload = z.infer<typeof sendOfframpRequestPayloadSchema>;

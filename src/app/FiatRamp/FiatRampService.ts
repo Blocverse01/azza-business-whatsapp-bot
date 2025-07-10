@@ -442,12 +442,12 @@ class FiatRampService {
                                 params,
                                 `From: ${senderName}`
                             )) ??
-                            (yellowCardPayoutIsEnabled
+                            (yellowCardPayoutIsEnabled && !params.isAgentTransaction
                                 ? await this.passOfframpTransactionToYC(user, params)
                                 : await this.tryManualPayout(beneficiary, params))
                         );
                     }
-                    if (yellowCardPayoutIsEnabled) {
+                    if (yellowCardPayoutIsEnabled && !params.isAgentTransaction) {
                         return await this.passOfframpTransactionToYC(user, params);
                     }
                     return await this.tryManualPayout(beneficiary, params);
@@ -474,7 +474,7 @@ class FiatRampService {
 
                     // Bell is not available (disabled or PalmPay) - try YellowCard or manual
                     if (!bellBankIsEnabled || isPalmPayBank) {
-                        if (yellowCardPayoutIsEnabled) {
+                        if (yellowCardPayoutIsEnabled && !params.isAgentTransaction) {
                             return await this.passOfframpTransactionToYC(user, params);
                         }
                         return await this.tryManualPayout(beneficiary, params);
@@ -483,7 +483,7 @@ class FiatRampService {
                     // Try Bell as fallback, then manual payout
                     return (
                         (await this.tryBellPayout(beneficiary, params, senderName)) ??
-                        (yellowCardPayoutIsEnabled
+                        (yellowCardPayoutIsEnabled && !params.isAgentTransaction
                             ? await this.passOfframpTransactionToYC(user, params)
                             : await this.tryManualPayout(beneficiary, params))
                     );
@@ -493,7 +493,7 @@ class FiatRampService {
             // ------------------------------------------------------------------------
             // NIGERIA FALLBACK: Nigerian bank payouts are disabled - try YellowCard
             // ------------------------------------------------------------------------
-            if (yellowCardPayoutIsEnabled) {
+            if (yellowCardPayoutIsEnabled && !params.isAgentTransaction) {
                 return await FiatRampService.passOfframpTransactionToYC(user, params);
             }
 
