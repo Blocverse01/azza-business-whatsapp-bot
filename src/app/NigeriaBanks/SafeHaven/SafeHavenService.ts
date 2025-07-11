@@ -188,22 +188,15 @@ class SafeHavenService {
 
             const { data, statusCode, message } = response.data;
 
-
-            if (statusCode != OK) return {
-                sessionId: '',
-                bankCode: '',
-                accountNumber: '',
-                accountName: '',
-            };
-
-            //throw new HttpException(statusCode, `${message}`);
-
+            if (statusCode != OK) throw new HttpException(statusCode, `${message}`);
+             
             return {
                 sessionId: data.sessionId,
                 bankCode: data.bankCode,
                 accountNumber: data.accountNumber,
                 accountName: data.accountName,
             };
+
         } catch (error) {
             await logServiceError(error, 'Error fetching user account name');
             throw error;
