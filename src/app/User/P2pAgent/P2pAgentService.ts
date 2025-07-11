@@ -70,7 +70,7 @@ class P2pAgentService {
             return isUpdated;
 
         } else {
-            return this.createP2pAgentWallet(amount, currentAccountBalance, agentId)
+            return await this.createP2pAgentWallet(amount, currentAccountBalance, agentId)
         }
 
     }
