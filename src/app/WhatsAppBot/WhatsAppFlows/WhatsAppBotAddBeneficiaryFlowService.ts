@@ -16,6 +16,7 @@ import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-num
 import { AssetConfig } from '@/resources/web3/core/tokens';
 import { type CountryCode } from 'libphonenumber-js';
 import { extractIdFromString } from './schema';
+import WhatsAppBotFlowService from './WhatsAppBotFlowService';
 
 enum AddBeneficiaryFlowScreens {
     ACCOUNT_TYPE = 'ACCOUNT_TYPE',
@@ -156,7 +157,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
             switch (screen) {
                 case AddBeneficiaryFlowScreens.ACCOUNT_TYPE:
                     const typedData = data as DataExchangePayload['ACCOUNT_TYPE_SCREEN'];
-                    const selectedAccountType = this.determineSelectedAccountType(
+                    const selectedAccountType = WhatsAppBotFlowService.determineSelectedAccountType(
                         typedData.account_type,
                         typedData.account_types
                     );
@@ -200,56 +201,6 @@ class WhatsAppBotAddBeneficiaryFlowService {
         }
 
         throw new Error('Unhandled action');
-    }
-
-    private static determineSelectedAccountType(
-        account_type: string,
-        account_types: Array<DropdownOption>
-    ) {
-        const selectedAccountType = account_types.find((type) => type.id === account_type);
-
-        if (!selectedAccountType) {
-            throw new Error('Invalid account type');
-        }
-
-        return {
-            accountType: selectedAccountType.title.toLowerCase().includes('bank')
-                ? 'bank'
-                : 'phone',
-            channelId: selectedAccountType.id,
-        };
-    }
-
-    private static determineSelectedBank(bank: string, supported_banks: Array<DropdownOption>) {
-        const selectedBank = supported_banks.find((type) => type.id === bank);
-
-        if (!selectedBank) {
-            throw new Error('Invalid bank');
-        }
-
-        return {
-            bankName: selectedBank.title,
-            networkId: selectedBank.id,
-        };
-    }
-
-    private static determineSelectedMobileProvider(
-        mobileProvider: string,
-        supportedMobileProviders: Array<Required<DropdownOption>>
-    ) {
-        const selectedMobileProvider = supportedMobileProviders.find(
-            (type) => type.id === mobileProvider
-        );
-
-        if (!selectedMobileProvider) {
-            throw new Error('Invalid account type');
-        }
-
-        return {
-            providerName: selectedMobileProvider.title,
-            networkId: selectedMobileProvider.id,
-            providerCode: selectedMobileProvider.description,
-        };
     }
 
     public static generateAddBeneficiaryFlowInitMessage(params: {
@@ -302,7 +253,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
     ) {
         const { account_types, account_type, asset_id, user_id, country_code } = input;
 
-        const selectedAccountType = this.determineSelectedAccountType(account_type, account_types);
+        const selectedAccountType = WhatsAppBotFlowService.determineSelectedAccountType(account_type, account_types);
 
         const supportedBanks = await FiatRampService.getSupportedBanks(
             country_code as CountryCode,
@@ -339,7 +290,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
     ) {
         const { account_types, account_type, asset_id, user_id, country_code } = input;
 
-        const selectedAccountType = this.determineSelectedAccountType(account_type, account_types);
+        const selectedAccountType = WhatsAppBotFlowService.determineSelectedAccountType(account_type, account_types);
 
         const supportedProviders = await FiatRampService.getSupportedMobileProviders(
             country_code as CountryCode,
@@ -379,7 +330,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
             can_edit_account_name,
         } = input;
 
-        const selectedBank = this.determineSelectedBank(bank, supported_banks);
+        const selectedBank = WhatsAppBotFlowService.determineSelectedBank(bank, supported_banks);
 
         let resolvedBankAccount: Awaited<ReturnType<typeof FiatRampService.resolveBankAccount>> =
             null;
@@ -488,9 +439,9 @@ class WhatsAppBotAddBeneficiaryFlowService {
                         nameEnquiryReference:
                             country_code === 'NG'
                                 ? extractIdFromString({
-                                      input: network_id,
-                                      key: 'nameEnquiryReference',
-                                  })
+                                    input: network_id,
+                                    key: 'nameEnquiryReference',
+                                })
                                 : '',
                         channelId: channel_id,
                         countryId: country.id,
@@ -539,7 +490,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
             supported_mobile_providers,
         } = input;
 
-        const selectedMobileProvider = this.determineSelectedMobileProvider(
+        const selectedMobileProvider = WhatsAppBotFlowService.determineSelectedMobileProvider(
             mobile_provider,
             supported_mobile_providers
         );

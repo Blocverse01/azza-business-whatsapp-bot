@@ -36,6 +36,7 @@ import {
 import env from '@/constants/env';
 import { SIX, TWO } from '@/constants/numbers';
 import {
+    AGENT_SELL_ASSET_REGEX_PATTERN,
     SELL_ASSET_DESTINATION_CHOICE_REGEX,
     SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN,
     TRADE_ASSET_REGEX,
@@ -108,6 +109,7 @@ import { divide } from 'mathjs';
 import WhatsappBotNgnDataBundleFlowService from './WhatsAppFlows/WhatsappBotNgnDataBundleFlowService';
 import { getTokenToCurrencyConversionRate } from '../FiatRamp/token-currency-pair-rate/utils';
 import { KycFlowCompletionData } from './WhatsAppFlows/KycResolutionFlow';
+import WhatsAppBotAgentOffRampFlowService from './WhatsAppFlows/WhatsAppBotAgentOfframpFlowService';
 
 class WhatsAppBotService {
     private static readonly WA_BUSINESS_PHONE_NUMBER = env.WA_PHONE_NUMBER_ID;
@@ -668,10 +670,12 @@ class WhatsAppBotService {
             messageBody?: string;
         }
     ) {
+
         const { assetId, countryCode, userPhoneNumber, businessPhoneNumberId, messageBody } =
             params;
 
         const asset = getAssetConfigOrThrow(assetId);
+
         const { paymentChannels } = await FiatRampService.getPaymentMethods(countryCode, 'offramp');
 
         const accountTypes = paymentChannels.map((channel) => ({
@@ -730,6 +734,44 @@ class WhatsAppBotService {
         });
 
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
+    }
+
+
+    public static async beginAgentOfframpFlowMessage(
+        params: PhoneNumberParams & {
+            assetId: string;
+            userId: string;
+            countryCode: CountryCode;
+            messageBody?: string;
+            currency: string;
+        }
+    ) {
+
+        const { assetId, userId, countryCode, currency, userPhoneNumber, businessPhoneNumberId, messageBody } =
+            params;
+
+        const asset = getAssetConfigOrThrow(assetId);
+
+        const { paymentChannels } = await FiatRampService.getPaymentMethods(countryCode, 'offramp');
+
+        const accountTypes = paymentChannels.map((channel) => ({
+            id: channel.channelId,
+            title: FiatRampService.formatPaymentMethodName(channel.channelName, 'offramp'),
+        }));
+
+        const flowMessage =
+            WhatsAppBotAgentOffRampFlowService.generateAgentOfframpFlowInitMessage({
+                asset,
+                userId,
+                countryCode,
+                currency,
+                recipient: userPhoneNumber,
+                accountTypes,
+                bodyText: messageBody,
+            });
+
+        await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
+
     }
 
     public static async ratesCommandHandler(
@@ -879,9 +921,13 @@ class WhatsAppBotService {
         if (interactiveButtonId.startsWith(BaseInteractiveButtonIds.REFERRAL_STATS)) {
             return 'referral-stats';
         }
-
+          
         if (interactiveButtonId.startsWith('admin_kyc_')) {
             return 'admin-resolve-kyc-review';
+        }
+
+        if (interactiveButtonId.match(AGENT_SELL_ASSET_REGEX_PATTERN)) {
+            return 'trigger-agent-offramp-flow';
         }
 
         throw new HttpException(
@@ -918,6 +964,10 @@ class WhatsAppBotService {
 
         if (interactiveListReplyId.match(SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN)) {
             return 'trigger-offramp-flow';
+        }
+
+        if (interactiveListReplyId.match(AGENT_SELL_ASSET_REGEX_PATTERN)) {
+            return 'trigger-agent-offramp-flow';
         }
 
         throw new HttpException(
@@ -1019,9 +1069,11 @@ class WhatsAppBotService {
         phoneParams: PhoneNumberParams,
         assetActionId: Extract<ExploreAssetActions, 'buy' | 'sell'>,
         purchaseAssetId: AssetInteractiveButtonIds,
+        isAgent?: boolean,
         _sliceFrom = 0,
         _sliceTo = 9
     ) {
+
         const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
 
         const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
@@ -1063,9 +1115,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? {
-                      id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
-                      title: 'More',
-                  }
+                    id: `moreCurrencies|${assetActionId}:${purchaseAssetId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}|isAgent:${!!isAgent}`,
+                    title: 'More',
+                }
                 : null;
 
         const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);
@@ -1097,7 +1149,7 @@ class WhatsAppBotService {
                             rows: [
                                 ...countriesToDisplay.map((country) => {
                                     return {
-                                        id: `${assetActionId}:${purchaseAssetId}|currency:${country.currencySymbol}|countryCode:${country.code}`,
+                                        id: `${assetActionId}:${purchaseAssetId}|currency:${country.currencySymbol}|countryCode:${country.code}|isAgent:${!!isAgent}`,
                                         title: `${getCountryFlagEmoji(country.code)} ${country.name}`,
                                         description: `Currency: ${country.currencySymbol}`,
                                     };
@@ -1137,7 +1189,8 @@ class WhatsAppBotService {
     public static async handleBuyAssetAction(
         user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        assetId: AssetInteractiveButtonIds
+        assetId: AssetInteractiveButtonIds,
+        isAgent?: boolean
     ) {
         const userFeatureAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
 
@@ -1172,14 +1225,16 @@ class WhatsAppBotService {
         await this.sendSelectSupportedCurrenciesMessage(
             phoneParams,
             ExploreAssetActions.BUY_ASSET,
-            assetId
+            assetId,
+            !!isAgent
         );
     }
 
     public static async handleSellAssetAction(
         user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        assetId: AssetInteractiveButtonIds
+        assetId: AssetInteractiveButtonIds,
+        isAgent?: boolean
     ) {
         const userFeatureAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
 
@@ -1214,7 +1269,8 @@ class WhatsAppBotService {
         await this.sendSelectSupportedCurrenciesMessage(
             phoneParams,
             ExploreAssetActions.SELL_ASSET,
-            assetId
+            assetId,
+            !!isAgent
         );
     }
 
@@ -1259,11 +1315,12 @@ class WhatsAppBotService {
     public static async beginOnrampFlowMessage(
         user: UserV2Record,
         phoneParams: PhoneNumberParams,
+        isAgent: boolean,
         params: {
             assetId: AssetInteractiveButtonIds;
             currencySymbol: string;
             countryCode: string;
-        }
+        },
     ) {
         const { userPhoneNumber } = phoneParams;
         const { assetId, currencySymbol, countryCode } = params;
@@ -1288,13 +1345,16 @@ class WhatsAppBotService {
             return;
         }
 
-        const flowMessage = WhatsAppBotOnRampFlowService.generateOnRampFlowInitMessage(user, {
-            recipient: userPhoneNumber,
-            asset,
-            localCurrency: currencySymbol,
-            countryCode,
-            paymentMethods,
-        });
+        const flowMessage = WhatsAppBotOnRampFlowService.generateOnRampFlowInitMessage(
+            user,
+            isAgent,
+            {
+                recipient: userPhoneNumber,
+                asset,
+                localCurrency: currencySymbol,
+                countryCode,
+                paymentMethods
+            });
 
         await this.sendWhatsappMessage(phoneParams.businessPhoneNumberId, flowMessage);
     }

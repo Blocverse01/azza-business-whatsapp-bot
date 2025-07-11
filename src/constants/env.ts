@@ -130,6 +130,15 @@ const envSchema = z.object({
     HONEYCOIN_PUBLIC_KEY: notEmptyStringSchema('HONEYCOIN_PUBLIC_KEY'),
     HONEYCOIN_BASE_URL: notEmptyStringSchema('HONEYCOIN_BASE_URL').and(z.string().url()),
     HONEYCOIN_WEBHOOK_SECRET: notEmptyStringSchema('HONEYCOIN_WEBHOOK_SECRET'),
+
+
+
+    ///////////////////////////
+    /// p2p agent account balance
+    ///////////////////////////
+    P2P_AGENT_ACCOUNT_BALANCE_MASK_KEY: notEmptyStringSchema('P2P_AGENT_ACCOUNT_BALANCE_MASK_KEY'),
+    P2P_AGENT_ACCOUNT_BALANCE_MASK_IV: notEmptyStringSchema('P2P_AGENT_ACCOUNT_BALANCE_MASK_IV'),
+
 });
 
 const env = envSchema.parse(process.env);

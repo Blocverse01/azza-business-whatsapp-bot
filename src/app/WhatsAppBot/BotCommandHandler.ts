@@ -31,6 +31,7 @@ import { TokenNames } from '@/resources/web3/core/tokens';
 import userServiceV2 from '@/runtime/user';
 import azzaWalletManager from '@/runtime/wallet';
 import { addJobToReferralCodeQueue } from '../referral-scheme/queue-utils';
+import P2pAgentService from '../User/P2pAgent/P2pAgentService';
 
 type BotCommand = keyof typeof BOT_COMMANDS_REGEX;
 
@@ -106,8 +107,17 @@ class BotCommandHandler {
             case 'BUY_NGN_AIRTIME':
                 await BotCommandHandler.handleBuyNgnAirtime(user, phoneParams);
                 break;
-            case 'BUY_NGN_DATA_BUNDLE': 
+            case 'BUY_NGN_DATA_BUNDLE':
                 await BotCommandHandler.handleBuyNgnDataBundle(user, phoneParams);
+                break;
+            case 'AGENT_SELL_ASSET':
+                await BotCommandHandler.sellAsset(user, phoneParams, botCommand.params);
+                break;
+            case 'AGENT_BUY_ASSET':
+                await BotCommandHandler.buyAsset(user, phoneParams, botCommand.params);
+                break;
+            case 'AGENT_EARNING':
+                await BotCommandHandler.getP2pAgentAccountSummary(user, phoneParams)
                 break;
             default:
                 return {
@@ -179,15 +189,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`;
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -240,15 +250,15 @@ class BotCommandHandler {
         if (!searchAssetForward && !searchAssetBackward) {
             const responseMessage = !searchAssetForward
                 ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`
                 : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
-                      {
-                          action: ExploreAssetActions.BUY_ASSET,
-                      }
-                  )}`;
+                    {
+                        action: ExploreAssetActions.BUY_ASSET,
+                    }
+                )}`;
 
             await WhatsAppBotService.sendWhatsappMessage(
                 phoneParams.businessPhoneNumberId,
@@ -280,6 +290,18 @@ class BotCommandHandler {
             phoneParams,
             supportedAsset.listItemId
         );
+    }
+
+    private static async getP2pAgentAccountSummary(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams,
+    ) {
+
+        return P2pAgentService.getP2pAgentAccountSummary(
+            user.id,
+            phoneParams
+        )
+
     }
 
     private static async getAssetsMenu(
@@ -650,6 +672,8 @@ class BotCommandHandler {
 
         switch (commandName) {
             case 'SELL_ASSET':
+            case 'AGENT_SELL_ASSET':
+            case 'AGENT_BUY_ASSET':
             case 'BUY_ASSET':
             case 'TRANSFER':
             case 'DEPOSIT':

@@ -19,6 +19,7 @@ import SafeHavenService from './app/NigeriaBanks/SafeHaven/SafeHavenService';
 import BellService from './app/NigeriaBanks/BellMFB/BellService';
 import WhatsAppBotService from './app/WhatsAppBot/WhatsAppBotService';
 import HoneyCoinService from './app/HoneyCoin/HoneyCoinService';
+import FiatRampService from './app/FiatRamp/FiatRampService';
 
 const app = express();
 
@@ -61,6 +62,7 @@ createBullBoard({
         new BullMQAdapter(queues.cleanupMessages),
         new BullMQAdapter(queues.handleSmileKycWebhook),
         new BullMQAdapter(queues.handleNGNBankTransactionStatusUpdate),
+        new BullMQAdapter(queues.p2pAgentTransaction),
         new BullMQAdapter(queues.handleNGNVasTransactionStatusUpdate),
         new BullMQAdapter(queues.generateAzzaWrapped),
         new BullMQAdapter(queues.onRamp),

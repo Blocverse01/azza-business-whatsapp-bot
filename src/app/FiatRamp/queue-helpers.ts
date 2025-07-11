@@ -19,6 +19,10 @@ import { generateOnrampTransactionInitiatedMessage } from '@/resources/utils/bot
 import { prettifyNumber } from '@/resources/utils/currency';
 import { updateOnrampTxWithPatches } from './patches/onramp';
 import { Effect } from 'effect';
+import { addP2pAgentTransactionTrackerJobToQueue } from '../User/P2pAgent/queue-utils';
+import { transactionStatusSchema } from './fiatRampSchema';
+import { identifyPaymentProvider } from '@/resources/utils/payment-provider-identifier.';
+import { ProcessorId } from './config';
 import { normalizeTxHash } from './utils';
 
 export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2) => {
@@ -66,12 +70,40 @@ export const handleOfframpRequestInQueue = async (
                 tokenName: params.tokenName.toUpperCase(),
             });
         } else {
+
             sequenceId = await FiatRampService.postOfframpTransaction({
                 ...params,
                 chainName: params.chainName.toUpperCase(),
                 tokenName: params.tokenName.toUpperCase(),
             });
+
+            // Add agent transaction tracker job for reporting
+            if (params.isAgentTransaction && sequenceId) {
+
+                const providerName = identifyPaymentProvider(sequenceId) as ProcessorId;
+
+                const beneficiary = await FiatRampService.getBeneficiary(params.beneficiaryId);
+
+                await addP2pAgentTransactionTrackerJobToQueue(
+                    {
+                        providerName: providerName,
+                        localCurrencySymbol: beneficiary.country.currencySymbol,
+                        country : beneficiary.country.code,
+                        localAmount: params.localAmount,
+                        usdAmount: params.usdAmount,
+                        processingStatus: transactionStatusSchema.parse('complete'),
+                        ownerId: params.userId,
+                        blockchainNetwork: params.chainName.toUpperCase(),
+                        tokenSymbol: params.tokenName.toUpperCase(),
+                        transactionType: 'offramp',
+                        sequenceId: sequenceId,
+                        transactionFeeUsd : params.transactionFeeUsd
+                    })
+            }
+
         }
+
+
         return { sequenceId, result: 'SENT' };
     } catch (error) {
         const parsedError = parseUnknownError(error);

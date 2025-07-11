@@ -31,6 +31,7 @@ import {
     WhatsappBroadcastQueueInput,
 } from '@/background-processing/types';
 import {
+    extractAgentSellAssetToBeneficiary,
     extractGroups,
     extractSellAssetDestinationChoiceGroups,
     extractSellAssetToBeneficiaryGroups,
@@ -49,6 +50,7 @@ import { VERIFY_ME_QUICK_REPLY_PAYLOAD } from './templates/base-cashback-reminde
 import { handleUserKycRequest } from '../kyc/utils';
 import { extractReferralCodeFromMessage } from '../referral-scheme/utils';
 import ReferralSchemeService from '../referral-scheme/service';
+import P2pAgentService from '../User/P2pAgent/P2pAgentService';
 import KycResolutionFlow from '@/app/WhatsAppBot/WhatsAppFlows/KycResolutionFlow';
 
 export const receiveIncomingWhatsappMessageV2 = async (
@@ -202,6 +204,7 @@ const handleIncomingWhatsappMessageV2 = async (
 
     // ============== HANDLE INTERACTIVE MESSAGES ============== //
     if (type === WhatsAppMessageType.INTERACTIVE && interactive) {
+
         // =========== HANDLE INTERACTIVE BUTTON REPLIES =========== //
         if (interactive.type === 'button_reply' && interactive.button_reply) {
             const { button_reply } = interactive;
@@ -389,6 +392,7 @@ const handleIncomingWhatsappMessageV2 = async (
 
         // =========== HANDLE INTERACTIVE LIST REPLIES =========== //
         if (interactive.type === 'list_reply' && interactive.list_reply) {
+
             const { list_reply } = interactive;
 
             const interactiveListId = list_reply.id;
@@ -415,14 +419,18 @@ const handleIncomingWhatsappMessageV2 = async (
                         purchaseAssetId,
                         nextSliceFrom,
                         nextSliceTo,
+                        isAgent
                     ] = interactiveListId.match(
                         MORE_CURRENCIES_COMMAND_REGEX_PATTERN
                     ) as MoreCurrenciesCommandMatch;
+
+                    const isAgentBoolean = isAgent === 'true';
 
                     await WhatsAppBotService.sendSelectSupportedCurrenciesMessage(
                         phoneParams,
                         assetActionId,
                         purchaseAssetId,
+                        isAgentBoolean,
                         parseInt(nextSliceFrom),
                         parseInt(nextSliceTo)
                     );
@@ -466,23 +474,48 @@ const handleIncomingWhatsappMessageV2 = async (
                         purchaseAssetId: assetInteractiveId,
                         currency,
                         countryCode,
+                        isAgent: _isAgentString
                     } = extractTradeAssetGroups(interactiveListId);
 
-                    if (tradeAction === ExploreAssetActions.SELL_ASSET) {
+                    const _isAgentBoolean = _isAgentString === 'true';
+
+                    if (tradeAction === ExploreAssetActions.SELL_ASSET && _isAgentBoolean) {
+
+                        await WhatsAppBotService.beginAgentOfframpFlowMessage({
+                            businessPhoneNumberId,
+                            userPhoneNumber: from,
+                            assetId: assetInteractiveId,
+                            countryCode: countryCode as CountryCode,
+                            currency: currency,
+                            userId: userV2.id
+                        });
+
+                        return ActionExecuted.SEND_TRADE_ASSET_WITH_CURRENCY_MESSAGE;
+                    }
+
+                    if (tradeAction === ExploreAssetActions.SELL_ASSET && !_isAgentBoolean) {
+
                         await WhatsAppBotService.offrampDestinationChoiceMessage(
                             phoneParams,
                             assetInteractiveId,
                             countryCode
                         );
+
                         return ActionExecuted.SEND_TRADE_ASSET_WITH_CURRENCY_MESSAGE;
+
                     }
 
                     if (tradeAction === ExploreAssetActions.BUY_ASSET) {
-                        await WhatsAppBotService.beginOnrampFlowMessage(userV2, phoneParams, {
-                            assetId: assetInteractiveId,
-                            currencySymbol: currency,
-                            countryCode: countryCode as CountryCode,
-                        });
+
+                        await WhatsAppBotService.beginOnrampFlowMessage(
+                            userV2,
+                            phoneParams,
+                            _isAgentBoolean,
+                            {
+                                assetId: assetInteractiveId,
+                                currencySymbol: currency,
+                                countryCode: countryCode as CountryCode,
+                            });
                         return ActionExecuted.SEND_ONRAMP_FLOW_MESSAGE;
                     }
 
@@ -515,7 +548,8 @@ const handleIncomingWhatsappMessageV2 = async (
                         await WhatsAppBotService.handleSellAssetAction(
                             userV2,
                             phoneParams,
-                            assetId
+                            assetId,
+                            false
                         );
 
                         return ActionExecuted.SEND_SELL_ASSET_MESSAGE;
@@ -539,7 +573,11 @@ const handleIncomingWhatsappMessageV2 = async (
                             return ActionExecuted.SEND_MAINTAINANCE_MESSAGE;
                         }
 
-                        await WhatsAppBotService.handleBuyAssetAction(userV2, phoneParams, assetId);
+                        await WhatsAppBotService.handleBuyAssetAction(
+                            userV2,
+                            phoneParams,
+                            assetId
+                        );
 
                         return ActionExecuted.SEND_BUY_ASSET_MESSAGE;
                     }

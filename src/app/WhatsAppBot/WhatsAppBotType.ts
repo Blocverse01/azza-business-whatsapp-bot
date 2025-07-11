@@ -176,6 +176,10 @@ export const assetIds = assetInteractiveButtonsIds.join('|');
 // Create the regex pattern
 export const ASSET_ACTION_REGEX_PATTERN = `^(${actions}):(${assetIds})$`;
 
+export const AGENT_ASSET_ACTION_REGEX_PATTERN = `^(${actions}):(${assetIds})(\\|isAgent:(true|false))?$`;
+
+export const FLOW_TOKEN_REGEX_PATTERN = '^([a-z0-9]+):isAgent:(true|false)$';
+
 // Create the regex object
 export const ASSET_ACTION_REGEX = new RegExp(ASSET_ACTION_REGEX_PATTERN);
 
@@ -218,19 +222,26 @@ export type InteractiveButtonReplyTypes =
     | 'mark-manual-offramp-settlement-as-paid'
     | 'explore-asset-action'
     | 'referral-stats'
+    | 'trigger-agent-offramp-flow'
     | 'admin-resolve-kyc-review';
+
 export type InteractiveListReplyTypes =
     | 'explore-asset-action'
     | 'trade-asset-with-currency'
     | 'explore-asset'
     | 'trigger-offramp-flow'
     | 'return-more-currencies'
+    | 'return-more-beneficiaries'
+    | 'trigger-agent-offramp-flow'
     | 'return-more-beneficiaries';
+
 export type InteractiveNfmReplyActions = 'trigger-offramp-flow' | 'process-kyc-resolution';
 
 export type AssetActionRegexMatch = [string, ExploreAssetActions, AssetInteractiveButtonIds];
 
-export const MORE_CURRENCIES_COMMAND_REGEX_PATTERN = `^moreCurrencies\\|(${actions}):(${assetIds})\\|nextSliceFrom:(\\d+)\\|nextSliceTo:(\\d+)$`;
+export type isAgent = boolean
+
+export const MORE_CURRENCIES_COMMAND_REGEX_PATTERN = `^moreCurrencies\\|(${actions}):(${assetIds})\\|nextSliceFrom:(\\d+)\\|nextSliceTo:(\\d+)$|isAgent:(true|false)?$`;
 export const MORE_CURRENCIES_COMMAND_REGEX = new RegExp(MORE_CURRENCIES_COMMAND_REGEX_PATTERN);
 
 export type MoreCurrenciesCommandMatch = [
@@ -239,6 +250,7 @@ export type MoreCurrenciesCommandMatch = [
     AssetInteractiveButtonIds,
     string,
     string,
+    'true' | 'false' | undefined
 ];
 
 export const MORE_BENEFICIARIES_COMMAND_REGEX_PATTERN =
@@ -305,6 +317,7 @@ export enum ActionExecuted {
     SEND_MAINTAINANCE_MESSAGE = 'SEND_MAINTAINANCE_MESSAGE',
     SEND_KYC_QUERY_RESPONSE = 'SEND_KYC_QUERY_RESPONSE',
     REFERRAL_STATS = 'REFERRAL_STATS',
+    SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE = 'SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE',
     PROCESS_KYC_RESOLUTION = 'PROCESS_KYC_RESOLUTION',
     ADMIN_RESOLVE_KYC = 'ADMIN_RESOLVE_KYC',
 }

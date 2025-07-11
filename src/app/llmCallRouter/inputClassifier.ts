@@ -32,6 +32,12 @@ const actions = [
     'BUY_AIRTIME',
     'PURCHASE_AIRTIME',
     'AIRTIME_TOPUP',
+    'AGENT_SELL_CRYPTO_FOR_FIAT',
+    'AGENT_GET_FIAT_WITH_CRYPTO',
+    'AGENT_BUY_CRYPTO_WITH_FIAT',
+    'AGENT_GET_CRYPTO_WITH_FIAT',
+    'AGENT_BALANCE',
+    'AGENT_EARNINGS'
 ] as const;
 const actionClassSchema = z.enum(actions);
 
@@ -63,14 +69,19 @@ const actionDescriptions: Record<ActionClass, string> = {
     TRANSACTION_HISTORY: 'View a list of all past fiat transactions.',
     DOWNLOAD_ACCOUNT_STATEMENT: 'Download a detailed statement of your account activity.',
     BUY_DATA: 'Purchase a data bundle for internet access on a mobile network.',
-    PURCHASE_DATA: 'Buy a data bundle for internet access on a mobile network. Overlaps with BUY_DATA.',
+    PURCHASE_DATA: 'Buy a data bundle for internet access on a mobile network. Overlaps with .',
     DATA_BUNDLE: 'Initiate a request to view or purchase available data bundles.',
     DATA_TOPUP: 'Add more data to an existing mobile data plan or purchase a new data bundle.',
     BUY_AIRTIME: 'Purchase mobile airtime credit for calls and SMS.',
-    PURCHASE_AIRTIME: 'Buy mobile airtime credit for calls and SMS. Overlaps with BUY_AIRTIME.',
-    AIRTIME_TOPUP: 'Add more airtime credit to your mobile phone for calls and SMS'
+    PURCHASE_AIRTIME: 'Buy mobile airtime credit for calls and SMS. Overlaps with buy airtime.',
+    AIRTIME_TOPUP: 'Add more airtime credit to your mobile phone for calls and SMS',
+    AGENT_SELL_CRYPTO_FOR_FIAT: 'A P2P merchant helps a user sell crypto for fiat currency (e.g., NGN).',
+    AGENT_GET_FIAT_WITH_CRYPTO: 'A P2P merchant helps a user exchange crypto for fiat currency. Overlaps with P2P merchant sell crypto for fiat.',
+    AGENT_BUY_CRYPTO_WITH_FIAT: 'A P2P merchant helps a user buy crypto with fiat currency (e.g., NGN).',
+    AGENT_GET_CRYPTO_WITH_FIAT: 'A P2P merchant helps a user exchange fiat for crypto currency. Overlaps with P2P merchant buy crypto with fiat.',
+    AGENT_EARNINGS: 'P2P merchant views total commissions and rewards.',
+    AGENT_BALANCE: 'P2P merchant checks current operational balance.'
 };
-
 const actionSchema = z.object({
     class: actionClassSchema.or(z.literal('NO_PREDEFINED_ACTION')),
     confidence: z.number(),

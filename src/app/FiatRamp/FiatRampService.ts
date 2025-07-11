@@ -58,6 +58,7 @@ import userServiceV2 from '@/runtime/user';
 import { VASServiceType } from '../NigeriaBanks/SafeHaven/SafeHaveSchema';
 import { dbClient } from '@/db/dbClient';
 import { CompositeRateService } from '../rates/RateService';
+import { isNonEmptyString } from '@/resources/utils/transformers';
 import { normalizeTxHash } from './utils';
 
 class FiatRampService {
@@ -437,12 +438,12 @@ class FiatRampService {
                                 params,
                                 `From: ${senderName}`
                             )) ??
-                            (yellowCardPayoutIsEnabled
+                            (yellowCardPayoutIsEnabled && !params.isAgentTransaction
                                 ? await this.passOfframpTransactionToYC(user, params)
                                 : await this.tryManualPayout(beneficiary, params))
                         );
                     }
-                    if (yellowCardPayoutIsEnabled) {
+                    if (yellowCardPayoutIsEnabled && !params.isAgentTransaction) {
                         return await this.passOfframpTransactionToYC(user, params);
                     }
                     return await this.tryManualPayout(beneficiary, params);
@@ -469,7 +470,7 @@ class FiatRampService {
 
                     // Bell is not available (disabled or PalmPay) - try YellowCard or manual
                     if (!bellBankIsEnabled || isPalmPayBank) {
-                        if (yellowCardPayoutIsEnabled) {
+                        if (yellowCardPayoutIsEnabled && !params.isAgentTransaction) {
                             return await this.passOfframpTransactionToYC(user, params);
                         }
                         return await this.tryManualPayout(beneficiary, params);
@@ -478,7 +479,7 @@ class FiatRampService {
                     // Try Bell as fallback, then manual payout
                     return (
                         (await this.tryBellPayout(beneficiary, params, senderName)) ??
-                        (yellowCardPayoutIsEnabled
+                        (yellowCardPayoutIsEnabled && !params.isAgentTransaction
                             ? await this.passOfframpTransactionToYC(user, params)
                             : await this.tryManualPayout(beneficiary, params))
                     );
@@ -488,7 +489,7 @@ class FiatRampService {
             // ------------------------------------------------------------------------
             // NIGERIA FALLBACK: Nigerian bank payouts are disabled - try YellowCard
             // ------------------------------------------------------------------------
-            if (yellowCardPayoutIsEnabled) {
+            if (yellowCardPayoutIsEnabled && !params.isAgentTransaction) {
                 return await FiatRampService.passOfframpTransactionToYC(user, params);
             }
 
@@ -878,20 +879,24 @@ class FiatRampService {
         const { networkId, country, channelId, seerbitId, nameEnquiryReference, accountNumber } =
             settlementData.destination;
 
-        let accountNameEnquiry: { seerbitId: string; nameEnquiryReference: string } = {
-            seerbitId: '',
-            nameEnquiryReference: '',
-        };
-
-        if (!nameEnquiryReference) {
-            accountNameEnquiry = await this.getAccountNameEntryId({
-                networkId: networkId,
+        const accountNameEnquiry = isNonEmptyString(nameEnquiryReference)
+            ? { seerbitId: '', nameEnquiryReference: '' }
+            : await this.getAccountNameEntryId({
+                networkId,
                 countryCode: country as CountryCode,
                 channelId: channelId!,
-                accountNumber: accountNumber,
+                accountNumber,
             });
-        }
 
+        const finalNameEnquiryReference = isNonEmptyString(nameEnquiryReference)
+            ? nameEnquiryReference
+            : accountNameEnquiry.nameEnquiryReference;
+
+        const finalSeerbitId = isNonEmptyString(seerbitId)
+            ? seerbitId
+            : accountNameEnquiry.seerbitId;
+        
+        
         await NigeriaBanksService.sendProcessingSettlementMessage({
             tokenAmountDebited: offrampRequest.tokenAmountToDebit,
             ownerId: safeHavenSettlementRecord.ownerId,
@@ -901,10 +906,11 @@ class FiatRampService {
             localAmount: safeHavenSettlementRecord.localAmount,
         });
 
+
         const transaction = await SafeHavenService.processOffRampPaymentWithSaveHaven({
-            nameEnquiryReference: nameEnquiryReference ?? accountNameEnquiry.nameEnquiryReference,
+            nameEnquiryReference: finalNameEnquiryReference,
             amountToSend: settlementData.localAmount,
-            beneficiaryBankCode: seerbitId ?? accountNameEnquiry.seerbitId,
+            beneficiaryBankCode: finalSeerbitId,
             beneficiaryAccountNumber: accountNumber,
             sequenceId: safeHavenSettlementRecord.sequenceId,
             narration,

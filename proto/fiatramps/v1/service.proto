@@ -262,6 +262,7 @@ message CreatePlatformCollectionRequestInput {
   string channel_id = 11;
   double transaction_fee_usd = 12;
   string collection_country_code = 13;
+  bool is_agent_transaction = 14; 
 }
 message BankInfo {
   string name = 1;
@@ -281,6 +282,7 @@ message CreateCollectionResponse {
   string currency = 10;
   string country = 11;
   BankInfo bank_info = 12;
+  bool is_agent_transaction = 13; 
 }
 
 message GetCollectionRequestTransactionRequest {
@@ -308,6 +310,7 @@ message GetCollectionRequestResponse {
   string local_currency_symbol = 18;
   double transaction_fee_usd = 19;
   string created_at = 20;
+  bool is_agent_transaction = 21; 
 }
 
 message UpdateCollectionTransactionStatusRequest {

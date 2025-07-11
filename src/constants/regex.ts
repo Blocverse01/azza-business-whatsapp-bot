@@ -6,13 +6,16 @@ export const SELL_BENEFICIARY_AMOUNT_PATTERN =
 export const SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN =
     /sell:(?<sell>[^|]+)\|beneficiaryId:(?<beneficiaryId>[^|]+)/;
 
+export const AGENT_SELL_ASSET_REGEX_PATTERN = 
+    /sell:(?<assetId>[^|]+)\|countryCode:(?<countryCode>[^|]+)(\|isAgent:(?<isAgent>true|false))?/;
+
 // create a regex pattern from `sell:${assetId}|beneficiaryAction:chooseExisting`
 export const SELL_ASSET_DESTINATION_CHOICE_REGEX =
     /sell:(?<assetId>[^|]+)\|beneficiaryAction:(?<beneficiaryAction>[^|]+)\|countryCode:(?<countryCode>[^|]+)/;
 
 // create a regex pattern for `${assetActionId}:${purchaseAssetId}|currency:${country.currency}|countryCode:${country.code}`
 export const TRADE_ASSET_REGEX =
-    /(?<assetActionId>[^:]+):(?<purchaseAssetId>[^|]+)\|currency:(?<currency>[^|]+)\|countryCode:(?<countryCode>[^|]+)/;
+    /(?<assetActionId>[^:]+):(?<purchaseAssetId>[^|]+)\|currency:(?<currency>[^|]+)\|countryCode:(?<countryCode>[^|]+)(\|isAgent:(?<isAgent>true|false))?/;
 
 export const BOT_COMMANDS_REGEX = {
     RATES: /^\/rates$/,
@@ -34,12 +37,21 @@ export const BOT_COMMANDS_REGEX = {
     PAY: /^\/pay$/,
     GENERATE_STATEMENT: /^\/generate_statement$/,
     BUY_NGN_AIRTIME: /^\/airtime$/,
-    BUY_NGN_DATA_BUNDLE: /^\/data_bundle$/
+    BUY_NGN_DATA_BUNDLE: /^\/data$/,
+    AGENT_SELL_ASSET: /^\/agent_sell\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /agent_sell usdt polygon,
+    AGENT_BUY_ASSET: /^\/agent_buy\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /agent_buy usdt polygon
+    AGENT_EARNING: /^\/agent_earning$/
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {
     sell: string;
     beneficiaryId: string;
+};
+
+export type AgentSellAssetToBeneficiaryMatchGroups = {
+    assetId: string;
+    isAgent: string;
+    countryCode: string;
 };
 
 export type SellAssetDestinationChoiceMatchGroups = {
@@ -53,6 +65,7 @@ export type TradeAssetMatchGroups = {
     purchaseAssetId: AssetInteractiveButtonIds;
     currency: string;
     countryCode: string;
+    isAgent: string;
 };
 
 export type TradeAssetBotCommandMatchGroups = {
@@ -84,6 +97,15 @@ export const extractSellAssetToBeneficiaryGroups = (
     return extractGroups<SellAssetToBeneficiaryMatchGroups>(
         text,
         SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN
+    );
+};
+
+export const extractAgentSellAssetToBeneficiary = (
+    text: string
+): AgentSellAssetToBeneficiaryMatchGroups => {
+    return extractGroups<AgentSellAssetToBeneficiaryMatchGroups>(
+        text,
+        AGENT_SELL_ASSET_REGEX_PATTERN
     );
 };
 

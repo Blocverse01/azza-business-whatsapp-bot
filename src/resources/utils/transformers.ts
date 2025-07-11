@@ -33,6 +33,19 @@ export const clipDecimal = (num: number, decimals: number): number => {
     return Math.trunc(num * factor) / factor;
 };
 
+export const toTitleCase = (input : string) : string => {
+    return input
+        .trim()                    // Remove leading/trailing spaces
+        .split(/\s+/)              // Split by spaces (handles multiple spaces)
+        .map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        )
+        .join(' ');
+}
+
+export const isNonEmptyString = (val: unknown): val is string =>
+    typeof val === 'string' && val.trim() !== '';
+
 export const arrangeNameAlphabetically = (name: string): string => {
     return name
         .split(' ')

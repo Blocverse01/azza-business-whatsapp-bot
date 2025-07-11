@@ -112,6 +112,7 @@ class FiatRampsRpcService {
         countryCode: CountryCode,
         route: 'onramp' | 'offramp'
     ) {
+
         const request = new GetQuotesRequest({
             country_code: countryCode,
             currency_symbol: currencySymbol,
@@ -155,6 +156,44 @@ class FiatRampsRpcService {
         return rates[0];
     }
 
+    private static dedupeBanks(beneficiaries: BankBeneficiary[]) {
+        const beneficiariesByAccountNumber = new Map<string, BankBeneficiary[]>();
+        for (const beneficiary of beneficiaries) {
+            const key = beneficiary.accountNumber;
+            if (!beneficiariesByAccountNumber.has(key)) beneficiariesByAccountNumber.set(key, []);
+            beneficiariesByAccountNumber.get(key)!.push(beneficiary);
+        }
+        const preferredBanks = ['palm', 'opay'];
+        const result: BankBeneficiary[] = [];
+        for (const dupes of beneficiariesByAccountNumber.values()) {
+            if (dupes.length === 1) {
+                result.push(dupes[0]);
+                continue;
+            }
+            let selectedBeneficiary = dupes[0];
+            for (const currentBeneficiary of dupes) {
+                const bank = currentBeneficiary.bankName.toLowerCase();
+                if (preferredBanks.some(p => bank.includes(p))) {
+                    selectedBeneficiary = currentBeneficiary;
+                    break;
+                }
+            }
+            result.push(selectedBeneficiary);
+        }
+        return result;
+    }
+
+    private static dedupePhones(beneficiaries: MobileMoneyBeneficiary[]) {
+        const uniqueByMobileNumber = new Map<string, MobileMoneyBeneficiary>();
+
+        for (const beneficiary of beneficiaries) {
+            if (!uniqueByMobileNumber.has(beneficiary.mobileNumber)) {
+                uniqueByMobileNumber.set(beneficiary.mobileNumber, beneficiary);
+            }
+        }
+        return Array.from(uniqueByMobileNumber.values());
+    }
+
     public static async getBeneficiaries(
         ownerId: string,
         countryCode: CountryCode,
@@ -172,7 +211,25 @@ class FiatRampsRpcService {
             throw new Error('Invalid response');
         }
 
-        return response.beneficiaries.map(this.parseBeneficiary);
+        const parsed = response.beneficiaries.map(this.parseBeneficiary);
+
+        const banks: BankBeneficiary[] = [];
+        const phones: MobileMoneyBeneficiary[] = [];
+
+        for (const b of parsed) {
+            if ('accountNumber' in b) {
+                banks.push(b as BankBeneficiary);
+            } else {
+                phones.push(b);
+            }
+        }
+
+        return [
+            ...this.dedupeBanks(banks),
+            ...this.dedupePhones(phones),
+        ];
+
+        //return response.beneficiaries.map(this.parseBeneficiary);
     }
 
     private static parseBeneficiary(beneficiary: fiatramps.v1.Beneficiary) {
@@ -422,6 +479,7 @@ class FiatRampsRpcService {
             channel_id: params.channelId,
             transaction_fee_usd: params.transactionFeeUsd,
             collection_country_code: params.country,
+            is_agent_transaction : params.isAgentTransaction
         });
 
         const response = await createPlatformCollection(request);

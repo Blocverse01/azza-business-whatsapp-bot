@@ -25,6 +25,9 @@ import {
     handleAccountStatementRelatedPrompt,
     handleAirtimePurchasePrompt,
     handleDataBundlePurchasePrompt,
+    handleAgentSellCryptoForFiatPrompt,
+    handleAgentBuyCryptoWithFiatPrompt,
+    handleAgentEarningPrompt
 } from '@/app/WhatsAppBot/text/actionHandlers';
 import { actionArgumentsSchema } from '@/app/WhatsAppBot/text/classifiedActionSchema';
 import { getWelcomeBackMessageText } from '@/app/WhatsAppBot/utils';
@@ -208,6 +211,30 @@ export const textPromptHandler = async (
                     user,
                 });
                 break;
+            case 'AGENT_SELL_CRYPTO_FOR_FIAT':
+            case 'AGENT_GET_FIAT_WITH_CRYPTO':
+                responseMessage = await handleAgentSellCryptoForFiatPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'AGENT_BUY_CRYPTO_WITH_FIAT':
+            case 'AGENT_GET_CRYPTO_WITH_FIAT':
+                responseMessage = await handleAgentBuyCryptoWithFiatPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
+            case 'AGENT_EARNINGS':
+            case 'AGENT_BALANCE' :
+                responseMessage = await handleAgentEarningPrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
             case 'SWAP_CRYPTO':
                 responseMessage = await handleSwapCryptoPrompt(
                     {
@@ -221,7 +248,6 @@ export const textPromptHandler = async (
             case 'SHOW_FIAT_RATES':
                 responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
                 break;
-            case 'REFERRAL_REQUEST':
             case 'PAY_TO_BANK_ACCOUNT':
                 responseMessage = await handlePayRelatedPrompt({
                     extractedArguments,
@@ -229,6 +255,7 @@ export const textPromptHandler = async (
                     user,
                 });
                 break;
+            case 'REFERRAL_REQUEST':
             case 'REFERRAL_CODE':
                 responseMessage = await handleReferralPrompt({
                     extractedArguments,

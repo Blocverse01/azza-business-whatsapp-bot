@@ -70,6 +70,7 @@ export const onrampTransactionPayloadSchema = z.object({
     transactionFeeUsd: z.number(),
     tokenAmount: z.number(),
     transactionFeeInToken: z.number(),
+    isAgentTransaction : z.boolean().default(false)
 });
 
 export type OnrampTransactionPayload = z.infer<typeof onrampTransactionPayloadSchema>;
@@ -147,6 +148,12 @@ export type MobileMoneyBeneficiary = z.infer<ReturnType<typeof mobileMoneyBenefi
 export type Beneficiary = BankBeneficiary | MobileMoneyBeneficiary;
 export type UsersBeneficiaries = Beneficiary[];
 
+export const phoneBeneficiaryParams = (countryCode: CountryCode) =>
+    mobileMoneyBeneficiarySchema(countryCode).omit({ id: true, country: true });
+
+export const bankBeneficiaryParams =
+    bankBeneficiarySchema.omit({ id: true, country: true });
+
 export const createBeneficiaryParams = (
     beneficiaryType: 'phone' | 'bank',
     countryCode: CountryCode
@@ -154,11 +161,14 @@ export const createBeneficiaryParams = (
     z.object({
         beneficiary:
             beneficiaryType === 'phone'
-                ? mobileMoneyBeneficiarySchema(countryCode).omit({ id: true, country: true })
-                : bankBeneficiarySchema.omit({ id: true, country: true }),
+                ? phoneBeneficiaryParams(countryCode)
+                : bankBeneficiaryParams,
     });
 
 export type CreateBeneficiaryParams = z.infer<ReturnType<typeof createBeneficiaryParams>>;
+
+export type BankBeneficiaryType = z.infer<typeof bankBeneficiaryParams>;
+export type PhoneBeneficiaryType = z.infer<ReturnType<typeof phoneBeneficiaryParams>>;
 
 export const createBeneficiaryResponseSchema = z.object({
     beneficiaryId: z.string(),
@@ -179,6 +189,7 @@ export const sendOfframpRequestPayloadSchema = z.object({
     platformFeePercentage: z.number(),
     conversionRate: z.number(),
     transactionFeeUsd: z.number(),
+    isAgentTransaction : z.boolean()
 });
 
 export type SendOfframpRequestPayload = z.infer<typeof sendOfframpRequestPayloadSchema>;
@@ -248,6 +259,7 @@ export const onrampTransactionRecordSchema = z.object({
     createdAt: z.string().datetime(),
     tokenAmount: z.number().optional().nullable(),
     transactionFeeInToken: z.number().optional().nullable(),
+    isAgentTransaction : z.boolean().optional()
 });
 
 export type OfframpTransactionRecord = z.infer<typeof OfframpTransactionRecordSchema>;

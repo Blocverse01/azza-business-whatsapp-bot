@@ -37,6 +37,7 @@ import {
     CollectFeeQueueInput,
     GenerateAccountStatementQueueInput,
     NGNVasTransactionQueueInput,
+    p2pAgentQueueInput,
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -123,6 +124,12 @@ export const queues = {
     ),
     handleNGNBankTransactionStatusUpdate: new Queue<NGNBankTransactionQueueInput>(
         QueueNames.handleNGNBankTransactionStatusUpdate,
+        {
+            connection: connectionConfig,
+        }
+    ),
+    p2pAgentTransaction: new Queue<p2pAgentQueueInput>(
+        QueueNames.p2pAgentTransaction,
         {
             connection: connectionConfig,
         }
