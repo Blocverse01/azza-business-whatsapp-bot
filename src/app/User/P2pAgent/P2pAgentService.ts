@@ -9,6 +9,7 @@ import { HttpException } from "@/resources/exceptions/HttpException";
 import WhatsAppBotService from "@/app/WhatsAppBot/WhatsAppBotService";
 import MessageGenerators from "@/app/WhatsAppBot/MessageGenerators";
 import UserServiceV2 from "../UserServiceV2";
+import FiatRampService from "@/app/FiatRamp/FiatRampService";
 
 class P2pAgentService {
     private static readonly P2P_AGENT_TRANSACTION_REPOSITORY = dbClient.p2p_agent_transactions;
@@ -156,6 +157,7 @@ class P2pAgentService {
                 userPhoneNumber: user?.primaryWhatsappPhoneNumber!
             });
         }
+
 
         await WhatsAppBotService.sendWhatsappMessage(
             phoneParams.businessPhoneNumberId,

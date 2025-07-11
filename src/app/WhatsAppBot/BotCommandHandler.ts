@@ -111,10 +111,10 @@ class BotCommandHandler {
                 await BotCommandHandler.handleBuyNgnDataBundle(user, phoneParams);
                 break;
             case 'AGENT_SELL_ASSET':
-                await BotCommandHandler.sellAsset(user, phoneParams, botCommand.params);
+                await BotCommandHandler.sellAsset(user, phoneParams, botCommand.params, true);
                 break;
             case 'AGENT_BUY_ASSET':
-                await BotCommandHandler.buyAsset(user, phoneParams, botCommand.params);
+                await BotCommandHandler.buyAsset(user, phoneParams, botCommand.params, true);
                 break;
             case 'AGENT_EARNING':
                 await BotCommandHandler.getP2pAgentAccountSummary(user, phoneParams)
@@ -173,7 +173,8 @@ class BotCommandHandler {
     private static async sellAsset(
         user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        params: TradeAssetBotCommandMatchGroups
+        params: TradeAssetBotCommandMatchGroups,
+        isAgent? : boolean
     ) {
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
@@ -227,14 +228,16 @@ class BotCommandHandler {
         return await WhatsAppBotService.handleSellAssetAction(
             user,
             phoneParams,
-            supportedAsset.listItemId
+            supportedAsset.listItemId,
+            isAgent
         );
     }
 
     private static async buyAsset(
         user: UserV2Record,
         phoneParams: PhoneNumberParams,
-        params: TradeAssetBotCommandMatchGroups
+        params: TradeAssetBotCommandMatchGroups,
+        isAgent?: boolean
     ) {
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
@@ -288,7 +291,8 @@ class BotCommandHandler {
         return await WhatsAppBotService.handleBuyAssetAction(
             user,
             phoneParams,
-            supportedAsset.listItemId
+            supportedAsset.listItemId,
+            isAgent
         );
     }
 
