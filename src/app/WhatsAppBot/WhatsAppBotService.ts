@@ -89,6 +89,7 @@ import {
     WhatsAppInteractiveMessage,
     WhatsAppMessageType,
     WhatsAppTextMessage,
+    type InteractiveNfmReplyActions,
 } from './WhatsAppBotType';
 import SmileIdService from '../SmileID/SmileIdService';
 import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
@@ -98,10 +99,16 @@ import cryptoAssetPriceService from '@/runtime/crypto-asset-price';
 import WhatsappBotAccountStatementFlowService from './WhatsAppFlows/WhatsappBotAccountStatementFlowService';
 import WhatsappBotNgnAirtimeFlowService from './WhatsAppFlows/WhatsappBotNgnAirtimeFlowService';
 import SafeHavenService from '../NigeriaBanks/SafeHaven/SafeHavenService';
-import { extractNetworkTitle, NetworkLogos, NetworkTitle, safeHavenVasServices } from '../NigeriaBanks/SafeHaven/WhitelistedVasServices';
+import {
+    extractNetworkTitle,
+    NetworkLogos,
+    NetworkTitle,
+    safeHavenVasServices,
+} from '../NigeriaBanks/SafeHaven/WhitelistedVasServices';
 import { divide } from 'mathjs';
 import WhatsappBotNgnDataBundleFlowService from './WhatsAppFlows/WhatsappBotNgnDataBundleFlowService';
 import { getTokenToCurrencyConversionRate } from '../FiatRamp/token-currency-pair-rate/utils';
+import { KycFlowCompletionData } from './WhatsAppFlows/KycResolutionFlow';
 import WhatsAppBotAgentOffRampFlowService from './WhatsAppFlows/WhatsAppBotAgentOfframpFlowService';
 
 class WhatsAppBotService {
@@ -399,9 +406,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                    title: 'More',
-                } as const)
+                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                      title: 'More',
+                  } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -585,7 +592,6 @@ class WhatsAppBotService {
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
     }
 
-
     public static async beginNgnAirtimeFlowMessage(
         user: UserV2Record,
         phoneParams: PhoneNumberParams
@@ -593,15 +599,16 @@ class WhatsAppBotService {
         const { businessPhoneNumberId, userPhoneNumber } = phoneParams;
 
         //airtime categories
-        const airtimeNetworks = await SafeHavenService.getSafeHavenVasServiceCategories(safeHavenVasServices.AIRTIME.id);
+        const airtimeNetworks = await SafeHavenService.getSafeHavenVasServiceCategories(
+            safeHavenVasServices.AIRTIME.id
+        );
 
         const mobileNetworks = airtimeNetworks.map((network) => ({
             id: network.id,
             title: network.name,
             description: network.description,
-            image: NetworkLogos[network.identifier as NetworkTitle]
+            image: NetworkLogos[network.identifier as NetworkTitle],
         }));
-
 
         if (mobileNetworks.length === 0) {
             await this.sendArbitraryTextMessage(
@@ -611,12 +618,10 @@ class WhatsAppBotService {
             return;
         }
 
-        const flowMessage =
-            WhatsappBotNgnAirtimeFlowService.generateAirtimeFlowInitMessage(user,
-                {
-                    userPhoneNumber,
-                    mobileNetworks
-                });
+        const flowMessage = WhatsappBotNgnAirtimeFlowService.generateAirtimeFlowInitMessage(user, {
+            userPhoneNumber,
+            mobileNetworks,
+        });
 
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
     }
@@ -625,17 +630,18 @@ class WhatsAppBotService {
         user: UserV2Record,
         phoneParams: PhoneNumberParams
     ) {
-
         const { businessPhoneNumberId, userPhoneNumber } = phoneParams;
 
         //data network categories
-        const airtimeNetworks = await SafeHavenService.getSafeHavenVasServiceCategories(safeHavenVasServices.DATA.id);
+        const airtimeNetworks = await SafeHavenService.getSafeHavenVasServiceCategories(
+            safeHavenVasServices.DATA.id
+        );
 
         const mobileNetworks = airtimeNetworks.map((network) => ({
             id: network.id,
             title: extractNetworkTitle(network.name),
             description: network.description,
-            image: NetworkLogos[extractNetworkTitle(network.identifier) as NetworkTitle]
+            image: NetworkLogos[extractNetworkTitle(network.identifier) as NetworkTitle],
         }));
 
         if (mobileNetworks.length === 0) {
@@ -646,12 +652,13 @@ class WhatsAppBotService {
             return;
         }
 
-        const flowMessage =
-            WhatsappBotNgnDataBundleFlowService.generateDataBundleFlowInitMessage(user,
-                {
-                    userPhoneNumber,
-                    mobileNetworks
-                });
+        const flowMessage = WhatsappBotNgnDataBundleFlowService.generateDataBundleFlowInitMessage(
+            user,
+            {
+                userPhoneNumber,
+                mobileNetworks,
+            }
+        );
 
         await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
     }
@@ -784,11 +791,16 @@ class WhatsAppBotService {
             rates.unshift(userCountry);
         }
 
-        const ratesText = `_*Conversion Rates*_\n\n${rates.map((rate) => {
-            const code = 'displayCurrencyCodeAs' in rate ? rate.displayCurrencyCodeAs ?? rate.code : rate.code;
+        const ratesText = `_*Conversion Rates*_\n\n${rates
+            .map((rate) => {
+                const code =
+                    'displayCurrencyCodeAs' in rate
+                        ? (rate.displayCurrencyCodeAs ?? rate.code)
+                        : rate.code;
 
-            return `${getCountryFlagEmoji(rate.locale)} ${code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`
-        }).join('\n')}`;
+                return `${getCountryFlagEmoji(rate.locale)} ${code}/USD\nBuy: ${prettifyNumber(rate.buy, TWO)}\nSell: ${prettifyNumber(rate.sell, TWO)}\n--------------------------`;
+            })
+            .join('\n')}`;
 
         await this.sendWhatsappMessage(
             businessPhoneNumberId,
@@ -817,7 +829,7 @@ class WhatsAppBotService {
                     type: 'image',
                 }
             );
-        } catch (error) { }
+        } catch (error) {}
     }
 
     public static async depositAssetCommandHandler(
@@ -909,6 +921,10 @@ class WhatsAppBotService {
         if (interactiveButtonId.startsWith(BaseInteractiveButtonIds.REFERRAL_STATS)) {
             return 'referral-stats';
         }
+          
+        if (interactiveButtonId.startsWith('admin_kyc_')) {
+            return 'admin-resolve-kyc-review';
+        }
 
         if (interactiveButtonId.match(AGENT_SELL_ASSET_REGEX_PATTERN)) {
             return 'trigger-agent-offramp-flow';
@@ -974,6 +990,20 @@ class WhatsAppBotService {
             const flowIsAddBeneficiary = flowResponseParams
                 ? flowResponseParams.flow_name.toLowerCase().includes('add beneficiary')
                 : 'asset_id' in flowResponse && 'beneficiary_id' in flowResponse;
+
+            const flowIsKycResolution = flowResponseParams
+                ? flowResponseParams.flow_name.toLowerCase().includes('kyc resolution')
+                : 'bvn_details' in flowResponse;
+
+            if (flowIsKycResolution) {
+                const kycResolutionFlowResponse =
+                    response as FlowNfmReplyResponse<KycFlowCompletionData>;
+
+                return {
+                    action: 'process-kyc-resolution' as const satisfies InteractiveNfmReplyActions,
+                    data: kycResolutionFlowResponse satisfies KycFlowCompletionData,
+                } as const;
+            }
 
             if (flowIsAddBeneficiary) {
                 const addBeneficiaryFlowResponse = response as FlowNfmReplyResponse<{
@@ -1498,28 +1528,26 @@ class WhatsAppBotService {
             asset?: string;
             network?: string;
         } = {},
-        local_amount: number,
+        local_amount: number
     ) {
-
         const { asset: tokenName, network } = entityConfig;
 
-        const supportedAssets = azzaWalletManager.getSupportedAssets()
-            .filter((asset) => {
-                if (tokenName && network) {
-                    return (
-                        asset.tokenName.toLowerCase() === tokenName.toLowerCase() &&
-                        asset.network.toLowerCase() === network.toLowerCase()
-                    );
-                }
-                if (tokenName) {
-                    return asset.tokenName.toLowerCase() === tokenName.toLowerCase();
-                }
-                if (network) {
-                    return asset.network.toLowerCase() === network.toLowerCase();
-                }
+        const supportedAssets = azzaWalletManager.getSupportedAssets().filter((asset) => {
+            if (tokenName && network) {
+                return (
+                    asset.tokenName.toLowerCase() === tokenName.toLowerCase() &&
+                    asset.network.toLowerCase() === network.toLowerCase()
+                );
+            }
+            if (tokenName) {
+                return asset.tokenName.toLowerCase() === tokenName.toLowerCase();
+            }
+            if (network) {
+                return asset.network.toLowerCase() === network.toLowerCase();
+            }
 
-                return true;
-            });
+            return true;
+        });
 
         const uniqueNetworks = [...new Set(supportedAssets.map((asset) => asset.network))];
 
@@ -1534,8 +1562,9 @@ class WhatsAppBotService {
             ...allPromises,
         ]);
 
-
-        const userAssetsInfo = userAssetsInfoEntries.flat().filter((assetInfo) => !assetInfo.asset.isNative);
+        const userAssetsInfo = userAssetsInfoEntries
+            .flat()
+            .filter((assetInfo) => !assetInfo.asset.isNative);
 
         if (!userCountry) {
             throw new Error('Could not determine user country');

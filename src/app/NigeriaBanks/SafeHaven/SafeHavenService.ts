@@ -28,7 +28,7 @@ import {
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK } from '@/constants/status-codes';
 import { safeHavenVasServices } from './WhitelistedVasServices';
 import { dbClient } from '@/db/dbClient';
-import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema'
+import { transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import { TransactionType } from '@/app/ngn-vas-payment/queue-utils';
 import { prettifyNumber } from '@/resources/utils/currency';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
@@ -42,7 +42,8 @@ class SafeHavenService {
     private static readonly SAVEHAVEN_CLIENT_ASSERTION = env.SAFEHAVEN_CLIENT_ASSERTION;
     private static readonly SAVEHAVEN_ACCOUNT_NUMBER = '0117226117';
     private static readonly SAVEHEVEN_ACCOUNT_ID = '67c8b8242a82110024bcaf97';
-    private static readonly NGN_VAS_TRANSACTION_REPOSITORY = dbClient.ngn_vas_settlement_transaction;
+    private static readonly NGN_VAS_TRANSACTION_REPOSITORY =
+        dbClient.ngn_vas_settlement_transaction;
 
     private static accessToken: string | null = null;
     private static tokenExpiry: number | null = null;
@@ -299,10 +300,10 @@ class SafeHavenService {
         }
     }
 
-    public static async getSafeHavenVasServiceCategories(serviceId: string): Promise<VasServiceCategoryResult[]> {
-
+    public static async getSafeHavenVasServiceCategories(
+        serviceId: string
+    ): Promise<VasServiceCategoryResult[]> {
         try {
-
             const authTokenData = await this.generateAccessToken();
 
             const response = await axios.get<VasServiceCategoriesResponse>(
@@ -331,17 +332,17 @@ class SafeHavenService {
             }));
 
             return VasServiceCategories;
-
         } catch (error) {
             await logServiceError(error, 'Error fetching VAS service categories from SavaHaven');
             throw error;
         }
     }
 
-    public static async getSafeHavenDataVasServiceCategoryProducts(categoryId: string, cappedAmount: number): Promise<VasServiceCategoryProductWithId[]> {
-
+    public static async getSafeHavenDataVasServiceCategoryProducts(
+        categoryId: string,
+        cappedAmount: number
+    ): Promise<VasServiceCategoryProductWithId[]> {
         try {
-
             const authTokenData = await this.generateAccessToken();
 
             const response = await axios.get<VasServiceCategoryProductsResponse>(
@@ -366,35 +367,33 @@ class SafeHavenService {
                     validity: product.validity,
                     bundleCode: product.bundleCode,
                     amount: product.amount,
-                    isAmountFixed: product.isAmountFixed
+                    isAmountFixed: product.isAmountFixed,
                 }));
 
             return VasServiceCategoryProducts;
-
         } catch (error) {
             await logServiceError(error, 'Error fetching VAS service categories from SavaHaven');
             throw error;
         }
     }
 
-
     public static async processVASPayment<T extends VASServiceType>(
         input: ExecuteBuyTransactionPayload<T>
     ): Promise<VasServiceResult> {
-
         PAYLOAD_SCHEMAS[input.type].parse(input.payload);
         const endpoint = VAS_ENDPOINTS[input.type];
 
         try {
-
             const authTokenData = await this.generateAccessToken();
 
-            void logger.info(`[${input.type.toUpperCase()}] Sending request to ${endpoint} endpoint...`);
+            void logger.info(
+                `[${input.type.toUpperCase()}] Sending request to ${endpoint} endpoint...`
+            );
 
             const payload = {
                 ...input.payload,
                 debitAccountNumber: this.SAVEHAVEN_ACCOUNT_NUMBER,
-                channel: 'WEB'
+                channel: 'WEB',
             };
 
             const response = await axios.post<VasServiceResult>(
@@ -414,36 +413,47 @@ class SafeHavenService {
             if (statusCode != OK) throw new HttpException(statusCode, `${message}`);
 
             return response.data;
-
         } catch (error) {
             await logServiceError(error, `Error processing safehaven vas transaction`);
             throw error;
         }
     }
 
-
-    public static async payDataBundle(ngnVasSettlementId: string, userPhoneNumber: string, transactionHash: string, payload: VasServicePayload) {
-
-        const response = await SafeHavenService.processVASPayment({ type: VASServiceType.DATA, payload });
+    public static async payDataBundle(
+        ngnVasSettlementId: string,
+        userPhoneNumber: string,
+        transactionHash: string,
+        payload: VasServicePayload
+    ) {
+        const response = await SafeHavenService.processVASPayment({
+            type: VASServiceType.DATA,
+            payload,
+        });
         const updateParmas = {
             sequenceId: response.data.reference,
             processingStatus: transactionStatusSchema.parse('processing'),
-            transactionHash: transactionHash
-        }
+            transactionHash: transactionHash,
+        };
 
         if (response.data) {
-            const isUpdate = await this.updatePaymentSettlementById(ngnVasSettlementId, userPhoneNumber, updateParmas);
-            if (!isUpdate) throw new HttpException(INTERNAL_SERVER_ERROR, `Failed to update data bundle transaction`);
+            const isUpdate = await this.updatePaymentSettlementById(
+                ngnVasSettlementId,
+                userPhoneNumber,
+                updateParmas
+            );
+            if (!isUpdate)
+                throw new HttpException(
+                    INTERNAL_SERVER_ERROR,
+                    `Failed to update data bundle transaction`
+                );
         }
 
         return { sequenceId: response.data.id };
     }
 
-
     public static async payUtility(payload: VasServicePayload): Promise<{}> {
         return await SafeHavenService.processVASPayment({ type: VASServiceType.UTILITY, payload });
     }
-
 
     public static async payAirtime(
         ngnVasSettlementId: string,
@@ -451,16 +461,26 @@ class SafeHavenService {
         transactionHash: string,
         payload: VasServicePayload
     ) {
-
-        const response = await SafeHavenService.processVASPayment({ type: VASServiceType.AIRTIME, payload });
+        const response = await SafeHavenService.processVASPayment({
+            type: VASServiceType.AIRTIME,
+            payload,
+        });
         const updateParmas = {
             sequenceId: response.data.reference,
             processingStatus: transactionStatusSchema.parse('processing'),
-            transactionHash: transactionHash
-        }
+            transactionHash: transactionHash,
+        };
         if (response.data) {
-            const isUpdate = await this.updatePaymentSettlementById(ngnVasSettlementId, userPhoneNumber, updateParmas);
-            if (!isUpdate) throw new HttpException(INTERNAL_SERVER_ERROR, `Failed to update airtime transaction`);
+            const isUpdate = await this.updatePaymentSettlementById(
+                ngnVasSettlementId,
+                userPhoneNumber,
+                updateParmas
+            );
+            if (!isUpdate)
+                throw new HttpException(
+                    INTERNAL_SERVER_ERROR,
+                    `Failed to update airtime transaction`
+                );
         }
 
         return { sequenceId: response.data.id };
@@ -496,8 +516,7 @@ class SafeHavenService {
     }
 
     public static async getVasPaymentSettlementById(settlementId: string) {
-
-        const transaction = await this.NGN_VAS_TRANSACTION_REPOSITORY.filter({ id: settlementId }).getFirst();
+        const transaction = await this.NGN_VAS_TRANSACTION_REPOSITORY.read(settlementId);
 
         if (!transaction) {
             throw new HttpException(NOT_FOUND, 'Transaction not found');
@@ -510,7 +529,7 @@ class SafeHavenService {
                 recipientMeterNumber: transaction.recipientMeterNumber,
                 serviceCategoryId: transaction.serviceCategoryId,
                 bundleCode: transaction.bundleCode,
-                country: transaction.country
+                country: transaction.country,
             },
             blockchainNetwork: transaction.blockchainNetwork,
             usdAmount: transaction.usdAmount,
@@ -529,15 +548,20 @@ class SafeHavenService {
             fromWalletAddress: transaction.fromWalletAddress,
             tokenAddress: transaction.tokenAddress,
             processorName: transaction.processorName,
-            transactionType: transaction.transactionType
+            transactionType: transaction.transactionType,
         };
 
         return transactionRecord;
     }
 
-    public static async updatePaymentSettlementById(settlementId: string, userPhoneNumber: string, params: { sequenceId: string, processingStatus: string }) {
-
-        const settlement = await this.NGN_VAS_TRANSACTION_REPOSITORY.filter({ id: settlementId }).getFirst();
+    public static async updatePaymentSettlementById(
+        settlementId: string,
+        userPhoneNumber: string,
+        params: { sequenceId: string; processingStatus: string }
+    ) {
+        const settlement = await this.NGN_VAS_TRANSACTION_REPOSITORY.filter({
+            id: settlementId,
+        }).getFirst();
 
         if (!settlement) {
             throw new HttpException(NOT_FOUND, 'Transaction not found');
@@ -560,8 +584,8 @@ class SafeHavenService {
         );
 
         return await settlement.update({
-            ...params
-        })
+            ...params,
+        });
     }
 
     public static async getNGNVasProcessingTransactions() {
@@ -578,7 +602,7 @@ class SafeHavenService {
                     recipientMeterNumber: transaction.recipientMeterNumber,
                     serviceCategoryId: transaction.serviceCategoryId,
                     bundleCode: transaction.bundleCode,
-                    country: transaction.country
+                    country: transaction.country,
                 },
                 blockchainNetwork: transaction.blockchainNetwork,
                 usdAmount: transaction.usdAmount,
@@ -597,8 +621,8 @@ class SafeHavenService {
                 fromWalletAddress: transaction.fromWalletAddress,
                 tokenAddress: transaction.tokenAddress,
                 processorName: transaction.processorName,
-                transactionType: transaction.transactionType
-            }
+                transactionType: transaction.transactionType,
+            };
         });
 
         return transactions;
@@ -607,7 +631,7 @@ class SafeHavenService {
     public static async getNGNVasProcessingTransaction(transactionId: string) {
         const transaction = await this.NGN_VAS_TRANSACTION_REPOSITORY.filter({
             processingStatus: transactionStatusSchema.parse('processing'),
-            sequenceId: transactionId
+            sequenceId: transactionId,
         }).getFirst();
 
         if (!transaction) {
@@ -655,10 +679,9 @@ class SafeHavenService {
         if (message.trim()) {
             try {
                 await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
-            } catch (error) { }
+            } catch (error) {}
         }
     }
-
 }
 
 export default SafeHavenService;

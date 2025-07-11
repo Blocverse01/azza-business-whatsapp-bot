@@ -1,62 +1,68 @@
-import userServiceV2 from "@/runtime/user";
-import { DataExchangeResponse, DecryptedFlowDataExchange, WhatsAppInteractiveMessage } from "../WhatsAppBotType";
-import { convertAsciiStringToBase64, convertBase64ToAsciiString, generateRandomHexString } from "@/resources/utils/encryption";
-import { airtimeSchema } from "./schema";
-import { UserV2Record } from "@/db/xata";
-import { HUNDRED, SIX, SIXTEEN } from "@/constants/numbers";
-import { getFlowConfig } from "./config";
-import env from "@/constants/env";
-import { DropdownOption, FlowMode } from "./types";
-import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from "@/constants/feeback-icons";
-import { formatNumberAsCurrency } from "@/resources/utils/currency";
-import { TransactionStatus } from "@/app/FiatRamp/fiatRampSchema";
-import { logServiceError } from "@/resources/requestHelpers/handleRequestError";
-import WhatsAppBotService from "../WhatsAppBotService";
-import azzaWalletManager from "@/runtime/wallet";
-import FiatRampService from "@/app/FiatRamp/FiatRampService";
-import { divide } from "mathjs";
-import { compareHashedString } from "@/resources/utils/hashing";
-import { addNgnVasPaymentJobForProcessing } from "@/app/ngn-vas-payment/queue-utils";
-import { VASServiceType } from "@/app/NigeriaBanks/SafeHaven/SafeHaveSchema";
-import { NGN_VAS_PLATFORM_PERCENTAGE } from "@/app/NigeriaBanks/SafeHaven/constants";
+import userServiceV2 from '@/runtime/user';
+import {
+    DataExchangeResponse,
+    DecryptedFlowDataExchange,
+    WhatsAppInteractiveMessage,
+} from '../WhatsAppBotType';
+import {
+    convertAsciiStringToBase64,
+    convertBase64ToAsciiString,
+    generateRandomHexString,
+} from '@/resources/utils/encryption';
+import { airtimeSchema } from './schema';
+import { UserV2Record } from '@/db/xata';
+import { HUNDRED, SIX, SIXTEEN } from '@/constants/numbers';
+import { getFlowConfig } from './config';
+import env from '@/constants/env';
+import { DropdownOption, FlowMode } from './types';
+import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
+import { formatNumberAsCurrency } from '@/resources/utils/currency';
+import { TransactionStatus } from '@/app/FiatRamp/fiatRampSchema';
+import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
+import WhatsAppBotService from '../WhatsAppBotService';
+import azzaWalletManager from '@/runtime/wallet';
+import FiatRampService from '@/app/FiatRamp/FiatRampService';
+import { divide } from 'mathjs';
+import { compareHashedString } from '@/resources/utils/hashing';
+import { addNgnVasPaymentJobForProcessing } from '@/app/ngn-vas-payment/queue-utils';
+import { VASServiceType } from '@/app/NigeriaBanks/SafeHaven/SafeHaveSchema';
+import { NGN_VAS_PLATFORM_PERCENTAGE } from '@/app/NigeriaBanks/SafeHaven/constants';
 
 enum AirtimeFlowScreens {
     AIRTIME_PURCHASE_DETAILS = 'AIRTIME_PURCHASE_DETAILS',
     AIRTIME_PURCHASE_SUMMARY = 'AIRTIME_PURCHASE_SUMMARY',
     SUCCESS_FEEDBACK = 'SUCCESS_FEEDBACK',
     ERROR_FEEDBACK = 'ERROR_FEEDBACK',
-    PROCESSING_FEEDBACK = 'PROCESSING_FEEDBACK'
+    PROCESSING_FEEDBACK = 'PROCESSING_FEEDBACK',
 }
-
 
 type ScreenDataPayload = {
     AIRTIME_PURCHASE_DETAILS: {
         airtime_networks: Array<DropdownOption>;
-        recipient_phone_number: number,
-        local_amount: number,
-        user_id: string,
+        recipient_phone_number: number;
+        local_amount: number;
+        user_id: string;
         error_messages?: {
-            recipient_phone_number?: string,
-            local_amount?: string
-        },
+            recipient_phone_number?: string;
+            local_amount?: string;
+        };
         init_values?: {
-            local_amount: number,
-            airtime_network: string
-        },
+            local_amount: number;
+            airtime_network: string;
+        };
         display_data: {
             local_amount: string;
         };
     };
     AIRTIME_PURCHASE_SUMMARY: {
-        airtime_network: string,
-        recipient_phone_number: number,
-        local_amount: number,
-        service_category_id: string,
-        assets: Array<DropdownOption>,
-        asset: string,
-        transaction_pin: string,
-        init_values?: {
-        };
+        airtime_network: string;
+        recipient_phone_number: number;
+        local_amount: number;
+        service_category_id: string;
+        assets: Array<DropdownOption>;
+        asset: string;
+        transaction_pin: string;
+        init_values?: {};
         display_data: {
             local_amount: string;
         };
@@ -66,40 +72,39 @@ type ScreenDataPayload = {
         status?: TransactionStatus;
         icon_src: string;
     };
-}
+};
 
 type DataExchangePayload = {
     AIRTIME_PURCHASE_DETAILS: {
         airtime_network: string;
-        airtime_networks: Array<DropdownOption>
-        recipient_phone_number: number,
-        local_amount: number,
-        user_id: string,
-        service_category_id: string,
-        display_data: {
-            local_amount: string;
-        }
-    }
-    AIRTIME_PURCHASE_SUMMARY: {
-        airtime_network: string,
-        recipient_phone_number: number,
-        local_amount: number,
-        service_category_id: string,
-        asset_id: string,
-        transaction_pin: string,
-        user_id: string,
-        assets: Array<DropdownOption>,
-        asset: string,
+        airtime_networks: Array<DropdownOption>;
+        recipient_phone_number: number;
+        local_amount: number;
+        user_id: string;
+        service_category_id: string;
         display_data: {
             local_amount: string;
         };
-    },
-}
+    };
+    AIRTIME_PURCHASE_SUMMARY: {
+        airtime_network: string;
+        recipient_phone_number: number;
+        local_amount: number;
+        service_category_id: string;
+        asset_id: string;
+        transaction_pin: string;
+        user_id: string;
+        assets: Array<DropdownOption>;
+        asset: string;
+        display_data: {
+            local_amount: string;
+        };
+    };
+};
 
 const flowConfig = getFlowConfig('NGN_AIRTIME', env.WA_PHONE_NUMBER_ID);
 
 class WhatsappBotNgnAirtimeFlowService {
-
     private static FLOW_MODE: FlowMode = flowConfig.flowMode;
     public static readonly FLOW_ID = flowConfig.flowId;
     private static readonly INITIAL_SCREEN = AirtimeFlowScreens.AIRTIME_PURCHASE_DETAILS;
@@ -107,7 +112,6 @@ class WhatsappBotNgnAirtimeFlowService {
     public static async receiveDataExchange(
         requestBody: DecryptedFlowDataExchange['decryptedBody']
     ): Promise<DataExchangeResponse> {
-
         const { action, screen, data, flow_token } = requestBody;
 
         if (action === 'INIT') {
@@ -115,7 +119,6 @@ class WhatsappBotNgnAirtimeFlowService {
         }
 
         if (action === 'data_exchange') {
-
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
             switch (screen) {
@@ -140,7 +143,6 @@ class WhatsappBotNgnAirtimeFlowService {
                 ...nextScreenData,
                 version: requestBody.version,
             };
-
         }
 
         throw new Error('Unhandled action');
@@ -149,8 +151,8 @@ class WhatsappBotNgnAirtimeFlowService {
     public static generateAirtimeFlowInitMessage(
         user: UserV2Record,
         params: {
-            userPhoneNumber: string,
-            mobileNetworks: Array<DropdownOption>
+            userPhoneNumber: string;
+            mobileNetworks: Array<DropdownOption>;
         }
     ) {
         const { userPhoneNumber, mobileNetworks } = params;
@@ -180,11 +182,11 @@ class WhatsappBotNgnAirtimeFlowService {
                                 local_amount: 500,
                                 init_values: {
                                     airtime_network: '61efacc8da92348f9dde5f95',
-                                    local_amount: 0
+                                    local_amount: 0,
                                 },
                                 display_data: {
-                                    local_amount: ''
-                                }
+                                    local_amount: '',
+                                },
                             } satisfies ScreenDataPayload['AIRTIME_PURCHASE_DETAILS'],
                         },
                     },
@@ -198,7 +200,6 @@ class WhatsappBotNgnAirtimeFlowService {
         return flowMessage;
     }
 
-
     private static determineSelectedMobileNetworks(
         mobileNetwork: string,
         mobileNetworks: Array<DropdownOption>
@@ -211,14 +212,11 @@ class WhatsappBotNgnAirtimeFlowService {
 
         return {
             title: selectedMobileNetwork.title,
-            id: selectedMobileNetwork.id
+            id: selectedMobileNetwork.id,
         };
     }
 
-    private static determineSelectedAssets(
-        asset: string,
-        assets: Array<DropdownOption>
-    ) {
+    private static determineSelectedAssets(asset: string, assets: Array<DropdownOption>) {
         const selectedAsset = assets.find((type) => type.id === asset);
 
         if (!selectedAsset) {
@@ -228,12 +226,13 @@ class WhatsappBotNgnAirtimeFlowService {
         return {
             title: selectedAsset.title,
             id: selectedAsset.id,
-            description: selectedAsset.description
+            description: selectedAsset.description,
         };
     }
 
-    private static async getBuyAirtimeFlowData(data: DataExchangePayload['AIRTIME_PURCHASE_DETAILS']) {
-
+    private static async getBuyAirtimeFlowData(
+        data: DataExchangePayload['AIRTIME_PURCHASE_DETAILS']
+    ) {
         const { user_id, ...formData } = data;
 
         const {
@@ -256,7 +255,10 @@ class WhatsappBotNgnAirtimeFlowService {
 
         const userId = user.id;
 
-        const selectedMobileNetwork = this.determineSelectedMobileNetworks(airtime_network, airtime_networks)
+        const selectedMobileNetwork = this.determineSelectedMobileNetworks(
+            airtime_network,
+            airtime_networks
+        );
 
         const dataValidation = airtimeSchema.safeParse({
             local_amount: parsedLocalAmount,
@@ -265,7 +267,8 @@ class WhatsappBotNgnAirtimeFlowService {
 
         const errorMessages: Record<string, string | undefined> = {
             local_amount: dataValidation.error?.flatten().fieldErrors?.local_amount?.[0],
-            recipient_phone_number: dataValidation.error?.flatten().fieldErrors?.recipient_phone_number?.[0]
+            recipient_phone_number:
+                dataValidation.error?.flatten().fieldErrors?.recipient_phone_number?.[0],
         };
 
         if (!dataValidation.success) {
@@ -276,29 +279,33 @@ class WhatsappBotNgnAirtimeFlowService {
                     error_messages: errorMessages,
                     init_values: {
                         local_amount: parsedLocalAmount,
-                        airtime_network: selectedMobileNetwork.id
+                        airtime_network: selectedMobileNetwork.id,
                     },
                     recipient_phone_number: recipient_phone_number,
                     local_amount: parsedLocalAmount,
                     airtime_networks: airtime_networks,
                     display_data: {
-                        local_amount: formatNumberAsCurrency(parseFloat(display_data.local_amount.toString()), 'NGN'),
+                        local_amount: formatNumberAsCurrency(
+                            parseFloat(display_data.local_amount.toString()),
+                            'NGN'
+                        ),
                     },
-                    user_id: convertAsciiStringToBase64(userId)
-                } satisfies ScreenDataPayload['AIRTIME_PURCHASE_DETAILS']
+                    user_id: convertAsciiStringToBase64(userId),
+                } satisfies ScreenDataPayload['AIRTIME_PURCHASE_DETAILS'],
             };
         }
 
         //assets
-        const assets = await WhatsAppBotService.getTopFiveEligibleAssetsByAmount(
-            user,
-            {
-                userPhoneNumber: user.primaryWhatsappPhoneNumber,
-                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID
-            },
-            {},
-            parsedLocalAmount
-        ) ?? [];
+        const assets =
+            (await WhatsAppBotService.getTopFiveEligibleAssetsByAmount(
+                user,
+                {
+                    userPhoneNumber: user.primaryWhatsappPhoneNumber,
+                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                },
+                {},
+                parsedLocalAmount
+            )) ?? [];
 
         if (assets.length === 0) {
             return {
@@ -317,18 +324,21 @@ class WhatsappBotNgnAirtimeFlowService {
                 airtime_network: selectedMobileNetwork.title.toUpperCase(),
                 recipient_phone_number: recipient_phone_number,
                 display_data: {
-                    local_amount: formatNumberAsCurrency(parseFloat(display_data.local_amount.toString()), 'NGN'),
+                    local_amount: formatNumberAsCurrency(
+                        parseFloat(display_data.local_amount.toString()),
+                        'NGN'
+                    ),
                 },
                 local_amount: parsedLocalAmount,
                 assets: assets.map((asset) => ({
                     id: asset.assetId,
                     title: `${asset.tokenName} on ${asset.network}`,
-                    description: asset.balance
+                    description: asset.balance,
                 })),
                 service_category_id: selectedMobileNetwork.id,
                 transaction_pin: '',
-                user_id: convertAsciiStringToBase64(userId)
-            }
+                user_id: convertAsciiStringToBase64(userId),
+            },
         };
     }
 
@@ -336,7 +346,6 @@ class WhatsappBotNgnAirtimeFlowService {
         input: DataExchangePayload['AIRTIME_PURCHASE_SUMMARY'],
         flowToken: string
     ) {
-
         const {
             airtime_network,
             recipient_phone_number,
@@ -361,12 +370,15 @@ class WhatsappBotNgnAirtimeFlowService {
                 assetId: selectedAsset.id,
             }),
             FiatRampService.getSellRate('NGN'),
-            userServiceV2.getUserById(userIdToAsciiString)
+            userServiceV2.getUserById(userIdToAsciiString),
         ]);
 
         const usdAmount = parseFloat(divide(local_amount, sellRate).toFixed(SIX));
 
-        const isPinValid = await compareHashedString(transaction_pin, user?.transactionPinHash as string);
+        const isPinValid = await compareHashedString(
+            transaction_pin,
+            user?.transactionPinHash as string
+        );
 
         if (!isPinValid) {
             return {
@@ -374,7 +386,10 @@ class WhatsappBotNgnAirtimeFlowService {
                 data: {
                     recipient_phone_number: recipient_phone_number,
                     display_data: {
-                        local_amount: formatNumberAsCurrency(parseFloat(display_data.local_amount.toString()), 'NGN'),
+                        local_amount: formatNumberAsCurrency(
+                            parseFloat(display_data.local_amount.toString()),
+                            'NGN'
+                        ),
                     },
                     error_messages: {
                         transaction_pin: 'Incorrect transaction pin',
@@ -383,12 +398,12 @@ class WhatsappBotNgnAirtimeFlowService {
                     assets: assets.map((asset) => ({
                         id: asset.id,
                         title: `${asset.title}`,
-                        description: asset.description
+                        description: asset.description,
                     })),
                     service_category_id: service_category_id,
                     transaction_pin: '',
-                    user_id: userIdToBase64
-                }
+                    user_id: userIdToBase64,
+                },
             };
         }
 
@@ -404,13 +419,13 @@ class WhatsappBotNgnAirtimeFlowService {
                         usdAmount: usdAmount,
                         tokenAmountToDebit: usdAmount,
                         beneficiaryId: '',
-                        userId: userIdToBase64,
+                        userId: userIdToAsciiString,
                         platformFeePercentage: NGN_VAS_PLATFORM_PERCENTAGE,
                         conversionRate: parseFloat(sellRate.toString()),
                         transactionPin: transaction_pin,
                         transactionFeeUsd: transactionFee,
                         transactionType: 'NGN_VAS_PAYMENT',
-                        userPhoneNumber: user?.primaryWhatsappPhoneNumber!
+                        userPhoneNumber: user?.primaryWhatsappPhoneNumber!,
                     },
                     ngnVasDetailsParams: {
                         type: VASServiceType.AIRTIME,
@@ -418,9 +433,9 @@ class WhatsappBotNgnAirtimeFlowService {
                             phoneNumber: recipient_phone_number.toString(),
                             amount: local_amount,
                             serviceCategoryId: service_category_id,
-                            distributionName: airtime_network
-                        }
-                    }
+                            distributionName: airtime_network,
+                        },
+                    },
                 }
             );
 
@@ -437,15 +452,14 @@ class WhatsappBotNgnAirtimeFlowService {
                         ? AirtimeFlowScreens.SUCCESS_FEEDBACK
                         : AirtimeFlowScreens.PROCESSING_FEEDBACK,
                 data: {
-                    status: response.status === 'complete'
-                        ? 'Complete'
-                        : 'Processing',
+                    status: response.status === 'complete' ? 'Complete' : 'Processing',
                     message: response.message,
                     icon_src:
-                        response.status === 'processing' ? SUCCESS_FEEDBACK_ICON : ERROR_FEEDBACK_ICON,
+                        response.status === 'processing'
+                            ? SUCCESS_FEEDBACK_ICON
+                            : ERROR_FEEDBACK_ICON,
                 },
             };
-
         } catch (error) {
             await logServiceError(error, 'An error occurred while processing on-ramp transaction');
 
@@ -458,9 +472,7 @@ class WhatsappBotNgnAirtimeFlowService {
                 } satisfies ScreenDataPayload['FEEDBACK_SCREEN'],
             };
         }
-
     }
-
 }
 
 export default WhatsappBotNgnAirtimeFlowService;

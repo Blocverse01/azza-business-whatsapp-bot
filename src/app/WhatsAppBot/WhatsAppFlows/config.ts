@@ -16,7 +16,8 @@ type Flows =
     | 'ACCOUNT_STATEMENT'
     | 'NGN_AIRTIME'
     | 'NGN_DATA_BUNDLE'
-    | 'AGENT_OFFRAMP';
+    | 'AGENT_OFFRAMP'
+    | 'KYC_RESOLUTION';
 
 export type FlowConfig = {
     flowId: string;
@@ -159,7 +160,17 @@ const flowConfigs: FlowConfigs = {
             flowId: '1075804640642680',
             flowMode: 'published',
         },
-    }
+    },
+    KYC_RESOLUTION: {
+        [PHONE_NUMBER_IDS.TEST_PHONE_NUMBER_ID]: {
+            flowId: 'N/A',
+            flowMode: 'published',
+        },
+        [PHONE_NUMBER_IDS.AZZA_BY_BLOCVERSE_PHONE_NUMBER_ID]: {
+            flowId: '2028651784620054',
+            flowMode: 'published',
+        },
+    },
 };
 
 export const getFlowConfig = (flow: Flows, phoneNumberId: PhoneNumberId) => {

@@ -59,10 +59,11 @@ import { VASServiceType } from '../NigeriaBanks/SafeHaven/SafeHaveSchema';
 import { dbClient } from '@/db/dbClient';
 import { CompositeRateService } from '../rates/RateService';
 import { isNonEmptyString } from '@/resources/utils/transformers';
+import { normalizeTxHash } from './utils';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
-    private static rateService = new CompositeRateService();
+    private static readonly rateService = new CompositeRateService();
 
     public static async getSupportedCurrencies() {
         return await FiatRampsRpcService.getSupportedCountries();
@@ -81,7 +82,7 @@ class FiatRampService {
     }
 
     public static async getCurrencyRates(currencySymbol: string) {
-        return await this.rateService.getCurrencyRates(currencySymbol);    
+        return await this.rateService.getCurrencyRates(currencySymbol);
     }
 
     public static async getBuyRate(currencySymbol: string) {
@@ -323,12 +324,9 @@ class FiatRampService {
     }
 
     public static async postNgnVasTransaction(params: SendOfframpRequestPayload) {
-        const [
-            ngnVasSettlement,
-            user,
-        ] = await Promise.all([
+        const [ngnVasSettlement, user] = await Promise.all([
             SafeHavenService.getVasPaymentSettlementById(params.ngnVasSettlementId!),
-            userServiceV2.getWhatsappUserIdentityInfo(params.userId)
+            userServiceV2.getWhatsappUserIdentityInfo(params.userId),
         ]);
 
         if (!user) throw new Error('User not found');
@@ -336,7 +334,6 @@ class FiatRampService {
         let sequenceId: string = '';
 
         if (ngnVasSettlement.transactionType === VASServiceType.AIRTIME) {
-
             const transaction = await SafeHavenService.payAirtime(
                 ngnVasSettlement.id,
                 user.phoneNumber,
@@ -344,13 +341,12 @@ class FiatRampService {
                 {
                     phoneNumber: ngnVasSettlement.recipient.recipientPhoneNumber!,
                     amount: ngnVasSettlement.localAmount!,
-                    serviceCategoryId: ngnVasSettlement.recipient.serviceCategoryId!
-                });
+                    serviceCategoryId: ngnVasSettlement.recipient.serviceCategoryId!,
+                }
+            );
 
             sequenceId = transaction.sequenceId;
-
         } else if (ngnVasSettlement.transactionType === VASServiceType.DATA) {
-
             const transaction = await SafeHavenService.payDataBundle(
                 ngnVasSettlement.id,
                 user.phoneNumber,
@@ -359,13 +355,13 @@ class FiatRampService {
                     phoneNumber: ngnVasSettlement.recipient.recipientPhoneNumber!,
                     amount: ngnVasSettlement.localAmount!,
                     serviceCategoryId: ngnVasSettlement.recipient.serviceCategoryId!,
-                    bundleCode : ngnVasSettlement.recipient.bundleCode!
-                });
+                    bundleCode: ngnVasSettlement.recipient.bundleCode!,
+                }
+            );
 
             sequenceId = transaction.sequenceId;
-
         } else if (ngnVasSettlement.transactionType === VASServiceType.UTILITY) {
-            sequenceId = ''
+            sequenceId = '';
         }
 
         return sequenceId;
@@ -742,7 +738,7 @@ class FiatRampService {
             ),
             dbClient.offramp_awaiting_crypto_debit
                 .filter({
-                    cryptoTransactionId: params.txHash,
+                    cryptoTransactionId: normalizeTxHash(params.txHash),
                 })
                 .getFirst(),
         ]);
@@ -858,7 +854,7 @@ class FiatRampService {
             ),
             dbClient.offramp_awaiting_crypto_debit
                 .filter({
-                    cryptoTransactionId: params.txHash,
+                    cryptoTransactionId: normalizeTxHash(params.txHash),
                 })
                 .getFirst(),
         ]);

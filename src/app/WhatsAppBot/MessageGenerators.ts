@@ -16,7 +16,7 @@ type GenerateInteractiveListMessageParams = {
     actionButtonText: string;
     recipient: string;
 };
-type GenerateInteractiveButtonMessageParams = {
+export type GenerateInteractiveButtonMessageParams = {
     recipient: string;
     bodyText: string;
     replyButtons: Array<{

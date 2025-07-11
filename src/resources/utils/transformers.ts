@@ -45,4 +45,18 @@ export const toTitleCase = (input : string) : string => {
 
 export const isNonEmptyString = (val: unknown): val is string =>
     typeof val === 'string' && val.trim() !== '';
-  
+
+export const arrangeNameAlphabetically = (name: string): string => {
+    return name
+        .split(' ')
+        .sort((a, b) => a.localeCompare(b))
+        .join(' ');
+};
+
+export const removeExcessSpaces = (name: string): string => {
+    return name
+        .split(' ')
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0)
+        .join(' ');
+};

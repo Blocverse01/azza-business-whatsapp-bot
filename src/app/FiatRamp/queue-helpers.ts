@@ -23,6 +23,7 @@ import { addP2pAgentTransactionTrackerJobToQueue } from '../User/P2pAgent/queue-
 import { transactionStatusSchema } from './fiatRampSchema';
 import { identifyPaymentProvider } from '@/resources/utils/payment-provider-identifier.';
 import { ProcessorId } from './config';
+import { normalizeTxHash } from './utils';
 
 export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2) => {
     const txHashSha256 = crypto.createHash('sha256').update(params.txHash).digest('hex');
@@ -37,7 +38,7 @@ export const addOfframpRequestToQueue = async (params: OfframpQueueFlowParamsV2)
 export const handleOfframpRequestInQueue = async (
     params: OfframpQueueFlowParamsV2
 ): Promise<FiatPayoutQueueResult> => {
-    const transactionHash = params.txHash.split('_retry')[0];
+    const transactionHash = normalizeTxHash(params.txHash);
 
     const [transaction] = await Promise.all([
         azzaWalletManager.getTransactionByHash(
@@ -59,13 +60,12 @@ export const handleOfframpRequestInQueue = async (
     );
 
     try {
-
         let sequenceId: string;
 
         if (params.ngnVasSettlementId) {
-
             sequenceId = await FiatRampService.postNgnVasTransaction({
                 ...params,
+                ngnVasSettlementId: params.ngnVasSettlementId,
                 chainName: params.chainName.toUpperCase(),
                 tokenName: params.tokenName.toUpperCase(),
             });
