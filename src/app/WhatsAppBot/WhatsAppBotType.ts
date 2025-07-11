@@ -232,7 +232,7 @@ export type InteractiveListReplyTypes =
     | 'trigger-offramp-flow'
     | 'return-more-currencies'
     | 'return-more-beneficiaries'
-    | 'trigger-agent-offramp-flow';
+    | 'trigger-agent-offramp-flow'
     | 'return-more-beneficiaries';
 
 export type InteractiveNfmReplyActions = 'trigger-offramp-flow' | 'process-kyc-resolution';
