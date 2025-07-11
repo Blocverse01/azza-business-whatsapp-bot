@@ -40,7 +40,7 @@ export const BOT_COMMANDS_REGEX = {
     BUY_NGN_DATA_BUNDLE: /^\/data$/,
     AGENT_SELL_ASSET: /^\/agent_sell\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /agent_sell usdt polygon,
     AGENT_BUY_ASSET: /^\/agent_buy\s+(?<asset>\w+)\s+(?<network>\w+)$/, // e.g /agent_buy usdt polygon
-    AGENT_EARNING: /^\/agent_earn$/
+    AGENT_EARNING: /^\/agent_earning$/
 };
 
 export type SellAssetToBeneficiaryMatchGroups = {

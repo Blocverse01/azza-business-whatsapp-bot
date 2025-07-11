@@ -63,7 +63,7 @@ export const createP2pAgentTransactionTrackerJobWorker = () => {
             ]);
 
             let rewardAmount: number = 0;
-            const message = `\n\nHey Agent! \n\nYou just completed a trade 🎉. \n\nCheck your earnings with: */agent_earn* or simply *type agent earnings*. 💸\n\n Keep it up! 🚀\n\n`;
+            const message = `\n\nHey Agent! \n\nYou just completed a trade 🎉. \n\nCheck your earnings with: */agent_earning* or simply *type agent earnings*. 💸\n\n Keep it up! 🚀\n\n`;
 
             if (!user?.id) {
                 throw new HttpException(NOT_FOUND, 'P2pAgent not found');

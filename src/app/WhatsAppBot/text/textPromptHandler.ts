@@ -248,7 +248,6 @@ export const textPromptHandler = async (
             case 'SHOW_FIAT_RATES':
                 responseMessage = await handleRatesPrompt({ extractedArguments, botParams, user });
                 break;
-            case 'REFERRAL_REQUEST':
             case 'PAY_TO_BANK_ACCOUNT':
                 responseMessage = await handlePayRelatedPrompt({
                     extractedArguments,
@@ -256,6 +255,7 @@ export const textPromptHandler = async (
                     user,
                 });
                 break;
+            case 'REFERRAL_REQUEST':
             case 'REFERRAL_CODE':
                 responseMessage = await handleReferralPrompt({
                     extractedArguments,

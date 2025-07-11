@@ -8,6 +8,7 @@ import { INTERNAL_SERVER_ERROR } from "@/constants/status-codes";
 import { HttpException } from "@/resources/exceptions/HttpException";
 import WhatsAppBotService from "@/app/WhatsAppBot/WhatsAppBotService";
 import MessageGenerators from "@/app/WhatsAppBot/MessageGenerators";
+import UserServiceV2 from "../UserServiceV2";
 
 class P2pAgentService {
     private static readonly P2P_AGENT_TRANSACTION_REPOSITORY = dbClient.p2p_agent_transactions;
@@ -121,7 +122,7 @@ class P2pAgentService {
 
     public static async sendNotAuthorizedAsAgentMessage(phoneParams: { businessPhoneNumberId: string, userPhoneNumber: string }) {
 
-        const message = `You're not authorized to perform this action. Please contact our support team for assistance.`
+        const message = `You're not an agent. Kindly use the *Buy* or *Sell* options instead.`
 
         await WhatsAppBotService.sendWhatsappMessage(
             phoneParams.businessPhoneNumberId,
@@ -139,6 +140,23 @@ class P2pAgentService {
             userPhoneNumber: string
         }) {
 
+        const [transactions, p2pAgentAccount, user] = await Promise.all([
+            dbClient.p2p_agent_transactions
+                .filter({ ownerId: userId })
+                .getAll(),
+            dbClient.p2p_agent_account_balance
+                .filter({ p2pAgentId: userId, })
+                .getFirst(),
+            UserServiceV2.getUserById(userId)
+        ]);
+
+        if (!user?.isP2pAgent) {
+            return await P2pAgentService.sendNotAuthorizedAsAgentMessage({
+                businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                userPhoneNumber: user?.primaryWhatsappPhoneNumber!
+            });
+        }
+
         await WhatsAppBotService.sendWhatsappMessage(
             phoneParams.businessPhoneNumberId,
             MessageGenerators.generateTextMessage(
@@ -146,16 +164,6 @@ class P2pAgentService {
                 `\n Hang tight — your account statement will be ready shortly 📄.`
             )
         );
-
-        const [transactions, p2pAgentAccount] = await Promise.all([
-            dbClient.p2p_agent_transactions
-                .filter({ ownerId: userId })
-                .getAll(),
-            dbClient.p2p_agent_account_balance
-                .filter({ p2pAgentId: userId, })
-                .getFirst(),
-        ]);
-
 
         const safeTransactions = transactions ?? [];
 
@@ -173,7 +181,7 @@ class P2pAgentService {
             p2pAgentAccount?.accountBalance!
         )).currentBalance : '0.00';
 
-        const message = `*We're pleased to share your current performance*: \n\nTotal Transaction Volume:  $${totalVolume} \n\nTotal Earnings:  $${totalEarnings} \n\nRedeemable balance:  $${Number(currentAccountBalance)}\n\n`;
+        const message = `*We're pleased to share your current performance*: \n\nTotal Transaction Volume:  $${totalVolume.toFixed(SIX)} \n\nTotal Earnings:  $${totalEarnings.toFixed(SIX)} \n\nRedeemable balance:  $${Number(currentAccountBalance).toFixed(SIX)}\n\n`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             phoneParams.businessPhoneNumberId,

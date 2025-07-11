@@ -1033,6 +1033,18 @@ export const handleAgentSellCryptoForFiatPrompt = async (
 
     const isAgent: boolean = true;
 
+    if (!user.isP2pAgent) {
+        await P2pAgentService.sendNotAuthorizedAsAgentMessage({
+            businessPhoneNumberId: botParams.businessPhoneNumberId,
+            userPhoneNumber: botParams.userPhoneNumber
+        })
+
+        return {
+            response: ActionExecuted.SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE,
+            resetSession: true,
+        };
+    }
+
     if (extractedArguments === null || Object.keys(extractedArguments).length === 0) {
         const missingArgsPromptResponse = getSellCryptoArgumentsGuideMessage({
             blockchainNetwork: true,
@@ -1051,19 +1063,6 @@ export const handleAgentSellCryptoForFiatPrompt = async (
             resetSession: false,
         };
     }
-
-    if (!user.isP2pAgent) {
-        await P2pAgentService.sendNotAuthorizedAsAgentMessage({
-            businessPhoneNumberId: botParams.businessPhoneNumberId,
-            userPhoneNumber: botParams.userPhoneNumber
-        })
-
-        return {
-            response: ActionExecuted.SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE,
-            resetSession: true,
-        };
-    }
-
 
     const sellArguments = parseExtractedArguments(
         extractedArguments,
@@ -1156,6 +1155,18 @@ export const handleAgentBuyCryptoWithFiatPrompt = async (
 
     const isAgent: boolean = true;
 
+    if (!user.isP2pAgent) {
+        await P2pAgentService.sendNotAuthorizedAsAgentMessage({
+            businessPhoneNumberId: botParams.businessPhoneNumberId,
+            userPhoneNumber: botParams.userPhoneNumber
+        })
+
+        return {
+            response: ActionExecuted.SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE,
+            resetSession: true,
+        };
+    }
+
     const missingArgsPromptResponse = getAssetChoiceMessage('buy');
     const missingArgsWhatsAppMessage = MessageGenerators.generateTextMessage(
         params.botParams.userPhoneNumber,
@@ -1170,18 +1181,6 @@ export const handleAgentBuyCryptoWithFiatPrompt = async (
         return {
             response: missingArgsPromptResponse,
             resetSession: false,
-        };
-    }
-
-    if (!user.isP2pAgent) {
-        await P2pAgentService.sendNotAuthorizedAsAgentMessage({
-            businessPhoneNumberId: botParams.businessPhoneNumberId,
-            userPhoneNumber: botParams.userPhoneNumber
-        })
-
-        return {
-            response: ActionExecuted.SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE,
-            resetSession: true,
         };
     }
 
