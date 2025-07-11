@@ -204,6 +204,13 @@ const tables = [
     ],
   },
   {
+    name: "feature_flag",
+    columns: [
+      { name: "key", type: "text" },
+      { name: "isEnabled", type: "bool" },
+    ],
+  },
+  {
     name: "offramp_awaiting_crypto_debit",
     columns: [
       { name: "assetId", type: "text" },
@@ -569,19 +576,11 @@ const tables = [
     ],
   },
   {
-    name: "feature_flag",
-    columns: [
-      { name: "key", type: "text" },
-      { name: "isEnabled", type: "bool" },
-    ],
-  },
-  {
     name: "p2p_agent_transactions",
     columns: [
       { name: "localCurrencySymbol", type: "text" },
       { name: "country", type: "text" },
       { name: "blockchainNetwork", type: "text" },
-      { name: "localAmount", type: "int" },
       { name: "ownerId", type: "text" },
       { name: "usdAmount", type: "float" },
       { name: "processingStatus", type: "text" },
@@ -601,6 +600,7 @@ const tables = [
         defaultValue: "0.00",
       },
       { name: "providerName", type: "text" },
+      { name: "localAmount", type: "float" },
     ],
   },
   {
@@ -643,6 +643,9 @@ export type ManualOfframpSettlementTransaction =
   InferredTypes["manual_offramp_settlement_transaction"];
 export type ManualOfframpSettlementTransactionRecord =
   ManualOfframpSettlementTransaction & XataRecord;
+
+export type FeatureFlag = InferredTypes["feature_flag"];
+export type FeatureFlagRecord = FeatureFlag & XataRecord;
 
 export type OfframpAwaitingCryptoDebit =
   InferredTypes["offramp_awaiting_crypto_debit"];
@@ -702,9 +705,6 @@ export type NgnVasSettlementTransaction =
 export type NgnVasSettlementTransactionRecord = NgnVasSettlementTransaction &
   XataRecord;
 
-export type FeatureFlag = InferredTypes["feature_flag"];
-export type FeatureFlagRecord = FeatureFlag & XataRecord;
-
 export type P2pAgentTransactions = InferredTypes["p2p_agent_transactions"];
 export type P2pAgentTransactionsRecord = P2pAgentTransactions & XataRecord;
 
@@ -722,6 +722,7 @@ export type DatabaseSchema = {
   user_v2: UserV2Record;
   user_blockradar_wallet: UserBlockradarWalletRecord;
   manual_offramp_settlement_transaction: ManualOfframpSettlementTransactionRecord;
+  feature_flag: FeatureFlagRecord;
   offramp_awaiting_crypto_debit: OfframpAwaitingCryptoDebitRecord;
   crypto_payout_v2: CryptoPayoutV2Record;
   user_message: UserMessageRecord;
@@ -738,7 +739,6 @@ export type DatabaseSchema = {
   admin_config: AdminConfigRecord;
   rate_overrides: RateOverridesRecord;
   ngn_vas_settlement_transaction: NgnVasSettlementTransactionRecord;
-  feature_flag: FeatureFlagRecord;
   p2p_agent_transactions: P2pAgentTransactionsRecord;
   p2p_agent_account_balance: P2pAgentAccountBalanceRecord;
   p2p_agent_percentage: P2pAgentPercentageRecord;
