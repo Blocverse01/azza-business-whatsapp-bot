@@ -234,7 +234,7 @@ export const textPromptHandler = async (
                     botParams,
                     user,
                 });
-                    break;
+                break;
             case 'SWAP_CRYPTO':
                 responseMessage = await handleSwapCryptoPrompt(
                     {
