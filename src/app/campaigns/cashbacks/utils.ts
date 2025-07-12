@@ -25,13 +25,6 @@ export const processCashback = async (params: PercentageCashbackParams) => {
         6
     );
 
-    console.log({
-        convertedPercentage,
-        cashbackAmountUsd,
-        params,
-        calculatedCashbackAmountUsd: params.tradeAmountUsd * convertedPercentage
-    })
-
     return await platformWalletManager.withdrawAsset({
         assetId: params.assetId,
         userId: params.payoutWalletId,
