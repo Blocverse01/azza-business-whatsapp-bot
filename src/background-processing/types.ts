@@ -60,6 +60,7 @@ export enum QueueNames {
     eventDrivenOfframp = 'event-driven-offramp',
     syncUserWallet = 'sync-user-wallet',
     baseCashback = 'base-cashback',
+    solanaCashback = 'solana-cashback',
     cryptoPayout = 'crypto-payout',
     cleanupMessages = 'cleanup-messages',
     handleSmileKycWebhook = 'handle-smile-kyc-webhook',

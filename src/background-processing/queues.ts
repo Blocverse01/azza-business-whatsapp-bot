@@ -1,6 +1,6 @@
 import type { TransferAssetTransactionDetails } from '@/app/azza/azza.schema';
 import type { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
-import type { PercentageCashbackQueueInput } from '@/app/campaigns/base-cashbacks/types';
+import type { PercentageCashbackQueueInput } from '@/app/campaigns/cashbacks/types';
 import type { CryptoPayoutQueueInput } from '@/app/crypto-payouts-v2/types';
 import type {
     SmileIdWebhookData,
@@ -108,6 +108,9 @@ export const queues = {
         connection: connectionConfig,
     }),
     baseCashback: new Queue<PercentageCashbackQueueInput>(QueueNames.baseCashback, {
+        connection: connectionConfig,
+    }),
+    solanaCashback: new Queue<PercentageCashbackQueueInput>(QueueNames.solanaCashback, {
         connection: connectionConfig,
     }),
     cryptoPayout: new Queue<CryptoPayoutQueueInput>(QueueNames.cryptoPayout, {

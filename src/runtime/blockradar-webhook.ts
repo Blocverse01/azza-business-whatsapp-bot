@@ -1,6 +1,7 @@
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
-import { sendDepositMessageWithCashbackBanner } from '@/app/campaigns/base-cashbacks/utils';
+import { getChainCashbackConfig } from '@/app/campaigns/cashbacks/config';
+import { isCashBackEnabledChain, sendDepositMessageWithCashbackBanner } from '@/app/campaigns/cashbacks/utils';
 import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-payouts-v2/utils';
 import { ProcessorId } from '@/app/FiatRamp/config';
 import { OnrampTransactionRecord, transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
@@ -18,7 +19,7 @@ import { OfframpQueueFlowSchemaV2 } from '@/background-processing/schema';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import {
-    BASE_CASHBACK_REFERENCE_PREFIX,
+    CASHBACK_REFERENCE_PREFIX,
     CRYPTO_PAYOUT_REFERENCE_PREFIX,
     FEE_COLLECTION_REFERENCE_PREFIX,
     OFFRAMP,
@@ -92,11 +93,12 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             if (blockradarWithdrawTransaction) {
                 const reference = blockradarWithdrawTransaction.reference;
 
-                if (reference?.startsWith(BASE_CASHBACK_REFERENCE_PREFIX)) {
+                if (reference?.startsWith(CASHBACK_REFERENCE_PREFIX) && isCashBackEnabledChain(network)) {
+                    const cashbackConfig = getChainCashbackConfig(network);
                     await sendDepositMessageWithCashbackBanner(message, {
                         userPhoneNumber,
                         businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                    });
+                    }, cashbackConfig.campaignBannerMedia);
                     return;
                 }
             }

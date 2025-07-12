@@ -249,18 +249,26 @@ class WhatsAppBotService {
     public static async sendMediaMessage(
         phoneParams: PhoneNumberParams,
         message: {
-            mediaId: string;
+            media: {
+                link?: string;
+                id?: string;
+            };
             caption?: string;
             type: 'image';
         }
     ) {
+        if ((!message.media.id && !message.media.link) || (message.media.id && message.media.link)) {
+            throw new Error('Either a media ID or Link needs to provided');
+        }
+
         const messageObject = {
             messaging_product: 'whatsapp',
             recipient_type: 'individual',
             to: phoneParams.userPhoneNumber,
             type: message.type,
             image: {
-                id: message.mediaId,
+                id: message.media.id,
+                link: message.media.link,
                 caption: message.caption,
             },
         };
@@ -406,9 +414,9 @@ class WhatsAppBotService {
         const moreListItem =
             nextSliceFrom && nextSliceTo
                 ? ({
-                      id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
-                      title: 'More',
-                  } as const)
+                    id: `moreBeneficiaries|${assetId}|${countryCode}|${nextSliceFrom}|${nextSliceTo}`,
+                    title: 'More',
+                } as const)
                 : null;
 
         const beneficiariesToDisplay = usersBeneficiaries.slice(sliceFrom, sliceTo);
@@ -824,12 +832,12 @@ class WhatsAppBotService {
             await this.sendMediaMessage(
                 { userPhoneNumber, businessPhoneNumberId },
                 {
-                    mediaId: mediaResponse.id,
+                    media: mediaResponse,
                     caption: "Here's a beautiful rate card you can share 💙",
                     type: 'image',
                 }
             );
-        } catch (error) {}
+        } catch (error) { }
     }
 
     public static async depositAssetCommandHandler(
@@ -921,7 +929,7 @@ class WhatsAppBotService {
         if (interactiveButtonId.startsWith(BaseInteractiveButtonIds.REFERRAL_STATS)) {
             return 'referral-stats';
         }
-          
+
         if (interactiveButtonId.startsWith('admin_kyc_')) {
             return 'admin-resolve-kyc-review';
         }

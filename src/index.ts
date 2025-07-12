@@ -15,11 +15,6 @@ import apiRoutes from './routes';
 import './background-processing/workers';
 import './app/globalErrorHandler';
 import './background-processing/single-instance-workers';
-import SafeHavenService from './app/NigeriaBanks/SafeHaven/SafeHavenService';
-import BellService from './app/NigeriaBanks/BellMFB/BellService';
-import WhatsAppBotService from './app/WhatsAppBot/WhatsAppBotService';
-import HoneyCoinService from './app/HoneyCoin/HoneyCoinService';
-import FiatRampService from './app/FiatRamp/FiatRampService';
 
 const app = express();
 
@@ -70,7 +65,7 @@ createBullBoard({
         new BullMQAdapter(queues.generateReferralCode),
         new BullMQAdapter(queues.feeCollection),
         new BullMQAdapter(queues.resetFeatureUsageLimit),
-        //new BullMQAdapter(queues.pizzaDayCashback),
+        new BullMQAdapter(queues.solanaCashback),
         new BullMQAdapter(queues.dailyRatesUpdate),
         new BullMQAdapter(queues.generateAccountStatement)
     ],

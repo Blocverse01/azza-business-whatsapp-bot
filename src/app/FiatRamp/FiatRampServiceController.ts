@@ -13,15 +13,15 @@ import logger, { logSync } from '@/resources/logger';
 import { handleRequestError } from '@/resources/requestHelpers/handleRequestError';
 import { prettifyNumber } from '@/resources/utils/currency';
 import userServiceV2 from '@/runtime/user';
-import azzaWalletManager from '@/runtime/wallet';
 import { Request, Response } from 'express';
 import { Buffer } from 'node:buffer';
-import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
+import { addCashbackJobToQueue, isCashBackEnabledChain } from '../campaigns/cashbacks/utils';
 import { addCryptoPayoutJobToQueue } from '../crypto-payouts-v2/utils';
 import ManualOfframpSettlementService from './alternatives/ManualOfframpSettlementService';
 import NigeriaBanksService from '../NigeriaBanks/NigeriaBanksService';
 import { getPatchedOnrampTxBySequenceId } from './patches/onramp';
 import { Effect } from 'effect';
+import { searchSupportedBlockchain } from './utils';
 
 class FiatRampServiceController {
     public static receiveWebHookData(req: Request) {
@@ -90,23 +90,20 @@ class FiatRampServiceController {
 
             const user = await userServiceV2.getUserById(transaction.ownerId);
             const userPhoneNumber = user?.primaryWhatsappPhoneNumber!;
-            const supportedChain = azzaWalletManager
-                .getSupportedNetworks()
-                .find(
-                    (chain) => chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
-                );
+            const supportedChain = searchSupportedBlockchain(transaction.blockchainNetwork);
 
             if (message.trim() && newTransactionStatus !== 'failed') {
                 try {
                     await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
-                } catch (error) {}
+                } catch (error) { }
             }
 
             if (newTransactionStatus === 'complete') {
-                if (supportedChain === 'Base') {
+                if (supportedChain && isCashBackEnabledChain(supportedChain)) {
                     await addCashbackJobToQueue({
                         transactionId: sequenceId,
                         transactionType: 'offramp',
+                        blockchain: supportedChain,
                     });
                 }
 
@@ -125,7 +122,7 @@ class FiatRampServiceController {
                             businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         },
                         {
-                            mediaId: uploadedMedia.id,
+                            media: uploadedMedia,
                             caption: `🧾Transaction Receipt`,
                             type: 'image',
                         }
@@ -170,7 +167,7 @@ class FiatRampServiceController {
 
                 try {
                     await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
-                } catch (error) {}
+                } catch (error) { }
 
                 await addCryptoPayoutJobToQueue({
                     transactionId: sequenceId,
@@ -227,16 +224,11 @@ class FiatRampServiceController {
             if (message.trim() && userPhoneNumber) {
                 try {
                     await WhatsAppBotService.sendArbitraryTextMessage(userPhoneNumber, message);
-                } catch (error) {}
+                } catch (error) { }
             }
 
             if (newTransactionStatus.toLowerCase() === 'complete') {
-                const supportedChain = azzaWalletManager
-                    .getSupportedNetworks()
-                    .find(
-                        (chain) =>
-                            chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
-                    );
+                const supportedChain = searchSupportedBlockchain(transaction.blockchainNetwork);
 
                 if (supportedChain) {
                     await addCryptoPayoutJobToQueue({
@@ -244,10 +236,11 @@ class FiatRampServiceController {
                         transactionType: 'onramp-payout',
                     });
 
-                    if (supportedChain === 'Base') {
+                    if (supportedChain && isCashBackEnabledChain(supportedChain)) {
                         await addCashbackJobToQueue({
                             transactionId: sequenceId,
                             transactionType: 'onramp',
+                            blockchain: supportedChain,
                         });
                     }
                 }
@@ -267,7 +260,7 @@ class FiatRampServiceController {
                             businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         },
                         {
-                            mediaId: uploadedMedia.id,
+                            media: uploadedMedia,
                             caption: `🧾Transaction Receipt`,
                             type: 'image',
                         }

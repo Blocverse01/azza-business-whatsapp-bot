@@ -61,7 +61,7 @@ const handleAzzaWrappedJob = async (data: GenerateAzzaWrappedQueueInput) => {
     }
 
     await WhatsAppBotService.sendMediaMessage(whatsappParams, {
-        mediaId: mediaResponse.id,
+        media: mediaResponse,
         caption: `You made this moment possible, ${userDisplayName} 🎉\n\nSee how you helped shape our journey — and flex it on your socials! 🚀💙`,
         type: 'image',
     });

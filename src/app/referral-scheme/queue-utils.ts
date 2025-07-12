@@ -120,7 +120,7 @@ const handleReferralCodeJob = async (data: GenerateReferralCodeQueueInput) => {
         const referralCard = await WhatsAppBotService.sendMediaMessage(
             { userPhoneNumber, businessPhoneNumberId },
             {
-                mediaId: mediaResponse.id,
+                media: mediaResponse,
                 caption: `\nJoin me on Azza – trade crypto seamlessly on WhatsApp.\n\nCheck it out: ${referralLink} \n`,
                 type: 'image',
             }
@@ -173,7 +173,7 @@ export const handelReferralStats = async (params: {
         await WhatsAppBotService.sendMediaMessage(
             { userPhoneNumber, businessPhoneNumberId },
             {
-                mediaId: mediaResponse.id,
+                media: mediaResponse,
                 caption: message,
                 type: 'image',
             }

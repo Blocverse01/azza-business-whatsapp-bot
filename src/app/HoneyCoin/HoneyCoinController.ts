@@ -8,11 +8,12 @@ import HoneyCoinService from "./HoneyCoinService";
 import { transactionStatusSchema } from "../FiatRamp/fiatRampSchema";
 import { prettifyNumber } from "@/resources/utils/currency";
 import userServiceV2 from "@/runtime/user";
-import azzaWalletManager from "@/runtime/wallet";
 import WhatsAppBotService from "../WhatsAppBot/WhatsAppBotService";
-import { addCashbackJobToQueue } from "../campaigns/base-cashbacks/utils";
+import { addCashbackJobToQueue } from "../campaigns/cashbacks/utils";
 import { generateOfframpToBankRecipientReceipt } from "../receipts/generators";
 import { addCryptoPayoutJobToQueue } from "../crypto-payouts-v2/utils";
+import { searchSupportedBlockchain } from "../FiatRamp/utils";
+import { isCashBackEnabledChain } from "../campaigns/cashbacks/utils";
 
 
 class HoneyCoinController {
@@ -80,11 +81,7 @@ class HoneyCoinController {
 
             const user = await userServiceV2.getUserById(transaction.ownerId);
             const userPhoneNumber = user?.primaryWhatsappPhoneNumber!;
-            const supportedChain = azzaWalletManager
-                .getSupportedNetworks()
-                .find(
-                    (chain) => chain.toLowerCase() === transaction.blockchainNetwork.toLowerCase()
-                );
+            const supportedChain = searchSupportedBlockchain(transaction.blockchainNetwork!)
 
             if (message.trim() && newTransactionStatus !== 'failed') {
                 try {
@@ -93,10 +90,11 @@ class HoneyCoinController {
             }
 
             if (newTransactionStatus === 'complete') {
-                if (supportedChain === 'Base') {
+                if (supportedChain && isCashBackEnabledChain(supportedChain)) {
                     await addCashbackJobToQueue({
                         transactionId: referenceId,
-                        transactionType: 'offramp',
+                        transactionType: 'honey-coin-offramp',
+                        blockchain: supportedChain,
                     });
                 }
 
@@ -115,7 +113,7 @@ class HoneyCoinController {
                             businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         },
                         {
-                            mediaId: uploadedMedia.id,
+                            media: uploadedMedia,
                             caption: `🧾Transaction Receipt`,
                             type: 'image',
                         }

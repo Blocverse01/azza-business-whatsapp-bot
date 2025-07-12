@@ -6,8 +6,7 @@ import SafeHavenService from './SafeHaven/SafeHavenService';
 import { transactionStatusSchema } from '../FiatRamp/fiatRampSchema';
 import { prettifyNumber } from '@/resources/utils/currency';
 import userServiceV2 from '@/runtime/user';
-import azzaWalletManager from '@/runtime/wallet';
-import { addCashbackJobToQueue } from '../campaigns/base-cashbacks/utils';
+import { addCashbackJobToQueue, isCashBackEnabledChain } from '../campaigns/cashbacks/utils';
 import { generateOfframpReceipt } from '../receipts/generators';
 import WhatsAppBotService from '../WhatsAppBot/WhatsAppBotService';
 import env from '@/constants/env';
@@ -22,7 +21,7 @@ import {
 } from '../FiatRamp/config';
 import { dbClient } from '@/db/dbClient';
 import { isPeggedCurrency } from '../FiatRamp/token-currency-pair-rate/utils';
-import { normalizeTxHash } from '../FiatRamp/utils';
+import { normalizeTxHash, searchSupportedBlockchain } from '../FiatRamp/utils';
 
 export const addNgnBankTransactionUpdateJobToQueue = async (
     input: NGNBankTransactionQueueInput
@@ -90,20 +89,12 @@ export const createNgnBankTransactionUpdateJobWorker = () => {
                     userPhoneNumber
                 );
 
-                const supportedChain = settlement.blockchainNetwork
-                    ? azzaWalletManager
-                          .getSupportedNetworks()
-                          .find(
-                              (chain) =>
-                                  chain.toLowerCase() ===
-                                  settlement.blockchainNetwork?.toLowerCase()
-                          )
-                    : undefined;
-
-                if (supportedChain === 'Base') {
+                const supportedChain = searchSupportedBlockchain(settlement.blockchainNetwork!);
+                if (supportedChain && isCashBackEnabledChain(supportedChain)) {
                     await addCashbackJobToQueue({
-                        transactionId: settlement.sequenceId,
+                        transactionId: settlement.sequenceId!,
                         transactionType: 'ngn-bank-offramp',
+                        blockchain: supportedChain,
                     });
                 }
 
@@ -154,7 +145,7 @@ export const createNgnBankTransactionUpdateJobWorker = () => {
                             businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         },
                         {
-                            mediaId: uploadedMedia.id,
+                            media: uploadedMedia,
                             caption: `🧾Transaction Receipt`,
                             type: 'image',
                         }

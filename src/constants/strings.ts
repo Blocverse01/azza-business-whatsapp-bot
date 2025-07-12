@@ -48,8 +48,12 @@ export const getDynamicMaintenanceMessage = (
     ].join('\n');
 };
 
-export const BASE_CASHBACK_REFERENCE_PREFIX = 'base-cb-';
-export const BASE_CASHBACK_REASON = 'base-cashback';
+export const CASHBACK_REFERENCE_PREFIX = 'cashback-';
+export const BASE_CASHBACK_REASON = 'cashback-base';
+export const BASE_CASHBACK_MEDIA_LINK = 'https://res.cloudinary.com/dltnruk3l/image/upload/v1752324546/Coupon_Code_Base_kolfyr.png'
+
+export const SOLANA_CASHBACK_REASON = 'cashback-solana';
+export const SOLANA_CASHBACK_MEDIA_LINK = 'https://res.cloudinary.com/dltnruk3l/image/upload/v1752317356/Coupon_Code_Solana-_Gradient-Updated_1_oqwr4r.png'
 
 export const PIZZA_DAY_CASHBACK_REFERENCE_PREFIX = 'pizza-cb-';
 export const PIZZA_DAY_CASHBACK_REASON = 'pizza-cashback';

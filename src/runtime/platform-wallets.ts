@@ -30,7 +30,7 @@ const mainnet__PlatformAddressIdRecords: Record<PlatformAddressIdKey, string> = 
     'offramp-hot-wallet-tron': 'a4c1445d-31d8-4a1a-a539-108f6b1f9bfb',
     'cashback-payout-evm': '0a4bfcc7-083a-433f-bf72-e8e915abbbdb',
     'cashback-payout-tron': '', // Added to respect the type rule, not needed at the moment
-    'cashback-payout-solana': '', // Added to respect the type rule, not needed at the moment
+    'cashback-payout-solana': '0cfe4075-6447-435b-a251-256333f4f8dd', // Added to respect the type rule, not needed at the moment
 };
 const testnet__PlatformAddressIdRecords: Record<PlatformAddressIdKey, string> = {
     'onramp-payout-evm': 'f44866a3-6881-4089-afbb-ae83996cd9b8',

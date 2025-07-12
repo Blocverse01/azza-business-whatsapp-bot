@@ -1,4 +1,5 @@
-import { addCashbackJobToQueue } from '@/app/campaigns/base-cashbacks/utils';
+import { addCashbackJobToQueue } from '@/app/campaigns/cashbacks/utils';
+import { isCashBackEnabledChain } from '@/app/campaigns/cashbacks/utils';
 import {
     ACKNOWLEDGE_BUTTON_ID_PREFIX,
     MANUAL_OFFRAMP_SETTLERS,
@@ -16,6 +17,7 @@ import { prettifyNumber } from '@/resources/utils/currency';
 import userServiceV2 from '@/runtime/user';
 import { Buffer } from 'node:buffer';
 import crypto from 'node:crypto';
+import { searchSupportedBlockchain } from '../utils';
 
 export type ManualOfframpSettlement = Omit<OfframpTransactionRecord, 'createdAt' | 'status'>;
 
@@ -197,10 +199,12 @@ class ManualOfframpSettlementService {
             MessageGenerators.generateTextMessage(userPhoneNumber, message)
         );
 
-        if (settlement.blockchainNetwork?.toLowerCase() === 'base') {
+        const supportedChain = searchSupportedBlockchain(settlement.blockchainNetwork!);
+        if (supportedChain && isCashBackEnabledChain(supportedChain)) {
             await addCashbackJobToQueue({
                 transactionId: settlement.sequenceId!,
                 transactionType: 'manual-offramp',
+                blockchain: supportedChain,
             });
         }
 
@@ -234,7 +238,7 @@ class ManualOfframpSettlementService {
                     businessPhoneNumberId: params.businessPhoneNumberId,
                 },
                 {
-                    mediaId: uploadedMedia.id,
+                    media: uploadedMedia,
                     caption: `🧾Transaction Receipt`,
                     type: 'image',
                 }

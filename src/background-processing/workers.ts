@@ -14,7 +14,7 @@ import {
     waitForTransactionReceiptV2,
 } from '@/app/azza/lib/azza.lib.wait-for-transaction-receipt';
 import { createAzzaWrappedWorker } from '@/app/campaigns/azza-wrapped/queue-utils';
-import { createBaseCashbackWorker } from '@/app/campaigns/base-cashbacks/utils';
+import { createCashbackWorker } from '@/app/campaigns/cashbacks/utils';
 import { createCryptoPayoutWorker } from '@/app/crypto-payouts-v2/utils';
 import { CryptoPayoutOrderStatus } from '@/app/CryptoPayout/cryptoPayoutSchema';
 import CryptoPayoutService from '@/app/CryptoPayout/CryptoPayoutService';
@@ -80,6 +80,7 @@ import { createAccountStatementWorker } from '@/app/account-statement/queue-util
 import { createNgnVasTransactionUpdateJobWorker } from '@/app/ngn-vas-payment/queue-utils';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
 import { createP2pAgentTransactionTrackerJobWorker } from '@/app/User/P2pAgent/queue-utils';
+import { getChainCashbackConfig } from '@/app/campaigns/cashbacks/config';
 
 
 ///////////////////////
@@ -492,7 +493,8 @@ createSyncUserWalletWorker();
 createNgnBankTransactionUpdateJobWorker();
 createP2pAgentTransactionTrackerJobWorker();
 createNgnVasTransactionUpdateJobWorker();
-createBaseCashbackWorker();
+createCashbackWorker(QueueNames.baseCashback, getChainCashbackConfig('Base'));
+createCashbackWorker(QueueNames.solanaCashback, getChainCashbackConfig('Solana'));
 createCryptoPayoutWorker();
 createCleanupOldMessagesWorker();
 createKycEventJobWorker().on('error', async (error) => {

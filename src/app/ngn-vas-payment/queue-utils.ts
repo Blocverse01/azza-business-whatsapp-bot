@@ -263,7 +263,7 @@ export const createNgnVasTransactionUpdateJobWorker = () => {
                             businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                         },
                         {
-                            mediaId: uploadedMedia.id,
+                            media: uploadedMedia,
                             caption: `🧾Transaction Receipt`,
                             type: 'image',
                         }
