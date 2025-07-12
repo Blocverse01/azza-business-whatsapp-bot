@@ -16,13 +16,21 @@ import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { z } from 'zod';
 import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import HoneyCoinService from '@/app/HoneyCoin/HoneyCoinService';
+import { clipDecimal } from '@/resources/utils/transformers';
 
 export const processCashback = async (params: PercentageCashbackParams) => {
     const convertedPercentage = math.divide(params.cashbackPercentage, HUNDRED);
-    const cashbackAmountUsd = math.fix(
+    const cashbackAmountUsd = clipDecimal(
         math.multiply(params.tradeAmountUsd, convertedPercentage),
         6
     );
+
+    console.log({
+        convertedPercentage,
+        cashbackAmountUsd,
+        params,
+        calculatedCashbackAmountUsd: params.tradeAmountUsd * convertedPercentage
+    })
 
     return await platformWalletManager.withdrawAsset({
         assetId: params.assetId,
