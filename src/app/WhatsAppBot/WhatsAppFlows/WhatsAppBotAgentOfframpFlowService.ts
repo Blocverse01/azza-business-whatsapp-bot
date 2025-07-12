@@ -619,16 +619,16 @@ class WhatsAppBotAgentOffRampFlowService {
 
         const { asset_id, user_id, beneficiary } = input
 
-        const [userV2] = await Promise.all([
-            userServiceV2.getWhatsappUserByPhoneNumber(user_id)
-        ]);
+        const userV2 = await userServiceV2.getUserById(user_id);
 
-        const [assetBalance] = await Promise.all([
-            azzaWalletManager.getAssetBalance({
-                assetId: asset_id,
-                userId: userV2?.id!,
-            })
-        ]);
+        if (!userV2) {
+            throw new Error('User not found');
+        }
+
+        const assetBalance = await azzaWalletManager.getAssetBalance({
+            assetId: asset_id,
+            userId: userV2?.id,
+        });
 
         const { balance: userBalance, asset } = assetBalance;
         const assetLabel = `${asset.tokenName} (${asset.network})`;
@@ -917,7 +917,7 @@ class WhatsAppBotAgentOffRampFlowService {
 
     private static async getFeedbackScreenData(
         input: DataExchangePayload['TRANSACTION_SUMMARY'],
-        flowToken : string
+        flowToken: string
     ) {
         const {
             asset_id,
@@ -1060,7 +1060,7 @@ class WhatsAppBotAgentOffRampFlowService {
         );
 
         const response = await this.processAgentOffRampTransaction(
-            `ngn_vas_payment-${flowToken}`,
+            `agent_offramp_payment-${flowToken}`,
             {
                 assetId: asset_id,
                 fiatAmount: parseFloat(fiat_to_receive),
@@ -1167,7 +1167,7 @@ class WhatsAppBotAgentOffRampFlowService {
                         transactionFeeUsd,
                         assetId,
                         tokenAmountToDebit: tokenAmountToDebit,
-                        isAgentTransaction : true
+                        isAgentTransaction: true
                     },
                     transactionPin: encryptWithAES(
                         transactionPin,
