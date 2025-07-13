@@ -53,10 +53,10 @@ async function runScript() {
 
     const message = [
         '🔥 New Cashback Alert! 🔥',
-        'Trade USDC/USDT on Solana and get 1.5% back instantly! 💸',
-        'It’s fast, cheap, and now—rewarding.',
-        'Start trading and start earning today.',
-        'Powered by Azza x Solana 🚀',
+        '\nTrade *USDC/USDT on Solana* and get *1.5%* back instantly! 💸',
+        '\nIt’s fast, cheap, and now—rewarding.',
+        'Send /buy or /sell to get your rewards',
+        '\n_Powered by Azza x Superteam NG_ 🚀',
     ].join('\n');
 
     await sendBroadcastMessage(message, onlyTo);
