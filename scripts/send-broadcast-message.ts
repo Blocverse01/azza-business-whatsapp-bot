@@ -3,7 +3,7 @@ import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
 
 const currentMediaLink =
-    'https://res.cloudinary.com/dltnruk3l/image/upload/v1750532378/IMG-20250621-WA0007_wchpt7.jpg';
+    'https://res.cloudinary.com/dtfyyzwoz/image/upload/v1752419819/IMG_1803_ygazew.png';
 
 async function sendBroadcastMessage(message: string, onlyTo: string[] = []) {
     const allUsers =
@@ -52,10 +52,11 @@ async function runScript() {
     const onlyTo = onlyToString ? onlyToString.split(',') : [];
 
     const message = [
-        'Azza’s first-ever Community Call is here.',
-        'Join us this Saturday as we walk you through what we’ve built, what’s coming next, and answer all your questions.',
-        '🗓️ Saturday, June 21 — 8:00PM WAT',
-        '📍 X Space: https://x.com/i/spaces/1MYGNwPvoBnJw',
+        '🔥 New Cashback Alert! 🔥',
+        'Trade USDC/USDT on Solana and get 1.5% back instantly! 💸',
+        'It’s fast, cheap, and now—rewarding.',
+        'Start trading and start earning today.',
+        'Powered by Azza x Solana 🚀',
     ].join('\n');
 
     await sendBroadcastMessage(message, onlyTo);
