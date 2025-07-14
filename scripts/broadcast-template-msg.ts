@@ -7,6 +7,7 @@ import {
 import {
     composeBvnKycReminderMessage,
     BaseCashbackTemplateMessage,
+    SolanaCashbackTemplateMessage
 } from '../src/app/WhatsAppBot/templates';
 import env from '../src/constants/env';
 import { dbClient } from '../src/db/dbClient';
@@ -36,6 +37,10 @@ async function broadcastTemplateMessage(templateName: Template['name'], onlyTo: 
             return await BaseCashbackTemplateMessage.getDefaultTargetRecipients();
         }
 
+        if (templateName === SolanaCashbackTemplateMessage.name) {
+            return await SolanaCashbackTemplateMessage.getDefaultTargetRecipients();
+        }
+
         return await dbClient.user_v2.select(['primaryWhatsappPhoneNumber']).getAll();
     })();
 
@@ -59,6 +64,16 @@ async function broadcastTemplateMessage(templateName: Template['name'], onlyTo: 
                     );
                 } else if (templateName === 'cashback_on_base') {
                     message = BaseCashbackTemplateMessage.composer({
+                        userPhoneNumber: phoneNumber,
+                    });
+                    resolve(
+                        sendWhatsappBroadcastMessage({
+                            message: message,
+                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        })
+                    );
+                } else if (templateName === SolanaCashbackTemplateMessage.name) {
+                    message = SolanaCashbackTemplateMessage.composer({
                         userPhoneNumber: phoneNumber,
                     });
                     resolve(
