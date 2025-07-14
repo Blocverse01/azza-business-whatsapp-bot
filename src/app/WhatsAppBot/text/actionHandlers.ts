@@ -64,7 +64,7 @@ type ActionHandlerParams = {
     | null
     | Record<string, unknown>;
     botParams: PhoneNumberParams & {
-        waDisplayName: string;  
+        waDisplayName: string;
     };
     user: UserV2Record;
 };
@@ -1002,7 +1002,7 @@ export const handleSellCryptoForFiatPrompt = async (
             )
         );
         return {
-            response: asscash_back_solana_v2etNotSupportedResponse,
+            response: assetNotSupportedResponse,
             resetSession: false,
         };
     }
