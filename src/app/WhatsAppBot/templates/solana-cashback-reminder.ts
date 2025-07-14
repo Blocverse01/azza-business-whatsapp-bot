@@ -15,6 +15,28 @@ type ComposeCashbackOnSolanaMessageParams = {
 const composeCashbackOnSolanaMessage = (
     params: ComposeCashbackOnSolanaMessageParams
 ): TemplateMessageBase => {
+    const buttons: TemplateMessageBase['template']['components'] = [{
+        type: 'button',
+        sub_type: 'quick_reply',
+        index: '0',
+        parameters: [
+            {
+                type: 'payload',
+                payload: TRADE_NOW_QUICK_REPLY_PAYLOAD,
+            },
+        ],
+    }, {
+            type: 'button',
+            sub_type: 'quick_reply',
+            index: '1',
+            parameters: [
+                {
+                    type: 'payload',
+                    payload: START_KYC_QUICK_REPLY_PAYLOAD,
+                },
+            ],
+        }];
+
     return {
         messaging_product: 'whatsapp',
         to: params.userPhoneNumber,
@@ -37,28 +59,7 @@ const composeCashbackOnSolanaMessage = (
                         },
                     ],
                 },
-                {
-                    type: 'button',
-                    sub_type: 'quick_reply',
-                    index: '0',
-                    parameters: [
-                        {
-                            type: 'payload',
-                            payload: TRADE_NOW_QUICK_REPLY_PAYLOAD,
-                        },
-                    ],
-                },
-                {
-                    type: 'button',
-                    sub_type: 'quick_reply',
-                    index: '1',
-                    parameters: [
-                        {
-                            type: 'payload',
-                            payload: START_KYC_QUICK_REPLY_PAYLOAD,
-                        },
-                    ],
-                },
+                ...buttons
             ],
         },
     };

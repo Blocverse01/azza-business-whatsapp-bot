@@ -168,9 +168,8 @@ const handleIncomingWhatsappMessageV2 = async (
                     ...phoneParams,
                     waDisplayName: displayName
                 },
-                extractedArguments: {
-                    blockchainNetwork: 'Solana'
-                }, user: userV2
+                extractedArguments: null, 
+                user: userV2
             })
 
             return response.response;
