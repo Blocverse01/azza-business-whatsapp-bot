@@ -163,16 +163,14 @@ const handleIncomingWhatsappMessageV2 = async (
         }
 
         if (message.button?.payload === SOLANA_TRADE_NOW_QUICK_REPLY_PAYLOAD) {
-            const response = await handleSellCryptoForFiatPrompt({
-                botParams: {
-                    ...phoneParams,
-                    waDisplayName: displayName
-                },
-                extractedArguments: null, 
-                user: userV2
-            })
+            const result = await handleUserMessage({
+                message: 'Sell on Solana',
+                user: userV2,
+                phoneParams,
+                waDisplayName: displayName,
+            });
 
-            return response.response;
+            return result.classifiedAction.class;
         }
 
         throw new HttpException(INTERNAL_SERVER_ERROR, 'Unhandled button message', {

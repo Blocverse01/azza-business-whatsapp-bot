@@ -1002,7 +1002,7 @@ export const handleSellCryptoForFiatPrompt = async (
             )
         );
         return {
-            response: assetNotSupportedResponse,
+            response: asscash_back_solana_v2etNotSupportedResponse,
             resetSession: false,
         };
     }
