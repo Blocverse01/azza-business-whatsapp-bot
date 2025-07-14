@@ -1859,7 +1859,7 @@ function parseExtractedArguments<T extends ZodSchema>(
 
 function getAssetChoiceMessage(action: 'deposit' | 'buy') {
     return `
-    Tell me what asset you want to ${action} and the chain it’s on.\n\nExample: “USDC on Base”\n\n*Supported Assets and Chains:*\n${action === 'buy'
+    Tell me what asset you want to ${action} and the chain it’s on.\n\nExample: “USDC on Solana”\n\n*Supported Assets and Chains:*\n${action === 'buy'
             ? getSupportedAssetAndNetworksText({
                 action: ExploreAssetActions.BUY_ASSET,
             })
@@ -1902,7 +1902,7 @@ function getSellCryptoArgumentsGuideMessage(missingParams: {
     cryptoCurrencySymbol?: boolean;
 }) {
     const assetLine = '✔Asset – Which cryptocurrency would you like to sell? (e.g., USDT, USDC)';
-    const chainLine = '✔Chain – Which blockchain should it be on? (e.g., Base, Ethereum, Solana)';
+    const chainLine = '✔Chain – Which blockchain should it be on? (e.g., Solana, Base, BSC)';
 
     let missingParamsText = '';
 
@@ -1913,7 +1913,7 @@ function getSellCryptoArgumentsGuideMessage(missingParams: {
         missingParamsText += chainLine + '\n';
     }
 
-    return `I’ll need a few details to assist you:\n${missingParamsText}\nExample: “USDC on Base”\n\nOnce I have this info, I’ll guide you through the next steps! 🚀`;
+    return `I’ll need a few details to assist you:\n${missingParamsText}\nExample: “USDC on Solana”\n\nOnce I have this info, I’ll guide you through the next steps! 🚀`;
 }
 
 function getSwapArgumentsGuideMessage(missingParams: {

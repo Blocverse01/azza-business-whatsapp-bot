@@ -26,16 +26,16 @@ const composeCashbackOnSolanaMessage = (
             },
         ],
     }, {
-            type: 'button',
-            sub_type: 'quick_reply',
-            index: '1',
-            parameters: [
-                {
-                    type: 'payload',
-                    payload: START_KYC_QUICK_REPLY_PAYLOAD,
-                },
-            ],
-        }];
+        type: 'button',
+        sub_type: 'quick_reply',
+        index: '1',
+        parameters: [
+            {
+                type: 'payload',
+                payload: START_KYC_QUICK_REPLY_PAYLOAD,
+            },
+        ],
+    }];
 
     return {
         messaging_product: 'whatsapp',
@@ -69,7 +69,10 @@ export const SolanaCashbackTemplateMessage = {
     composer: composeCashbackOnSolanaMessage,
     name: TEMPLATE_NAME,
     getDefaultTargetRecipients: async () => {
-        return await dbClient.user_v2
-            .getAll();
+        return await dbClient.user_v2.filter({
+            'xata.createdAt': {
+                $ge: new Date('2025-03-16T00:00:00.000Z'),
+            },
+        }).getAll();
     },
 };
