@@ -64,7 +64,7 @@ type ActionHandlerParams = {
     | null
     | Record<string, unknown>;
     botParams: PhoneNumberParams & {
-        waDisplayName: string;
+        waDisplayName: string;  
     };
     user: UserV2Record;
 };

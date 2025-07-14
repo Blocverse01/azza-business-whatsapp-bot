@@ -52,6 +52,8 @@ import { extractReferralCodeFromMessage } from '../referral-scheme/utils';
 import ReferralSchemeService from '../referral-scheme/service';
 import P2pAgentService from '../User/P2pAgent/P2pAgentService';
 import KycResolutionFlow from '@/app/WhatsAppBot/WhatsAppFlows/KycResolutionFlow';
+import { TRADE_NOW_QUICK_REPLY_PAYLOAD as SOLANA_TRADE_NOW_QUICK_REPLY_PAYLOAD } from './templates/solana-cashback-reminder';
+import { handleSellCryptoForFiatPrompt } from './text/actionHandlers';
 
 export const receiveIncomingWhatsappMessageV2 = async (
     message: IncomingWhatsappMessage,
@@ -158,6 +160,20 @@ const handleIncomingWhatsappMessageV2 = async (
             await handleUserKycRequest(userV2, phoneParams);
 
             return ActionExecuted.SEND_KYC_QUERY_RESPONSE;
+        }
+
+        if (message.button?.payload === SOLANA_TRADE_NOW_QUICK_REPLY_PAYLOAD) {
+            const response = await handleSellCryptoForFiatPrompt({
+                botParams: {
+                    ...phoneParams,
+                    waDisplayName: displayName
+                },
+                extractedArguments: {
+                    blockchainNetwork: 'Solana'
+                }, user: userV2
+            })
+
+            return response.response;
         }
 
         throw new HttpException(INTERNAL_SERVER_ERROR, 'Unhandled button message', {
