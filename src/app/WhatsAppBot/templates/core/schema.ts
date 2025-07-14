@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const TemplateNameSchema = z.enum(['bvn_kyc_reminder', 'cashback_on_base']);
+export const TemplateNameSchema = z.enum(['bvn_kyc_reminder', 'cashback_on_base', 'cash_back_solana_v2']);
 export const TemplateBaseSchema = z.object({
     name: TemplateNameSchema,
     language: z.object({ code: z.string() }),
