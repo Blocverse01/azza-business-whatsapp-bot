@@ -9,7 +9,7 @@ const SOLANA_CASHBACK_REFERENCE_PREFIX = `${CASHBACK_REFERENCE_PREFIX}solana`;
 
 const CHAIN_SPONSORED_CASHBACK_CONFIG: Record<CashBackChains, ChainPercentCashbackConfig> = {
     Base: {
-        percentage: 1,
+        percentage: 1.5,
         assetId: 'usdc-base',
         referencePrefix: BASE_CASHBACK_REFERENCE_PREFIX,
         payoutWalletId: 'cashback-payout',
