@@ -176,7 +176,7 @@ const handleIncomingWhatsappMessageV2 = async (
 
         if (message.button?.payload === BUY_NOW_QUICK_REPLY_PAYLOAD) {
             const result = await handleUserMessage({
-                message: 'Buy on Base/Solana',
+                message: '/buy',
                 user: userV2,
                 phoneParams,
                 waDisplayName: displayName,
@@ -187,7 +187,7 @@ const handleIncomingWhatsappMessageV2 = async (
 
         if (message.button?.payload === SELL_NOW_QUICK_REPLY_PAYLOAD) {
             const result = await handleUserMessage({
-                message: 'Sell on Solana/Base',
+                message: '/sell',
                 user: userV2,
                 phoneParams,
                 waDisplayName: displayName,
