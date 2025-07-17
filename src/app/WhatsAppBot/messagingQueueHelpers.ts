@@ -46,14 +46,15 @@ import azzaWalletManager from '@/runtime/wallet';
 import { Worker } from 'bullmq';
 import type { CountryCode } from 'libphonenumber-js';
 import { handleUserMessage } from './text/handleUserMessage';
-import { VERIFY_ME_QUICK_REPLY_PAYLOAD } from './templates/base-cashback-reminder';
+import { VERIFY_ME_QUICK_REPLY_PAYLOAD } from './templates/composers/base-cashback-reminder';
 import { handleUserKycRequest } from '../kyc/utils';
 import { extractReferralCodeFromMessage } from '../referral-scheme/utils';
 import ReferralSchemeService from '../referral-scheme/service';
 import P2pAgentService from '../User/P2pAgent/P2pAgentService';
 import KycResolutionFlow from '@/app/WhatsAppBot/WhatsAppFlows/KycResolutionFlow';
-import { TRADE_NOW_QUICK_REPLY_PAYLOAD as SOLANA_TRADE_NOW_QUICK_REPLY_PAYLOAD } from './templates/solana-cashback-reminder';
+import { TRADE_NOW_QUICK_REPLY_PAYLOAD as SOLANA_TRADE_NOW_QUICK_REPLY_PAYLOAD } from './templates/composers/solana-cashback-reminder';
 import { handleSellCryptoForFiatPrompt } from './text/actionHandlers';
+import { BUY_NOW_QUICK_REPLY_PAYLOAD, SELL_NOW_QUICK_REPLY_PAYLOAD } from './templates';
 
 export const receiveIncomingWhatsappMessageV2 = async (
     message: IncomingWhatsappMessage,
@@ -165,6 +166,28 @@ const handleIncomingWhatsappMessageV2 = async (
         if (message.button?.payload === SOLANA_TRADE_NOW_QUICK_REPLY_PAYLOAD) {
             const result = await handleUserMessage({
                 message: 'Sell on Solana',
+                user: userV2,
+                phoneParams,
+                waDisplayName: displayName,
+            });
+
+            return result.classifiedAction.class;
+        }
+
+        if (message.button?.payload === BUY_NOW_QUICK_REPLY_PAYLOAD) {
+            const result = await handleUserMessage({
+                message: 'Buy',
+                user: userV2,
+                phoneParams,
+                waDisplayName: displayName,
+            });
+
+            return result.classifiedAction.class;
+        }
+
+        if (message.button?.payload === SELL_NOW_QUICK_REPLY_PAYLOAD) {
+            const result = await handleUserMessage({
+                message: 'Sell',
                 user: userV2,
                 phoneParams,
                 waDisplayName: displayName,

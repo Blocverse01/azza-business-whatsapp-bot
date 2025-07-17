@@ -1,5 +1,5 @@
 import { dbClient } from '@/db/dbClient';
-import { Template, TemplateMessageBase } from './core/schema';
+import { Template, TemplateMessageBase } from '../core/schema';
 
 const HEADER_IMAGE_URL =
     'https://res.cloudinary.com/dltnruk3l/image/upload/f_auto,q_auto/uwwka58ewfqpedpamjrf';
