@@ -59,17 +59,18 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             return;
         }
 
-        const [newBalance, userWallerConfig] = await Promise.all([
-            azzaWalletManager.getAssetBalance({
-                userId,
-                assetId: platformAssetConfig.listItemId,
-            }),
-            userServiceV2.getUserBlockradarWalletByAddress(recipientAddress),
-        ]);
+        const userWalletConfig = await userServiceV2.getUserBlockradarWalletByAddress(recipientAddress);
 
-        if (!userWallerConfig) {
+        if (!userWalletConfig) {
             return;
         }
+
+        const [newBalance] = await Promise.all([
+            azzaWalletManager.getAssetBalance({
+                userId: userWalletConfig.user?.id!,
+                assetId: platformAssetConfig.listItemId,
+            }),
+        ]);
 
         const assetConfig = newBalance.asset;
 
@@ -83,7 +84,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             newTokenBalance: newBalance.balance.toString(),
         });
 
-        const userPhoneNumber = userWallerConfig?.user?.primaryWhatsappPhoneNumber!;
+        const userPhoneNumber = userWalletConfig?.user?.primaryWhatsappPhoneNumber!;
 
         try {
             const walletClient = getMasterWalletClient(network);
