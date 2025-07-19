@@ -60,6 +60,9 @@ type UserServiceV2InitParams = {
                 userId: string,
                 wallets: Array<UserBlockRadarWallet>
             ) => Promise<Array<Omit<UserBlockradarWalletRecord, 'user'>>>;
+            getWalletConfigByWalletAddress: (
+                walletAddress: string
+            ) => Promise<UserBlockradarWalletRecord | null>
         };
     };
     utils: {
@@ -385,6 +388,17 @@ class UserServiceV2 {
         }
 
         return walletConfig satisfies Array<UserBlockRadarWallet>;
+    }
+
+
+    public static async getUserBlockradarWalletByAddress(walletAddress: string) {
+        const userWalletConfig = await this.repository.blockradarWallet.getWalletConfigByWalletAddress(walletAddress);
+
+        if (!userWalletConfig) {
+            return null;
+        }
+
+        return userWalletConfig;
     }
 
     public static async getUserBlockradarWalletAddressId(userId: string, network: string) {
