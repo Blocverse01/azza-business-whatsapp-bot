@@ -4,7 +4,7 @@ export const recommendedOffRampChannelForKenya = {
     paymentChannels: [
         {
             channelName: 'phone',
-            channelId: 'a3f3a711-c50e-4e53-b867-7d1d148cd43b'
+            channelId: 'c2b2eeda-d4ca-49fd-ba21-0781ffa7714b'
         }
     ],
     countryFiatLimits: {
