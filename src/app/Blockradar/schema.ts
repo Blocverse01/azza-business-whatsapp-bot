@@ -124,7 +124,7 @@ export const blockradarTransactionSchema = commonTransactionFieldsSchema
         tokenAddress: true,
     })
     .extend({
-        address: blockradarAddressSchema,
+        address: blockradarAddressSchema.optional().nullable(),
     })
     .merge(datesSchema);
 
