@@ -27,7 +27,7 @@ import {
 import { createReferralCodeWorker } from '@/app/referral-scheme/queue-utils';
 import { createNgnBankTransactionUpdateJobWorker } from '@/app/NigeriaBanks/queue-utils';
 import { createKycEventJobWorker } from '@/app/SmileID/queue-utils';
-import { createBlockradarAddressTokenSwapWorker } from '@/app/swap/queue-utils';
+import { createBlockradarAddressTokenSwapWorker, createBlockradarMasterWalletTokenSwapWorker } from '@/app/swap/queue-utils';
 import { createFeeCollectionWorker } from '@/app/transaction-fees/background-processing';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import {
@@ -507,6 +507,7 @@ createAccountStatementWorker();
 createBlockradarAddressTokenSwapWorker(connectionConfig).on('error', async (error) => {
     await logServiceError(error, 'Swap Worker Error');
 });
+createBlockradarMasterWalletTokenSwapWorker(connectionConfig);
 createFeeCollectionWorker(connectionConfig);
 createResetFeatureUsageLimitWorker(connectionConfig);
 

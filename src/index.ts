@@ -62,12 +62,13 @@ createBullBoard({
         new BullMQAdapter(queues.generateAzzaWrapped),
         new BullMQAdapter(queues.onRamp),
         new BullMQAdapter(queues.blockradarAddressSwaps),
+        new BullMQAdapter(queues.blockradarMasterWalletSwaps),
         new BullMQAdapter(queues.generateReferralCode),
         new BullMQAdapter(queues.feeCollection),
         new BullMQAdapter(queues.resetFeatureUsageLimit),
         new BullMQAdapter(queues.solanaCashback),
         new BullMQAdapter(queues.dailyRatesUpdate),
-        new BullMQAdapter(queues.generateAccountStatement)
+        new BullMQAdapter(queues.generateAccountStatement),
     ],
     serverAdapter: serverAdapter,
 });

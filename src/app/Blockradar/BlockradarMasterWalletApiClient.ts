@@ -493,6 +493,45 @@ class BlockradarMasterWalletApiClient {
         return responseDataValidation.data;
     }
 
+    public async executeMasterWalletSwap(
+        params: ExecuteSwapRequestBody
+    ): Promise<ExecuteSwapResponseData> {
+        const swapsResourceUrl = this.getResourceUrl(MasterWalletApiResources.SWAPS);
+
+        const url = `${swapsResourceUrl}/execute`;
+        const bodyPayload = executeSwapRequestBodySchema.parse(params);
+
+        const response = await this.fetch(url, {
+            headers: this.headers,
+            method: 'POST',
+            body: JSON.stringify(bodyPayload),
+        });
+
+        if (response.statusCode !== OK) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: response.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+                requestData: bodyPayload,
+            });
+        }
+
+        const responseDataValidation = executeSwapResponseDataSchema.safeParse(response.data);
+
+        if (!responseDataValidation.success) {
+            throw new BlockradarMasterWalletApiClientError({
+                message: responseDataValidation.error.message,
+                requestUrl: url,
+                statusCode: response.statusCode,
+                rawJsonResponse: response,
+                requestData: bodyPayload,
+            });
+        }
+
+        return responseDataValidation.data;
+    }
+
     private getResourceUrl(resource: MasterWalletApiResources) {
         return `${this.baseUrl}/wallets/${this.masterWalletId}/${resource}` as const;
     }

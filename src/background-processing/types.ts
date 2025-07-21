@@ -70,6 +70,7 @@ export enum QueueNames {
     generateAzzaWrapped = 'generate-azza-wrapped',
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
+    blockradarMasterWalletSwaps = '',
     generateReferralCode = 'generate-referral-code',
     feeCollection = 'fee-collection',
     resetFeatureUsageLimit = 'reset-feature-usage-limit',
@@ -196,6 +197,12 @@ export type OnRampQueueInput = {
 export type BlockradarAddressSwapQueueInput = {
     swapDetails: SwapTokensTransactionDetailsV2;
     whatsappParams: PhoneNumberParams;
+};
+
+export type BlockradarMasterWalletSwapsQueueInput = {
+    swapDebitReferenceId: string;
+    swapDebitTransactionHash: string;
+    whatsappParams: Pick<PhoneNumberParams, 'businessPhoneNumberId'>;
 };
 
 export type CollectFeeQueueInput = {

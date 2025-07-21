@@ -39,6 +39,7 @@ type BlockradarWalletProviderParams = {
             addressId: string;
             address: string;
         }) => Promise<unknown>;
+        swapWithMasterChecker?: () => Promise<boolean>;
     };
     networkUtils: {
         isEvmCompatibleBlockchain: (
@@ -517,10 +518,12 @@ class BlockradarWalletProvider implements BaseWalletProvider {
             this.dataSources.blockradarAssetId(params.toAssetId),
         ];
 
-        const userAddressId = await this.gracefullyGetUserAddressId(
-            params.userId,
-            fromAssetConfig.network
-        );
+        const [userAddressId, shouldUseMasterWallet] = await Promise.all([
+            this.gracefullyGetUserAddressId(params.userId, fromAssetConfig.network),
+            this.dataSources.swapWithMasterChecker
+                ? this.dataSources.swapWithMasterChecker()
+                : Promise.resolve(false),
+        ]);
         if (!userAddressId) {
             throw new BlockradarWalletProviderError({
                 data: {
@@ -533,14 +536,23 @@ class BlockradarWalletProvider implements BaseWalletProvider {
 
         const walletClient = this.dataSources.blockradarMasterWalletClient(fromAssetConfig.network);
 
-        const swapResponse = await walletClient.executeAddressSwapTransaction(userAddressId, {
-            amount: params.fromAmount,
-            reference: params.reference,
-            recipientAddress: params.recipientAddress,
-            fromAssetId: blockradarFromAssetId,
-            toAssetId: blockradarToAssetId,
-            metadata: params.metadata,
-        });
+        const swapResponse = shouldUseMasterWallet
+            ? await walletClient.executeMasterWalletSwap({
+                  amount: params.fromAmount,
+                  reference: params.reference,
+                  recipientAddress: params.recipientAddress,
+                  fromAssetId: blockradarFromAssetId,
+                  toAssetId: blockradarToAssetId,
+                  metadata: params.metadata,
+              })
+            : await walletClient.executeAddressSwapTransaction(userAddressId, {
+                  amount: params.fromAmount,
+                  reference: params.reference,
+                  recipientAddress: params.recipientAddress,
+                  fromAssetId: blockradarFromAssetId,
+                  toAssetId: blockradarToAssetId,
+                  metadata: params.metadata,
+              });
 
         return {
             fromAmount: Number(swapResponse.amount),

@@ -38,6 +38,7 @@ import {
     GenerateAccountStatementQueueInput,
     NGNVasTransactionQueueInput,
     p2pAgentQueueInput,
+    BlockradarMasterWalletSwapsQueueInput,
 } from '@/background-processing/types';
 import { Queue } from 'bullmq';
 
@@ -131,12 +132,9 @@ export const queues = {
             connection: connectionConfig,
         }
     ),
-    p2pAgentTransaction: new Queue<p2pAgentQueueInput>(
-        QueueNames.p2pAgentTransaction,
-        {
-            connection: connectionConfig,
-        }
-    ),
+    p2pAgentTransaction: new Queue<p2pAgentQueueInput>(QueueNames.p2pAgentTransaction, {
+        connection: connectionConfig,
+    }),
     handleNGNVasTransactionStatusUpdate: new Queue<NGNVasTransactionQueueInput>(
         QueueNames.handleNGNVasTransactionStatusUpdate,
         {
@@ -151,6 +149,13 @@ export const queues = {
     }),
     blockradarAddressSwaps: new Queue<BlockradarAddressSwapQueueInput>(
         QueueNames.blockradarAddressSwaps,
+        {
+            connection: connectionConfig,
+        }
+    ),
+    blockradarMasterWalletSwaps: new Queue<BlockradarMasterWalletSwapsQueueInput>(
+        QueueNames.blockradarMasterWalletSwaps,
+
         {
             connection: connectionConfig,
         }
@@ -178,7 +183,7 @@ export const queues = {
         {
             connection: connectionConfig,
         }
-    )
+    ),
 };
 
 export const defaultQueueRemoveOptions = {

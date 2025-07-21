@@ -1,13 +1,17 @@
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
 import BlockradarMasterWalletWebhookService from '@/app/Blockradar/BlockradarMasterWalletWebhookService';
 import { getChainCashbackConfig } from '@/app/campaigns/cashbacks/config';
-import { isCashBackEnabledChain, sendDepositMessageWithCashbackBanner } from '@/app/campaigns/cashbacks/utils';
+import {
+    isCashBackEnabledChain,
+    sendDepositMessageWithCashbackBanner,
+} from '@/app/campaigns/cashbacks/utils';
 import { getCryptoPayoutRecord, updateCryptoPayoutRecord } from '@/app/crypto-payouts-v2/utils';
 import { ProcessorId } from '@/app/FiatRamp/config';
 import { OnrampTransactionRecord, transactionStatusSchema } from '@/app/FiatRamp/fiatRampSchema';
 import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import { addOfframpRequestToQueue } from '@/app/FiatRamp/queue-helpers';
 import { sendTechnicalIssueAlert } from '@/app/support/whatsapp';
+import { addBlockradarMasterWalletTokenSwapJobToQueue } from '@/app/swap/queue-utils';
 import SwapService from '@/app/swap/service';
 import { addFeeCollectionJobToQueue } from '@/app/transaction-fees/background-processing';
 import { getTransactionFeeLogById } from '@/app/transaction-fees/utils';
@@ -59,7 +63,8 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             return;
         }
 
-        const userWalletConfig = await userServiceV2.getUserBlockradarWalletByAddress(recipientAddress);
+        const userWalletConfig =
+            await userServiceV2.getUserBlockradarWalletByAddress(recipientAddress);
 
         if (!userWalletConfig) {
             return;
@@ -95,12 +100,19 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             if (blockradarWithdrawTransaction) {
                 const reference = blockradarWithdrawTransaction.reference;
 
-                if (reference?.startsWith(CASHBACK_REFERENCE_PREFIX) && isCashBackEnabledChain(network)) {
+                if (
+                    reference?.startsWith(CASHBACK_REFERENCE_PREFIX) &&
+                    isCashBackEnabledChain(network)
+                ) {
                     const cashbackConfig = getChainCashbackConfig(network);
-                    await sendDepositMessageWithCashbackBanner(message, {
-                        userPhoneNumber,
-                        businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
-                    }, cashbackConfig.campaignBannerMedia);
+                    await sendDepositMessageWithCashbackBanner(
+                        message,
+                        {
+                            userPhoneNumber,
+                            businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                        },
+                        cashbackConfig.campaignBannerMedia
+                    );
                     return;
                 }
             }
@@ -130,6 +142,18 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const reference = data.data.reference;
 
         const reason = metadata?.reason;
+
+        if (reason === SwapService.SWAP_WITHDRAWAL_TX_REASON && data.data.hash) {
+            await addBlockradarMasterWalletTokenSwapJobToQueue(reference, {
+                swapDebitReferenceId: reference,
+                swapDebitTransactionHash: data.data.hash,
+                whatsappParams: {
+                    businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
+                },
+            });
+
+            return;
+        }
 
         if (reason === OFFRAMP) {
             const pendingOfframpId = reference
@@ -216,7 +240,9 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
             });
 
             if (isUpdated) {
-                const providerName = identifyPaymentProvider(cryptoPayoutRecord.triggerTransactionId) as ProcessorId;
+                const providerName = identifyPaymentProvider(
+                    cryptoPayoutRecord.triggerTransactionId
+                ) as ProcessorId;
 
                 let isAgentTransaction = false;
                 let onRampTxn: OnrampTransactionRecord | null = null;
@@ -226,26 +252,25 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                         cryptoPayoutRecord.triggerTransactionId
                     );
                     isAgentTransaction = !!txn.isAgentTransaction;
-                    onRampTxn = txn
+                    onRampTxn = txn;
                 }
 
                 // Add agent transaction tracker job for reporting
                 if (isAgentTransaction && onRampTxn) {
-                    await addP2pAgentTransactionTrackerJobToQueue(
-                        {
-                            localAmount: onRampTxn.localAmount,
-                            usdAmount: onRampTxn.usdAmount,
-                            processingStatus: transactionStatusSchema.parse('complete'),
-                            ownerId: onRampTxn.ownerId,
-                            blockchainNetwork: onRampTxn.blockchainNetwork.toUpperCase(),
-                            tokenSymbol: onRampTxn.tokenSymbol.toUpperCase(),
-                            transactionType: 'onramp',
-                            sequenceId: onRampTxn.sequenceId,
-                            providerName: providerName,
-                            localCurrencySymbol: onRampTxn.localCurrencySymbol,
-                            country: onRampTxn.collectionCountry,
-                            transactionFeeUsd : onRampTxn.transactionFeeUsd
-                        })
+                    await addP2pAgentTransactionTrackerJobToQueue({
+                        localAmount: onRampTxn.localAmount,
+                        usdAmount: onRampTxn.usdAmount,
+                        processingStatus: transactionStatusSchema.parse('complete'),
+                        ownerId: onRampTxn.ownerId,
+                        blockchainNetwork: onRampTxn.blockchainNetwork.toUpperCase(),
+                        tokenSymbol: onRampTxn.tokenSymbol.toUpperCase(),
+                        transactionType: 'onramp',
+                        sequenceId: onRampTxn.sequenceId,
+                        providerName: providerName,
+                        localCurrencySymbol: onRampTxn.localCurrencySymbol,
+                        country: onRampTxn.collectionCountry,
+                        transactionFeeUsd: onRampTxn.transactionFeeUsd,
+                    });
                 }
             }
         }
@@ -255,6 +280,47 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
         const reference = data.data.reference;
 
         const reason = metadata?.reason;
+
+        if (reason === SwapService.SWAP_WITHDRAWAL_TX_REASON) {
+            const pendingSwapRequest =
+                await SwapService.getSwapTransactionByExternalReference(reference);
+
+            if (!pendingSwapRequest) {
+                return;
+            }
+
+            const user = await userServiceV2.getUserById(pendingSwapRequest.user?.id!);
+
+            if (!user) throw new Error('Invalid swap user ID');
+
+            const liveTransactionData = await azzaWalletManager.getTransactionByHash(
+                data.data.hash,
+                network
+            );
+
+            if (liveTransactionData.status === 'SUCCESS') {
+                const technicalSupportMessage = `Swap debit transaction was successful, but a withdraw.failed webhook was sent.\n\nTransaction details:\nTransaction ID: ${data.data.id}\nBlockchain: ${network}\nHash: ${data.data.hash}\nReference: ${reference}`;
+
+                await sendTechnicalIssueAlert(technicalSupportMessage, env.WA_PHONE_NUMBER_ID);
+
+                return;
+            }
+
+            await WhatsAppBotService.sendWhatsappMessage(
+                env.WA_PHONE_NUMBER_ID,
+                MessageGenerators.generateTextMessage(
+                    user.primaryWhatsappPhoneNumber,
+                    '❌ Your swap transaction failed, please try again.\n\nIf you were debited, please contact reach out for assistance using the /support command.'
+                )
+            );
+
+            await pendingSwapRequest.update({
+                transactionHash: `debit_${data.data.hash}`,
+                status: 'failed',
+            });
+
+            return;
+        }
 
         if (reason === OFFRAMP) {
             const pendingOfframpId = reference.split(OFFRAMP_WITHDRAW_REFERENCE_PREFIX)[1];
@@ -346,7 +412,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 status: 'complete',
                 transactionHash: `swap_${data.data.hash}`,
             });
-        } catch (e) { }
+        } catch (e) {}
 
         if (reference.startsWith(SwapService.EXTERNAL_REFERENCE_PREFIX)) {
             await addFeeCollectionJobToQueue(reference);
@@ -377,7 +443,7 @@ const blockradarWebhookService = new BlockradarMasterWalletWebhookService({
                 status: 'failed',
                 transactionHash: `swap_${data.data.hash}`,
             });
-        } catch (e) { }
+        } catch (e) {}
         await WhatsAppBotService.sendWhatsappMessage(
             env.WA_PHONE_NUMBER_ID,
             MessageGenerators.generateTextMessage(

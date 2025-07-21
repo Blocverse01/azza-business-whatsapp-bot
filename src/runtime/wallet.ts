@@ -5,6 +5,8 @@ import {
     getPlatformAssetId,
 } from '@/app/AzzaWalletManager/providers/blockradar/resources/assets';
 import { getMasterWalletClient } from '@/app/AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
+import { FeatureFlagKey } from '@/app/FeatureFlag/feature-flag-schema';
+import FeatureFlagService from '@/app/FeatureFlag/FeatureFlagService';
 import { syncUserAddressJob } from '@/background-processing/utils';
 import logger from '@/resources/logger';
 import { isEvmCompatibleBlockchain } from '@/resources/web3/core/blockchains';
@@ -32,6 +34,8 @@ const walletProvider = new BlockradarWalletProvider({
                 isEvmCompatible: isEvmCompatibleBlockchain(params.network),
             });
         },
+        swapWithMasterChecker: () =>
+            FeatureFlagService.isFeatureEnabled(FeatureFlagKey.MASTER_WALLET_SWAP),
     },
     networkUtils: {
         isEvmCompatibleBlockchain,
