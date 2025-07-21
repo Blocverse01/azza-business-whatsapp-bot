@@ -155,7 +155,6 @@ export const queues = {
     ),
     blockradarMasterWalletSwaps: new Queue<BlockradarMasterWalletSwapsQueueInput>(
         QueueNames.blockradarMasterWalletSwaps,
-
         {
             connection: connectionConfig,
         }

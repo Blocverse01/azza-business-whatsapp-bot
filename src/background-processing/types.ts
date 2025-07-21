@@ -4,7 +4,12 @@ import {
 } from '@/app/azza/azza.schema';
 import { SendTransferTransactionResponse } from '@/app/azza/lib/azza.lib.transaction';
 import { OnrampTransactionPayload } from '@/app/FiatRamp/fiatRampSchema';
-import { AirtimePayload, DataPayload, TransactionType, UtilityPayload } from '@/app/ngn-vas-payment/types';
+import {
+    AirtimePayload,
+    DataPayload,
+    TransactionType,
+    UtilityPayload,
+} from '@/app/ngn-vas-payment/types';
 import { VASServiceType } from '@/app/NigeriaBanks/SafeHaven/SafeHaveSchema';
 import { P2pAgentTransaction } from '@/app/User/P2pAgent/P2pAgentSchema';
 import {
@@ -19,13 +24,13 @@ import { AssetConfig } from '@/resources/web3/core/tokens';
 
 export type FiatPayoutQueueResult =
     | {
-        sequenceId: string;
-        result: 'SENT';
-    }
+          sequenceId: string;
+          result: 'SENT';
+      }
     | {
-        error: string;
-        result: 'FAILED' | 'REFUNDING_CRYPTO';
-    };
+          error: string;
+          result: 'FAILED' | 'REFUNDING_CRYPTO';
+      };
 
 export type CryptoDebitConfirmationQueueResult = {
     status: 'success' | 'failed' | 'dropped';
@@ -33,16 +38,16 @@ export type CryptoDebitConfirmationQueueResult = {
 };
 export type UserTxPinSecurityQueueInput =
     | {
-        newPinHash: string;
-        userId: string;
-        encryptedSecurityQuestions: string;
-        whatsappParams: PhoneNumberParams;
-    }
+          newPinHash: string;
+          userId: string;
+          encryptedSecurityQuestions: string;
+          whatsappParams: PhoneNumberParams;
+      }
     | {
-        newPinHash: string;
-        userId: string;
-        whatsappParams: PhoneNumberParams;
-    };
+          newPinHash: string;
+          userId: string;
+          whatsappParams: PhoneNumberParams;
+      };
 export type UserTxPinSecurityQueueResult = {
     status: 'success' | 'failed';
 };
@@ -70,13 +75,13 @@ export enum QueueNames {
     generateAzzaWrapped = 'generate-azza-wrapped',
     onRamp = 'onramp',
     blockradarAddressSwaps = 'blockradar-address-swaps',
-    blockradarMasterWalletSwaps = '',
+    blockradarMasterWalletSwaps = 'blockradar-master-wallet-swaps',
     generateReferralCode = 'generate-referral-code',
     feeCollection = 'fee-collection',
     resetFeatureUsageLimit = 'reset-feature-usage-limit',
     pizzaDayCashback = 'pizza-day-cashback',
     dailyRatesUpdate = 'daily-rates-update',
-    generateAccountStatement = 'generate-account-statement'
+    generateAccountStatement = 'generate-account-statement',
 }
 
 export type UserWalletMigrationQueueInput = {
@@ -163,7 +168,7 @@ export type SyncUserWalletIdQueueInput = {
     address: string;
 };
 
-export type p2pAgentQueueInput  = P2pAgentTransaction
+export type p2pAgentQueueInput = P2pAgentTransaction;
 
 export type NGNBankTransactionQueueInput = {
     transactionId: string;
@@ -173,7 +178,7 @@ export type NGNBankTransactionQueueInput = {
 export type NGNVasTransactionQueueInput = {
     transactionId: string;
     processorName: string;
-}
+};
 
 export type GenerateAzzaWrappedQueueInput = {
     userId: string;
@@ -211,8 +216,8 @@ export type CollectFeeQueueInput = {
 
 export type GenerateAccountStatementQueueInput = {
     whatsappParams: PhoneNumberParams;
-    startDate: string,
-    endDate: string,
-    user: UserV2Record,
-    newUserAddress: string
+    startDate: string;
+    endDate: string;
+    user: UserV2Record;
+    newUserAddress: string;
 };
