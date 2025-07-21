@@ -3,7 +3,11 @@ import SwapService from '@/app/swap/service';
 import MessageGenerators from '@/app/WhatsAppBot/MessageGenerators';
 import WhatsAppBotService from '@/app/WhatsAppBot/WhatsAppBotService';
 import { defaultQueueRemoveOptions, queues } from '@/background-processing/queues';
-import { BlockradarAddressSwapQueueInput, BlockradarMasterWalletSwapsQueueInput, QueueNames } from '@/background-processing/types';
+import {
+    BlockradarAddressSwapQueueInput,
+    BlockradarMasterWalletSwapsQueueInput,
+    QueueNames,
+} from '@/background-processing/types';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import { decimalToString } from '@/resources/utils/currency';
 import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
@@ -236,12 +240,15 @@ const handleBlockradarMasterWalletTokenSwapJob = async (
 
     const onChainDebitTransaction = await azzaWalletManager.getTransactionByHash(
         swapDebitTransactionHash,
-        fromAssetConfig.network
+        fromAssetConfig.network,
+        'WITHDRAW'
     );
 
     if (onChainDebitTransaction.status !== 'SUCCESS') {
         throw new Error('OnChainDebitTransaction failed.');
     }
+
+    console.log({ onChainDebitTransaction });
 
     assert.ok(
         Number(onChainDebitTransaction.amount) > swapTransactionRecord.fromAmount,
