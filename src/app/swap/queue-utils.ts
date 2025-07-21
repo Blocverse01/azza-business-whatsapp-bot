@@ -272,7 +272,7 @@ const handleBlockradarMasterWalletTokenSwapJob = async (
         fromAmount: decimalToString(swapTransactionRecord.fromAmount),
         fromAssetId: fromAssetConfig.listItemId,
         toAssetId: toAssetConfig.listItemId,
-        reference: swapDebitReferenceId,
+        reference: `${swapDebitReferenceId}_execute`,
         recipientAddress: swapTransactionRecord.recipientAddress,
         userId: swapTransactionRecord.user?.id!,
     });
