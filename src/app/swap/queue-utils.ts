@@ -12,6 +12,9 @@ import azzaWalletManager from '@/runtime/wallet';
 import { ConnectionOptions, Worker } from 'bullmq';
 import { recordTransactionFeeCharge } from '../transaction-fees/utils';
 import { hasExceededLimit, createOrIncrementUsageCount } from '../limits/utils';
+import { getMasterWalletClient } from '../AzzaWalletManager/providers/blockradar/resources/master-wallet-clients';
+import FeatureFlagService from '../FeatureFlag/FeatureFlagService';
+import { FeatureFlagKey } from '../FeatureFlag/feature-flag-schema';
 
 ////////////////////////
 // Address-level Swaps
@@ -106,6 +109,69 @@ const handleBlockradarAddressTokenSwapJob = async (
     return swapDetails;
 };
 
+const handleBlockradarTokenSwapJob_with_MasterWallet = async (
+    jobId: string,
+    data: BlockradarAddressSwapQueueInput
+) => {
+    const { swapDetails, whatsappParams } = data;
+
+    const normalizedUserId = convertBase64ToAsciiString(swapDetails.userId);
+    const amountToSwap = clipDecimal(swapDetails.fromAmount - swapDetails.transactionFee, 9);
+    const swapTransactionRecord = await SwapService.createOrRecoverSwapTransaction(
+        jobId,
+        swapTokensTransactionDetailsV2Schema.parse({
+            ...swapDetails,
+            fromAmount: amountToSwap,
+            userId: normalizedUserId,
+        })
+    );
+    const swapTxReference = `${SwapService.EXTERNAL_REFERENCE_PREFIX}${swapTransactionRecord.id}`;
+
+    const fromTokenConfig = getAssetConfigOrThrow(swapDetails.fromTokenId);
+    const masterWalletClient = getMasterWalletClient(fromTokenConfig.network);
+    const masterWalletAddress = masterWalletClient.walletAddress;
+
+    const withdrawalTx = await azzaWalletManager.withdrawAsset({
+        amount: decimalToString(clipDecimal(swapDetails.fromAmount, 6)),
+        assetId: swapDetails.fromTokenId,
+        userId: swapDetails.userId,
+        reference: swapTxReference,
+        recipient: masterWalletAddress,
+        metadata: {
+            reason: SwapService.SWAP_WITHDRAWAL_TX_REASON,
+        },
+    });
+
+    if (withdrawalTx.status === 'FAILED') {
+        await WhatsAppBotService.sendWhatsappMessage(
+            whatsappParams.businessPhoneNumberId,
+            MessageGenerators.generateTextMessage(
+                whatsappParams.userPhoneNumber,
+                `❌ Your swap transaction failed, please try again.\n\nIf you were debited, please contact reach out for assistance using the /support command.`
+            )
+        );
+    } else {
+        const hasExceededGaslessTxLimit = await hasExceededLimit(
+            normalizedUserId,
+            'GASLESS_TRANSACTIONS'
+        );
+        if (!hasExceededGaslessTxLimit) {
+            await createOrIncrementUsageCount(normalizedUserId, 'GASLESS_TRANSACTIONS');
+        }
+
+        await WhatsAppBotService.sendWhatsappMessage(
+            whatsappParams.businessPhoneNumberId,
+
+            MessageGenerators.generateTextMessage(
+                whatsappParams.userPhoneNumber,
+                `📬 Your swap transaction has been initiated successfully, please wait...`
+            )
+        );
+    }
+
+    return withdrawalTx;
+};
+
 export const createBlockradarAddressTokenSwapWorker = (connection: ConnectionOptions) => {
     return new Worker<BlockradarAddressSwapQueueInput>(
         QueueNames.blockradarAddressSwaps,
@@ -114,7 +180,13 @@ export const createBlockradarAddressTokenSwapWorker = (connection: ConnectionOpt
                 throw new Error('Job ID is expected');
             }
 
-            return await handleBlockradarAddressTokenSwapJob(job.id, job.data);
+            const masterWalletSwapsIsEnabled = await FeatureFlagService.isFeatureEnabled(
+                FeatureFlagKey.MASTER_WALLET_SWAP
+            );
+
+            return masterWalletSwapsIsEnabled
+                ? await handleBlockradarTokenSwapJob_with_MasterWallet(job.id, job.data)
+                : await handleBlockradarAddressTokenSwapJob(job.id, job.data);
         },
         {
             connection: connection,
