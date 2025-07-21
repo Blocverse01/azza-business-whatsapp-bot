@@ -6,10 +6,11 @@ import env from "@/constants/env";
 import { SIX } from "@/constants/numbers";
 import { INTERNAL_SERVER_ERROR } from "@/constants/status-codes";
 import { HttpException } from "@/resources/exceptions/HttpException";
-import WhatsAppBotService from "@/app/WhatsAppBot/WhatsAppBotService";
 import MessageGenerators from "@/app/WhatsAppBot/MessageGenerators";
 import UserServiceV2 from "../UserServiceV2";
 import FiatRampService from "@/app/FiatRamp/FiatRampService";
+import WhatsAppBotService from "@/app/WhatsAppBot/WhatsAppBotService";
+import { getCountryFlagEmoji, prettifyNumber } from "@/resources/utils/currency";
 
 class P2pAgentService {
     private static readonly P2P_AGENT_TRANSACTION_REPOSITORY = dbClient.p2p_agent_transactions;
@@ -158,6 +159,12 @@ class P2pAgentService {
             });
         }
 
+        const userCountry = await WhatsAppBotService.getUserCountryFromPhoneNumber(user.primaryWhatsappPhoneNumber);
+
+        let sellRate = 0;
+        if (userCountry?.code) {
+            sellRate = await FiatRampService.getSellRate(userCountry.currencySymbol);
+        }
 
         await WhatsAppBotService.sendWhatsappMessage(
             phoneParams.businessPhoneNumberId,
@@ -183,7 +190,11 @@ class P2pAgentService {
             p2pAgentAccount?.accountBalance!
         )).currentBalance : '0.00';
 
-        const message = `*We're pleased to share your current performance*: \n\nTotal Transaction Volume:  $${totalVolume.toFixed(SIX)} \n\nTotal Earnings:  $${totalEarnings.toFixed(SIX)} \n\nRedeemable balance:  $${Number(currentAccountBalance).toFixed(SIX)}\n\n`;
+        const totalVolumeFiat = (userCountry?.code) ? `≈ ${getCountryFlagEmoji(userCountry.code)} ${userCountry?.currencySymbol} ${prettifyNumber(Number(totalVolume) * sellRate)}` : ``;
+        const totalEarningsFiat = (userCountry?.code) ? `≈ ${getCountryFlagEmoji(userCountry.code)} ${userCountry?.currencySymbol} ${prettifyNumber(Number(totalEarnings) * sellRate)}` : ``;
+        const redeemableBalanceFiat = (userCountry?.code) ? `≈ ${getCountryFlagEmoji(userCountry.code)} ${userCountry?.currencySymbol} ${prettifyNumber(Number(currentAccountBalance) * sellRate)}` : ``;
+
+        const message = `*We're pleased to share your current performance*: \n\nTotal Transaction Volume: $${prettifyNumber(totalVolume, 6)} ${totalVolumeFiat}  \n\nTotal Earnings:  $${prettifyNumber(totalEarnings, 6)} ${totalEarningsFiat} \n\nRedeemable balance:  $${prettifyNumber(Number(currentAccountBalance),6)} ${redeemableBalanceFiat}\n\n`;
 
         await WhatsAppBotService.sendWhatsappMessage(
             phoneParams.businessPhoneNumberId,

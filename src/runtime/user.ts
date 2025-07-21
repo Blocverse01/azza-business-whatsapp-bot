@@ -53,6 +53,12 @@ const userServiceV2 = UserServiceV2.init({
                         ...wallet,
                     }))
                 ),
+            getWalletConfigByWalletAddress: (walletAddress: string) =>
+                dbClient.user_blockradar_wallet.select(['*', 'user.*'])
+                .filter({
+                    address: walletAddress,
+                })
+                .getFirst()
         },
     },
     cacheStore: redis,
