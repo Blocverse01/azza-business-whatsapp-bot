@@ -136,7 +136,7 @@ const handleBlockradarTokenSwapJob_with_MasterWallet = async (
     const withdrawalTx = await azzaWalletManager.withdrawAsset({
         amount: decimalToString(clipDecimal(swapDetails.fromAmount, 6)),
         assetId: swapDetails.fromTokenId,
-        userId: swapDetails.userId,
+        userId: normalizedUserId,
         reference: swapTxReference,
         recipient: masterWalletAddress,
         metadata: {
@@ -163,7 +163,6 @@ const handleBlockradarTokenSwapJob_with_MasterWallet = async (
 
         await WhatsAppBotService.sendWhatsappMessage(
             whatsappParams.businessPhoneNumberId,
-
             MessageGenerators.generateTextMessage(
                 whatsappParams.userPhoneNumber,
                 `📬 Your swap transaction has been initiated successfully, please wait...`
