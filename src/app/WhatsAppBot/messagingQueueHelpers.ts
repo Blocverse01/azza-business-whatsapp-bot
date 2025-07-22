@@ -247,10 +247,7 @@ const handleIncomingWhatsappMessageV2 = async (
 
             const interactiveButtonId = button_reply.id;
 
-            const interactiveActionResponse =
-                WhatsAppBotService.determineInteractiveButtonReplyAction(interactiveButtonId);
-
-                if(interactiveButtonId.startsWith(MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX)) {
+            if(interactiveButtonId.startsWith(MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX)) {
                     const sequenceId = interactiveButtonId.replace(
                         MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX
                     , '');
@@ -258,6 +255,9 @@ const handleIncomingWhatsappMessageV2 = async (
 
                     return 'MARKED_ONRAMP_AS_COMPLETE';
                 }
+
+            const interactiveActionResponse =
+                WhatsAppBotService.determineInteractiveButtonReplyAction(interactiveButtonId);
 
             switch (interactiveActionResponse) {
                 case 'create-wallet': {
