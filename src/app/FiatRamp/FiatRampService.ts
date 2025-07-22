@@ -159,7 +159,7 @@ class FiatRampService {
         transactionPayload: OnrampTransactionPayload
     ): Promise<SendOnrampTransactionResponse> {
         if (
-            transactionPayload.country === 'NGN' &&
+            transactionPayload.country === 'NG' &&
             (await shouldUseManualOnramp(transactionPayload.customerId))
         ) {
             return await initiateManualOnramp(transactionPayload);
