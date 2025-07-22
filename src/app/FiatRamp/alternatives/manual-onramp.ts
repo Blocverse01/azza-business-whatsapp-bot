@@ -130,6 +130,10 @@ export const markManualOnrampAsComplete = async (sequenceId: string, markedBy: s
     const transaction = await Effect.runPromise(getPatchedOnrampTxBySequenceId(sequenceId));
 
     if (transaction.status === 'complete') {
+        await WhatsAppBotService.sendArbitraryTextMessage(
+            markedBy,
+            `Transaction already completed`
+        );
         return;
     }
 
@@ -140,6 +144,7 @@ export const markManualOnrampAsComplete = async (sequenceId: string, markedBy: s
         .getFirstOrThrow();
     await recordToUpdate.update({
         yellowCardStatus: 'complete',
+        completedBy: markedBy,
     });
 
     const user = await userServiceV2.getUserById(transaction.ownerId);
