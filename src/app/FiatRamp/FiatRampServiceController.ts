@@ -236,7 +236,7 @@ class FiatRampServiceController {
                         transactionType: 'onramp-payout',
                     });
 
-                    if (supportedChain && isCashBackEnabledChain(supportedChain)) {
+                    if (isCashBackEnabledChain(supportedChain)) {
                         await addCashbackJobToQueue({
                             transactionId: sequenceId,
                             transactionType: 'onramp',

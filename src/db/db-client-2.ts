@@ -654,6 +654,14 @@ const tables = [
         comment: '{"xata.link":"yellowcard_supported_country"}',
       },
       {
+        name: "completedBy",
+        type: "text",
+        notNull: false,
+        unique: false,
+        defaultValue: null,
+        comment: "",
+      },
+      {
         name: "conversionRate",
         type: "float",
         notNull: true,
@@ -667,6 +675,14 @@ const tables = [
         notNull: true,
         unique: false,
         defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "isAgentTransaction",
+        type: "bool",
+        notNull: true,
+        unique: false,
+        defaultValue: "false",
         comment: "",
       },
       {
@@ -699,6 +715,14 @@ const tables = [
         notNull: true,
         unique: false,
         defaultValue: null,
+        comment: "",
+      },
+      {
+        name: "processorName",
+        type: "text",
+        notNull: true,
+        unique: false,
+        defaultValue: "''::text",
         comment: "",
       },
       {

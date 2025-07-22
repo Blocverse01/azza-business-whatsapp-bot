@@ -55,6 +55,7 @@ import KycResolutionFlow from '@/app/WhatsAppBot/WhatsAppFlows/KycResolutionFlow
 import { TRADE_NOW_QUICK_REPLY_PAYLOAD as SOLANA_TRADE_NOW_QUICK_REPLY_PAYLOAD } from './templates/composers/solana-cashback-reminder';
 import { handleSellCryptoForFiatPrompt } from './text/actionHandlers';
 import { BUY_NOW_QUICK_REPLY_PAYLOAD, SELL_NOW_QUICK_REPLY_PAYLOAD } from './templates';
+import { MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX, markManualOnrampAsComplete } from '../FiatRamp/alternatives/manual-onramp';
 
 export const receiveIncomingWhatsappMessageV2 = async (
     message: IncomingWhatsappMessage,
@@ -248,6 +249,15 @@ const handleIncomingWhatsappMessageV2 = async (
 
             const interactiveActionResponse =
                 WhatsAppBotService.determineInteractiveButtonReplyAction(interactiveButtonId);
+
+                if(interactiveButtonId.startsWith(MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX)) {
+                    const sequenceId = interactiveButtonId.replace(
+                        MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX
+                    , '');
+                    await markManualOnrampAsComplete(sequenceId, phoneParams.userPhoneNumber);
+
+                    return 'MARKED_ONRAMP_AS_COMPLETE';
+                }
 
             switch (interactiveActionResponse) {
                 case 'create-wallet': {

@@ -60,6 +60,7 @@ import { dbClient } from '@/db/dbClient';
 import { CompositeRateService } from '../rates/RateService';
 import { isNonEmptyString } from '@/resources/utils/transformers';
 import { normalizeTxHash } from './utils';
+import { initiateManualOnramp, shouldUseManualOnramp } from './alternatives/manual-onramp';
 
 class FiatRampService {
     public static readonly SERVICE_ENABLED = true;
@@ -157,6 +158,13 @@ class FiatRampService {
     public static async postOnRampTransaction(
         transactionPayload: OnrampTransactionPayload
     ): Promise<SendOnrampTransactionResponse> {
+        if (
+            transactionPayload.country === 'NGN' &&
+            (await shouldUseManualOnramp(transactionPayload.customerId))
+        ) {
+            return await initiateManualOnramp(transactionPayload);
+        }
+
         return await FiatRampsRpcService.createPlatformOnrampRequest(transactionPayload);
     }
 
@@ -173,7 +181,7 @@ class FiatRampService {
                             safeHavenBank.bankCode === bank.seerbitId ||
                             (env.WEB3_ENVIRONMENT === 'testnet' &&
                                 safeHavenBank.slug ===
-                                slugify(bank.name, { lower: true, replacement: '-' }))
+                                    slugify(bank.name, { lower: true, replacement: '-' }))
                         );
                     });
 
@@ -882,11 +890,11 @@ class FiatRampService {
         const accountNameEnquiry = isNonEmptyString(nameEnquiryReference)
             ? { seerbitId: '', nameEnquiryReference: '' }
             : await this.getAccountNameEntryId({
-                networkId,
-                countryCode: country as CountryCode,
-                channelId: channelId!,
-                accountNumber,
-            });
+                  networkId,
+                  countryCode: country as CountryCode,
+                  channelId: channelId!,
+                  accountNumber,
+              });
 
         const finalNameEnquiryReference = isNonEmptyString(nameEnquiryReference)
             ? nameEnquiryReference
@@ -895,8 +903,7 @@ class FiatRampService {
         const finalSeerbitId = isNonEmptyString(seerbitId)
             ? seerbitId
             : accountNameEnquiry.seerbitId;
-        
-        
+
         await NigeriaBanksService.sendProcessingSettlementMessage({
             tokenAmountDebited: offrampRequest.tokenAmountToDebit,
             ownerId: safeHavenSettlementRecord.ownerId,
@@ -905,7 +912,6 @@ class FiatRampService {
             localCurrencySymbol: safeHavenSettlementRecord.localCurrencySymbol!,
             localAmount: safeHavenSettlementRecord.localAmount,
         });
-
 
         const transaction = await SafeHavenService.processOffRampPaymentWithSaveHaven({
             nameEnquiryReference: finalNameEnquiryReference,
