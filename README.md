@@ -1,4 +1,4 @@
-# Azza
+# Azza Business
 > Turning Chats to Cashouts!
 > Azza is your stablecoin bank on WhatsApp—seamlessly buy, save, earn, send, and cash out USD-pegged stablecoins across multiple 
   blockchains, all through a simple chat. 
