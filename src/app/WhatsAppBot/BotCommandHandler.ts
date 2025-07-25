@@ -104,11 +104,8 @@ class BotCommandHandler {
             case 'GENERATE_STATEMENT':
                 await BotCommandHandler.handleAccountStatement(user, phoneParams);
                 break;
-            case 'BUY_NGN_AIRTIME':
-                await BotCommandHandler.handleBuyNgnAirtime(user, phoneParams);
-                break;
-            case 'BUY_NGN_DATA_BUNDLE':
-                await BotCommandHandler.handleBuyNgnDataBundle(user, phoneParams);
+            case 'RECEIVE_PAYMENT':
+                await BotCommandHandler.receiveCryptoPayment(user, phoneParams)
                 break;
             case 'AGENT_SELL_ASSET':
                 await BotCommandHandler.sellAsset(user, phoneParams, botCommand.params, true);
@@ -174,7 +171,7 @@ class BotCommandHandler {
         user: UserV2Record,
         phoneParams: PhoneNumberParams,
         params: TradeAssetBotCommandMatchGroups,
-        isAgent? : boolean
+        isAgent?: boolean
     ) {
         const [searchAssetForward, searchAssetBackward] = [
             azzaWalletManager.searchAssets({
@@ -306,6 +303,66 @@ class BotCommandHandler {
             phoneParams
         )
 
+    }
+
+    private static async receiveCryptoPayment(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams
+    ) {
+
+        // const [searchAssetForward, searchAssetBackward] = [
+        //     azzaWalletManager.searchAssets({
+        //         network: params.network as AllSupportedBlockchains,
+        //         tokenName: params.asset,
+        //     })[0],
+        //     azzaWalletManager.searchAssets({
+        //         network: params.asset as AllSupportedBlockchains,
+        //         tokenName: params.network,
+        //     })[0],
+        // ];
+
+        // if (!searchAssetForward && !searchAssetBackward) {
+        //     const responseMessage = !searchAssetForward
+        //         ? `${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
+        //             {
+        //                 action: ExploreAssetActions.BUY_ASSET,
+        //             }
+        //         )}`
+        //         : `${params.network} on ${params.asset} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
+        //             {
+        //                 action: ExploreAssetActions.BUY_ASSET,
+        //             }
+        //         )}`;
+
+        //     await WhatsAppBotService.sendWhatsappMessage(
+        //         phoneParams.businessPhoneNumberId,
+        //         MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+        //     );
+
+        //     return;
+        // }
+
+        // const supportedAsset = searchAssetForward ?? searchAssetBackward;
+
+        // if (!supportedAsset.supportedAssetActions.includes(ExploreAssetActions.BUY_ASSET)) {
+        //     const responseMessage = `Selling ${params.asset} on ${params.network} is not supported yet.\n\nSupported assets and chains:\n${getSupportedAssetAndNetworksText(
+        //         {
+        //             action: ExploreAssetActions.SELL_ASSET,
+        //         }
+        //     )}`;
+
+        //     await WhatsAppBotService.sendWhatsappMessage(
+        //         phoneParams.businessPhoneNumberId,
+        //         MessageGenerators.generateTextMessage(phoneParams.userPhoneNumber, responseMessage)
+        //     );
+
+        //     return;
+        // }
+
+        return await WhatsAppBotService.handleReceiveCryptoPaymentAction(
+            user,
+            phoneParams
+        );
     }
 
     private static async getAssetsMenu(
@@ -664,6 +721,7 @@ class BotCommandHandler {
     }
 
     public static isCommand(command: string) {
+
         const commandRegex = Object.values(BOT_COMMANDS_REGEX).find((regex) => regex.test(command));
 
         if (!commandRegex) {

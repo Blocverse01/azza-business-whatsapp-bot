@@ -40,6 +40,7 @@ import {
     SELL_ASSET_DESTINATION_CHOICE_REGEX,
     SELL_ASSET_TO_BENEFICIARY_REGEX_PATTERN,
     TRADE_ASSET_REGEX,
+    TRADE_BUSINESS_ASSET_REGEX,
 } from '@/constants/regex';
 import { INTERNAL_SERVER_ERROR, OK } from '@/constants/status-codes';
 import {
@@ -782,6 +783,44 @@ class WhatsAppBotService {
 
     }
 
+
+    public static async beginReceiveCryptoPaymentFlowMessage(
+        params: PhoneNumberParams & {
+            assetId: string;
+            userId: string;
+            countryCode: CountryCode;
+            messageBody?: string;
+            currency: string;
+        }
+    ) {
+
+        const { assetId, userId, countryCode, currency, userPhoneNumber, businessPhoneNumberId, messageBody } =
+            params;
+
+        const asset = getAssetConfigOrThrow(assetId);
+
+        const { paymentChannels } = await FiatRampService.getPaymentMethods(countryCode, 'offramp');
+
+        const accountTypes = paymentChannels.map((channel) => ({
+            id: channel.channelId,
+            title: FiatRampService.formatPaymentMethodName(channel.channelName, 'offramp'),
+        }));
+
+        const flowMessage =
+            WhatsAppBotAgentOffRampFlowService.generateAgentOfframpFlowInitMessage({
+                asset,
+                userId,
+                countryCode,
+                currency,
+                recipient: userPhoneNumber,
+                accountTypes,
+                bodyText: messageBody,
+            });
+
+        await this.sendWhatsappMessage(businessPhoneNumberId, flowMessage);
+
+    }
+
     public static async ratesCommandHandler(
         userPhoneNumber: string,
         businessPhoneNumberId: string
@@ -958,6 +997,10 @@ class WhatsAppBotService {
             return 'trade-asset-with-currency';
         }
 
+        if (interactiveListReplyId.match(TRADE_BUSINESS_ASSET_REGEX)) {
+            return 'trade-business-asset-with-currency';
+        }
+
         if (interactiveListReplyId.match(ASSET_ACTION_REGEX_PATTERN)) {
             return 'explore-asset-action';
         }
@@ -1071,6 +1114,95 @@ class WhatsAppBotService {
         });
 
         await WhatsAppBotService.sendWhatsappMessage(businessPhoneNumberId, message);
+    }
+
+    public static async sendSelectSupportedCurrenciesBusinessMessage(
+        phoneParams: PhoneNumberParams,
+        assetActionId: Extract<ExploreAssetActions, 'receive_payment' | 'buy' | 'sell'>,
+        _sliceFrom = 0,
+        _sliceTo = 9
+    ) {
+
+        const { userPhoneNumber, businessPhoneNumberId } = phoneParams;
+
+        const userCountryCode = getUserCountryCodeFromPhoneNumberOrThrow(userPhoneNumber);
+        const supportedCurrencies = await FiatRampService.getSupportedCurrencies();
+
+        const userCountry = supportedCurrencies.find(
+            (country) => country.code.toLowerCase() === userCountryCode.toLowerCase()
+        );
+        const userCountryIndex = userCountry ? supportedCurrencies.indexOf(userCountry) : undefined;
+
+        const userCountryIsSupported = userCountryIndex !== undefined && userCountryIndex >= 0;
+
+        // If the user's country is supported, move it to the beginning of the array
+        if (userCountryIsSupported && userCountry) {
+            supportedCurrencies.splice(userCountryIndex, 1);
+            supportedCurrencies.unshift(userCountry);
+        }
+
+        // determine sliceFrom considering _sliceFrom and the available indexes of the array
+        const sliceFrom = Math.min(_sliceFrom, supportedCurrencies.length - 1);
+        // determine sliceTo considering _sliceTo and the available indexes of the array
+        const sliceTo = Math.min(_sliceTo, supportedCurrencies.length);
+
+        // determine if there should be a nextSliceFrom
+        const nextSliceFrom = sliceTo < supportedCurrencies.length ? sliceTo : null;
+        // determine if there should be a nextSliceTo
+        const nextSliceTo = nextSliceFrom ? nextSliceFrom + 9 : null;
+
+        const moreListItem =
+            nextSliceFrom && nextSliceTo
+                ? {
+                    id: `moreCurrencies|action:${assetActionId}|nextSliceFrom:${nextSliceFrom}|nextSliceTo:${nextSliceTo}`,
+                    title: 'More',
+                }
+                : null;
+
+        const countriesToDisplay = supportedCurrencies.slice(sliceFrom, sliceTo);
+
+        const page = Math.floor(sliceFrom / 9) + 1;
+
+        const shouldShowCurrentPageNumber = supportedCurrencies.length > 9;
+
+        const bodyText = 'Click the button below to select your payout currency';
+
+        const interactiveMessage: WhatsAppInteractiveMessage = {
+            type: 'interactive',
+            interactive: {
+                type: 'list',
+                body: {
+                    text: bodyText,
+                },
+                header: {
+                    type: 'text',
+                    text: `Select Your Local Currency${shouldShowCurrentPageNumber ? ` - Page ${page}` : ''}`,
+                },
+                action: {
+                    button: 'Select Currency 💳',
+                    sections: [
+                        {
+                            rows: [
+                                ...countriesToDisplay.map((country) => {
+                                    return {
+                                        id: `action:${assetActionId}|currency:${country.currencySymbol}|countryCode:${country.code}`,
+                                        title: `${getCountryFlagEmoji(country.code)} ${country.name}`,
+                                        description: `Currency: ${country.currencySymbol}`,
+                                    };
+                                }),
+                                // Add moreListItem only if it's not null
+                                ...(moreListItem ? [moreListItem] : []),
+                            ],
+                        },
+                    ],
+                },
+            },
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: userPhoneNumber,
+        };
+
+        await this.sendWhatsappMessage(businessPhoneNumberId, interactiveMessage);
     }
 
     public static async sendSelectSupportedCurrenciesMessage(
@@ -1279,6 +1411,46 @@ class WhatsAppBotService {
             ExploreAssetActions.SELL_ASSET,
             assetId,
             !!isAgent
+        );
+    }
+
+    public static async handleReceiveCryptoPaymentAction(
+        user: UserV2Record,
+        phoneParams: PhoneNumberParams,
+    ) {
+        const userFeatureAccessLevel = deriveUserFeatureAccessLevel(user.FEATURE_ACCESS_LEVEL);
+
+        if (
+            !FiatRampService.SERVICE_ENABLED ||
+            !canAccessFeature(userFeatureAccessLevel, FeatureAccessLevel.PRODUCTION)
+        ) {
+            return await this.sendArbitraryTextMessage(
+                phoneParams.userPhoneNumber,
+                "Sorry, we are currently maintaining our offramp services. We'd let you know once this service is back up."
+            );
+        }
+
+        if (SumSubService.SERVICE_IS_ACTIVE && this.SHOULD_REQUEST_KYC_FOR_OFFRAMP) {
+            const userKycStatus = userServiceV2.formatKycStatus(user.kycStatus);
+
+            if (
+                userKycStatus === 'unverified' ||
+                userKycStatus === 'rejected' ||
+                userKycStatus === 'pending'
+            ) {
+                await this.sendKycVerificationUrlMessage(user, phoneParams);
+                return;
+            }
+
+            if (userKycStatus === 'in_review') {
+                await WhatsAppBotService.sendKycInReviewMessage(phoneParams);
+                return;
+            }
+        }
+
+        await this.sendSelectSupportedCurrenciesBusinessMessage(
+            phoneParams,
+            ExploreAssetActions.RECEIVE_PAYMENT
         );
     }
 

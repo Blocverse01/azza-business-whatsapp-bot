@@ -55,11 +55,21 @@ export function getTransactionPinSetMessageText() {
 }
 
 const majorActionLines = [
-    '✅ Buy crypto – Say "I want to buy crypto" or type /buy',
-    '✅ Sell crypto – Say "I want to sell crypto" or type /sell',
-    '✅ Deposit crypto – Say "I want to deposit crypto" or type /deposit',
-    '✅ Withdraw crypto – Say "I want to withdraw crypto" or type /withdraw',
-    '✅ Swap crypto – Say "I want to swap crypto" or type /swap',
+    // '✅ Buy crypto – Say "I want to buy crypto" or type /buy',
+    // '✅ Sell crypto – Say "I want to sell crypto" or type /sell',
+    // '✅ Deposit crypto – Say "I want to deposit crypto" or type /deposit',
+    // '✅ Withdraw crypto – Say "I want to withdraw crypto" or type /withdraw',
+    // '✅ Swap crypto – Say "I want to swap crypto" or type /swap',
+
+    `✅ Receive Payment – Say "I want to receive payment" or type /receive_payment`,
+
+    `✅ Withdraw crypto – Say "I want to withdraw crypto" or type /withdraw`,
+
+    `✅ Add Bank Account – Say "Add bank account" or type /add_bank`,
+
+    `✅ View Account Statement – Say "Show my statement" or type /account_statement`,
+
+    `✅ Get Help or Support – Say "I need help" or type /support`,
 ];
 
 export function getPossibleBotActionsMessageText() {
@@ -68,10 +78,10 @@ export function getPossibleBotActionsMessageText() {
 
 export function getWelcomeBackMessageText() {
     return [
-        `Hi there! How can I assist you with your wallet today? 😊\n`,
+        `Hi there! How can I assist you with your wallet today? 😊`,
         `*Here are the things I can help you with:*`,
         ...majorActionLines,
-    ].join('\n');
+    ].join('\n\n');
 }
 
 export function getHelpMessageText() {

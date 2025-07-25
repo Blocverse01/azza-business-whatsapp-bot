@@ -83,13 +83,14 @@ app.use('/api', apiRoutes, async () => {
 app.all('*', (_, res) => res.status(NOT_FOUND).send({ message: 'route not found' }));
 
 app.listen(env.PORT, async () => {
+    console.log('azza business')
     console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 
-if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
-    CronHandler.scheduleSafeHavenTransactionUpdate(TX_UPDATE_CRON_EXPRESSION);
-}
+// if (env.EXECUTE_SAFEHAVEN_TX_STATUS_UPDATE) {
+//     CronHandler.scheduleSafeHavenTransactionUpdate(TX_UPDATE_CRON_EXPRESSION);
+// }
 
-if (env.EXECUTE_NGN_VAS_TX_STATUS_UPDATE) {
-    CronHandler.scheduleSafeHavenVasPaymentUpdate(TX_UPDATE_CRON_EXPRESSION);
-}
+// if (env.EXECUTE_NGN_VAS_TX_STATUS_UPDATE) {
+//     CronHandler.scheduleSafeHavenVasPaymentUpdate(TX_UPDATE_CRON_EXPRESSION);
+// }

@@ -305,6 +305,14 @@ export const textPromptHandler = async (
                     user,
                 });
                 break;
+            case 'RECEIVE_PAYMENT':
+            case 'RECEIVE_CRYPTO_PAYMENT':
+                responseMessage = await handleDataBundlePurchasePrompt({
+                    extractedArguments,
+                    botParams,
+                    user,
+                });
+                break;
             default:
                 console.error('Unrecognized action class:', classifiedAction.class);
                 throw new Error('Action not supported');

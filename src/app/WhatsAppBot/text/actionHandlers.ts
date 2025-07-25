@@ -1022,6 +1022,29 @@ export const handleSellCryptoForFiatPrompt = async (
     };
 };
 
+/////////////////////////////////////////////////////////
+//     Receive Crypto Payment Related Prompt Handler
+/////////////////////////////////////////////////////////
+export const handleReceiveCryptoPaymentPrompt = async (
+    params: ActionHandlerParams
+): Promise<PromptHandlerResponse> => {
+
+    const { botParams, user } = params;
+
+    await WhatsAppBotService.handleReceiveCryptoPaymentAction(
+        user,
+        {
+            userPhoneNumber: botParams.userPhoneNumber,
+            businessPhoneNumberId: botParams.businessPhoneNumberId,
+        }
+    );
+
+    return {
+        response: 'Handled receive payment action',
+        resetSession: true,
+    };
+
+};
 
 /////////////////////////////////////////////////////////
 //      Agent Sell Crypto For Fiat Related Prompt Handler

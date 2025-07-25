@@ -37,7 +37,9 @@ const actions = [
     'AGENT_BUY_CRYPTO_WITH_FIAT',
     'AGENT_GET_CRYPTO_WITH_FIAT',
     'AGENT_BALANCE',
-    'AGENT_EARNINGS'
+    'AGENT_EARNINGS',
+    'RECEIVE_PAYMENT',
+    'RECEIVE_CRYPTO_PAYMENT'
 ] as const;
 const actionClassSchema = z.enum(actions);
 
@@ -85,6 +87,8 @@ const actionDescriptions: Record<ActionClass, string> = {
         'A P2P merchant helps a user exchange fiat for crypto currency. Overlaps with P2P merchant buy crypto with fiat.',
     AGENT_EARNINGS: 'P2P merchant views total commissions and rewards.',
     AGENT_BALANCE: 'P2P merchant checks current operational balance.',
+    RECEIVE_PAYMENT: 'Accept payments from customers in cryptocurrency.',
+    RECEIVE_CRYPTO_PAYMENT: 'Generate a crypto address or QR code to easily to receive payments'
 };
 const actionSchema = z.object({
     class: actionClassSchema.or(z.literal('NO_PREDEFINED_ACTION')),

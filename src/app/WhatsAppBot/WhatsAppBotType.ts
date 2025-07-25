@@ -164,6 +164,7 @@ export enum ExploreAssetActions {
     WITHDRAW_ASSET = 'withdraw',
     SELL_ASSET = 'sell',
     PAY = 'pay',
+    RECEIVE_PAYMENT = 'receive_payment'
 }
 
 export const assetInteractiveButtonsIds = Object.values(AssetInteractiveButtonIds);
@@ -228,6 +229,7 @@ export type InteractiveButtonReplyTypes =
 export type InteractiveListReplyTypes =
     | 'explore-asset-action'
     | 'trade-asset-with-currency'
+    | 'trade-business-asset-with-currency'
     | 'explore-asset'
     | 'trigger-offramp-flow'
     | 'return-more-currencies'
@@ -319,7 +321,7 @@ export enum ActionExecuted {
     REFERRAL_STATS = 'REFERRAL_STATS',
     SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE = 'SEND_NOT_AUTHORIZED_AS_AGENT_MESSAGE',
     PROCESS_KYC_RESOLUTION = 'PROCESS_KYC_RESOLUTION',
-    ADMIN_RESOLVE_KYC = 'ADMIN_RESOLVE_KYC',
+    ADMIN_RESOLVE_KYC = 'ADMIN_RESOLVE_KYC'
 }
 
 export type IncomingWhatsappMessage = {

@@ -32,6 +32,7 @@ import {
 } from '@/background-processing/types';
 import {
     extractAgentSellAssetToBeneficiary,
+    extractBusinessTradeAssetGroups,
     extractGroups,
     extractSellAssetDestinationChoiceGroups,
     extractSellAssetToBeneficiaryGroups,
@@ -50,10 +51,8 @@ import { VERIFY_ME_QUICK_REPLY_PAYLOAD } from './templates/composers/base-cashba
 import { handleUserKycRequest } from '../kyc/utils';
 import { extractReferralCodeFromMessage } from '../referral-scheme/utils';
 import ReferralSchemeService from '../referral-scheme/service';
-import P2pAgentService from '../User/P2pAgent/P2pAgentService';
 import KycResolutionFlow from '@/app/WhatsAppBot/WhatsAppFlows/KycResolutionFlow';
 import { TRADE_NOW_QUICK_REPLY_PAYLOAD as SOLANA_TRADE_NOW_QUICK_REPLY_PAYLOAD } from './templates/composers/solana-cashback-reminder';
-import { handleSellCryptoForFiatPrompt } from './text/actionHandlers';
 import { BUY_NOW_QUICK_REPLY_PAYLOAD, SELL_NOW_QUICK_REPLY_PAYLOAD } from './templates';
 import { MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX, markManualOnrampAsComplete } from '../FiatRamp/alternatives/manual-onramp';
 
@@ -247,14 +246,14 @@ const handleIncomingWhatsappMessageV2 = async (
 
             const interactiveButtonId = button_reply.id;
 
-            if(interactiveButtonId.startsWith(MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX)) {
-                    const sequenceId = interactiveButtonId.replace(
-                        MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX
+            if (interactiveButtonId.startsWith(MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX)) {
+                const sequenceId = interactiveButtonId.replace(
+                    MANUAL_ONRAMP_COMPLETE_BUTTON_PREFIX
                     , '');
-                    await markManualOnrampAsComplete(sequenceId, phoneParams.userPhoneNumber);
+                await markManualOnrampAsComplete(sequenceId, phoneParams.userPhoneNumber);
 
-                    return 'MARKED_ONRAMP_AS_COMPLETE';
-                }
+                return 'MARKED_ONRAMP_AS_COMPLETE';
+            }
 
             const interactiveActionResponse =
                 WhatsAppBotService.determineInteractiveButtonReplyAction(interactiveButtonId);
@@ -444,6 +443,8 @@ const handleIncomingWhatsappMessageV2 = async (
             const interactiveActionResponse =
                 WhatsAppBotService.determineInteractiveListReplyAction(interactiveListId);
 
+            console.log('interactiveListId', interactiveListId, 'interactiveActionResponse', interactiveActionResponse);
+
             switch (interactiveActionResponse) {
                 case 'trigger-offramp-flow':
                     const { sell, beneficiaryId } =
@@ -463,18 +464,15 @@ const handleIncomingWhatsappMessageV2 = async (
                         purchaseAssetId,
                         nextSliceFrom,
                         nextSliceTo,
-                        isAgent,
                     ] = interactiveListId.match(
                         MORE_CURRENCIES_COMMAND_REGEX_PATTERN
                     ) as MoreCurrenciesCommandMatch;
-
-                    const isAgentBoolean = isAgent === 'true';
 
                     await WhatsAppBotService.sendSelectSupportedCurrenciesMessage(
                         phoneParams,
                         assetActionId,
                         purchaseAssetId,
-                        isAgentBoolean,
+                        false,
                         parseInt(nextSliceFrom),
                         parseInt(nextSliceTo)
                     );
@@ -511,6 +509,27 @@ const handleIncomingWhatsappMessageV2 = async (
                     });
                     await WhatsAppBotService.walletDetailsMessage(phoneParams, userAssetBalance);
                     return ActionExecuted.SEND_MANAGE_ASSET_MESSAGE;
+
+                case 'trade-business-asset-with-currency':
+                    const {
+                        action: _tradeAction,
+                        currency: _currency,
+                        countryCode: _countryCode
+                    } = extractBusinessTradeAssetGroups(interactiveListId);
+
+                    if (_tradeAction === ExploreAssetActions.RECEIVE_PAYMENT) {
+                        await WhatsAppBotService.beginAgentOfframpFlowMessage({
+                            businessPhoneNumberId,
+                            userPhoneNumber: from,
+                            userId: userV2.id,
+                        });
+
+                        return ActionExecuted.SEND_TRADE_ASSET_WITH_CURRENCY_MESSAGE;
+                    }
+
+                    throw new HttpException(BAD_REQUEST, 'Invalid trade action', {
+                        _tradeAction,
+                    });
 
                 case 'trade-asset-with-currency':
                     const {

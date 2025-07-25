@@ -163,7 +163,7 @@ class FiatRampsRpcService {
             if (!beneficiariesByAccountNumber.has(key)) beneficiariesByAccountNumber.set(key, []);
             beneficiariesByAccountNumber.get(key)!.push(beneficiary);
         }
-        const preferredBanks = ['palm', 'opay'];
+        const preferredBanks = ['palm', 'opay','moniepoint'];
         const result: BankBeneficiary[] = [];
         for (const dupes of beneficiariesByAccountNumber.values()) {
             if (dupes.length === 1) {
