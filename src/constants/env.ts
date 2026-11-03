@@ -28,6 +28,8 @@ const envSchema = z.object({
         'WALLET_KIT_MAINNET_DEVELOPER_SECRET'
     ),
     WEB3_ENVIRONMENT: z.enum(['testnet', 'mainnet']).default('testnet'),
+    // Blockradar address ID of the mainnet EVM offramp hot wallet (rotation). Unset = current hard-coded wallet.
+    OFFRAMP_HOT_WALLET_EVM_ID: z.string().trim().optional(),
     SUM_SUB_APP_TOKEN: notEmptyStringSchema('SUM_SUB_APP_TOKEN'),
     SUM_SUB_APP_TOKEN_SECRET: notEmptyStringSchema('SUM_SUB_APP_TOKEN_SECRET'),
     SUM_SUB_WEBHOOK_PRIVATE_KEY: notEmptyStringSchema('SUM_SUB_WEBHOOK_PRIVATE_KEY'),

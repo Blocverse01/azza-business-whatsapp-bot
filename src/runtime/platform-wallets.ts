@@ -25,7 +25,8 @@ const mainnet__PlatformAddressIdRecords: Record<PlatformAddressIdKey, string> = 
     'onramp-payout-evm': 'a051242b-9083-4bcc-825f-497c26884301',
     'onramp-payout-solana': '6d8f8148-d359-4fee-91f6-4428882fdb11',
     'onramp-payout-tron': 'dd040689-ff46-4b53-aa54-a637b081fa99',
-    'offramp-hot-wallet-evm': '959eea66-6849-4971-901f-8f9903f2bd3f',
+    // Overridable for the EVM hot wallet rotation; falls back to the current wallet when unset.
+    'offramp-hot-wallet-evm': env.OFFRAMP_HOT_WALLET_EVM_ID || '959eea66-6849-4971-901f-8f9903f2bd3f',
     'offramp-hot-wallet-solana': '47750a08-2641-43de-bca3-02533b58b653',
     'offramp-hot-wallet-tron': 'a4c1445d-31d8-4a1a-a539-108f6b1f9bfb',
     'cashback-payout-evm': '0a4bfcc7-083a-433f-bf72-e8e915abbbdb',
