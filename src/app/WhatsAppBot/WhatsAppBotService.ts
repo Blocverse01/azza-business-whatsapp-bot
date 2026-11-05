@@ -314,7 +314,7 @@ class WhatsAppBotService {
             displayName: string;
         }
     ) {
-        const message = WhatsAppBotSetupTransactionPinFlowService.withPhoneNumberId(
+        const message = await WhatsAppBotSetupTransactionPinFlowService.withPhoneNumberId(
             phoneParams.businessPhoneNumberId as PhoneNumberId
         ).createSetupTransactionPinFlowMessage(user, {
             messageBody: existingUser
@@ -593,7 +593,7 @@ class WhatsAppBotService {
         const { businessPhoneNumberId, userPhoneNumber } = phoneParams;
 
         const flowMessage =
-            WhatsappBotAccountStatementFlowService.generateAccountStatementFlowInitMessage(user, {
+            await WhatsappBotAccountStatementFlowService.generateAccountStatementFlowInitMessage(user, {
                 userPhoneNumber,
             });
 
@@ -626,7 +626,7 @@ class WhatsAppBotService {
             return;
         }
 
-        const flowMessage = WhatsappBotNgnAirtimeFlowService.generateAirtimeFlowInitMessage(user, {
+        const flowMessage = await WhatsappBotNgnAirtimeFlowService.generateAirtimeFlowInitMessage(user, {
             userPhoneNumber,
             mobileNetworks,
         });
@@ -660,7 +660,7 @@ class WhatsAppBotService {
             return;
         }
 
-        const flowMessage = WhatsappBotNgnDataBundleFlowService.generateDataBundleFlowInitMessage(
+        const flowMessage = await WhatsappBotNgnDataBundleFlowService.generateDataBundleFlowInitMessage(
             user,
             {
                 userPhoneNumber,
@@ -692,7 +692,7 @@ class WhatsAppBotService {
         }));
 
         const flowMessage =
-            WhatsAppBotAddBeneficiaryFlowService.generateAddBeneficiaryFlowInitMessage({
+            await WhatsAppBotAddBeneficiaryFlowService.generateAddBeneficiaryFlowInitMessage({
                 asset,
                 countryCode,
                 recipient: userPhoneNumber,
@@ -728,7 +728,7 @@ class WhatsAppBotService {
             'offramp'
         );
 
-        const flowMessage = WhatsAppBotOffRampFlowService.generateOffRampFlowInitMessage(user, {
+        const flowMessage = await WhatsAppBotOffRampFlowService.generateOffRampFlowInitMessage(user, {
             assetBalance: assetBalance,
             beneficiary,
             recipient: userPhoneNumber,
@@ -768,7 +768,7 @@ class WhatsAppBotService {
         }));
 
         const flowMessage =
-            WhatsAppBotAgentOffRampFlowService.generateAgentOfframpFlowInitMessage({
+            await WhatsAppBotAgentOffRampFlowService.generateAgentOfframpFlowInitMessage({
                 asset,
                 userId,
                 countryCode,
@@ -1309,7 +1309,7 @@ class WhatsAppBotService {
             userId: user.id,
         });
 
-        const message = WhatsAppBotTransferToWalletFlowService.generateTransferToWalletInitMessage(
+        const message = await WhatsAppBotTransferToWalletFlowService.generateTransferToWalletInitMessage(
             user,
             {
                 recipient: userPhoneNumber,
@@ -1353,7 +1353,7 @@ class WhatsAppBotService {
             return;
         }
 
-        const flowMessage = WhatsAppBotOnRampFlowService.generateOnRampFlowInitMessage(
+        const flowMessage = await WhatsAppBotOnRampFlowService.generateOnRampFlowInitMessage(
             user,
             isAgent,
             {

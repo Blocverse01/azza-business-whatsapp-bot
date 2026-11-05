@@ -15,9 +15,12 @@ import { UserV2Record } from '@/db/xata';
 import {
     convertAsciiStringToBase64,
     convertBase64ToAsciiString,
-    generateRandomHexString,
 } from '@/resources/utils/encryption';
-import { SIXTEEN } from '@/constants/numbers';
+import {
+    FLOW_STEPS,
+    bindFlowRequest,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 
 enum BvnKycVerificationFlowScreens {
     SUBMIT_KYC = 'SUBMIT_KYC',
@@ -71,6 +74,7 @@ class BvnKycVerificationFlow {
         const { action, screen, data } = requestBody;
 
         if (action === 'data_exchange') {
+            await bindFlowRequest(requestBody, 'BVN_KYC_VERIFICATION');
             if (screen === BvnKycVerificationFlowScreens.SUBMIT_KYC) {
                 const nextScreenData = await this.completeBvnKycVerificationFlow(
                     data as DataExchangePayload['SUBMIT_KYC']
@@ -86,7 +90,7 @@ class BvnKycVerificationFlow {
         throw new Error('Unhandled action');
     }
 
-    public static createBvnVerificationFlowMessage(
+    public static async createBvnVerificationFlowMessage(
         user: UserV2Record,
         params: {
             messageRecipient: string;
@@ -111,7 +115,12 @@ class BvnKycVerificationFlow {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: await issueFlowToken({
+                            userId: user.id,
+                            presentedUserId: convertAsciiStringToBase64(user.id),
+                            flow: 'BVN_KYC_VERIFICATION',
+                            step: FLOW_STEPS.INIT,
+                        }),
                         flow_id: this.flowConfig.flowId,
                         mode: this.flowConfig.flowMode,
                         flow_cta: flowCTA,

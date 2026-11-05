@@ -16,5 +16,16 @@ export default [{
     "@typescript-eslint"
   ],
   rules: {
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: "Literal[value='[Flow Data Exchange]']",
+        message: 'BIZBOT-SEC-003: do not log decryptedFlowDataExchange (AES key / PIN / BVN).'
+      },
+      {
+        selector: "Property[key.name='data'] > MemberExpression[property.name='decryptedFlowDataExchange']",
+        message: 'BIZBOT-SEC-003: do not log decryptedFlowDataExchange (AES key / PIN / BVN).'
+      }
+    ]
   }
 }]

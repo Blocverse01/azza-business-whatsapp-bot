@@ -25,14 +25,20 @@ import { queues } from '@/background-processing/queues';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIX, SIXTEEN, SOL_RENT_ESTIMATE, ZERO } from '@/constants/numbers';
+import { SIX, SOL_RENT_ESTIMATE, ZERO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import {
     decimalToString,
     getUserCountryCodeFromPhoneNumberOrThrow,
 } from '@/resources/utils/currency';
-import { generateRandomHexString } from '@/resources/utils/encryption';
+import {
+    FLOW_STEPS,
+    assertPinAttemptAllowed,
+    bindFlowRequest,
+    consumeFlowSession,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { cleanPhoneNumberInput, standardizePhoneNumber } from '@/resources/utils/phone-numbers';
 import { clipDecimal } from '@/resources/utils/transformers';
@@ -130,6 +136,7 @@ class WhatsAppBotTransferToWalletFlowService {
         }
 
         if (action === 'data_exchange') {
+            await bindFlowRequest(requestBody, 'TRANSFER');
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
             switch (screen) {
@@ -417,6 +424,7 @@ class WhatsAppBotTransferToWalletFlowService {
             };
         }
 
+        await assertPinAttemptAllowed(data.user_id);
         const pinIsValid = await compareHashedString(
             data.transaction_pin,
             user.transactionPinHash!
@@ -541,6 +549,8 @@ class WhatsAppBotTransferToWalletFlowService {
                 });
             }
 
+            await consumeFlowSession(flowToken);
+
             return {
                 screen: TransferToWalletFlowScreens.FEEDBACK,
                 data: {
@@ -581,7 +591,7 @@ class WhatsAppBotTransferToWalletFlowService {
         });
     }
 
-    public static generateTransferToWalletInitMessage(
+    public static async generateTransferToWalletInitMessage(
         user: UserV2Record,
         params: {
             recipient: string;
@@ -611,7 +621,12 @@ class WhatsAppBotTransferToWalletFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: await issueFlowToken({
+                            userId: user.id,
+                            presentedUserId: user.id,
+                            flow: 'TRANSFER',
+                            step: FLOW_STEPS.INIT,
+                        }),
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
                         flow_cta: 'Withdraw Asset',

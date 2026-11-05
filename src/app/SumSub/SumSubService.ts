@@ -7,6 +7,7 @@ import logger from '@/resources/logger';
 import userServiceV2 from '@/runtime/user';
 import axios from 'axios';
 import crypto from 'node:crypto';
+import { safeCompare } from '@/resources/utils/safeCompare';
 import {
     WebhookPayloadDigestAlgorithms,
     WebhookPayloadDigestConfig,
@@ -198,7 +199,7 @@ class SumSubService {
             .update(payload)
             .digest('hex');
 
-        const digestIsValid = calculatedDigest === payloadDigest;
+        const digestIsValid = safeCompare(calculatedDigest, payloadDigest);
 
         if (!digestIsValid) throw new HttpException(UNAUTHORIZED, 'Invalid payload digest');
 

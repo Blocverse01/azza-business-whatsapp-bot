@@ -9,15 +9,18 @@ import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { queues } from '@/background-processing/queues';
 import env from '@/constants/env';
 import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIXTEEN } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
-import {
-    convertAsciiStringToBase64,
-    convertBase64ToAsciiString,
-    generateRandomHexString,
-} from '@/resources/utils/encryption';
+import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { compareHashedString, hashString } from '@/resources/utils/hashing';
 import userServiceV2 from '@/runtime/user';
+import {
+    FLOW_STEPS,
+    assertPinAttemptAllowed,
+    bindFlowRequest,
+    consumeFlowSession,
+    issueFlowToken,
+    type FlowSession,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 
 enum ChangeTransactionPinFlowScreens {
     ENTER_OLD_PIN_NEW_PIN = 'ENTER_OLD_PIN_NEW_PIN',
@@ -72,11 +75,14 @@ class WhatsAppBotChangeTransactionPinFlowService {
         }
 
         if (action === 'data_exchange') {
+            const session = await bindFlowRequest(requestBody, 'CHANGE_TRANSACTION_PIN');
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
             switch (screen) {
                 case ChangeTransactionPinFlowScreens.ENTER_OLD_PIN_NEW_PIN:
                     nextScreenData = await this.completeChangeTransactionPinFlow(
-                        data as DataExchangePayload['ENTER_OLD_PIN_NEW_PIN']
+                        data as DataExchangePayload['ENTER_OLD_PIN_NEW_PIN'],
+                        session,
+                        requestBody.flow_token
                     );
                     break;
             }
@@ -94,7 +100,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static createTransactionPinChangeFlowMessage(
+    public static async createTransactionPinChangeFlowMessage(
         user: UserV2Record,
         params: {
             messageRecipient: string;
@@ -103,6 +109,14 @@ class WhatsAppBotChangeTransactionPinFlowService {
         }
     ) {
         const { messageRecipient, messageBody, flowCTA } = params;
+
+        const presentedUserId = convertAsciiStringToBase64(user.id);
+        const flowToken = await issueFlowToken({
+            userId: user.id,
+            presentedUserId,
+            flow: 'CHANGE_TRANSACTION_PIN',
+            step: FLOW_STEPS.INIT,
+        });
 
         const flowMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
@@ -115,7 +129,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: flowToken,
                         flow_id: this.flowConfig.flowId,
                         mode: this.flowConfig.flowMode,
                         flow_cta: flowCTA,
@@ -124,7 +138,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
                             screen: this.INITIAL_SCREEN,
                             data: {
                                 form_description: CHANGE_TRANSACTION_PIN_FORM_DESCRIPTION,
-                                user_id: convertAsciiStringToBase64(user.id),
+                                user_id: presentedUserId,
                             } satisfies ScreenDataPayload['ENTER_OLD_PIN_NEW_PIN'],
                         },
                     },
@@ -139,12 +153,14 @@ class WhatsAppBotChangeTransactionPinFlowService {
     }
 
     private static async completeChangeTransactionPinFlow(
-        data: DataExchangePayload['ENTER_OLD_PIN_NEW_PIN']
+        data: DataExchangePayload['ENTER_OLD_PIN_NEW_PIN'],
+        session: FlowSession,
+        flowToken: string
     ) {
         const { new_pin, old_pin, confirm_new_pin, user_id } = data;
+        await assertPinAttemptAllowed(session.userId);
 
-        const unmaskedUserId = convertBase64ToAsciiString(user_id);
-        const user = await userServiceV2.getUserById(unmaskedUserId);
+        const user = await userServiceV2.getUserById(session.userId);
 
         // Check 1: If user does not have a transaction pin set
         if (!user?.transactionPinHash) {
@@ -223,7 +239,7 @@ class WhatsAppBotChangeTransactionPinFlowService {
             'change-tx-pin',
             {
                 newPinHash: hashedPin,
-                userId: user_id,
+                userId: session.presentedUserId,
                 whatsappParams: {
                     businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                     userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
@@ -236,6 +252,8 @@ class WhatsAppBotChangeTransactionPinFlowService {
                 },
             }
         );
+
+        await consumeFlowSession(flowToken);
 
         // Update user's transaction pin in background
         // spawnInBackground<ChangeTransactionPinParams>(

@@ -7,10 +7,14 @@ import {
 import {
     convertAsciiStringToBase64,
     convertBase64ToAsciiString,
-    generateRandomHexString,
 } from '@/resources/utils/encryption';
+import {
+    FLOW_STEPS,
+    bindFlowRequest,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 import { UserV2Record } from '@/db/xata';
-import { HUNDRED, SIX, SIXTEEN } from '@/constants/numbers';
+import { HUNDRED, SIX } from '@/constants/numbers';
 import { getFlowConfig } from './config';
 import env from '@/constants/env';
 import { DropdownOption, FlowMode } from './types';
@@ -142,6 +146,7 @@ class WhatsappBotNgnAirtimeFlowService {
         }
 
         if (action === 'data_exchange') {
+            await bindFlowRequest(requestBody, 'NGN_DATA_BUNDLE');
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
             switch (screen) {
@@ -176,7 +181,7 @@ class WhatsappBotNgnAirtimeFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static generateDataBundleFlowInitMessage(
+    public static async generateDataBundleFlowInitMessage(
         user: UserV2Record,
         params: {
             userPhoneNumber: string;
@@ -196,7 +201,12 @@ class WhatsappBotNgnAirtimeFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: await issueFlowToken({
+                            userId: user.id,
+                            presentedUserId: convertAsciiStringToBase64(user.id),
+                            flow: 'NGN_DATA_BUNDLE',
+                            step: FLOW_STEPS.INIT,
+                        }),
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
                         flow_cta: 'Buy Data Bundle',

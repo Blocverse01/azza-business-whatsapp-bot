@@ -451,7 +451,7 @@ export const handleWithdrawRelatedPrompt = async (
         };
     }
 
-    const message = WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
+    const message = await WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
         botParams.businessPhoneNumberId as PhoneNumberId
     ).createTransactionConfirmationFlowMessage({
         transactionSummary: `Send ${withdrawArguments.amount} ${targetAsset.tokenName} to ${recipient}`,
@@ -764,7 +764,7 @@ export const handleResetTransactionPinPrompt = async (
 
     const userSecurityQuestions = userServiceV2.retrieveUserSecurityQuestions(user);
 
-    const message = WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
+    const message = await WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
         botParams.businessPhoneNumberId as PhoneNumberId
     ).createTransactionPinResetFlowMessage(user, {
         messageRecipient: botParams.userPhoneNumber,
@@ -802,7 +802,7 @@ export const handleChangeTransactionPinPrompt = async (
         };
     }
 
-    const message = WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
+    const message = await WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
         botParams.businessPhoneNumberId as PhoneNumberId
     ).createTransactionPinChangeFlowMessage(user, {
         messageRecipient: botParams.userPhoneNumber,
@@ -1586,7 +1586,7 @@ export const handleSwapCryptoPrompt = async (
         .join('\n');
 
     const transactionSummaryMessage =
-        WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
+        await WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
             botParams.businessPhoneNumberId as PhoneNumberId
         ).createTransactionConfirmationFlowMessage({
             msgRecipient: botParams.userPhoneNumber,

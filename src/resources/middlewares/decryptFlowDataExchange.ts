@@ -64,10 +64,6 @@ const decryptFlowDataExchange = async (req: Request, res: Response, next: NextFu
         return res.send(earlyResponse);
     }
 
-    await logger.debug('[Flow Data Exchange]', {
-        data: req.decryptedFlowDataExchange
-    })
-
     next();
 };
 

@@ -18,7 +18,7 @@ import { defaultQueueRemoveOptions, queues } from '@/background-processing/queue
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { FOUR, SIXTEEN, THREE, TWO, ZERO } from '@/constants/numbers';
+import { FOUR, THREE, TWO, ZERO } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
 import { generateOfframpProcessingMessage } from '@/resources/utils/bot-message-utils';
@@ -33,8 +33,12 @@ import {
 import {
     convertAsciiStringToBase64,
     encryptWithAES,
-    generateRandomHexString,
 } from '@/resources/utils/encryption';
+import {
+    FLOW_STEPS,
+    bindFlowRequest,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 import { compareHashedString } from '@/resources/utils/hashing';
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
 import { AssetConfig, TokenNames } from '@/resources/web3/core/tokens';
@@ -155,6 +159,7 @@ class WhatsAppBotOffRampFlowService {
         }
 
         if (action === 'data_exchange') {
+            await bindFlowRequest(requestBody, 'OFFRAMP');
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
             switch (screen) {
@@ -904,7 +909,7 @@ class WhatsAppBotOffRampFlowService {
         }
     }
 
-    public static generateOffRampFlowInitMessage(
+    public static async generateOffRampFlowInitMessage(
         user: UserV2Record,
         params: {
             assetBalance: AssetBalance;
@@ -951,7 +956,12 @@ class WhatsAppBotOffRampFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: await issueFlowToken({
+                            userId: user.id,
+                            presentedUserId: user.id,
+                            flow: 'OFFRAMP',
+                            step: FLOW_STEPS.INIT,
+                        }),
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
                         flow_cta: 'Proceed',

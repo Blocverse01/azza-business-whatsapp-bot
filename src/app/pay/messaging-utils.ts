@@ -150,7 +150,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
             : `Your KYC verification is currently under review. Please wait for it to be completed before proceeding with payments.\n\n If you need assistance, please send /support.`;
 
         const botResponseMessage = isNgUser
-            ? BvnKycVerificationFlow.withPhoneNumberId(
+            ? await BvnKycVerificationFlow.withPhoneNumberId(
                   whatsappParams.businessPhoneNumberId as PhoneNumberId
               ).createBvnVerificationFlowMessage(user, {
                   messageBody: messageText,
@@ -563,7 +563,7 @@ export const handlePayPrompt = async (params: PayPromptParams): Promise<PayPromp
         }
     );
 
-    const message = WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
+    const message = await WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
         whatsappParams.businessPhoneNumberId as PhoneNumberId
     ).createTransactionConfirmationFlowMessage({
         transactionSummary: transactionSummary.replaceAll('*', ''),

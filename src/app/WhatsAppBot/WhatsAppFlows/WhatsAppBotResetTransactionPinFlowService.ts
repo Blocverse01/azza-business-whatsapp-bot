@@ -9,15 +9,21 @@ import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { queues } from '@/background-processing/queues';
 import env from '@/constants/env';
 import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIXTEEN } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
-import {
-    convertAsciiStringToBase64,
-    convertBase64ToAsciiString,
-    generateRandomHexString,
-} from '@/resources/utils/encryption';
+import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
 import { hashString } from '@/resources/utils/hashing';
 import userServiceV2 from '@/runtime/user';
+import {
+    FLOW_STEPS,
+    assertPinAttemptAllowed,
+    assertResetPinNewPinAllowed,
+    assertSecurityQuestionAttemptAllowed,
+    bindFlowRequest,
+    consumeFlowSession,
+    issueFlowToken,
+    updateFlowSessionStep,
+    type FlowSession,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 
 enum ResetTransactionPinFlowScreens {
     ANSWER_SECURITY_QUESTIONS = 'ANSWER_SECURITY_QUESTIONS',
@@ -96,23 +102,33 @@ class WhatsAppBotResetTransactionPinFlowService {
     public static async receiveDataExchange(
         requestBody: DecryptedFlowDataExchange['decryptedBody']
     ): Promise<DataExchangeResponse> {
-        const { action, screen, data } = requestBody;
+        const { action, screen, data, flow_token } = requestBody;
 
         if (action === 'INIT') {
             // Using Preview data
         }
 
         if (action === 'data_exchange') {
+            const session = await bindFlowRequest(requestBody, 'RESET_TRANSACTION_PIN');
+
+            if (screen === ResetTransactionPinFlowScreens.NEW_PIN) {
+                assertResetPinNewPinAllowed(session);
+            }
+
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
             switch (screen) {
                 case ResetTransactionPinFlowScreens.ANSWER_SECURITY_QUESTIONS:
                     nextScreenData = await this.getNewPinScreenData(
-                        data as DataExchangePayload['ANSWER_SECURITY_QUESTIONS']
+                        data as DataExchangePayload['ANSWER_SECURITY_QUESTIONS'],
+                        session,
+                        flow_token
                     );
                     break;
                 case ResetTransactionPinFlowScreens.NEW_PIN:
                     nextScreenData = await this.completeResetTransactionPinFlow(
-                        data as DataExchangePayload['NEW_PIN']
+                        data as DataExchangePayload['NEW_PIN'],
+                        session,
+                        flow_token
                     );
             }
 
@@ -129,7 +145,7 @@ class WhatsAppBotResetTransactionPinFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static createTransactionPinResetFlowMessage(
+    public static async createTransactionPinResetFlowMessage(
         user: UserV2Record,
         params: {
             messageRecipient: string;
@@ -169,6 +185,14 @@ class WhatsAppBotResetTransactionPinFlowService {
             }
         }
 
+        const presentedUserId = convertAsciiStringToBase64(user.id);
+        const flowToken = await issueFlowToken({
+            userId: user.id,
+            presentedUserId,
+            flow: 'RESET_TRANSACTION_PIN',
+            step: FLOW_STEPS.ANSWER_SECURITY_QUESTIONS,
+        });
+
         const flowMessage: WhatsAppInteractiveMessage = {
             type: 'interactive',
             interactive: {
@@ -180,7 +204,7 @@ class WhatsAppBotResetTransactionPinFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: flowToken,
                         flow_id: this.flowConfig.flowId,
                         mode: this.flowConfig.flowMode,
                         flow_cta: flowCTA,
@@ -189,7 +213,7 @@ class WhatsAppBotResetTransactionPinFlowService {
                             screen: this.INITIAL_SCREEN,
                             data: {
                                 form_description: RESET_TRANSACTION_PIN_FORM_DESCRIPTION,
-                                user_id: convertAsciiStringToBase64(user.id),
+                                user_id: presentedUserId,
                                 ...questionsForDisplay,
                                 all_questions_list: payloadSecurityQuestions,
                             } satisfies ScreenDataPayload['ANSWER_SECURITY_QUESTIONS'],
@@ -206,12 +230,14 @@ class WhatsAppBotResetTransactionPinFlowService {
     }
 
     private static async getNewPinScreenData(
-        data: DataExchangePayload['ANSWER_SECURITY_QUESTIONS']
+        data: DataExchangePayload['ANSWER_SECURITY_QUESTIONS'],
+        session: FlowSession,
+        flowToken: string
     ) {
         const { user_id, all_questions_list } = data;
+        await assertSecurityQuestionAttemptAllowed(session.userId);
 
-        const unmaskedUserId = convertBase64ToAsciiString(user_id);
-        const user = await userServiceV2.getUserById(unmaskedUserId);
+        const user = await userServiceV2.getUserById(session.userId);
 
         const storedSecurityQuestionsConfig = user?.securityQuestionsSetup;
 
@@ -278,6 +304,8 @@ class WhatsAppBotResetTransactionPinFlowService {
             };
         }
 
+        await updateFlowSessionStep(flowToken, FLOW_STEPS.QUESTIONS_PASSED);
+
         return {
             screen: ResetTransactionPinFlowScreens.NEW_PIN,
             data: {
@@ -287,10 +315,15 @@ class WhatsAppBotResetTransactionPinFlowService {
         };
     }
 
-    private static async completeResetTransactionPinFlow(data: DataExchangePayload['NEW_PIN']) {
+    private static async completeResetTransactionPinFlow(
+        data: DataExchangePayload['NEW_PIN'],
+        session: FlowSession,
+        flowToken: string
+    ) {
         const { new_pin, confirm_new_pin, user_id } = data;
+        await assertPinAttemptAllowed(session.userId);
 
-        const user = await userServiceV2.getUserById(convertBase64ToAsciiString(user_id));
+        const user = await userServiceV2.getUserById(session.userId);
 
         if (!user) {
             throw new Error('User not found');
@@ -337,7 +370,7 @@ class WhatsAppBotResetTransactionPinFlowService {
             'change-tx-pin',
             {
                 newPinHash: hashedPin,
-                userId: user_id,
+                userId: session.presentedUserId,
                 whatsappParams: {
                     businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                     userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
@@ -350,6 +383,8 @@ class WhatsAppBotResetTransactionPinFlowService {
                 },
             }
         );
+
+        await consumeFlowSession(flowToken);
 
         // Update user's transaction pin in background
         // spawnInBackground<ChangeTransactionPinParams>(

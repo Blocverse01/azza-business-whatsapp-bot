@@ -1,10 +1,15 @@
 import env from "@/constants/env";
 import { DropdownOption, FlowMode } from "./types";
 import { getFlowConfig } from "./config";
-import { convertAsciiStringToBase64, encryptWithAES, generateRandomHexString } from "@/resources/utils/encryption";
+import { convertAsciiStringToBase64, encryptWithAES } from "@/resources/utils/encryption";
+import {
+    FLOW_STEPS,
+    bindFlowRequest,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 import { DataExchangeResponse, DecryptedFlowDataExchange, WhatsAppInteractiveMessage } from "../WhatsAppBotType";
 import { AssetConfig, TokenNames } from "@/resources/web3/core/tokens";
-import { FOUR, SIXTEEN, THREE, TWO, ZERO } from "@/constants/numbers";
+import { FOUR, THREE, TWO, ZERO } from "@/constants/numbers";
 import WhatsAppBotFlowService from "./WhatsAppBotFlowService";
 import FiatRampService from "@/app/FiatRamp/FiatRampService";
 import { CountryCode } from "libphonenumber-js";
@@ -243,6 +248,7 @@ class WhatsAppBotAgentOffRampFlowService {
         const { screen, data, action, flow_token } = requestBody;
 
         if (action === 'data_exchange') {
+            await bindFlowRequest(requestBody, 'AGENT_OFFRAMP');
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
             switch (screen) {
@@ -298,7 +304,7 @@ class WhatsAppBotAgentOffRampFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static generateAgentOfframpFlowInitMessage(params: {
+    public static async generateAgentOfframpFlowInitMessage(params: {
         asset: AssetConfig;
         userId: string;
         countryCode: string;
@@ -320,7 +326,12 @@ class WhatsAppBotAgentOffRampFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: await issueFlowToken({
+                            userId,
+                            presentedUserId: userId,
+                            flow: 'AGENT_OFFRAMP',
+                            step: FLOW_STEPS.INIT,
+                        }),
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
                         flow_cta: 'Proceed',

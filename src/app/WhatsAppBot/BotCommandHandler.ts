@@ -593,7 +593,7 @@ class BotCommandHandler {
 
         const userSecurityQuestions = userServiceV2.retrieveUserSecurityQuestions(user);
 
-        const message = WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
+        const message = await WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
             params.businessPhoneNumberId as PhoneNumberId
         ).createTransactionPinResetFlowMessage(user, {
             messageRecipient: params.userPhoneNumber,
@@ -613,7 +613,7 @@ class BotCommandHandler {
             );
         }
 
-        const message = WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
+        const message = await WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
             env.WA_PHONE_NUMBER_ID
         ).createTransactionPinChangeFlowMessage(user, {
             messageRecipient: params.userPhoneNumber,
