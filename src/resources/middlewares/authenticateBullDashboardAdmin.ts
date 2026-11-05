@@ -8,38 +8,6 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
     const accessToken = req.cookies?.token;
 
     if (!accessToken) {
-        const ip =
-            req.headers['x-forwarded-for']?.toString().split(',')[0].trim() ??
-            req.socket.remoteAddress ??
-            'unknown';
-
-        const ipCacheKey = `bull_dashboard_access_ip_${ip}`;
-        const cachedIp = await redis.get(ipCacheKey);
-
-        if (cachedIp) {
-            next();
-            return;
-        }
-
-        const trustedIp =
-            ip !== 'unknown'
-                ? await dbClient.bull_dashboard_access
-                      .filter({
-                          ipAddress: ip,
-                      })
-                      .getFirst()
-                : null;
-
-        if (trustedIp) {
-            await redis.set(ipCacheKey, ip, 'EX', 60 * 60 * 24);
-            next();
-            return;
-        }
-
-        await logger.error('Error authenticating admin: Token is missing and IP not trusted', {
-            accessToken,
-            IP: ip,
-        });
         return res.status(FORBIDDEN).send('Forbidden');
     }
 
@@ -59,19 +27,16 @@ export const authenticateAdmin = async (req: Request, res: Response, next: NextF
             .getFirst();
 
         if (!validToken) {
-            await logger.error('Error authenticating admin: Invalid access token', {
-                accessToken,
-            });
+            await logger.error('Error authenticating admin: Invalid access token');
 
             return res.status(UNAUTHORIZED).send('Unauthorized');
         }
 
-        await redis.set(cacheKey, accessToken, 'EX', 60 * 60 * 24);
+        await redis.set(cacheKey, '1', 'EX', 60 * 60 * 24);
 
         next();
     } catch (error) {
         await logger.error('Error authenticating admin', {
-            accessToken,
             error: error,
         });
 

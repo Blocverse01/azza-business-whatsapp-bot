@@ -9,7 +9,7 @@ import FiatRampService from '@/app/FiatRamp/FiatRampService';
 import env from '@/constants/env';
 import { dbClient, sqlClient } from '@/db/dbClient';
 import { CryptoPayoutOrder } from '@/db/xata';
-import { decryptWithAES, encryptWithAES } from '@/resources/utils/encryption';
+import { decryptWithRandomIvAES, encryptWithRandomIvAES } from '@/resources/utils/encryption';
 import azzaWalletManager from '@/runtime/wallet';
 
 class CryptoPayoutService {
@@ -22,10 +22,9 @@ class CryptoPayoutService {
             triggerTransactionId: onrampTransactionId,
         } satisfies CryptoPayoutAuthorizationPayload;
 
-        return encryptWithAES(
+        return encryptWithRandomIvAES(
             JSON.stringify(cryptoPayoutTrigger),
-            env.CRYPTO_PAYOUT_AUTHORIZER_KEY,
-            env.CRYPTO_PAYOUT_AUTHORIZER_IV
+            env.CRYPTO_PAYOUT_AUTHORIZER_KEY
         );
     }
 
@@ -35,15 +34,14 @@ class CryptoPayoutService {
             triggerTransactionId: offrampOnchainTransactionId,
         } satisfies CryptoPayoutAuthorizationPayload;
 
-        return encryptWithAES(
+        return encryptWithRandomIvAES(
             JSON.stringify(cryptoPayoutTrigger),
-            env.CRYPTO_PAYOUT_AUTHORIZER_KEY,
-            env.CRYPTO_PAYOUT_AUTHORIZER_IV
+            env.CRYPTO_PAYOUT_AUTHORIZER_KEY
         );
     }
 
     public static validateCryptoPayoutAuthorizationPayload(encryptedPayload: string) {
-        const decryptedPayload = decryptWithAES(
+        const decryptedPayload = decryptWithRandomIvAES(
             encryptedPayload,
             env.CRYPTO_PAYOUT_AUTHORIZER_KEY,
             env.CRYPTO_PAYOUT_AUTHORIZER_IV

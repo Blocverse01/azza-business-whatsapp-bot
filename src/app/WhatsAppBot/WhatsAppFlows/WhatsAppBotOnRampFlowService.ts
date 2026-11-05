@@ -27,6 +27,11 @@ import {
     prettifyNumber,
 } from '@/resources/utils/currency';
 import { generateRandomHexString } from '@/resources/utils/encryption';
+import {
+    FLOW_STEPS,
+    bindFlowRequest,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
 import { validateWalletAddress } from '@/resources/utils/validators';
 import { AllSupportedBlockchains } from '@/resources/web3/core/blockchains';
@@ -202,6 +207,7 @@ class WhatsAppBotOnRampFlowService {
         }
 
         if (action === 'data_exchange') {
+            await bindFlowRequest(requestBody, 'ONRAMP');
 
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
@@ -960,7 +966,7 @@ class WhatsAppBotOnRampFlowService {
         }
     }
 
-    public static generateOnRampFlowInitMessage(
+    public static async generateOnRampFlowInitMessage(
         user: UserV2Record,
         isAgent: boolean,
         params: {
@@ -987,7 +993,13 @@ class WhatsAppBotOnRampFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: `${generateRandomHexString(SIXTEEN)}:isAgent:${isAgent}`,
+                        flow_token: await issueFlowToken({
+                            userId: user.id,
+                            presentedUserId: user.id,
+                            flow: 'ONRAMP',
+                            step: FLOW_STEPS.INIT,
+                            token: `${generateRandomHexString(SIXTEEN)}:isAgent:${isAgent}`,
+                        }),
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
                         flow_cta: 'Proceed',

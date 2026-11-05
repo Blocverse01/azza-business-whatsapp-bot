@@ -1,8 +1,11 @@
 import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import env from '@/constants/env';
 import { WhatsAppInteractiveMessage } from '@/app/WhatsAppBot/WhatsAppBotType';
-import { convertAsciiStringToBase64, generateRandomHexString } from '@/resources/utils/encryption';
-import { SIXTEEN } from '@/constants/numbers';
+import { convertAsciiStringToBase64 } from '@/resources/utils/encryption';
+import {
+    FLOW_STEPS,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 import {
     type KycReviewResult,
     type KycInfoToReview,
@@ -41,7 +44,7 @@ type TempKycResolutionStore = {
 const flowConfig = getFlowConfig('KYC_RESOLUTION', env.WA_PHONE_NUMBER_ID);
 
 export default class KycResolutionFlow {
-    public static generateKycResolutionFlowInitMessage(
+    public static async generateKycResolutionFlowInitMessage(
         result: KycReviewResult,
         userInfo: KycInfoToReview & {
             bvn_address: string;
@@ -51,7 +54,7 @@ export default class KycResolutionFlow {
             id: string;
             phoneNumber: string;
         }
-    ): WhatsAppInteractiveMessage {
+    ): Promise<WhatsAppInteractiveMessage> {
         const { phoneNumber: userPhoneNumber, id: userId } = recipient;
 
         if (result.decision !== 'MANUAL_REVIEW') {
@@ -75,7 +78,12 @@ export default class KycResolutionFlow {
             return 'information differences';
         })();
 
-        const flowToken = generateRandomHexString(SIXTEEN);
+        const flowToken = await issueFlowToken({
+            userId,
+            presentedUserId: userId,
+            flow: 'KYC_RESOLUTION',
+            step: FLOW_STEPS.INIT,
+        });
 
         return {
             type: 'interactive',

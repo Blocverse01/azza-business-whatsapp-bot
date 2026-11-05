@@ -9,16 +9,19 @@ import { FeedbackScreenPayload } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import { queues } from '@/background-processing/queues';
 import env from '@/constants/env';
 import { SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIXTEEN } from '@/constants/numbers';
 import { UserV2Record } from '@/db/xata';
 import { RECOVERY_QUESTIONS } from '@/resources/data/recovery-questions';
-import {
-    convertAsciiStringToBase64,
-    convertBase64ToAsciiString,
-    generateRandomHexString,
-} from '@/resources/utils/encryption';
+import { convertAsciiStringToBase64, convertBase64ToAsciiString } from '@/resources/utils/encryption';
 import { hashString } from '@/resources/utils/hashing';
 import userServiceV2 from '@/runtime/user';
+import {
+    FLOW_STEPS,
+    assertPinAttemptAllowed,
+    bindFlowRequest,
+    consumeFlowSession,
+    issueFlowToken,
+    type FlowSession,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 
 enum SetupTransactionPinFlowScreens {
     SET_TRANSACTION_PIN = 'SET_TRANSACTION_PIN',
@@ -110,15 +113,20 @@ class WhatsAppBotSetupTransactionPinFlowService {
         if (action === 'data_exchange') {
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
+            const session = await bindFlowRequest(requestBody, 'SET_TRANSACTION_PIN');
+
             switch (screen) {
                 case SetupTransactionPinFlowScreens.SET_TRANSACTION_PIN:
                     nextScreenData = await this.getRecoveryQuestionsScreenData(
-                        data as DataExchangePayload['SET_TRANSACTION_PIN']
+                        data as DataExchangePayload['SET_TRANSACTION_PIN'],
+                        session
                     );
                     break;
                 case SetupTransactionPinFlowScreens.RECOVERY_QUESTIONS:
                     nextScreenData = await this.completeFlow(
-                        data as DataExchangePayload['RECOVERY_QUESTIONS']
+                        data as DataExchangePayload['RECOVERY_QUESTIONS'],
+                        session,
+                        requestBody.flow_token
                     );
                     break;
             }
@@ -136,7 +144,7 @@ class WhatsAppBotSetupTransactionPinFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static createSetupTransactionPinFlowMessage(
+    public static async createSetupTransactionPinFlowMessage(
         user: UserV2Record,
         params: {
             messageBody: string;
@@ -156,7 +164,12 @@ class WhatsAppBotSetupTransactionPinFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: await issueFlowToken({
+                            userId: user.id,
+                            presentedUserId: convertAsciiStringToBase64(user.id),
+                            flow: 'SET_TRANSACTION_PIN',
+                            step: FLOW_STEPS.INIT,
+                        }),
                         flow_id: this.flowConfig.flowId,
                         mode: this.flowConfig.flowMode,
                         flow_cta: 'Set up Transaction PIN',
@@ -180,9 +193,11 @@ class WhatsAppBotSetupTransactionPinFlowService {
     }
 
     private static async getRecoveryQuestionsScreenData(
-        data: DataExchangePayload['SET_TRANSACTION_PIN']
+        data: DataExchangePayload['SET_TRANSACTION_PIN'],
+        session: FlowSession
     ) {
         const { transaction_pin, confirm_transaction_pin, user_id } = data;
+        await assertPinAttemptAllowed(session.userId);
 
         if (!transactionPinSchema.safeParse(transaction_pin).success) {
             return {
@@ -236,7 +251,11 @@ class WhatsAppBotSetupTransactionPinFlowService {
         };
     }
 
-    private static async completeFlow(data: DataExchangePayload['RECOVERY_QUESTIONS']) {
+    private static async completeFlow(
+        data: DataExchangePayload['RECOVERY_QUESTIONS'],
+        session: FlowSession,
+        flowToken: string
+    ) {
         const {
             transaction_pin,
             question_1,
@@ -248,6 +267,8 @@ class WhatsAppBotSetupTransactionPinFlowService {
         } = data;
 
         const user =
+            (await userServiceV2.getUserById(session.userId)) ??
+            (await userServiceV2.getWhatsappUserByPhoneNumber(session.userId)) ??
             (await userServiceV2.getUserById(convertBase64ToAsciiString(user_id))) ??
             (await userServiceV2.getWhatsappUserByPhoneNumber(convertBase64ToAsciiString(user_id)));
 
@@ -293,7 +314,7 @@ class WhatsAppBotSetupTransactionPinFlowService {
             {
                 newPinHash: hashedPin,
                 encryptedSecurityQuestions: encryptedSecuritySetup,
-                userId: user_id,
+                userId: session.presentedUserId,
                 whatsappParams: {
                     businessPhoneNumberId: env.WA_PHONE_NUMBER_ID,
                     userPhoneNumber: convertAsciiStringToBase64(user.primaryWhatsappPhoneNumber!),
@@ -306,6 +327,8 @@ class WhatsAppBotSetupTransactionPinFlowService {
                 },
             }
         );
+
+        await consumeFlowSession(flowToken);
 
         return {
             screen: 'FEEDBACK',

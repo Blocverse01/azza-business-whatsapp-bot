@@ -25,9 +25,15 @@ import { queues } from '@/background-processing/queues';
 import { getAssetConfigOrThrow } from '@/config/whatsAppBot';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIXTEEN } from '@/constants/numbers';
 import { logServiceError } from '@/resources/requestHelpers/handleRequestError';
-import { convertBase64ToAsciiString, generateRandomHexString } from '@/resources/utils/encryption';
+import { convertBase64ToAsciiString } from '@/resources/utils/encryption';
+import {
+    FLOW_STEPS,
+    assertPinAttemptAllowed,
+    bindFlowRequest,
+    consumeFlowSession,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 import { compareHashedString } from '@/resources/utils/hashing';
 import userServiceV2 from '@/runtime/user';
 
@@ -79,6 +85,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
         }
 
         if (action === 'data_exchange') {
+            await bindFlowRequest(requestBody, 'TRANSACTION_CONFIRMATION');
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
             switch (screen) {
@@ -125,6 +132,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
             };
         }
 
+        await assertPinAttemptAllowed(unmaskedUserId);
         const pinIsValid = await compareHashedString(transaction_pin, user.transactionPinHash!);
 
         if (!pinIsValid) {
@@ -247,6 +255,8 @@ class WhatsAppBotTransactionConfirmationFlowService {
                 throw new Error('Invalid transaction type');
         }
 
+        await consumeFlowSession(flowToken);
+
         return {
             screen: TransactionConfirmationFlowScreens.FEEDBACK,
             data: {
@@ -260,7 +270,7 @@ class WhatsAppBotTransactionConfirmationFlowService {
         };
     }
 
-    public static createTransactionConfirmationFlowMessage(params: {
+    public static async createTransactionConfirmationFlowMessage(params: {
         transactionSummary: string;
         transactionMessageBody: string;
         msgRecipient: string;
@@ -280,7 +290,12 @@ class WhatsAppBotTransactionConfirmationFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: await issueFlowToken({
+                            userId: convertBase64ToAsciiString(transactionDetails.userId),
+                            presentedUserId: transactionDetails.userId,
+                            flow: 'TRANSACTION_CONFIRMATION',
+                            step: FLOW_STEPS.INIT,
+                        }),
                         flow_id: this.flowConfig.flowId,
                         mode: this.flowConfig.flowMode,
                         flow_cta: 'Confirm Transaction',

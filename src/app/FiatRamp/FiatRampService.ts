@@ -39,6 +39,7 @@ import { CountryCode } from 'libphonenumber-js';
 import * as math from 'mathjs';
 import crypto from 'node:crypto';
 import slugify from 'slugify';
+import { safeCompare } from '@/resources/utils/safeCompare';
 import { mobileMoneyOffRampProvidersForKenya } from '@/app/HoneyCoin/whiteListedMobileMoneyChannel';
 
 import {
@@ -564,7 +565,7 @@ class FiatRampService {
             .update(bodyString)
             .digest('base64');
 
-        if (signature === calculatedSignature) {
+        if (safeCompare(signature, calculatedSignature)) {
             return JSON.parse(bodyString) as YellowCardWebhookPayload;
         } else {
             throw new HttpException(BAD_REQUEST, 'Invalid MetaData');

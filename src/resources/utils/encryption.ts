@@ -100,6 +100,9 @@ export const generateRandomHexString = (length: number) =>
     crypto.randomBytes(length).toString('hex');
 
 // Symmetric encryption
+export const AES_GCM_IV_LENGTH_BYTES = 12;
+const AES_GCM_TAG_LENGTH_BYTES = 16;
+
 export const encryptWithAES = (data: string, key: string, iv: string) => {
     const cipher = crypto.createCipheriv(
         'aes-256-gcm',
@@ -122,4 +125,42 @@ export const decryptWithAES = (encryptedData: string, key: string, iv: string) =
     const encryptedDataTag = encryptedDataBuffer.subarray(-16);
     decipher.setAuthTag(encryptedDataTag);
     return Buffer.concat([decipher.update(encryptedDataBody), decipher.final()]).toString('utf-8');
+};
+
+export const encryptWithRandomIvAES = (data: string, key: string) => {
+    const iv = crypto.randomBytes(AES_GCM_IV_LENGTH_BYTES);
+    const cipher = crypto.createCipheriv('aes-256-gcm', Buffer.from(key, 'hex'), iv);
+    const encrypted = Buffer.concat([cipher.update(data, 'utf-8'), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+    return Buffer.concat([iv, encrypted, authTag]).toString('hex');
+};
+
+export const decryptWithRandomIvAES = (encryptedData: string, key: string, legacyIv?: string) => {
+    const encryptedDataBuffer = Buffer.from(encryptedData, 'hex');
+
+    if (encryptedDataBuffer.length > AES_GCM_IV_LENGTH_BYTES + AES_GCM_TAG_LENGTH_BYTES) {
+        try {
+            const iv = encryptedDataBuffer.subarray(0, AES_GCM_IV_LENGTH_BYTES);
+            const encryptedDataTag = encryptedDataBuffer.subarray(-AES_GCM_TAG_LENGTH_BYTES);
+            const encryptedDataBody = encryptedDataBuffer.subarray(
+                AES_GCM_IV_LENGTH_BYTES,
+                -AES_GCM_TAG_LENGTH_BYTES
+            );
+            const decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(key, 'hex'), iv);
+            decipher.setAuthTag(encryptedDataTag);
+            return Buffer.concat([decipher.update(encryptedDataBody), decipher.final()]).toString(
+                'utf-8'
+            );
+        } catch (error) {
+            if (!legacyIv) {
+                throw error;
+            }
+        }
+    }
+
+    if (!legacyIv) {
+        throw new Error('Failed to decrypt authorization token');
+    }
+
+    return decryptWithAES(encryptedData, key, legacyIv);
 };

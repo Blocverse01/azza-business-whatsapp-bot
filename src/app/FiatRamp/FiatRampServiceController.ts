@@ -43,12 +43,17 @@ class FiatRampServiceController {
 
     public static async offRampWebWebhook(req: Request, res: Response) {
         try {
-            logSync('info', 'Offramp Webhook Received', req.body);
-
             res.sendStatus(OK);
 
-            const { sequenceId, yellowCardStatus, webhookEvent } =
+            const { sequenceId, yellowCardStatus, webhookEvent, id } =
                 FiatRampServiceController.receiveWebHookData(req);
+
+            logSync('info', 'Offramp Webhook Received', {
+                id,
+                sequenceId,
+                event: webhookEvent,
+                status: yellowCardStatus,
+            });
 
             if (!FiatRampService.eventTypeIsValid(webhookEvent, 'offramp')) {
                 await logger.info(`Invalid Event Type ${webhookEvent}`);
@@ -181,12 +186,17 @@ class FiatRampServiceController {
 
     public static async onRampWebWebhook(req: Request, res: Response) {
         try {
-            logSync('info', 'Onramp Webhook Received', req.body);
-
             res.sendStatus(OK);
 
-            const { sequenceId, yellowCardStatus, webhookEvent } =
+            const { sequenceId, yellowCardStatus, webhookEvent, id } =
                 FiatRampServiceController.receiveWebHookData(req);
+
+            logSync('info', 'Onramp Webhook Received', {
+                id,
+                sequenceId,
+                event: webhookEvent,
+                status: yellowCardStatus,
+            });
 
             if (!FiatRampService.eventTypeIsValid(webhookEvent, 'onramp')) {
                 await logger.info(`Invalid Event Type ${webhookEvent}`);

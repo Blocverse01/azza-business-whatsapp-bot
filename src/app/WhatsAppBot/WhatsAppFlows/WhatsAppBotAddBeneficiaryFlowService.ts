@@ -8,10 +8,13 @@ import { getFlowConfig } from '@/app/WhatsAppBot/WhatsAppFlows/config';
 import { DropdownOption, FlowMode } from '@/app/WhatsAppBot/WhatsAppFlows/types';
 import env from '@/constants/env';
 import { ERROR_FEEDBACK_ICON, SUCCESS_FEEDBACK_ICON } from '@/constants/feeback-icons';
-import { SIXTEEN } from '@/constants/numbers';
 import logger from '@/resources/logger';
 import { parseUnknownError } from '@/resources/requestHelpers/handleRequestError';
-import { generateRandomHexString } from '@/resources/utils/encryption';
+import {
+    FLOW_STEPS,
+    bindFlowRequest,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 import { standardizePhoneNumberOrReturnError } from '@/resources/utils/phone-numbers';
 import { AssetConfig } from '@/resources/web3/core/tokens';
 import { type CountryCode } from 'libphonenumber-js';
@@ -152,6 +155,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
         const { screen, data, action } = requestBody;
 
         if (action === 'data_exchange') {
+            await bindFlowRequest(requestBody, 'ADD_BENEFICIARY');
             let nextScreenData: Omit<DataExchangeResponse, 'version'> | undefined;
 
             switch (screen) {
@@ -203,7 +207,7 @@ class WhatsAppBotAddBeneficiaryFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static generateAddBeneficiaryFlowInitMessage(params: {
+    public static async generateAddBeneficiaryFlowInitMessage(params: {
         asset: AssetConfig;
         countryCode: string;
         recipient: string;
@@ -223,7 +227,12 @@ class WhatsAppBotAddBeneficiaryFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: await issueFlowToken({
+                            userId: recipient,
+                            presentedUserId: recipient,
+                            flow: 'ADD_BENEFICIARY',
+                            step: FLOW_STEPS.INIT,
+                        }),
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
                         flow_cta: 'Add Beneficiary',

@@ -14,6 +14,7 @@ import { generateOfframpToBankRecipientReceipt } from "../receipts/generators";
 import { addCryptoPayoutJobToQueue } from "../crypto-payouts-v2/utils";
 import { searchSupportedBlockchain } from "../FiatRamp/utils";
 import { isCashBackEnabledChain } from "../campaigns/cashbacks/utils";
+import { safeCompare } from "@/resources/utils/safeCompare";
 
 
 class HoneyCoinController {
@@ -29,7 +30,7 @@ class HoneyCoinController {
 
         const HoneyCoinWebhookSecret = env.HONEYCOIN_WEBHOOK_SECRET;
 
-        if (signature !== HoneyCoinWebhookSecret) {
+        if (!safeCompare(signature, HoneyCoinWebhookSecret)) {
             throw new HttpException(BAD_REQUEST, 'Invalid signature');
         }
 
@@ -37,13 +38,13 @@ class HoneyCoinController {
 
     public static async offRampWebWebhook(req: Request, res: Response) {
         try {
-            logSync('info', 'HoneyCoin Offramp Webhook Received', req.body);
-
             res.sendStatus(OK);
 
             HoneyCoinController.receiveWebHookData(req);
 
             const { data: { status, externalReference: referenceId, type } } = req.body;
+
+            logSync('info', 'HoneyCoin Offramp Webhook Received', { referenceId, type, status });
 
             if (!HoneyCoinService.eventTypeIsValid(type, 'offramp')) {
                 await logger.info(`Invalid Event Type ${type}`);

@@ -7,11 +7,14 @@ import {
 import {
     convertAsciiStringToBase64,
     convertBase64ToAsciiString,
-    generateRandomHexString,
 } from '@/resources/utils/encryption';
+import {
+    FLOW_STEPS,
+    bindFlowRequest,
+    issueFlowToken,
+} from '@/app/WhatsAppBot/WhatsAppFlows/flowSession';
 import { accountStatementDateRangeSchema } from './schema';
 import { UserV2Record } from '@/db/xata';
-import { SIXTEEN } from '@/constants/numbers';
 import { getFlowConfig } from './config';
 import env from '@/constants/env';
 import { FlowMode } from './types';
@@ -69,6 +72,7 @@ class WhatsappBotAccountStatementFlowService {
         }
 
         if (action === 'data_exchange') {
+            await bindFlowRequest(requestBody, 'ACCOUNT_STATEMENT');
             if (screen === AccountStatementFlowScreens.TRANSACTION_DATE_RANGE) {
                 const nextScreenData = await this.getAccountStatementFlow(
                     data as DataExchangePayload['TRANSACTION_DATE_RANGE_SCREEN']
@@ -88,7 +92,7 @@ class WhatsappBotAccountStatementFlowService {
         throw new Error('Unhandled action');
     }
 
-    public static generateAccountStatementFlowInitMessage(
+    public static async generateAccountStatementFlowInitMessage(
         user: UserV2Record,
         recipient: { userPhoneNumber: string }
     ) {
@@ -105,7 +109,12 @@ class WhatsappBotAccountStatementFlowService {
                     name: 'flow',
                     parameters: {
                         flow_message_version: '3',
-                        flow_token: generateRandomHexString(SIXTEEN),
+                        flow_token: await issueFlowToken({
+                            userId: user.id,
+                            presentedUserId: convertAsciiStringToBase64(user.id),
+                            flow: 'ACCOUNT_STATEMENT',
+                            step: FLOW_STEPS.INIT,
+                        }),
                         flow_id: this.FLOW_ID,
                         mode: this.FLOW_MODE,
                         flow_cta: 'Generate Statement',

@@ -254,7 +254,7 @@ export const createKycEventJobWorker = () => {
                         }
                         if (kycReviewResult.decision === 'MANUAL_REVIEW') {
                             const resolutionMessage =
-                                KycResolutionFlow.generateKycResolutionFlowInitMessage(
+                                await KycResolutionFlow.generateKycResolutionFlowInitMessage(
                                     kycReviewResult,
                                     {
                                         ...userBioData,
@@ -287,7 +287,7 @@ export const createKycEventJobWorker = () => {
                         return;
                     }
 
-                    const message = BvnKycVerificationFlow.withPhoneNumberId(
+                    const message = await BvnKycVerificationFlow.withPhoneNumberId(
                         env.WA_PHONE_NUMBER_ID
                     ).createBvnVerificationFlowMessage(user, {
                         messageBody: `BVN verification failed.\n\nPlease confirm your BVN number and click on 'Try Again'`,
@@ -349,7 +349,7 @@ export const createKycEventJobWorker = () => {
             );
 
             if (targetHistoryItem.Country === NG) {
-                const message = BvnKycVerificationFlow.withPhoneNumberId(
+                const message = await BvnKycVerificationFlow.withPhoneNumberId(
                     env.WA_PHONE_NUMBER_ID
                 ).createBvnVerificationFlowMessage(user, {
                     messageBody:

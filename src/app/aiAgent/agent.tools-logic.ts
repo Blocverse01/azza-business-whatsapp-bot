@@ -96,7 +96,7 @@ export const executeTransferAsset = async (params: TransferCryptoAssetParams) =>
         };
     }
 
-    const message = WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
+    const message = await WhatsAppBotTransactionConfirmationFlowService.withPhoneNumberId(
         env.WA_PHONE_NUMBER_ID
     ).createTransactionConfirmationFlowMessage({
         transactionSummary: `Send ${amount} ${targetAsset.tokenName} to ${recipient}`,
@@ -280,7 +280,7 @@ export const executeRequestTransactionPinSetup = async (
         };
     }
 
-    const message = WhatsAppBotSetupTransactionPinFlowService.withPhoneNumberId(
+    const message = await WhatsAppBotSetupTransactionPinFlowService.withPhoneNumberId(
         phoneParams.businessPhoneNumberId as PhoneNumberId
     ).createSetupTransactionPinFlowMessage(user, {
         messageRecipient: phoneParams.userPhoneNumber,
@@ -337,7 +337,7 @@ export const executeChangeTransactionPin = async (params: BaseWalletToolParams) 
         };
     }
 
-    const message = WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
+    const message = await WhatsAppBotChangeTransactionPinFlowService.withPhoneNumberId(
         businessPhoneNumberId as PhoneNumberId
     ).createTransactionPinChangeFlowMessage(user, {
         messageRecipient: userPhoneNumber,
@@ -365,7 +365,7 @@ export const executeResetTransactionPin = async (params: BaseWalletToolParams) =
 
     const userSecurityQuestions = userServiceV2.retrieveUserSecurityQuestions(user);
 
-    const message = WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
+    const message = await WhatsAppBotResetTransactionPinFlowService.withPhoneNumberId(
         businessPhoneNumberId as PhoneNumberId
     ).createTransactionPinResetFlowMessage(user, {
         messageRecipient: userPhoneNumber,
